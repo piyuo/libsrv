@@ -1,4 +1,4 @@
-module github.com/piyuo/libsrv
+module github.com/piyuo/go-libsrv
 
 go 1.11
 
