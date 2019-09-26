@@ -1,6 +1,6 @@
-# libsrv
+# go-libsrv
 
-Library for all server project
+Library for all GO server project
 
 ## Requirement
 
