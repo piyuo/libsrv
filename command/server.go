@@ -24,7 +24,7 @@ type Server struct {
 //      Map: &commands.MapXXX{},
 //     }
 //     func main() {
-//      server.RunAsServer()
+//      server.Start(80)
 //     }
 func (s *Server) Start(port int) {
 	if s.Map == nil {
