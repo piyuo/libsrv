@@ -42,8 +42,9 @@ func (s *Server) Start(port int) {
 //  return server.newHandler()
 func (s *Server) newHandler() http.Handler {
 	withoutArchive := http.HandlerFunc(s.Main)
-	withArchive := ArchiveHandler(withoutArchive)
-	return withArchive
+	// support local server gzip compress
+	// withArchive := ArchiveHandler(withoutArchive)
+	return withoutArchive
 }
 
 // Main entry for http request, filter empty and bad request and send correct one to dispatch
@@ -65,7 +66,7 @@ func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(bytes) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		s.writeText(w, "no command")
+		s.writeText(w, "command not exist")
 		return
 	}
 
