@@ -6,6 +6,7 @@ import (
 	"time"
 
 	proto "github.com/golang/protobuf/proto"
+	"github.com/piyuo/go-libsrv/common"
 	"github.com/pkg/errors"
 )
 
@@ -55,15 +56,21 @@ func (dp *Dispatch) Route(bytes []byte) ([]byte, error) {
 	}
 
 	startTime := time.Now()
-	fmt.Printf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes))
+	if common.DEBUG {
+		fmt.Printf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes))
+	}
 	var returnBytes []byte
 	if response != nil {
 		returnBytes, err = dp.encodeCommand(responseID, response)
-		fmt.Printf("return %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes))
+		if common.DEBUG {
+			fmt.Printf("return %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes))
+		}
 	}
-	duration := time.Now().Sub(startTime)
-	ms := duration.Nanoseconds() / 10000000
-	fmt.Printf(", %v ms\n", ms)
+	if common.DEBUG {
+		duration := time.Now().Sub(startTime)
+		ms := duration.Nanoseconds() / 10000000
+		fmt.Printf(", %v ms\n", ms)
+	}
 	return returnBytes, err
 }
 
