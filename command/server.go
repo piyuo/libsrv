@@ -26,12 +26,12 @@ type Server struct {
 //     func main() {
 //      server.RunAsServer()
 //     }
-func (s *Server) Start() {
+func (s *Server) Start(port int) {
 	if s.Map == nil {
 		panic("Server need Map for command pattern, try &Server{Map:yourMap}")
 	}
 	http.Handle("/", s.newHandler())
-	http.ListenAndServe(":80", nil)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
 // create handler with archive ability
