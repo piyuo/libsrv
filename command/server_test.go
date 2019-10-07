@@ -45,6 +45,7 @@ func BenchmarkSmallAction(b *testing.B) {
 	}
 }
 
+/* archive no longer support
 func TestArchive(t *testing.T) {
 	handler := newTestServerHandler()
 	actBytes := newTestAction(textLong)
@@ -64,7 +65,7 @@ func TestArchive(t *testing.T) {
 		So(res1.Header.Get("Content-Type"), ShouldEqual, "application/octet-stream")
 	})
 }
-
+*/
 func TestServe(t *testing.T) {
 	handler := newTestServerHandler()
 	actBytes := newTestAction("Hi")

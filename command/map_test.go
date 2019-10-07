@@ -18,6 +18,6 @@ func (r *TestMap) IDToObject(id uint16) interface{} {
 }
 
 // IDCount give total id count
-func (r *TestMap) IDCount() uint16 {
+func (r *TestMap) MaxID() uint16 {
 	return 3
 }

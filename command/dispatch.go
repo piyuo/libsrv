@@ -26,7 +26,7 @@ type IResponse interface {
 // IMap map id and object
 type IMap interface {
 	IDToObject(id uint16) interface{}
-	IDCount() uint16
+	MaxID() uint16
 }
 
 // Dispatch manage action,handler,response
@@ -140,8 +140,8 @@ func (dp *Dispatch) decodeCommand(bytes []byte) (uint16, interface{}, error) {
 	protoBytes := bytes[:bytesLen-2]
 	idBytes := bytes[bytesLen-2:]
 	id := binary.LittleEndian.Uint16(idBytes)
-	if id > dp.Map.IDCount() {
-		ErrCommandParsing = errors.New(fmt.Sprintf("id %v out of range, the max id allowed is %v", id, dp.Map.IDCount()))
+	if id > dp.Map.MaxID() {
+		ErrCommandParsing = errors.New(fmt.Sprintf("id %v out of range, the max id allowed is %v", id, dp.Map.MaxID()))
 		return 0, nil, ErrCommandParsing
 	}
 
