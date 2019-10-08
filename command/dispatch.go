@@ -25,8 +25,7 @@ type IResponse interface {
 
 // IMap map id and object
 type IMap interface {
-	IDToObject(id uint16) interface{}
-	MaxID() uint16
+	NewObjectByID(id uint16) interface{}
 }
 
 // Dispatch manage action,handler,response
@@ -86,7 +85,7 @@ func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 
 //protoFromBuffer read proto message from buffer
 func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error) {
-	obj := dp.Map.IDToObject(id)
+	obj := dp.Map.NewObjectByID(id)
 	if obj == nil {
 		return nil, errors.New(fmt.Sprintf("failed to map id %v", id))
 	}
@@ -140,11 +139,6 @@ func (dp *Dispatch) decodeCommand(bytes []byte) (uint16, interface{}, error) {
 	protoBytes := bytes[:bytesLen-2]
 	idBytes := bytes[bytesLen-2:]
 	id := binary.LittleEndian.Uint16(idBytes)
-	if id > dp.Map.MaxID() {
-		ErrCommandParsing = errors.New(fmt.Sprintf("id %v out of range, the max id allowed is %v", id, dp.Map.MaxID()))
-		return 0, nil, ErrCommandParsing
-	}
-
 	protoInterface, err := dp.protoFromBuffer(id, protoBytes)
 	if err != nil {
 		return 0, nil, errors.Wrap(err, "failed to convert buffer to proto")

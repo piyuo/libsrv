@@ -5,7 +5,7 @@ type TestMap struct {
 }
 
 // IDToObject return object from id
-func (r *TestMap) IDToObject(id uint16) interface{} {
+func (r *TestMap) NewObjectByID(id uint16) interface{} {
 	switch id {
 	case 1:
 		return new(TestAction)
@@ -15,9 +15,4 @@ func (r *TestMap) IDToObject(id uint16) interface{} {
 		return new(TestActionNotRespond)
 	}
 	return nil
-}
-
-// IDCount give total id count
-func (r *TestMap) MaxID() uint16 {
-	return 3
 }
