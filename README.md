@@ -30,12 +30,20 @@ using launch.json configuration
 
 ```json
 {
-  "name": "libsrv debug test",
-  "type": "go",
-  "request": "launch",
-  "mode": "test",
-  "program": "${workspaceFolder}/src/libsrv"
+ "name": "libsrv debug",
+ "type": "go",
+ "request": "launch",
+ "mode": "auto",
+ "program": "${workspaceFolder}/src/libsrv-debug"
 }
+```
+
+set break point on main.go, trace into server.Start() to get libsrv server.go
+
+use curl to debug
+
+```bash
+curl http://127.0.0.1:2999
 ```
 
 ## Test
