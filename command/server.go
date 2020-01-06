@@ -52,11 +52,12 @@ func (s *Server) newHandler() http.Handler {
 // enable cross origin access
 func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if len(r.URL.Path) != 1 {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Println(r.URL.Path + " not found")
-		return
-	}
+	//todo:skip check url for now
+	//if len(r.URL.Path) != 1 {
+	//	w.WriteHeader(http.StatusNotFound)
+	//	fmt.Println(r.URL.Path + " not found")
+	//	return
+	//}
 
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
