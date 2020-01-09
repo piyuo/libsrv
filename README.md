@@ -6,7 +6,7 @@ Library for all GO server project
 
 need environment variable
 
-SA : {google service account key}
+PIYUO_ID="dev" (production should like piyuo-tw-m-sys)
 
 ## Git
 
@@ -30,13 +30,15 @@ using launch.json configuration
 
 ```json
 {
- "name": "libsrv debug",
- "type": "go",
- "request": "launch",
- "mode": "auto",
- "program": "${workspaceFolder}/src/libsrv-debug"
+  "name": "libsrv debug",
+  "type": "go",
+  "request": "launch",
+  "mode": "auto",
+  "program": "${workspaceFolder}/src/libsrv-debug"
 }
 ```
+
+update go.mod, set go-libsrv to latest
 
 set break point on main.go, trace into server.Start() to get libsrv server.go
 

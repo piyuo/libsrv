@@ -3,15 +3,12 @@ package data
 import (
 	"context"
 	"log"
-	"os"
 
 	firebase "firebase.google.com/go"
+	libsrv "github.com/piyuo/go-libsrv"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
-
-const credentialScopes = "https://www.googleapis.com/auth/datastore"
 
 // ProviderFirestore implement google firestore
 type ProviderFirestore struct {
@@ -28,18 +25,14 @@ func NewProviderFirestore() *ProviderFirestore {
 
 //Initialize check env variable DATA_CRED to init google credentials for firestore
 func (provider *ProviderFirestore) Initialize() {
-	json := os.Getenv("SA")
-	if json == "" {
-		panic("Must set environment variable SA={google service account key} before using libsrv")
-	}
 	ctx := context.Background()
-	creds, err := google.CredentialsFromJSON(ctx, []byte(json), credentialScopes)
+	cred, err := libsrv.CurrentSystem().GetGoogleCloudCredential(libsrv.DB)
 	if err != nil {
-		log.Printf("Failed to convert json to google credentials")
-		panic(err)
+		libsrv.CurrentSystem().Alert("database operation failed to get google credential.  %v")
+		return
 	}
-	serviceAccount := option.WithCredentials(creds)
-	provider.app, err = firebase.NewApp(ctx, nil, serviceAccount)
+
+	provider.app, err = firebase.NewApp(ctx, nil, option.WithCredentials(cred))
 	if err != nil {
 		log.Printf("Failed to create firebase app")
 		panic(err)

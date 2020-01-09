@@ -3,19 +3,36 @@ module github.com/piyuo/go-libsrv
 go 1.11
 
 require (
-	cloud.google.com/go v0.37.4
+	cloud.google.com/go v0.51.0
+	cloud.google.com/go/firestore v1.1.1
+	cloud.google.com/go/logging v1.0.0
+	cloud.google.com/go/storage v1.5.0 // indirect
+	dmitri.shuralyov.com/gpu/mtl v0.0.0-20191203043605-d42048ed14fd // indirect
 	firebase.google.com/go v3.7.0+incompatible
-	github.com/golang/protobuf v1.3.1
-	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/creack/pty v1.1.9 // indirect
+	github.com/envoyproxy/go-control-plane v0.9.1 // indirect
+	github.com/golang/protobuf v1.3.2
+	github.com/google/btree v1.0.0 // indirect
+	github.com/google/go-cmp v0.4.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.3 // indirect
+	github.com/kr/pretty v0.2.0 // indirect
+	github.com/kr/pty v1.1.8 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
-	github.com/stretchr/testify v1.3.0
-	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
-	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	golang.org/x/sys v0.0.0-20190515120540-06a5c4944438 // indirect
-	golang.org/x/text v0.3.2 // indirect
-	google.golang.org/api v0.4.0
-	google.golang.org/appengine v1.6.0 // indirect
-	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb // indirect
-	google.golang.org/grpc v1.21.0
+	github.com/prometheus/client_model v0.1.0 // indirect
+	github.com/rogpeppe/go-internal v1.5.1 // indirect
+	github.com/smartystreets/goconvey v1.6.4
+	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/stretchr/testify v1.4.0
+	golang.org/x/crypto v0.0.0-20200108215511-5d647ca15757 // indirect
+	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52 // indirect
+	golang.org/x/mobile v0.0.0-20191210151939-1a1fef82734d // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/sys v0.0.0-20200107162124-548cf772de50 // indirect
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	golang.org/x/tools v0.0.0-20200108203644-89082a384178 // indirect
+	google.golang.org/api v0.15.0
+	google.golang.org/genproto v0.0.0-20200108215221-bd8f9a0ef82f // indirect
+	google.golang.org/grpc v1.26.0
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
