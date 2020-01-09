@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"log"
 
 	firebase "firebase.google.com/go"
 	libsrv "github.com/piyuo/go-libsrv"
@@ -34,7 +33,7 @@ func (provider *ProviderFirestore) Initialize() {
 
 	provider.app, err = firebase.NewApp(ctx, nil, option.WithCredentials(cred))
 	if err != nil {
-		log.Printf("Failed to create firebase app")
+		libsrv.CurrentSystem().Emergency("failed to create firebase client")
 		panic(err)
 	}
 	provider.ctx = ctx
@@ -44,7 +43,7 @@ func (provider *ProviderFirestore) Initialize() {
 func (provider *ProviderFirestore) NewDB() (IDB, error) {
 	client, err := provider.app.Firestore(provider.ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create firestore client")
+		return nil, errors.Wrap(err, "failed to create firestore client")
 	}
 	return NewDBFirestore(client), nil
 }

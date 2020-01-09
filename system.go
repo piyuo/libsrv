@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"strings"
+	"time"
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
@@ -16,10 +18,13 @@ import (
 
 // System is system interface
 type System interface {
+	//Check system need environment variable is set
 	Check()
+
 	ID() string
-	SetDebug(value bool)
-	IsDebug() bool
+
+	//IsProduction check system runing in production environment
+	IsProduction() bool
 
 	//Normal but significant events, such as start up, shut down, or a configuration change.
 	Log(text string)
@@ -30,6 +35,9 @@ type System interface {
 	//A person must take an action immediately.
 	Alert(text string)
 
+	//One or more systems are unusable.
+	Emergency(text string)
+
 	//Routine information, such as ongoing status or performance.
 	Info(text string)
 
@@ -39,14 +47,20 @@ type System interface {
 	JoinCurrentDir(dir string) string
 
 	GetGoogleCloudCredential(c Credential) (*google.Credentials, error)
+
+	//start timer
+	TimerStart()
+
+	//stop timer and return duration as ms
+	TimerStop() int64
 }
 
 type system struct {
-	googleCred *google.Credentials
+	googleCred   *google.Credentials
+	isProduction bool
+	timer        time.Time
 }
 
-// DEBUG indicate debug or release mode
-var DEBUG = true
 var instance System
 
 //CurrentSystem keep default system settings and provide log, error functions
@@ -89,13 +103,42 @@ func (s *system) JoinCurrentDir(dir string) string {
 }
 
 func (s *system) Check() {
-	if os.Getenv("PIYUO_ID") == "" {
+	id := os.Getenv("PIYUO_ID")
+	if id == "" {
 		panic("need set env var PIYUO_ID=...")
 	}
+	//id format like piyuo-tw-m-app
+	s.isProduction = s.checkProduction(id)
+}
+
+func (s *system) checkProduction(id string) bool {
+	//id format like piyuo-tw-m-app
+	if strings.Contains(id, "-") {
+		arg := strings.Split(id, "-")
+		if arg[2] == "m" {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *system) IsProduction() bool {
+	return s.isProduction
 }
 
 func (s *system) ID() string {
 	return os.Getenv("PIYUO_ID")
+}
+
+func (s *system) TimerStart() {
+	s.timer = time.Now()
+}
+
+func (s *system) TimerStop() int64 {
+	duration := time.Now().Sub(s.timer)
+	ns := duration.Nanoseconds()
+	ms := ns / 1000000
+	return ms
 }
 
 // return filename and scope from credential
@@ -121,7 +164,9 @@ func (s *system) initGoogleCloudCredential(c Credential) (*google.Credentials, e
 	filename, scope := s.getAttributesFromCredential(c)
 
 	keyfile := s.JoinCurrentDir("keys/" + filename)
-
+	if _, err := os.Stat(keyfile); err != nil {
+		keyfile = s.JoinCurrentDir("../keys/" + filename)
+	}
 	jsonfile, err := NewJSONFile(keyfile)
 	if err != nil {
 		return nil, errors.Wrap(err, "can no open key file "+"keys/"+filename)
@@ -152,14 +197,6 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 		s.googleCred = cred
 	}
 	return s.googleCred, nil
-}
-
-func (s *system) SetDebug(value bool) {
-	DEBUG = value
-}
-
-func (s *system) IsDebug() bool {
-	return DEBUG
 }
 
 // there is no error return for log
@@ -211,6 +248,10 @@ func (s *system) Warning(text string) {
 
 func (s *system) Alert(text string) {
 	s.log(text, ALERT)
+}
+
+func (s *system) Emergency(text string) {
+	s.log(text, EMERGENCY)
 }
 
 func (s *system) Error(targetErr error) {

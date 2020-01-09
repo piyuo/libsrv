@@ -4,8 +4,9 @@ import (
 	fmt "fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	libsrv "github.com/piyuo/go-libsrv"
 )
 
 // Server handle http request and call dispatch
@@ -27,8 +28,11 @@ type Server struct {
 //      server.Start(80)
 //     }
 func (s *Server) Start(port int) {
+	libsrv.CurrentSystem().Check()
 	if s.Map == nil {
-		panic("Server need Map for command pattern, try &Server{Map:yourMap}")
+		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
+		libsrv.CurrentSystem().Emergency(msg)
+		panic(msg)
 	}
 	http.Handle("/", s.newHandler())
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
@@ -52,16 +56,26 @@ func (s *Server) newHandler() http.Handler {
 // enable cross origin access
 func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		msg := "bad request. request is empty"
+		s.writeText(w, msg)
+		libsrv.CurrentSystem().Info(msg)
+		return
+	}
 
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		s.writeText(w, err.Error())
+		libsrv.CurrentSystem().Info("bad request. " + err.Error())
 		return
 	}
 	if len(bytes) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		s.writeText(w, "bad request, must include command in request.")
+		msg := "bad request, must include command in request"
+		s.writeText(w, msg)
+		libsrv.CurrentSystem().Info(msg)
 		return
 	}
 
@@ -71,20 +85,21 @@ func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 	bytes, err = s.dispatch.Route(bytes)
 	if err == ErrCommandParsing {
 		w.WriteHeader(http.StatusBadRequest)
-		s.writeText(w, err.Error())
+		msg := "bad request, failed to parsing command. " + err.Error()
+		s.writeText(w, msg)
+		libsrv.CurrentSystem().Warning(msg)
 		return
 	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.writeText(w, err.Error())
-		s.handleException(err)
+		s.writeText(w, "internal server error, we already log this error and will be fixed ASAP.")
+		libsrv.CurrentSystem().Error(err)
 		return
 	}
 
 	if bytes != nil {
 		s.writeBinary(w, bytes)
 	}
-
 }
 
 func (s *Server) writeText(w http.ResponseWriter, text string) {
@@ -95,9 +110,4 @@ func (s *Server) writeText(w http.ResponseWriter, text string) {
 func (s *Server) writeBinary(w http.ResponseWriter, bytes []byte) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Write(bytes)
-}
-
-func (s *Server) handleException(err error) {
-	log.Fatalf("dispatch error : %v", err)
-
 }

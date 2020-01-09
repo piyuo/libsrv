@@ -93,7 +93,7 @@ func TestServe404(t *testing.T) {
 	handler.ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	Convey("test any file request", t, func() {
-		So(res1.StatusCode, ShouldEqual, 404)
+		So(res1.StatusCode, ShouldEqual, 400)
 	})
 }
 

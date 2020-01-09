@@ -3,23 +3,19 @@ package libsrv
 import (
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSystem(t *testing.T) {
-	Convey("should pass Check'", t, func() {
-		//if any thing wrong, check will result panic
-		CurrentSystem().Check()
-	})
 
-	Convey("should has only one instance'", t, func() {
+	Convey("should has only one instance and pass check'", t, func() {
 		s1 := CurrentSystem()
 		s2 := CurrentSystem()
-		So(s1.IsDebug(), ShouldEqual, s2.IsDebug())
-		s1.SetDebug(false)
-		So(s1.IsDebug(), ShouldEqual, false)
-		So(s2.IsDebug(), ShouldEqual, false)
+		So(s1.IsProduction(), ShouldEqual, s2.IsProduction())
+		CurrentSystem().Check()
+		So(s1.IsProduction(), ShouldEqual, false)
 	})
 
 	Convey("should able join dir and current dir'", t, func() {
@@ -28,10 +24,29 @@ func TestSystem(t *testing.T) {
 	})
 }
 
+func TestTimer(t *testing.T) {
+	Convey("should use timer'", t, func() {
+		CurrentSystem().TimerStart()
+		time.Sleep(1 * time.Millisecond)
+		ms := CurrentSystem().TimerStop()
+		So(ms >= 1, ShouldBeTrue)
+	})
+}
+
 func TestGetID(t *testing.T) {
 	Convey("should get id'", t, func() {
 		id := CurrentSystem().ID()
 		So(id, ShouldEqual, "dev")
+	})
+}
+
+func TestCheckProduction(t *testing.T) {
+	s := &system{}
+	Convey("should set production correctly", t, func() {
+		So(s.checkProduction("dev"), ShouldEqual, false)
+		So(s.checkProduction("piyuo-tw-a-app"), ShouldEqual, false)
+		So(s.checkProduction("piyuo-tw-b-app"), ShouldEqual, false)
+		So(s.checkProduction("piyuo-tw-m-app"), ShouldEqual, true)
 	})
 }
 
@@ -50,7 +65,7 @@ func TestCredential(t *testing.T) {
 
 	Convey("should keep google credential", t, func() {
 		So(s.googleCred, ShouldBeNil)
-		cred, _ := s.getGoogleCloudCredential(LOG)
+		cred, _ := s.GetGoogleCloudCredential(LOG)
 		So(cred, ShouldNotBeNil)
 		So(s.googleCred, ShouldNotBeNil)
 	})

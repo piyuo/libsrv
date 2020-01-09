@@ -3,10 +3,9 @@ package command
 import (
 	"encoding/binary"
 	"fmt"
-	"time"
 
 	proto "github.com/golang/protobuf/proto"
-	"github.com/piyuo/go-libsrv/common"
+	libsrv "github.com/piyuo/go-libsrv"
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +33,7 @@ type Dispatch struct {
 }
 
 // ErrCommandParsing fire when decode command has error, it 's client 's fault
-var ErrCommandParsing = errors.New("command parsing error")
+var ErrCommandParsing = errors.New("failed to parsing command")
 
 // Route get action from httpRequest and write response to httpResponse
 // write error text if some thing is wrong
@@ -45,31 +44,25 @@ func (dp *Dispatch) Route(bytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	if err != nil {
-		ErrCommandParsing = errors.Wrap(err, "command parsing error")
+		ErrCommandParsing = errors.Wrap(err, "failed to parsing command")
 		return nil, ErrCommandParsing
 	}
+
+	libsrv.CurrentSystem().Info(fmt.Sprintf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes)))
+	libsrv.CurrentSystem().TimerStart()
 
 	responseID, response, err := dp.handle(action)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to handle action")
 	}
 
-	startTime := time.Now()
-	if common.DEBUG {
-		fmt.Printf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes))
-	}
 	var returnBytes []byte
 	if response != nil {
 		returnBytes, err = dp.encodeCommand(responseID, response)
-		if common.DEBUG {
-			fmt.Printf("return %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes))
-		}
+		libsrv.CurrentSystem().Info(fmt.Sprintf("respond %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes)))
 	}
-	if common.DEBUG {
-		duration := time.Now().Sub(startTime)
-		ms := duration.Nanoseconds() / 10000000
-		fmt.Printf(", %v ms\n", ms)
-	}
+	ms := libsrv.CurrentSystem().TimerStop()
+	libsrv.CurrentSystem().Info(fmt.Sprintf(", %v ms\n", ms))
 	return returnBytes, err
 }
 
