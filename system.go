@@ -26,8 +26,11 @@ type System interface {
 	//IsProduction check system runing in production environment
 	IsProduction() bool
 
+	//Log text with serverity level
+	Log(text string, level int)
+
 	//Normal but significant events, such as start up, shut down, or a configuration change.
-	Log(text string)
+	Notice(text string)
 
 	//Warning events might cause problems.
 	Warning(text string)
@@ -43,6 +46,9 @@ type System interface {
 
 	//log Error
 	Error(err error)
+
+	//stack format like "at firstLine (a.js:3)\nat secondLine (b.js:3)"
+	ErrorManually(message string, stack string)
 
 	JoinCurrentDir(dir string) string
 
@@ -82,16 +88,13 @@ const (
 	DB  Credential = 1
 )
 
-//LogLevel such
-type LogLevel int
-
 // Credential LOG,DB,...
 const (
-	NOTICE    LogLevel = 300 //Normal but significant events, such as start up, shut down, or a configuration change.
-	WARNING   LogLevel = 400 //Warning events might cause problems.
-	CRITICAL  LogLevel = 600 //Critical events cause more severe problems or outages.
-	ALERT     LogLevel = 700 //A person must take an action immediately.
-	EMERGENCY LogLevel = 800 //One or more systems are unusable.
+	NOTICE    int = 300 //Normal but significant events, such as start up, shut down, or a configuration change.
+	WARNING   int = 400 //Warning events might cause problems.
+	CRITICAL  int = 600 //Critical events cause more severe problems or outages.
+	ALERT     int = 700 //A person must take an action immediately.
+	EMERGENCY int = 800 //One or more systems are unusable.
 )
 
 func (s *system) JoinCurrentDir(dir string) string {
@@ -200,20 +203,20 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 }
 
 // there is no error return for log
-func (s *system) log(text string, loglevel LogLevel) {
+func (s *system) Log(text string, level int) {
 	ctx := context.Background()
 	cred, err := s.GetGoogleCloudCredential(LOG)
 	if err != nil {
-		fmt.Printf("Log() failed to get google credential.  %v", err)
+		fmt.Printf("Log() failed to get google credential.  %v\n", err)
 		return
 	}
 
 	client, err := logging.NewClient(ctx, cred.ProjectID, option.WithCredentials(cred))
 	if err != nil {
-		fmt.Printf("failed to create logging client: %v", err)
+		fmt.Printf("failed to create logging client: %v\n", err)
 	}
 	severity := logging.Notice
-	switch loglevel {
+	switch level {
 	case WARNING:
 		severity = logging.Warning
 	case CRITICAL:
@@ -227,35 +230,43 @@ func (s *system) log(text string, loglevel LogLevel) {
 	logger := client.Logger(s.ID())
 	log := s.ID() + ": " + text
 	logger.Log(logging.Entry{Payload: log, Severity: severity})
-	fmt.Printf("%v (logged)", log)
+	fmt.Printf("%v (logged)\n", log)
 
 	if err := client.Close(); err != nil {
-		fmt.Printf("failed to close client: %v", err)
+		fmt.Printf("failed to close client: %v\n", err)
 	}
 }
 
 func (s *system) Info(text string) {
-	fmt.Printf(s.ID() + ": " + text)
+	fmt.Printf(s.ID() + ": " + text + "\n")
 }
 
-func (s *system) Log(text string) {
-	s.log(text, NOTICE)
+func (s *system) Notice(text string) {
+	s.Log(text, NOTICE)
 }
 
 func (s *system) Warning(text string) {
-	s.log(text, WARNING)
+	s.Log(text, WARNING)
 }
 
 func (s *system) Alert(text string) {
-	s.log(text, ALERT)
+	s.Log(text, ALERT)
 }
 
 func (s *system) Emergency(text string) {
-	s.log(text, EMERGENCY)
+	s.Log(text, EMERGENCY)
 }
 
-func (s *system) Error(targetErr error) {
-	if targetErr == nil {
+func (s *system) Error(err error) {
+	s.error(err, "", "")
+}
+
+func (s *system) ErrorManually(message string, stack string) {
+	s.error(nil, message, stack)
+}
+
+func (s *system) error(targetErr error, targetMessage string, targetStack string) {
+	if targetErr == nil && targetMessage == "" {
 		return
 	}
 	ctx := context.Background()
@@ -270,20 +281,30 @@ func (s *system) Error(targetErr error) {
 		errorreporting.Config{
 			ServiceName: s.ID(),
 			OnError: func(err error) {
-				fmt.Printf("could not log error: %v", err)
+				fmt.Printf("could not log error: %v\n", err)
 			},
 		},
 		option.WithCredentials(cred))
 	if err != nil {
-		fmt.Printf("failed to create error reporting client: %v", err)
+		fmt.Printf("failed to create error reporting client: %v\n", err)
 	}
 	defer client.Close()
 
 	id := s.ID()
-	client.Report(errorreporting.Entry{
-		Error: targetErr, User: id,
-	})
-	fmt.Printf(s.ID()+"%v", err)
-	stack := string(debug.Stack())
-	fmt.Println(stack)
+	if targetErr != nil {
+		client.Report(errorreporting.Entry{
+			Error: targetErr, User: id,
+		})
+		fmt.Printf(s.ID()+": %v\n", targetErr)
+		stack := string(debug.Stack())
+		fmt.Println(stack)
+	} else {
+		customErr := errors.New(targetMessage)
+
+		client.Report(errorreporting.Entry{
+			Error: customErr, User: id,
+			Stack: []byte(targetStack),
+		})
+		fmt.Println(s.ID()+": ", targetMessage+"\n"+targetStack)
+	}
 }

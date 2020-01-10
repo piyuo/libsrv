@@ -82,7 +82,7 @@ func TestInfo(t *testing.T) {
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	Convey("should print'", t, func() {
-		CurrentSystem().Log("my notice log")
+		CurrentSystem().Notice("my notice log")
 		CurrentSystem().Warning("my warning log")
 		CurrentSystem().Alert("my alert log")
 		So(false, ShouldEqual, false)
@@ -94,6 +94,13 @@ func TestError(t *testing.T) {
 	Convey("should print error'", t, func() {
 		err := errors.New("my error")
 		CurrentSystem().Error(err)
+		So(false, ShouldEqual, false)
+	})
+}
+func TestErrorManually(t *testing.T) {
+	Convey("should print error manually'", t, func() {
+		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
+		CurrentSystem().ErrorManually("error manually", stack)
 		So(false, ShouldEqual, false)
 	})
 }
