@@ -27,7 +27,7 @@ type System interface {
 	IsProduction() bool
 
 	//Log text with serverity level
-	Log(text string, level uint8, id string)
+	Log(text string, level int32, id string)
 
 	//Normal but significant events, such as start up, shut down, or a configuration change.
 	Notice(text string)
@@ -91,11 +91,11 @@ const (
 
 // Credential LOG,DB,...
 const (
-	NOTICE    uint8 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
-	WARNING   uint8 = 2 //Warning events might cause problems.
-	CRITICAL  uint8 = 3 //Critical events cause more severe problems or outages.
-	ALERT     uint8 = 4 //A person must take an action immediately.
-	EMERGENCY uint8 = 5 //One or more systems are unusable.
+	NOTICE    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
+	WARNING   int32 = 2 //Warning events might cause problems.
+	CRITICAL  int32 = 3 //Critical events cause more severe problems or outages.
+	ALERT     int32 = 4 //A person must take an action immediately.
+	EMERGENCY int32 = 5 //One or more systems are unusable.
 )
 
 func (s *system) JoinCurrentDir(dir string) string {
@@ -204,7 +204,7 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 }
 
 // there is no error return for log
-func (s *system) Log(text string, level uint8, id string) {
+func (s *system) Log(text string, level int32, id string) {
 	ctx := context.Background()
 	cred, err := s.GetGoogleCloudCredential(LOG)
 	if err != nil {
