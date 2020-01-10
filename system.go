@@ -27,7 +27,7 @@ type System interface {
 	IsProduction() bool
 
 	//Log text with serverity level
-	Log(text string, level int)
+	Log(text string, level int, id string)
 
 	//Normal but significant events, such as start up, shut down, or a configuration change.
 	Notice(text string)
@@ -48,7 +48,8 @@ type System interface {
 	Error(err error)
 
 	//stack format like "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-	ErrorManually(message string, stack string)
+	//language may be flutter, js, go, c#
+	ErrorManually(message string, stack string, id string, language string)
 
 	JoinCurrentDir(dir string) string
 
@@ -203,7 +204,7 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 }
 
 // there is no error return for log
-func (s *system) Log(text string, level int) {
+func (s *system) Log(text string, level int, id string) {
 	ctx := context.Background()
 	cred, err := s.GetGoogleCloudCredential(LOG)
 	if err != nil {
@@ -227,8 +228,8 @@ func (s *system) Log(text string, level int) {
 		severity = logging.Emergency
 	}
 
-	logger := client.Logger(s.ID())
-	log := s.ID() + ": " + text
+	logger := client.Logger(id)
+	log := id + ": " + text
 	logger.Log(logging.Entry{Payload: log, Severity: severity})
 	fmt.Printf("%v (logged)\n", log)
 
@@ -242,30 +243,30 @@ func (s *system) Info(text string) {
 }
 
 func (s *system) Notice(text string) {
-	s.Log(text, NOTICE)
+	s.Log(text, NOTICE, s.ID())
 }
 
 func (s *system) Warning(text string) {
-	s.Log(text, WARNING)
+	s.Log(text, WARNING, s.ID())
 }
 
 func (s *system) Alert(text string) {
-	s.Log(text, ALERT)
+	s.Log(text, ALERT, s.ID())
 }
 
 func (s *system) Emergency(text string) {
-	s.Log(text, EMERGENCY)
+	s.Log(text, EMERGENCY, s.ID())
 }
 
 func (s *system) Error(err error) {
-	s.error(err, "", "")
+	s.error(err, "", "", "", "")
 }
 
-func (s *system) ErrorManually(message string, stack string) {
-	s.error(nil, message, stack)
+func (s *system) ErrorManually(message string, stack string, id string, language string) {
+	s.error(nil, message, stack, id, language)
 }
 
-func (s *system) error(targetErr error, targetMessage string, targetStack string) {
+func (s *system) error(targetErr error, targetMessage string, targetStack string, targetID string, targetLanguage string) {
 	if targetErr == nil && targetMessage == "" {
 		return
 	}
@@ -290,8 +291,8 @@ func (s *system) error(targetErr error, targetMessage string, targetStack string
 	}
 	defer client.Close()
 
-	id := s.ID()
 	if targetErr != nil {
+		id := s.ID()
 		client.Report(errorreporting.Entry{
 			Error: targetErr, User: id,
 		})
@@ -299,12 +300,20 @@ func (s *system) error(targetErr error, targetMessage string, targetStack string
 		stack := string(debug.Stack())
 		fmt.Println(stack)
 	} else {
+		stack := s.formatStack(targetStack, targetLanguage)
 		customErr := errors.New(targetMessage)
-
 		client.Report(errorreporting.Entry{
-			Error: customErr, User: id,
-			Stack: []byte(targetStack),
+			Error: customErr, User: targetID,
+			Stack: []byte(stack),
 		})
 		fmt.Println(s.ID()+": ", targetMessage+"\n"+targetStack)
+	}
+}
+
+func (s *system) formatStack(stack string, language string) string {
+	if language == "flutter" {
+		return stack
+	} else {
+		return stack
 	}
 }
