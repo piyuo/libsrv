@@ -3,7 +3,6 @@ package libsrv
 import (
 	"strings"
 	"testing"
-	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -11,32 +10,35 @@ import (
 func TestSystem(t *testing.T) {
 
 	Convey("should has only one instance and pass check'", t, func() {
-		s1 := CurrentSystem()
-		s2 := CurrentSystem()
+		s1 := Sys()
+		s2 := Sys()
 		So(s1.IsProduction(), ShouldEqual, s2.IsProduction())
-		CurrentSystem().Check()
+		Sys().Check()
 		So(s1.IsProduction(), ShouldEqual, false)
 	})
 
 	Convey("should able join dir and current dir'", t, func() {
-		text := CurrentSystem().JoinCurrentDir("../../")
+		text := Sys().JoinCurrentDir("../../")
 		So(strings.HasSuffix(text, "/go"), ShouldEqual, true)
-	})
-}
-
-func TestTimer(t *testing.T) {
-	Convey("should use timer'", t, func() {
-		CurrentSystem().TimerStart()
-		time.Sleep(1 * time.Millisecond)
-		ms := CurrentSystem().TimerStop()
-		So(ms >= 1, ShouldBeTrue)
 	})
 }
 
 func TestGetID(t *testing.T) {
 	Convey("should get id'", t, func() {
-		id := CurrentSystem().ID()
+		id := Sys().ID()
 		So(id, ShouldEqual, "dev")
+	})
+}
+
+func TestGetLogHead(t *testing.T) {
+	Convey("should get log head'", t, func() {
+		s := &system{}
+		So(s.getLogHead("dev", ""), ShouldEqual, "<dev>")
+		So(s.getLogHead("dev", "user-store"), ShouldEqual, "<dev> user-store")
+		So(s.getLogHead("PIYUO-US-M-SYS", ""), ShouldEqual, "[PIYUO-US-M-SYS]")
+		So(s.getLogHead("PIYUO-US-M-SYS", "user-store"), ShouldEqual, "[PIYUO-US-M-SYS] user-store")
+		So(s.getLogHead("piyuo-us-m-web-index", ""), ShouldEqual, "(piyuo-us-m-web-index)")
+		So(s.getLogHead("piyuo-us-m-web-index", "user-store"), ShouldEqual, "(piyuo-us-m-web-index) user-store")
 	})
 }
 
@@ -47,6 +49,7 @@ func TestCheckProduction(t *testing.T) {
 		So(s.checkProduction("piyuo-tw-a-app"), ShouldEqual, false)
 		So(s.checkProduction("piyuo-tw-b-app"), ShouldEqual, false)
 		So(s.checkProduction("piyuo-tw-m-app"), ShouldEqual, true)
+		So(s.checkProduction("PIYUO-TW-M-SYS"), ShouldEqual, true)
 	})
 }
 
@@ -73,34 +76,45 @@ func TestCredential(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	Convey("should print'", t, func() {
-		CurrentSystem().Info("hello log")
+		Sys().Info("hello log")
 		So(true, ShouldEqual, true)
 	})
 }
 
-/*
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	Convey("should print'", t, func() {
-		CurrentSystem().Notice("my notice log")
-		CurrentSystem().Warning("my warning log")
-		CurrentSystem().Alert("my alert log")
+		Sys().Notice("my notice log")
+		Sys().Warning("my warning log")
+		Sys().Alert("my alert log")
+	})
+}
+
+/*
+// TestError is a production test, it will write error to google cloud platform under Error Reporting
+func TestError(t *testing.T) {
+	Convey("should print error'", t, func() {
+		err := errors.New("my error1")
+		Sys().Error(err)
 		So(false, ShouldEqual, false)
 	})
 }
 
-// TestError is a production test, it will write error to google cloud platform under Error Reporting
-func TestError(t *testing.T) {
-	Convey("should print error'", t, func() {
-		err := errors.New("my error")
-		CurrentSystem().Error(err)
+func TestErrorBy5(t *testing.T) {
+	Convey("should print error with cause by id'", t, func() {
+		err := errors.New("my error by user5")
+		Sys().ErrorBy(err, "user5")
 		So(false, ShouldEqual, false)
 	})
 }
-func TestErrorManually(t *testing.T) {
-	Convey("should print error manually'", t, func() {
+
+func TestErrorFrom(t *testing.T) {
+	Convey("should print error from'", t, func() {
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-		CurrentSystem().ErrorManually("error manually", stack)
+		location := "piyuo-tw-m-web-index"
+		id := "user1"
+		language := "flutter"
+		Sys().ErrorFrom("error manually", stack, location, id, language)
 		So(false, ShouldEqual, false)
 	})
 }

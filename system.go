@@ -7,7 +7,6 @@ import (
 	"path"
 	"runtime/debug"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
@@ -20,60 +19,53 @@ import (
 type System interface {
 	//Check system need environment variable is set
 	Check()
-
 	ID() string
-
 	//IsProduction check system runing in production environment
 	IsProduction() bool
-
 	//Log text with serverity level
-	Log(text string, level int32, id string)
-
+	Log(text string, level int32, location string, id string)
 	//Normal but significant events, such as start up, shut down, or a configuration change.
 	Notice(text string)
-
+	//Normal but significant events, such as start up, shut down, or a configuration change.
+	NoticeBy(text string, id string)
 	//Warning events might cause problems.
 	Warning(text string)
-
+	//Warning events might cause problems.
+	WarningBy(text string, id string)
 	//A person must take an action immediately.
 	Alert(text string)
-
+	//A person must take an action immediately.
+	AlertBy(text string, id string)
 	//One or more systems are unusable.
 	Emergency(text string)
-
 	//Routine information, such as ongoing status or performance.
 	Info(text string)
-
+	//Routine information, such as ongoing status or performance.
+	InfoBy(text string, id string)
 	//log Error
 	Error(err error)
-
+	//log Error
+	//id is an identifier for the user,location affected by the error
+	ErrorBy(err error, id string)
 	//stack format like "at firstLine (a.js:3)\nat secondLine (b.js:3)"
+	//id is an identifier for the user,location affected by the error
 	//language may be flutter, js, go, c#
-	ErrorManually(message string, stack string, id string, language string)
-
+	ErrorFrom(message string, stack string, location string, id string, language string)
 	JoinCurrentDir(dir string) string
-
 	GetGoogleCloudCredential(c Credential) (*google.Credentials, error)
-
-	//start timer
-	TimerStart()
-
-	//stop timer and return duration as ms
-	TimerStop() int64
 }
 
 type system struct {
 	googleCred   *google.Credentials
 	isProduction bool
-	timer        time.Time
 }
 
 var instance System
 
-//CurrentSystem keep default system settings and provide log, error functions
+//Sys is system only instance
 //
-//	System().Log("hello")
-func CurrentSystem() System {
+//	Sys().Notify("hello")
+func Sys() System {
 	if instance == nil {
 		instance = &system{}
 	}
@@ -116,10 +108,10 @@ func (s *system) Check() {
 }
 
 func (s *system) checkProduction(id string) bool {
-	//id format like piyuo-tw-m-app
+	//id format like PIYUO-TW-M-SYS
 	if strings.Contains(id, "-") {
 		arg := strings.Split(id, "-")
-		if arg[2] == "m" {
+		if arg[2] == "M" || arg[2] == "m" {
 			return true
 		}
 	}
@@ -132,17 +124,6 @@ func (s *system) IsProduction() bool {
 
 func (s *system) ID() string {
 	return os.Getenv("PIYUO_ID")
-}
-
-func (s *system) TimerStart() {
-	s.timer = time.Now()
-}
-
-func (s *system) TimerStop() int64 {
-	duration := time.Now().Sub(s.timer)
-	ns := duration.Nanoseconds()
-	ms := ns / 1000000
-	return ms
 }
 
 // return filename and scope from credential
@@ -204,7 +185,9 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 }
 
 // there is no error return for log
-func (s *system) Log(text string, level int32, id string) {
+// server log like [PIYUO-TW-M-SYS] store-user: hello
+// client log like (piyuo-tw-m-web-index) store-user: hello
+func (s *system) Log(text string, level int32, location string, id string) {
 	ctx := context.Background()
 	cred, err := s.GetGoogleCloudCredential(LOG)
 	if err != nil {
@@ -228,8 +211,8 @@ func (s *system) Log(text string, level int32, id string) {
 		severity = logging.Emergency
 	}
 
-	logger := client.Logger(id)
-	log := id + ": " + text
+	logger := client.Logger(location)
+	log := s.getLogHead(location, id) + ": " + text
 	logger.Log(logging.Entry{Payload: log, Severity: severity})
 	fmt.Printf("%v (logged)\n", log)
 
@@ -238,35 +221,71 @@ func (s *system) Log(text string, level int32, id string) {
 	}
 }
 
+// GetLogHead use UPPER case for server, lower for client app
+// [PIYUO-TW-M-AUTH] store-user: hello
+// (piyuo-tw-m-web-page) store-user: hello
+func (s *system) getLogHead(location string, id string) string {
+	displayID := id
+	if displayID != "" {
+		displayID = " " + id
+	}
+	if location[0] == 'P' {
+		return fmt.Sprintf("[%v]%v", location, displayID)
+	} else if location[0] == 'd' {
+		return fmt.Sprintf("<%v>%v", location, displayID)
+	}
+	return fmt.Sprintf("(%v)%v", location, displayID)
+}
+
 func (s *system) Info(text string) {
-	fmt.Printf(s.ID() + ": " + text + "\n")
+	s.InfoBy(text, "")
+}
+
+func (s *system) InfoBy(text string, id string) {
+	fmt.Printf(s.getLogHead(s.ID(), id) + ": " + text + "\n")
 }
 
 func (s *system) Notice(text string) {
-	s.Log(text, NOTICE, s.ID())
+	s.NoticeBy(text, "")
+}
+
+func (s *system) NoticeBy(text string, id string) {
+	s.Log(text, NOTICE, s.ID(), id)
 }
 
 func (s *system) Warning(text string) {
-	s.Log(text, WARNING, s.ID())
+	s.WarningBy(text, "")
+}
+
+func (s *system) WarningBy(text string, id string) {
+	s.Log(text, WARNING, s.ID(), id)
 }
 
 func (s *system) Alert(text string) {
-	s.Log(text, ALERT, s.ID())
+	s.AlertBy(text, "")
+}
+
+func (s *system) AlertBy(text string, id string) {
+	s.Log(text, ALERT, s.ID(), id)
 }
 
 func (s *system) Emergency(text string) {
-	s.Log(text, EMERGENCY, s.ID())
+	s.Log(text, EMERGENCY, s.ID(), "")
 }
 
 func (s *system) Error(err error) {
-	s.error(err, "", "", "", "")
+	s.error(err, "", "", s.ID(), "", "")
 }
 
-func (s *system) ErrorManually(message string, stack string, id string, language string) {
-	s.error(nil, message, stack, id, language)
+func (s *system) ErrorBy(err error, id string) {
+	s.error(err, "", "", s.ID(), id, "")
 }
 
-func (s *system) error(targetErr error, targetMessage string, targetStack string, targetID string, targetLanguage string) {
+func (s *system) ErrorFrom(message string, stack string, location string, id string, language string) {
+	s.error(nil, message, stack, location, id, language)
+}
+
+func (s *system) error(targetErr error, targetMessage string, targetStack string, targetLocation string, targetID string, targetLanguage string) {
 	if targetErr == nil && targetMessage == "" {
 		return
 	}
@@ -291,29 +310,29 @@ func (s *system) error(targetErr error, targetMessage string, targetStack string
 	}
 	defer client.Close()
 
+	displayID := s.getLogHead(targetLocation, targetID)
 	if targetErr != nil {
-		id := s.ID()
+		errWithID := errors.Wrap(targetErr, displayID)
 		client.Report(errorreporting.Entry{
-			Error: targetErr, User: id,
+			Error: errWithID, User: displayID,
 		})
-		fmt.Printf(s.ID()+": %v\n", targetErr)
+		fmt.Printf(displayID+": %v\n", targetErr)
 		stack := string(debug.Stack())
 		fmt.Println(stack)
 	} else {
 		stack := s.formatStack(targetStack, targetLanguage)
-		customErr := errors.New(targetMessage)
+		customErr := errors.New(displayID + ": " + targetMessage)
 		client.Report(errorreporting.Entry{
-			Error: customErr, User: targetID,
+			Error: customErr, User: displayID,
 			Stack: []byte(stack),
 		})
-		fmt.Println(s.ID()+": ", targetMessage+"\n"+targetStack)
+		fmt.Println(displayID+": ", targetMessage+"\n"+targetStack)
 	}
 }
 
 func (s *system) formatStack(stack string, language string) string {
 	if language == "flutter" {
 		return stack
-	} else {
-		return stack
 	}
+	return stack
 }

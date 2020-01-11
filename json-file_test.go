@@ -8,7 +8,7 @@ import (
 
 func TestJSONFIle(t *testing.T) {
 
-	jsonfile, err := NewJSONFile(CurrentSystem().JoinCurrentDir("keys/log.key"))
+	jsonfile, err := NewJSONFile(Sys().JoinCurrentDir("keys/log.key"))
 	if err != nil {
 		panic(err)
 	}

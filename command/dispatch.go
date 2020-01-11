@@ -48,8 +48,9 @@ func (dp *Dispatch) Route(bytes []byte) ([]byte, error) {
 		return nil, ErrCommandParsing
 	}
 
-	libsrv.CurrentSystem().Info(fmt.Sprintf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes)))
-	libsrv.CurrentSystem().TimerStart()
+	libsrv.Sys().Info(fmt.Sprintf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes)))
+	timer := libsrv.NewTimer()
+	timer.Start()
 
 	responseID, response, err := dp.handle(action)
 	if err != nil {
@@ -59,10 +60,10 @@ func (dp *Dispatch) Route(bytes []byte) ([]byte, error) {
 	var returnBytes []byte
 	if response != nil {
 		returnBytes, err = dp.encodeCommand(responseID, response)
-		libsrv.CurrentSystem().Info(fmt.Sprintf("respond %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes)))
+		libsrv.Sys().Info(fmt.Sprintf("respond %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes)))
 	}
-	ms := libsrv.CurrentSystem().TimerStop()
-	libsrv.CurrentSystem().Info(fmt.Sprintf(", %v ms\n", ms))
+	ms := timer.Stop()
+	libsrv.Sys().Info(fmt.Sprintf(", %v ms\n", ms))
 	return returnBytes, err
 }
 

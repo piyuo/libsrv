@@ -28,10 +28,10 @@ type Server struct {
 //      server.Start(80)
 //     }
 func (s *Server) Start(port int) {
-	libsrv.CurrentSystem().Check()
+	libsrv.Sys().Check()
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
-		libsrv.CurrentSystem().Emergency(msg)
+		libsrv.Sys().Emergency(msg)
 		panic(msg)
 	}
 	http.Handle("/", s.newHandler())
@@ -60,7 +60,7 @@ func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request. request is empty"
 		s.writeText(w, msg)
-		libsrv.CurrentSystem().Info(msg)
+		libsrv.Sys().Info(msg)
 		return
 	}
 
@@ -68,14 +68,14 @@ func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		s.writeText(w, err.Error())
-		libsrv.CurrentSystem().Info("bad request. " + err.Error())
+		libsrv.Sys().Info("bad request. " + err.Error())
 		return
 	}
 	if len(bytes) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request, must include command in request"
 		s.writeText(w, msg)
-		libsrv.CurrentSystem().Info(msg)
+		libsrv.Sys().Info(msg)
 		return
 	}
 
@@ -87,13 +87,13 @@ func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request, failed to parsing command. " + err.Error()
 		s.writeText(w, msg)
-		libsrv.CurrentSystem().Warning(msg)
+		libsrv.Sys().Warning(msg)
 		return
 	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.writeText(w, "internal server error, we already log this error and will be fixed ASAP.")
-		libsrv.CurrentSystem().Error(err)
+		libsrv.Sys().Error(err)
 		return
 	}
 

@@ -25,15 +25,15 @@ func NewProviderFirestore() *ProviderFirestore {
 //Initialize check env variable DATA_CRED to init google credentials for firestore
 func (provider *ProviderFirestore) Initialize() {
 	ctx := context.Background()
-	cred, err := libsrv.CurrentSystem().GetGoogleCloudCredential(libsrv.DB)
+	cred, err := libsrv.Sys().GetGoogleCloudCredential(libsrv.DB)
 	if err != nil {
-		libsrv.CurrentSystem().Alert("database operation failed to get google credential.  %v")
+		libsrv.Sys().Alert("database operation failed to get google credential.  %v")
 		return
 	}
 
 	provider.app, err = firebase.NewApp(ctx, nil, option.WithCredentials(cred))
 	if err != nil {
-		libsrv.CurrentSystem().Emergency("failed to create firebase client")
+		libsrv.Sys().Emergency("failed to create firebase client")
 		panic(err)
 	}
 	provider.ctx = ctx
