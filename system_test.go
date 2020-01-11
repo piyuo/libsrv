@@ -81,6 +81,8 @@ func TestInfo(t *testing.T) {
 	})
 }
 
+/*
+
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	Convey("should print'", t, func() {
@@ -90,7 +92,6 @@ func TestLog(t *testing.T) {
 	})
 }
 
-/*
 // TestError is a production test, it will write error to google cloud platform under Error Reporting
 func TestError(t *testing.T) {
 	Convey("should print error'", t, func() {

@@ -10,13 +10,13 @@ type Timer interface {
 	Stop() int64
 }
 
-type timer struct {
-	current time.Time
-}
-
 //NewTimer create a timer
 func NewTimer() Timer {
 	return &timer{}
+}
+
+type timer struct {
+	current time.Time
 }
 
 func (t *timer) Start() {

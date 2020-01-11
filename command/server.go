@@ -45,16 +45,16 @@ func (s *Server) Start(port int) {
 //	    }
 //  return server.newHandler()
 func (s *Server) newHandler() http.Handler {
-	withoutArchive := http.HandlerFunc(s.Main)
+	withoutArchive := http.HandlerFunc(s.Serve)
 	// support local server gzip compress
 	// withArchive := ArchiveHandler(withoutArchive)
 	return withoutArchive
 }
 
-// Main entry for http request, filter empty and bad request and send correct one to dispatch
+// Serve entry for http request, filter empty and bad request and send correct one to dispatch
 //
 // enable cross origin access
-func (s *Server) Main(w http.ResponseWriter, r *http.Request) {
+func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
