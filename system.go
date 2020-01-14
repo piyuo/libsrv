@@ -23,34 +23,34 @@ type System interface {
 	//IsProduction check system runing in production environment
 	IsProduction() bool
 	//Log text with serverity level
-	Log(text string, level int32, location string, id string)
+	Log(text string, level int32, piyuoID string, userID string)
 	//Normal but significant events, such as start up, shut down, or a configuration change.
 	Notice(text string)
 	//Normal but significant events, such as start up, shut down, or a configuration change.
-	NoticeBy(text string, id string)
+	NoticeBy(text string, userID string)
 	//Warning events might cause problems.
 	Warning(text string)
 	//Warning events might cause problems.
-	WarningBy(text string, id string)
+	WarningBy(text string, userID string)
 	//A person must take an action immediately.
 	Alert(text string)
 	//A person must take an action immediately.
-	AlertBy(text string, id string)
+	AlertBy(text string, userID string)
 	//One or more systems are unusable.
 	Emergency(text string)
 	//Routine information, such as ongoing status or performance.
 	Info(text string)
 	//Routine information, such as ongoing status or performance.
-	InfoBy(text string, id string)
+	InfoBy(text string, userID string)
 	//log Error
 	Error(err error)
 	//log Error
-	//id is an identifier for the user,location affected by the error
-	ErrorBy(err error, id string)
+	//id is an identifier for the user,piyuoID affected by the error
+	ErrorBy(err error, userID string)
 	//stack format like "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-	//id is an identifier for the user,location affected by the error
+	//id is an identifier for the user,piyuoID affected by the error
 	//language may be flutter, js, go, c#
-	ErrorFrom(message string, stack string, location string, id string, language string)
+	ErrorFrom(message string, stack string, piyuoID string, userID string, language string)
 	JoinCurrentDir(dir string) string
 	GetGoogleCloudCredential(c Credential) (*google.Credentials, error)
 }
@@ -187,7 +187,9 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 // there is no error return for log
 // server log like [PIYUO-TW-M-SYS] store-user: hello
 // client log like (piyuo-tw-m-web-index) store-user: hello
-func (s *system) Log(text string, level int32, location string, id string) {
+func (s *system) Log(text string, level int32, piyuoID string, userID string) {
+	log := s.getLogHead(piyuoID, userID) + ": " + text
+	fmt.Printf("%v (logged)\n", log)
 	ctx := context.Background()
 	cred, err := s.GetGoogleCloudCredential(LOG)
 	if err != nil {
@@ -211,10 +213,8 @@ func (s *system) Log(text string, level int32, location string, id string) {
 		severity = logging.Emergency
 	}
 
-	logger := client.Logger(location)
-	log := s.getLogHead(location, id) + ": " + text
+	logger := client.Logger(piyuoID)
 	logger.Log(logging.Entry{Payload: log, Severity: severity})
-	fmt.Printf("%v (logged)\n", log)
 
 	if err := client.Close(); err != nil {
 		fmt.Printf("failed to close client: %v\n", err)
@@ -222,51 +222,51 @@ func (s *system) Log(text string, level int32, location string, id string) {
 }
 
 // GetLogHead use UPPER case for server, lower for client app
-// [PIYUO-TW-M-AUTH] store-user: hello
-// (piyuo-tw-m-web-page) store-user: hello
-func (s *system) getLogHead(location string, id string) string {
-	displayID := id
+// server: [PIYUO-M-TW-AUTH] store-user: hello
+// client: (piyuo-m-tw-web-page) store-user: hello
+func (s *system) getLogHead(piyuoID string, userID string) string {
+	displayID := userID
 	if displayID != "" {
-		displayID = " " + id
+		displayID = " " + userID
 	}
-	if location[0] == 'P' {
-		return fmt.Sprintf("[%v]%v", location, displayID)
-	} else if location[0] == 'd' {
-		return fmt.Sprintf("<%v>%v", location, displayID)
+	if piyuoID[0] == 'P' {
+		return fmt.Sprintf("[%v]%v", piyuoID, displayID)
+	} else if piyuoID[0] == 'd' {
+		return fmt.Sprintf("<%v>%v", piyuoID, displayID)
 	}
-	return fmt.Sprintf("(%v)%v", location, displayID)
+	return fmt.Sprintf("(%v)%v", piyuoID, displayID)
 }
 
 func (s *system) Info(text string) {
 	s.InfoBy(text, "")
 }
 
-func (s *system) InfoBy(text string, id string) {
-	fmt.Printf(s.getLogHead(s.ID(), id) + ": " + text + "\n")
+func (s *system) InfoBy(text string, userID string) {
+	fmt.Printf(s.getLogHead(s.ID(), userID) + ": " + text + "\n")
 }
 
 func (s *system) Notice(text string) {
 	s.NoticeBy(text, "")
 }
 
-func (s *system) NoticeBy(text string, id string) {
-	s.Log(text, NOTICE, s.ID(), id)
+func (s *system) NoticeBy(text string, userID string) {
+	s.Log(text, NOTICE, s.ID(), userID)
 }
 
 func (s *system) Warning(text string) {
 	s.WarningBy(text, "")
 }
 
-func (s *system) WarningBy(text string, id string) {
-	s.Log(text, WARNING, s.ID(), id)
+func (s *system) WarningBy(text string, userID string) {
+	s.Log(text, WARNING, s.ID(), userID)
 }
 
 func (s *system) Alert(text string) {
 	s.AlertBy(text, "")
 }
 
-func (s *system) AlertBy(text string, id string) {
-	s.Log(text, ALERT, s.ID(), id)
+func (s *system) AlertBy(text string, userID string) {
+	s.Log(text, ALERT, s.ID(), userID)
 }
 
 func (s *system) Emergency(text string) {
@@ -277,15 +277,15 @@ func (s *system) Error(err error) {
 	s.error(err, "", "", s.ID(), "", "")
 }
 
-func (s *system) ErrorBy(err error, id string) {
-	s.error(err, "", "", s.ID(), id, "")
+func (s *system) ErrorBy(err error, userID string) {
+	s.error(err, "", "", s.ID(), userID, "")
 }
 
-func (s *system) ErrorFrom(message string, stack string, location string, id string, language string) {
-	s.error(nil, message, stack, location, id, language)
+func (s *system) ErrorFrom(message string, stack string, piyuoID string, userID string, language string) {
+	s.error(nil, message, stack, piyuoID, userID, language)
 }
 
-func (s *system) error(targetErr error, targetMessage string, targetStack string, targetLocation string, targetID string, targetLanguage string) {
+func (s *system) error(targetErr error, targetMessage string, targetStack string, targetPiyuoID string, targetUserID string, targetLanguage string) {
 	if targetErr == nil && targetMessage == "" {
 		return
 	}
@@ -310,7 +310,7 @@ func (s *system) error(targetErr error, targetMessage string, targetStack string
 	}
 	defer client.Close()
 
-	displayID := s.getLogHead(targetLocation, targetID)
+	displayID := s.getLogHead(targetPiyuoID, targetUserID)
 	if targetErr != nil {
 		errWithID := errors.Wrap(targetErr, displayID)
 		client.Report(errorreporting.Entry{
