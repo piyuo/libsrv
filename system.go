@@ -83,11 +83,11 @@ const (
 
 // Credential LOG,DB,...
 const (
-	NOTICE    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
-	WARNING   int32 = 2 //Warning events might cause problems.
-	CRITICAL  int32 = 3 //Critical events cause more severe problems or outages.
-	ALERT     int32 = 4 //A person must take an action immediately.
-	EMERGENCY int32 = 5 //One or more systems are unusable.
+	NOTICE    int32 = 0 //Normal but significant events, such as start up, shut down, or a configuration change.
+	WARNING   int32 = 1 //Warning events might cause problems.
+	CRITICAL  int32 = 2 //Critical events cause more severe problems or outages.
+	ALERT     int32 = 3 //A person must take an action immediately.
+	EMERGENCY int32 = 4 //One or more systems are unusable.
 )
 
 func (s *system) JoinCurrentDir(dir string) string {
