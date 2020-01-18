@@ -185,8 +185,6 @@ func (s *system) GetGoogleCloudCredential(c Credential) (*google.Credentials, er
 }
 
 // there is no error return for log
-// server log like [PIYUO-TW-M-SYS] store-user: hello
-// client log like (piyuo-tw-m-web-index) store-user: hello
 func (s *system) Log(text string, level int32, piyuoID string, userID string) {
 	log := s.getLogHead(piyuoID, userID) + ": " + text
 	fmt.Printf("%v (logged)\n", log)
@@ -222,16 +220,18 @@ func (s *system) Log(text string, level int32, piyuoID string, userID string) {
 }
 
 // GetLogHead use UPPER case for server, lower for client app
-// server: [PIYUO-M-TW-AUTH] store-user: hello
-// client: (piyuo-m-tw-web-page) store-user: hello
+// piyuo id should start with P on server and p on client
+// server: [piyuo-m-us-sys] store-user: hello
+// client: <piyuo-m-us-web-page> store-user: hello
+// other:(id) store-user: hello
 func (s *system) getLogHead(piyuoID string, userID string) string {
 	displayID := userID
 	if displayID != "" {
 		displayID = " " + userID
 	}
 	if piyuoID[0] == 'P' {
-		return fmt.Sprintf("[%v]%v", piyuoID, displayID)
-	} else if piyuoID[0] == 'd' {
+		return fmt.Sprintf("[%v]%v", strings.ToLower(piyuoID), displayID)
+	} else if piyuoID[0] == 'p' {
 		return fmt.Sprintf("<%v>%v", piyuoID, displayID)
 	}
 	return fmt.Sprintf("(%v)%v", piyuoID, displayID)
