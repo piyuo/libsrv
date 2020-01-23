@@ -6,7 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/piyuo/go-libsrv/shared"
+	shared "github.com/piyuo/go-libsrv/shared"
+	sharedcommands "github.com/piyuo/go-libsrv/shared/commands"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -77,12 +79,12 @@ func TestServe(t *testing.T) {
 
 	returnBytes := resp1.Body.Bytes()
 	returnLen := len(returnBytes)
-	sample := newTestResponse()
-	sampleLen := len(sample)
+	ok := okResponse()
+	okLen := len(ok)
 	Convey("test any file request", t, func() {
 		So(res1.StatusCode, ShouldEqual, 200)
-		So(returnLen, ShouldEqual, sampleLen)
-		So(returnBytes[0], ShouldEqual, sample[0])
+		So(returnLen, ShouldEqual, okLen)
+		So(returnBytes[0], ShouldEqual, ok[0])
 		So(res1.Header.Get("Content-Type"), ShouldEqual, "application/octet-stream")
 	})
 }
@@ -116,14 +118,11 @@ func newTestAction(text string) []byte {
 	return actBytes
 }
 
-func newTestResponse() []byte {
+func okResponse() []byte {
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &sharedcommands.MapXXX{},
 	}
-	r := &shared.Err{
-		Code: 1,
-	}
-
-	rBytes, _ := dispatch.encodeCommand(r.XXX_MapID(), r)
-	return rBytes
+	ok := shared.OK().(*sharedcommands.Err)
+	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
+	return bytes
 }

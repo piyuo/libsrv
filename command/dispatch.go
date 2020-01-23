@@ -8,6 +8,7 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	app "github.com/piyuo/go-libsrv/app"
 	shared "github.com/piyuo/go-libsrv/shared"
+	sharedcommands "github.com/piyuo/go-libsrv/shared/commands"
 	tools "github.com/piyuo/go-libsrv/tools"
 
 	"github.com/pkg/errors"
@@ -80,7 +81,7 @@ func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error) {
 	var obj interface{}
 	if id <= 100 {
-		shareMap := &shared.MapXXX{}
+		shareMap := &sharedcommands.MapXXX{}
 		obj = shareMap.NewObjectByID(id)
 	} else {
 		obj = dp.Map.NewObjectByID(id)

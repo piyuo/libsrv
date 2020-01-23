@@ -1,0 +1,15 @@
+{
+	"name": "shared",
+	"index": 1,
+	"typeOnly": true,
+	"shared": true,
+	"goPath": [
+		"../shared/commands"
+	],
+	"dartPath": [
+		"../../../../fl/libcli/lib/commands/shared"
+	],
+	"protos": {
+		"err": 1
+	}
+}

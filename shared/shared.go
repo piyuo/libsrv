@@ -4,6 +4,7 @@ import (
 	"context"
 
 	app "github.com/piyuo/go-libsrv/app"
+	commands "github.com/piyuo/go-libsrv/shared/commands"
 )
 
 //ErrorCode use for code in ErrorResponse
@@ -49,7 +50,7 @@ func NeedToken(ctx context.Context) (app.Token, interface{}) {
 
 //OK return code=0 no error response
 func OK() interface{} {
-	return &Err{
+	return &commands.Err{
 		Code: 0,
 	}
 }
@@ -60,7 +61,7 @@ func Error(code ErrorCode, tag string) interface{} {
 }
 
 func errorInt32(code int32, tag string) interface{} {
-	return &Err{
+	return &commands.Err{
 		Code: code,
 		Tag:  tag,
 	}

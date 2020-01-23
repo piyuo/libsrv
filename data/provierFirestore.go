@@ -4,7 +4,7 @@ import (
 	"context"
 
 	firebase "firebase.google.com/go"
-	libsrv "github.com/piyuo/go-libsrv"
+	app "github.com/piyuo/go-libsrv/app"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 )
@@ -25,7 +25,7 @@ func NewProviderFirestore() *ProviderFirestore {
 //Initialize check env variable DATA_CRED to init google credentials for firestore
 func (provider *ProviderFirestore) Initialize() {
 	ctx := context.Background()
-	cred, err := libsrv.GetGoogleCloudCredential(libsrv.DB)
+	cred, err := app.GetGoogleCloudCredential(app.DB)
 	if err != nil {
 		libsrv.LogAlert(ctx, "database operation failed to get google credential.  %v")
 		return
