@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/piyuo/go-libsrv/shared"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -119,8 +120,8 @@ func newTestResponse() []byte {
 	dispatch := &Dispatch{
 		Map: &TestMap{},
 	}
-	r := &TestResponse{
-		Text: "Hi",
+	r := &shared.Err{
+		Code: 1,
 	}
 
 	rBytes, _ := dispatch.encodeCommand(r.XXX_MapID(), r)

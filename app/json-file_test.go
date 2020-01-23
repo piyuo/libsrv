@@ -7,11 +7,8 @@ import (
 )
 
 func TestJSONFIle(t *testing.T) {
-
-	jsonfile, err := NewJSONFile(Sys().JoinCurrentDir("keys/log.key"))
-	if err != nil {
-		panic(err)
-	}
+	keyPath, _ := EnvKeyPath("log")
+	jsonfile, _ := NewJSONFile(keyPath)
 	defer jsonfile.Close()
 
 	Convey("should have text'", t, func() {

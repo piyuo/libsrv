@@ -9,8 +9,6 @@ func (r *TestMap) NewObjectByID(id uint16) interface{} {
 	switch id {
 	case 1:
 		return new(TestAction)
-	case 2:
-		return new(TestResponse)
 	case 3:
 		return new(TestActionNotRespond)
 	}

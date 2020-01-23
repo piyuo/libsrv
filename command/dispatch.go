@@ -1,23 +1,29 @@
 package command
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 
 	proto "github.com/golang/protobuf/proto"
-	libsrv "github.com/piyuo/go-libsrv"
+	app "github.com/piyuo/go-libsrv/app"
+	shared "github.com/piyuo/go-libsrv/shared"
+	tools "github.com/piyuo/go-libsrv/tools"
+
 	"github.com/pkg/errors"
 )
 
-// IAction if Action interface
-type IAction interface {
-	Execute() (interface{}, error)
+// Action interface
+type Action interface {
+	Main(ctx context.Context) (interface{}, error)
+	//  1 to 100 is shared command id between all service, 101 to 65,535 is valid service id
 	XXX_MapID() uint16
 	XXX_MapName() string
 }
 
-// IResponse if Response interface
-type IResponse interface {
+// Response interface
+type Response interface {
+	//  1 to 32,767 is valid service id,-1 to -32,768 is shared id between all service
 	XXX_MapID() uint16
 	XXX_MapName() string
 }
@@ -32,39 +38,30 @@ type Dispatch struct {
 	Map IMap
 }
 
-// ErrCommandParsing fire when decode command has error, it 's client 's fault
-var ErrCommandParsing = errors.New("failed to parsing command")
-
 // Route get action from httpRequest and write response to httpResponse
 // write error text if some thing is wrong
-func (dp *Dispatch) Route(bytes []byte) ([]byte, error) {
+func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	//bytes is command contain [proto,id], id is 2 bytes
 	_, action, err := dp.decodeCommand(bytes)
-	if err == ErrCommandParsing {
+	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		ErrCommandParsing = errors.Wrap(err, "failed to parsing command")
-		return nil, ErrCommandParsing
-	}
-
-	libsrv.Sys().Info(fmt.Sprintf("execute %v(%v bytes)", action.(IAction).XXX_MapName(), len(bytes)))
-	timer := libsrv.NewTimer()
+	commandLog := fmt.Sprintf("execute %v(%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
+	timer := tools.NewTimer()
 	timer.Start()
 
-	responseID, response, err := dp.handle(action)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to handle action")
-	}
-
+	responseID, response := dp.handle(ctx, action)
 	var returnBytes []byte
-	if response != nil {
-		returnBytes, err = dp.encodeCommand(responseID, response)
-		libsrv.Sys().Info(fmt.Sprintf("respond %v(%v bytes)", response.(IResponse).XXX_MapName(), len(returnBytes)))
-	}
+	returnBytes, err = dp.encodeCommand(responseID, response)
 	ms := timer.Stop()
-	libsrv.Sys().Info(fmt.Sprintf(", %v ms\n", ms))
-	return returnBytes, err
+	if err != nil {
+		commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
+		app.LogInfo(ctx, commandLog)
+		return nil, err
+	}
+	commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
+	app.LogInfo(ctx, commandLog)
+	return returnBytes, nil
 }
 
 //fastAppend provide better performance than append
@@ -78,8 +75,16 @@ func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 }
 
 //protoFromBuffer read proto message from buffer
+//
+//when id <= 100 use shared map, id > 100 use dispatch map
 func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error) {
-	obj := dp.Map.NewObjectByID(id)
+	var obj interface{}
+	if id <= 100 {
+		shareMap := &shared.MapXXX{}
+		obj = shareMap.NewObjectByID(id)
+	} else {
+		obj = dp.Map.NewObjectByID(id)
+	}
 	if obj == nil {
 		return nil, errors.New(fmt.Sprintf("failed to map id %v", id))
 	}
@@ -104,16 +109,20 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 }
 
 // handle send action to handler and get response
-func (dp *Dispatch) handle(action interface{}) (uint16, interface{}, error) {
-	responseInterface, err := action.(IAction).Execute()
+func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}) {
+	responseInterface, err := action.(Action).Main(ctx)
 	if err != nil {
-		return 0, nil, errors.Wrap(err, "failed to execute action")
+		errID := app.Error(ctx, err)
+		errResp := shared.Error(shared.ErrorInternal, errID)
+		return errResp.(Response).XXX_MapID(), errResp
 	}
 	if responseInterface == nil {
-		return 0, nil, nil
+		errID := app.Error(ctx, errors.New("action main() return nil response"))
+		errResp := shared.Error(shared.ErrorInternal, errID)
+		return errResp.(Response).XXX_MapID(), errResp
 	}
-	response := responseInterface.(IResponse)
-	return response.XXX_MapID(), response, nil
+	response := responseInterface.(Response)
+	return response.XXX_MapID(), response
 }
 
 // encodeCommand, comand is array contain [protobuf,id]

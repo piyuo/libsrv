@@ -1,9 +1,11 @@
 package command
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
+	shared "github.com/piyuo/go-libsrv/shared"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -25,7 +27,7 @@ func TestEncodeDecodeCommand(t *testing.T) {
 	})
 }
 
-func TestActionNoRespond(t *testing.T) {
+func TestActionNoRespose(t *testing.T) {
 	act := &TestActionNotRespond{
 		Text: "Hi",
 	}
@@ -33,12 +35,12 @@ func TestActionNoRespond(t *testing.T) {
 		Map: &TestMap{},
 	}
 	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
-	resultBytes, err2 := dispatch.Route(actBytes)
-
+	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
+	//no response action,will cause &shared.Err{}
 	Convey("test dispatch route", t, func() {
 		So(err, ShouldBeNil)
 		So(err2, ShouldBeNil)
-		So(resultBytes, ShouldBeNil)
+		So(resultBytes, ShouldNotBeNil)
 	})
 }
 
@@ -50,16 +52,14 @@ func TestRoute(t *testing.T) {
 		Map: &TestMap{},
 	}
 	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
-	resultBytes, err2 := dispatch.Route(actBytes)
-	respID, resp, err3 := dispatch.decodeCommand(resultBytes)
-	actualResponse := resp.(*TestResponse)
-	stringResp := &TestResponse{}
+	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
+	_, resp, err3 := dispatch.decodeCommand(resultBytes)
+	actualResponse := resp.(*shared.Err)
 	Convey("test dispatch route", t, func() {
 		So(err, ShouldBeNil)
 		So(err2, ShouldBeNil)
 		So(err3, ShouldBeNil)
-		So(respID, ShouldEqual, stringResp.XXX_MapID())
-		So(actualResponse.Text, ShouldEqual, "Hi")
+		So(actualResponse.Code, ShouldEqual, 0)
 	})
 }
 
@@ -75,13 +75,10 @@ func TestHandle(t *testing.T) {
 	}
 
 	//test dispatch route
-	respID, respInterface, err := dispatch.handle(act)
-	response := respInterface.(*TestResponse)
-	stringResponse := &TestResponse{}
+	_, respInterface := dispatch.handle(context.Background(), act)
+	response := respInterface.(*shared.Err)
 	Convey("test despatch handle", t, func() {
-		So(err, ShouldBeNil)
-		So(respID, ShouldEqual, stringResponse.XXX_MapID())
-		So(response.Text, ShouldEqual, "Hi")
+		So(response.Code, ShouldEqual, 0)
 	})
 }
 
@@ -156,7 +153,7 @@ func BenchmarkDispatch(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
-		resultBytes, _ := dispatch.Route(actBytes)
+		resultBytes, _ := dispatch.Route(context.Background(), actBytes)
 		_, _, _ = dispatch.decodeCommand(resultBytes)
 	}
 }

@@ -25,9 +25,9 @@ func NewProviderFirestore() *ProviderFirestore {
 //Initialize check env variable DATA_CRED to init google credentials for firestore
 func (provider *ProviderFirestore) Initialize() {
 	ctx := context.Background()
-	cred, err := libsrv.Sys().GetGoogleCloudCredential(libsrv.DB)
+	cred, err := libsrv.GetGoogleCloudCredential(libsrv.DB)
 	if err != nil {
-		libsrv.Sys().Alert("database operation failed to get google credential.  %v")
+		libsrv.LogAlert(ctx, "database operation failed to get google credential.  %v")
 		return
 	}
 

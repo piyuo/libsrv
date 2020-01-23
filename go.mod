@@ -11,11 +11,13 @@ require (
 	firebase.google.com/go v3.7.0+incompatible
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.1 // indirect
+	github.com/go-errors/errors v1.0.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
+	github.com/lithammer/shortuuid/v3 v3.0.4
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_model v0.1.0 // indirect
 	github.com/rogpeppe/go-internal v1.5.1 // indirect
@@ -30,7 +32,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.0.0-20200108203644-89082a384178 // indirect
 	google.golang.org/api v0.15.0
-	google.golang.org/genproto v0.0.0-20200108215221-bd8f9a0ef82f // indirect
+	google.golang.org/genproto v0.0.0-20200108215221-bd8f9a0ef82f
 	google.golang.org/grpc v1.26.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect

@@ -1,12 +1,13 @@
 package command
 
 import (
+	"context"
 	fmt "fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 
-	libsrv "github.com/piyuo/go-libsrv"
+	app "github.com/piyuo/go-libsrv/app"
 )
 
 // Server handle http request and call dispatch
@@ -28,10 +29,10 @@ type Server struct {
 //      server.Start(80)
 //     }
 func (s *Server) Start(port int) {
-	libsrv.Sys().Check()
+	app.EnvCheck()
+
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
-		libsrv.Sys().Emergency(msg)
 		panic(msg)
 	}
 	http.Handle("/", s.newHandler())
@@ -51,16 +52,31 @@ func (s *Server) newHandler() http.Handler {
 	return withoutArchive
 }
 
+//contextWithToken add token to context if token exist in cookies
+func (s *Server) contextWithToken(r *http.Request) (context.Context, app.Token) {
+	ctx := r.Context()
+	if len(r.Cookies()) == 0 {
+		return ctx, nil
+	}
+	token, err := app.TokenFromCookie(r)
+	if err != nil { // it is fine with no token, just return the context
+		return ctx, nil
+	}
+	//return new context with token
+	return token.ToContext(ctx), token
+}
+
 // Serve entry for http request, filter empty and bad request and send correct one to dispatch
 //
 // enable cross origin access
 func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
+	ctx, token := s.contextWithToken(r)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request. request is empty"
 		s.writeText(w, msg)
-		libsrv.Sys().Info(msg)
+		app.LogInfo(ctx, msg)
 		return
 	}
 
@@ -68,38 +84,34 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		s.writeText(w, err.Error())
-		libsrv.Sys().Info("bad request. " + err.Error())
+		app.LogInfo(ctx, "bad request. "+err.Error())
 		return
 	}
 	if len(bytes) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		msg := "bad request, must include command in request"
+		msg := "bad request, need command in request"
 		s.writeText(w, msg)
-		libsrv.Sys().Info(msg)
+		app.LogInfo(ctx, msg)
 		return
 	}
 
 	s.dispatch = &Dispatch{
 		Map: s.Map,
 	}
-	bytes, err = s.dispatch.Route(bytes)
-	if err == ErrCommandParsing {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "bad request, failed to parsing command. " + err.Error()
-		s.writeText(w, msg)
-		libsrv.Sys().Warning(msg)
-		return
-	}
+	bytes, err = s.dispatch.Route(ctx, bytes)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.writeText(w, "internal server error, we already log this error and will be fixed ASAP.")
-		libsrv.Sys().Error(err)
+		//if anything wrong just log error and send error id to client
+		errID := app.Error(ctx, err)
+		s.writeText(w, errID)
 		return
 	}
 
-	if bytes != nil {
-		s.writeBinary(w, bytes)
+	//check to see if token need revive
+	if token != nil && token.Revive() {
+		token.ToCookie(w)
 	}
+	s.writeBinary(w, bytes)
 }
 
 func (s *Server) writeText(w http.ResponseWriter, text string) {

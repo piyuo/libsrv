@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+/**
+*  Error Response
+*
+*/
+message Err {
+    int32 code= 1;
+    string tag=2;
+}
