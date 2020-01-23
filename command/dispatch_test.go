@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	sharedcommands "github.com/piyuo/go-libsrv/shared/commands"
+	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

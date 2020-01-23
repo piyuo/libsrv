@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	shared "github.com/piyuo/go-libsrv/shared"
-	sharedcommands "github.com/piyuo/go-libsrv/shared/commands"
+	shared "github.com/piyuo/go-libsrv/command/shared"
+	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

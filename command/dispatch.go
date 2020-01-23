@@ -7,8 +7,8 @@ import (
 
 	proto "github.com/golang/protobuf/proto"
 	app "github.com/piyuo/go-libsrv/app"
-	shared "github.com/piyuo/go-libsrv/shared"
-	sharedcommands "github.com/piyuo/go-libsrv/shared/commands"
+	shared "github.com/piyuo/go-libsrv/command/shared"
+	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 	tools "github.com/piyuo/go-libsrv/tools"
 
 	"github.com/pkg/errors"
