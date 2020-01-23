@@ -4,7 +4,7 @@ import (
 	"context"
 
 	app "github.com/piyuo/go-libsrv/app"
-	sharedcommands "github.com/piyuo/go-libsrv/commend/shared/commands"
+	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 )
 
 //ErrorCode use for code in ErrorResponse
