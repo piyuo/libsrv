@@ -1,4 +1,4 @@
-package libsrv
+package tools
 
 import (
 	"encoding/json"

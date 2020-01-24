@@ -3,11 +3,11 @@ package command
 import (
 	"context"
 
-	app "github.com/piyuo/go-libsrv/app"
-	"github.com/piyuo/go-libsrv/shared"
+	shared "github.com/piyuo/go-libsrv/command/shared"
+	log "github.com/piyuo/go-libsrv/log"
 )
 
-// Execute is main entry from client command
+// Main entry for client command execution
 // you can return a response to user and error will be log to server
 //
 // do not return nil on response
@@ -26,13 +26,13 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// }
 
 	// use sys.LogInfo to print message to the console
-	app.LogInfo(ctx, "hi")
+	log.Info(ctx, "hi")
 
 	// log significant events to google cloud
-	// sys.LogNotice(ctx, "hi")
-	// sys.LogWarning(ctx, "hi")
-	// sys.LogCritical(ctx, "hi")
-	// sys.LogAlert(ctx, "hi")
+	// log.Notice(ctx, "hi")
+	// log.Warning(ctx, "hi")
+	// log.Critical(ctx, "hi")
+	// log.Alert(ctx, "hi")
 
 	// no need to log error, just return error and client will get internal server error, error will log to google cloud
 
@@ -43,7 +43,6 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	//return Error(ErrorNeedJustLogin)
 
 	// return shared.OK() if nothing else to return
-	return shared.OK(), nil
-
 	//do not return nil, it will result internal server error
+	return shared.OK(), nil
 }

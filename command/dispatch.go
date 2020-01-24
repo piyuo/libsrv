@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	proto "github.com/golang/protobuf/proto"
-	app "github.com/piyuo/go-libsrv/app"
 	shared "github.com/piyuo/go-libsrv/command/shared"
 	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
+	log "github.com/piyuo/go-libsrv/log"
 	tools "github.com/piyuo/go-libsrv/tools"
 
 	"github.com/pkg/errors"
@@ -57,11 +57,11 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	ms := timer.Stop()
 	if err != nil {
 		commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
-		app.LogInfo(ctx, commandLog)
+		log.Info(ctx, commandLog)
 		return nil, err
 	}
 	commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
-	app.LogInfo(ctx, commandLog)
+	log.Info(ctx, commandLog)
 	return returnBytes, nil
 }
 
@@ -113,12 +113,12 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}) {
 	responseInterface, err := action.(Action).Main(ctx)
 	if err != nil {
-		errID := app.Error(ctx, err)
+		errID := log.Error(ctx, err)
 		errResp := shared.Error(shared.ErrorInternal, errID)
 		return errResp.(Response).XXX_MapID(), errResp
 	}
 	if responseInterface == nil {
-		errID := app.Error(ctx, errors.New("action main() return nil response"))
+		errID := log.Error(ctx, errors.New("action main() return nil response"))
 		errResp := shared.Error(shared.ErrorInternal, errID)
 		return errResp.(Response).XXX_MapID(), errResp
 	}

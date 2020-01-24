@@ -1,6 +1,7 @@
-package data
+package protocol
 
 import (
+	"context"
 	"math/rand"
 	"strconv"
 	"time"
@@ -8,45 +9,41 @@ import (
 	"github.com/pkg/errors"
 )
 
-//"github.com/pkg/errors"
-//"math/rand"
-//"time"
-
-// IDB is db interface
-type IDB interface {
+//DB interface
+type DB interface {
 	Close()
-	Put(obj IObject) error
-	Update(objClass string, objID string, fields map[string]interface{}) error
-	Get(obj IObject) error
-	GetByClass(class string, obj IObject) error
-	GetAll(factory func() IObject, callback func(o IObject), limit int) error
-	ListAll(factory func() IObject, limit int) ([]IObject, error)
-	Delete(obj IObject) error
-	DeleteAll(class string, timeout int) (int, error)
-	Select(factory func() IObject) IQuery
-	RunTransaction(callback func(tx ITransaction) error) error
+	Put(ctx context.Context, obj Object) error
+	Update(ctx context.Context, objClass string, objID string, fields map[string]interface{}) error
+	Get(ctx context.Context, obj Object) error
+	GetByClass(ctx context.Context, class string, obj Object) error
+	GetAll(ctx context.Context, factory func() Object, callback func(o Object), limit int) error
+	ListAll(ctx context.Context, factory func() Object, limit int) ([]Object, error)
+	Delete(ctx context.Context, obj Object) error
+	DeleteAll(ctx context.Context, class string, timeout int) (int, error)
+	Select(ctx context.Context, factory func() Object) Query
+	RunTransaction(ctx context.Context, callback func(tx Transaction) error) error
 
 	//AddCount(className string) (int, int, error)
 	//Counter(className string) (int, error)
 }
 
 // DB simplify datastore create
-type DB struct {
+type db struct {
 }
 
 //Put object into data store
-func (db *DB) Put(obj IObject) error {
+func (d *db) Put(obj Object) error {
 	panic("need implement Put")
 }
 
 //Get object from data store, return ErrNotFound if object not exist
-func (db *DB) Get(obj IObject) error {
+func (d *db) Get(obj Object) error {
 	panic("need implement Gut")
 }
 
 // Shard use by Counter()
 type Shard struct {
-	IObject
+	Object
 	c int // counter
 }
 
@@ -58,13 +55,13 @@ var ErrNotFound = errors.New("object not found")
 
 //AddCount implement sharding counter, shards limit usually 20
 //return shard number, shard count, error
-func (db *DB) AddCount(className string, shards int) (int, int, error) {
+func (d *db) AddCount(className string, shards int) (int, int, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	shardNumber := rand.Intn(shards)
 	shard := Shard{}
 	shard.SetID(strconv.Itoa(shardNumber))
 
-	err := db.Get(&shard)
+	err := d.Get(&shard)
 	if err != nil {
 		if err == ErrNotFound {
 		} else {
@@ -74,7 +71,7 @@ func (db *DB) AddCount(className string, shards int) (int, int, error) {
 
 	shard.c++
 
-	if err := db.Put(&shard); err != nil {
+	if err := d.Put(&shard); err != nil {
 		return shardNumber, -1, err
 	}
 	return shardNumber, shard.c, nil

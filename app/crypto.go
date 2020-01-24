@@ -1,4 +1,4 @@
-package libsrv
+package app
 
 import (
 	"bytes"
@@ -46,7 +46,7 @@ func (s *crypto) initCryptoKey() error {
 	if s.key != nil {
 		return nil
 	}
-	keyPath, err := EnvKeyPath("crypto")
+	keyPath, err := KeyPath("crypto")
 	if err != nil {
 		return errors.Wrap(err, "crypto.key not found")
 	}

@@ -1,4 +1,4 @@
-package libsrv
+package app
 
 import (
 	"context"

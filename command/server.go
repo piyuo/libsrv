@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	app "github.com/piyuo/go-libsrv/app"
+	log "github.com/piyuo/go-libsrv/log"
 )
 
 // Server handle http request and call dispatch
@@ -29,7 +30,7 @@ type Server struct {
 //      server.Start(80)
 //     }
 func (s *Server) Start(port int) {
-	app.EnvCheck()
+	app.Check()
 
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
@@ -76,7 +77,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request. request is empty"
 		s.writeText(w, msg)
-		app.LogInfo(ctx, msg)
+		log.Info(ctx, msg)
 		return
 	}
 
@@ -84,14 +85,14 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		s.writeText(w, err.Error())
-		app.LogInfo(ctx, "bad request. "+err.Error())
+		log.Info(ctx, "bad request. "+err.Error())
 		return
 	}
 	if len(bytes) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request, need command in request"
 		s.writeText(w, msg)
-		app.LogInfo(ctx, msg)
+		log.Info(ctx, msg)
 		return
 	}
 
@@ -102,7 +103,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		//if anything wrong just log error and send error id to client
-		errID := app.Error(ctx, err)
+		errID := log.Error(ctx, err)
 		s.writeText(w, errID)
 		return
 	}

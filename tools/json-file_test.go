@@ -1,13 +1,16 @@
-package libsrv
+package tools
 
 import (
+	"os"
+	"path"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestJSONFIle(t *testing.T) {
-	keyPath, _ := EnvKeyPath("log")
+	currentDir, _ := os.Getwd()
+	keyPath := path.Join(currentDir, "../keys/log.key")
 	jsonfile, _ := NewJSONFile(keyPath)
 	defer jsonfile.Close()
 

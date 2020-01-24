@@ -1,10 +1,11 @@
-package libsrv
+package log
 
 import (
 	"context"
 	"os"
 	"testing"
 
+	tools "github.com/piyuo/go-libsrv/tools"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -32,7 +33,7 @@ func TestGetLogHead(t *testing.T) {
 func TestInfo(t *testing.T) {
 	Convey("should print'", t, func() {
 		ctx := context.Background()
-		LogInfo(ctx, "hello log")
+		Info(ctx, "hello log")
 	})
 }
 
@@ -40,9 +41,9 @@ func TestInfo(t *testing.T) {
 func TestLog(t *testing.T) {
 	Convey("should log to server'", t, func() {
 		ctx := context.Background()
-		LogNotice(ctx, "my notice log")
-		LogWarning(ctx, "my warning log")
-		LogAlert(ctx, "my alert log")
+		Notice(ctx, "my notice log")
+		Warning(ctx, "my warning log")
+		Alert(ctx, "my alert log")
 	})
 }
 
@@ -62,8 +63,8 @@ func TestError(t *testing.T) {
 		ctx := context.Background()
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-		id := UUID()
-		LogError(ctx, message, stack, id, true)
+		id := tools.UUID()
+		CustomError(ctx, message, stack, id, true)
 		So(false, ShouldEqual, false)
 	})
 }

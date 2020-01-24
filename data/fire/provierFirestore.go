@@ -1,7 +1,7 @@
-package data
+package fire
 
 import (
-	"context"
+	"github.com/piyuo/go-libsrv/data/protocol"
 
 	firebase "firebase.google.com/go"
 	app "github.com/piyuo/go-libsrv/app"
@@ -11,10 +11,9 @@ import (
 
 // ProviderFirestore implement google firestore
 type ProviderFirestore struct {
-	Provider
+	protocol.Provider
 	//credentials *google.Credentials
 	app *firebase.App
-	ctx context.Context
 }
 
 // NewProviderFirestore provide new Provider for google firestore
@@ -23,9 +22,8 @@ func NewProviderFirestore() *ProviderFirestore {
 }
 
 //Initialize check env variable DATA_CRED to init google credentials for firestore
-func (provider *ProviderFirestore) Initialize() {
-	ctx := context.Background()
-	cred, err := app.GetGoogleCloudCredential(app.DB)
+func (provider *ProviderFirestore) Initialize(ctx context.Context) {
+	cred, err := app.EnvGoogleCredential(ctx,app.DB)
 	if err != nil {
 		libsrv.LogAlert(ctx, "database operation failed to get google credential.  %v")
 		return
@@ -36,11 +34,10 @@ func (provider *ProviderFirestore) Initialize() {
 		libsrv.Sys().Emergency("failed to create firebase client")
 		panic(err)
 	}
-	provider.ctx = ctx
 }
 
 //NewDB create db instance
-func (provider *ProviderFirestore) NewDB() (IDB, error) {
+func (provider *ProviderFirestore) NewDB() (protocol.DB, error) {
 	client, err := provider.app.Firestore(provider.ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create firestore client")

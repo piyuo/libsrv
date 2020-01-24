@@ -1,4 +1,4 @@
-package data
+package fire
 
 import (
 	"testing"
@@ -24,7 +24,7 @@ func TestSelectQuery(t *testing.T) {
 
 	//test select
 	var i int
-	db.Select(GreetFactory).Where("From", "==", "1").Run(func(o IObject) {
+	db.Select(GreetFactory).Where("From", "==", "1").Run(func(o Object) {
 		i++
 		err := db.Delete(o)
 		Convey("delete select document ", t, func() {
@@ -54,7 +54,7 @@ func TestOrder(t *testing.T) {
 	db.Put(&greet2)
 
 	list := []*Greet{}
-	db.Select(GreetFactory).OrderByDesc("From").Run(func(o IObject) {
+	db.Select(GreetFactory).OrderByDesc("From").Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
@@ -63,7 +63,7 @@ func TestOrder(t *testing.T) {
 	})
 
 	list = []*Greet{}
-	db.Select(GreetFactory).OrderBy("From").Run(func(o IObject) {
+	db.Select(GreetFactory).OrderBy("From").Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
@@ -72,7 +72,7 @@ func TestOrder(t *testing.T) {
 	})
 
 	list = []*Greet{}
-	db.Select(GreetFactory).Limit(1).Run(func(o IObject) {
+	db.Select(GreetFactory).Limit(1).Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
@@ -100,7 +100,7 @@ func TestOffset(t *testing.T) {
 	db.Put(&greet2)
 
 	list := []*Greet{}
-	db.Select(GreetFactory()).OrderBy("From").Offset(1).Run(func(o IObject) {
+	db.Select(GreetFactory()).OrderBy("From").Offset(1).Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
