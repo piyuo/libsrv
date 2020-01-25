@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
@@ -70,13 +71,13 @@ func logToGcp(ctx context.Context, message, application, identity string, level 
 
 	client, err := createLogClient(ctx)
 	if err != nil {
-		Error(ctx, errors.Wrap(err, "failed to create log client"))
+		Error(ctx, errors.Wrap(err, "failed to create log client"), nil)
 		return
 	}
 
 	file := client.Logger(app.PiyuoID())
 	if err != nil {
-		Error(ctx, errors.Wrap(err, "failed to create log file"))
+		Error(ctx, errors.Wrap(err, "failed to create log file"), nil)
 		return
 	}
 
@@ -97,7 +98,7 @@ func logToGcp(ctx context.Context, message, application, identity string, level 
 	file.Log(entry)
 
 	if err := client.Close(); err != nil {
-		Error(ctx, errors.Wrap(err, "failed to close client"))
+		Error(ctx, errors.Wrap(err, "failed to close client"), nil)
 		return
 	}
 }
@@ -112,7 +113,7 @@ func logToGcp(ctx context.Context, message, application, identity string, level 
 //
 //	err := errors.New("my error1")
 //	LogError(ctx, message, stack, id, true)
-func errorToGcp(ctx context.Context, message, application, identity, stack, errID string, fromClient bool) {
+func errorToGcp(ctx context.Context, message, application, identity, stack, errID string, fromClient bool, r *http.Request) {
 	head := logHeadFromAI(application, identity, fromClient)
 	client, err := createErrorClient(ctx)
 	if err != nil {
@@ -131,6 +132,7 @@ func errorToGcp(ctx context.Context, message, application, identity, stack, errI
 		client.Report(errorreporting.Entry{
 			Error: e, User: identity,
 			Stack: []byte(stack),
+			Req:   r,
 		})
 
 	}

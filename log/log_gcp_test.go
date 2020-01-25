@@ -1,7 +1,9 @@
 package log
 
 import (
+	"bytes"
 	"context"
+	"net/http"
 	"testing"
 
 	tools "github.com/piyuo/go-libsrv/tools"
@@ -26,25 +28,35 @@ func TestLog(t *testing.T) {
 	})
 }
 
-// TestError is a production test, it will write error to google cloud platform under Error Reporting
-func TestErr(t *testing.T) {
+func TestError(t *testing.T) {
 	Convey("should print error'", t, func() {
 		ctx := context.Background()
 		err := errors.New("mock error happening in go")
-		errID := Error(ctx, err)
+		errID := Error(ctx, err, nil)
 		So(errID, ShouldNotBeEmpty)
 		So(false, ShouldEqual, false)
 	})
 }
 
-func TestError(t *testing.T) {
+func TestErrorWithRequest(t *testing.T) {
+	Convey("should print error'", t, func() {
+		ctx := context.Background()
+		err := errors.New("mock error happening in go with request")
+		req, _ := http.NewRequest("GET", "/", bytes.NewReader([]byte("ABC")))
+		errID := Error(ctx, err, req)
+		So(errID, ShouldNotBeEmpty)
+		So(false, ShouldEqual, false)
+	})
+}
+
+func TestCustomError(t *testing.T) {
 	Convey("should print error from'", t, func() {
 		ctx := context.Background()
 		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := tools.UUID()
-		CustomError(ctx, message, application, identity, stack, id, true)
+		CustomError(ctx, message, application, identity, stack, id, true, nil)
 		So(false, ShouldEqual, false)
 	})
 }

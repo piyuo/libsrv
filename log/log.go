@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	app "github.com/piyuo/go-libsrv/app"
 	tools "github.com/piyuo/go-libsrv/tools"
@@ -113,13 +114,13 @@ func Emergency(ctx context.Context, message string) {
 //
 //	err := errors.New("my error1")
 //	LogErr(ctx, err)
-func Error(ctx context.Context, err error) string {
+func Error(ctx context.Context, err error, r *http.Request) string {
 	errID := tools.UUID()
 	application, identity := aiFromContext(ctx)
 	head := logHeadFromAI(application, identity, false)
 	fmt.Printf("%v%v (%v)\n", head, err, errID)
 	message := err.Error()
-	CustomError(ctx, message, application, identity, "", errID, false)
+	CustomError(ctx, message, application, identity, "", errID, false, r)
 	return errID
 }
 
@@ -141,6 +142,6 @@ func CustomLog(ctx context.Context, message, application, identity string, level
 //	err := errors.New("my error1")
 //	errID := tools.UUID()
 //	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",, stack, errID, true)
-func CustomError(ctx context.Context, message, application, identity, stack, errID string, fromClient bool) {
-	errorToGcp(ctx, message, application, identity, stack, errID, fromClient)
+func CustomError(ctx context.Context, message, application, identity, stack, errID string, fromClient bool, r *http.Request) {
+	errorToGcp(ctx, message, application, identity, stack, errID, fromClient, r)
 }

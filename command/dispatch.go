@@ -113,12 +113,12 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}) {
 	responseInterface, err := action.(Action).Main(ctx)
 	if err != nil {
-		errID := log.Error(ctx, err)
+		errID := log.Error(ctx, err, nil)
 		errResp := shared.Error(shared.ErrorInternal, errID)
 		return errResp.(Response).XXX_MapID(), errResp
 	}
 	if responseInterface == nil {
-		errID := log.Error(ctx, errors.New("action main() return nil response"))
+		errID := log.Error(ctx, errors.New("action main() return nil response"), nil)
 		errResp := shared.Error(shared.ErrorInternal, errID)
 		return errResp.(Response).XXX_MapID(), errResp
 	}

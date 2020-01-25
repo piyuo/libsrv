@@ -103,7 +103,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		//if anything wrong just log error and send error id to client
-		errID := log.Error(ctx, err)
+		errID := log.Error(ctx, err, r)
 		s.writeText(w, errID)
 		return
 	}
