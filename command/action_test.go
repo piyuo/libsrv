@@ -14,7 +14,7 @@ import (
 // do not return nil on response
 func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// get token if you need userid
-	//token, errResp := shared.NeedToken(ctx)
+	//token, errResp := shared.Token(ctx)
 	// if errResp != nil {
 	// 	 return errResp, nil
 	// }
@@ -47,7 +47,9 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// return error code to client
 	//return Error(ErrorNeedJustLogin)
 
-	// return shared.OK() if nothing else to return
 	//do not return nil, it will result internal server error
+	// return shared.OK() if nothing else to return
+	// return shared.Text("hi")
+	// return shared.Number(101)
 	return shared.OK(), nil
 }

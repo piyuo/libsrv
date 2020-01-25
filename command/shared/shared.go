@@ -31,13 +31,13 @@ const (
 	ErrorNeedJustLogin ErrorCode = 5
 )
 
-// NeedToken return token or ErrorResponse
+// Token return token or ErrorResponse
 //
 // 	token, errResp := shared.NeedToken(ctx)
 // 	if errResp != nil {
 // 		return errResp, nil
 // 	}
-func NeedToken(ctx context.Context) (app.Token, interface{}) {
+func Token(ctx context.Context) (app.Token, interface{}) {
 	token, err := app.TokenFromContext(ctx)
 	if err != nil {
 		return nil, Error(ErrorNeedToken, "")
@@ -49,6 +49,8 @@ func NeedToken(ctx context.Context) (app.Token, interface{}) {
 }
 
 //OK return code=0 no error response
+//
+//	return shared.OK(),nil
 func OK() interface{} {
 	return &sharedcommands.Err{
 		Code: 0,
@@ -56,6 +58,8 @@ func OK() interface{} {
 }
 
 //Error return  error response with code
+//
+//	return shared.Error(shared.ErrorUnknown),nil
 func Error(code ErrorCode, tag string) interface{} {
 	return errorInt32(int32(code), tag)
 }
@@ -64,5 +68,23 @@ func errorInt32(code int32, tag string) interface{} {
 	return &sharedcommands.Err{
 		Code: code,
 		Tag:  tag,
+	}
+}
+
+//Text return string response
+//
+//	return shared.Text("hi"),nil
+func Text(text string) interface{} {
+	return &sharedcommands.Text{
+		Value: text,
+	}
+}
+
+//Number return number response
+//
+//	return shared.Number(101),nil
+func Number(num int64) interface{} {
+	return &sharedcommands.Num{
+		Value: num,
 	}
 }

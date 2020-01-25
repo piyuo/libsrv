@@ -6,7 +6,7 @@ Library for all GO server project
 
 need environment variable
 
-PIYUO_ID="dev" (production should like piyuo-tw-m-sys)
+PIYUO_APP="piyuo-dev"
 
 ## Git
 
