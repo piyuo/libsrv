@@ -2,33 +2,12 @@ package log
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	tools "github.com/piyuo/go-libsrv/tools"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func TestGetLogHead(t *testing.T) {
-	Convey("should generate log head'", t, func() {
-		ctx := context.Background()
-		backupPiyuoApp := os.Getenv("PIYUO_APP")
-		os.Setenv("PIYUO_APP", "dev")
-		head, _, _ := generateLogHead(ctx, false)
-		So(head, ShouldEqual, "[dev]: ")
-		head, _, _ = generateLogHead(ctx, true)
-		So(head, ShouldEqual, "<dev>: ")
-
-		os.Setenv("PIYUO_APP", "piyuo-m-us-sys")
-		head, _, _ = generateLogHead(ctx, false)
-		So(head, ShouldEqual, "[piyuo-m-us-sys]: ")
-		os.Setenv("PIYUO_APP", "piyuo-m-web-index")
-		head, _, _ = generateLogHead(ctx, true)
-		So(head, ShouldEqual, "<piyuo-m-web-index>: ")
-		os.Setenv("PIYUO_APP", backupPiyuoApp)
-	})
-}
 
 func TestInfo(t *testing.T) {
 	Convey("should print'", t, func() {
@@ -61,10 +40,11 @@ func TestErr(t *testing.T) {
 func TestError(t *testing.T) {
 	Convey("should print error from'", t, func() {
 		ctx := context.Background()
+		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := tools.UUID()
-		CustomError(ctx, message, stack, id, true)
+		CustomError(ctx, message, application, identity, stack, id, true)
 		So(false, ShouldEqual, false)
 	})
 }

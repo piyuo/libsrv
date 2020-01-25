@@ -50,11 +50,11 @@ func createErrorClient(ctx context.Context) (*errorreporting.Client, error) {
 //Log custom message and level to google cloud platform
 //
 //	Log(ctx,"hello",WARNING,true)
-func logToGcp(ctx context.Context, message string, level int32, fromClient bool) {
+func logToGcp(ctx context.Context, message, application, identity string, level int32, fromClient bool) {
 	if message == "" {
 		return
 	}
-	head, identity, _ := generateLogHead(ctx, fromClient)
+	head := logHeadFromAI(application, identity, fromClient)
 	fmt.Printf("%v%v (logged)\n", head, message)
 	severity := logging.Notice
 	switch level {
@@ -88,9 +88,12 @@ func logToGcp(ctx context.Context, message string, level int32, fromClient bool)
 		Severity: severity,
 		Labels: map[string]string{
 			"application": app.PiyuoID(),
-			"identity":    identity,
 		},
 	}
+	if identity != "" {
+		entry.Labels["identity"] = identity
+	}
+
 	file.Log(entry)
 
 	if err := client.Close(); err != nil {
@@ -109,8 +112,8 @@ func logToGcp(ctx context.Context, message string, level int32, fromClient bool)
 //
 //	err := errors.New("my error1")
 //	LogError(ctx, message, stack, id, true)
-func errorToGcp(ctx context.Context, message, stack, errID string, fromClient bool) {
-	head, identity, _ := generateLogHead(ctx, fromClient)
+func errorToGcp(ctx context.Context, message, application, identity, stack, errID string, fromClient bool) {
+	head := logHeadFromAI(application, identity, fromClient)
 	client, err := createErrorClient(ctx)
 	if err != nil {
 		fmt.Printf("failed to create error client\n%v\n", err)
