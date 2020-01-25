@@ -1,9 +1,7 @@
-package fire
+package data
 
 import (
 	"context"
-
-	"github.com/piyuo/go-libsrv/data/protocol"
 
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
@@ -13,7 +11,7 @@ import (
 
 // TransactionFirestore implement google firestore
 type TransactionFirestore struct {
-	protocol.Transaction
+	Transaction
 	client *firestore.Client
 	tx     *firestore.Transaction
 	ctx    context.Context
@@ -25,10 +23,10 @@ func NewTransactionFirestore(ctx context.Context, client *firestore.Client, tx *
 }
 
 //Get data object from data store, return ErrNotFound if object not exist
-func (trans *TransactionFirestore) Get(obj protocol.Object) error {
+func (trans *TransactionFirestore) Get(ctx context.Context, obj Object) error {
 	id := obj.ID()
 	if id == "" {
-		return ErrNotFound
+		return errors.New("get object need object  have ID")
 	}
 
 	class := obj.Class()
@@ -36,7 +34,7 @@ func (trans *TransactionFirestore) Get(obj protocol.Object) error {
 	snapshot, err := trans.tx.Get(ref)
 	if err != nil {
 		if grpc.Code(err) == codes.NotFound {
-			return ErrNotFound
+			return ErrObjectNotFound
 		}
 		return err
 	}
@@ -47,7 +45,7 @@ func (trans *TransactionFirestore) Get(obj protocol.Object) error {
 }
 
 //Put data object into data store
-func (trans *TransactionFirestore) Put(obj protocol.Object) error {
+func (trans *TransactionFirestore) Put(ctx context.Context, obj Object) error {
 	class := obj.Class()
 	if obj.ID() == "" {
 		ref := trans.client.Collection(class).NewDoc()
@@ -62,7 +60,7 @@ func (trans *TransactionFirestore) Put(obj protocol.Object) error {
 }
 
 //Delete data object from firestore
-func (trans *TransactionFirestore) Delete(obj protocol.Object) error {
+func (trans *TransactionFirestore) Delete(ctx context.Context, obj Object) error {
 	id := obj.ID()
 	class := obj.Class()
 	ref := trans.client.Collection(class).Doc(id)

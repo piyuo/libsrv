@@ -1,10 +1,8 @@
-package fire
+package data
 
 import (
 	"context"
 	"time"
-
-	"github.com/piyuo/go-libsrv/data/protocol"
 
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
@@ -15,15 +13,8 @@ import (
 
 // DBFirestore implement db on firestore
 type DBFirestore struct {
-	protocol.DB
+	DB
 	client *firestore.Client
-}
-
-//NewDBFirestore new firestore db instance
-func NewDBFirestore(client *firestore.Client) *DBFirestore {
-	db := &DBFirestore{}
-	db.client = client
-	return db
 }
 
 //Close a db connection
@@ -35,7 +26,7 @@ func (db *DBFirestore) Close() {
 }
 
 //Put data object into data store
-func (db *DBFirestore) Put(ctx context.Context, obj protocol.Object) error {
+func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 	Class := obj.Class()
 	if obj.ID() == "" {
 		ref := db.client.Collection(Class).NewDoc()
@@ -58,20 +49,20 @@ func (db *DBFirestore) Update(ctx context.Context, objClass string, objID string
 }
 
 //Get data object from data store, return ErrNotFound if object not exist
-func (db *DBFirestore) Get(ctx context.Context, obj protocol.Object) error {
+func (db *DBFirestore) Get(ctx context.Context, obj Object) error {
 	return db.GetByClass(ctx, obj.Class(), obj)
 }
 
 //GetByClass get object from data store,use class instead of obj class
-func (db *DBFirestore) GetByClass(ctx context.Context, class string, obj protocol.Object) error {
+func (db *DBFirestore) GetByClass(ctx context.Context, class string, obj Object) error {
 	id := obj.ID()
 	if id == "" {
-		return protocol.ErrNotFound
+		return errors.New("get object need object  have ID")
 	}
 	snapshot, err := db.client.Collection(class).Doc(id).Get(ctx)
 	if err != nil {
 		if grpc.Code(err) == codes.NotFound {
-			return protocol.ErrNotFound
+			return ErrObjectNotFound
 		}
 		return err
 	}
@@ -82,7 +73,7 @@ func (db *DBFirestore) GetByClass(ctx context.Context, class string, obj protoco
 }
 
 //GetAll object from data store, return error
-func (db *DBFirestore) GetAll(ctx context.Context, factory func() protocol.Object, callback func(o protocol.Object), limit int) error {
+func (db *DBFirestore) GetAll(ctx context.Context, factory func() Object, callback func(o Object), limit int) error {
 	if limit > 100 {
 		panic("GetAll() limit need under 100")
 	}
@@ -109,14 +100,14 @@ func (db *DBFirestore) GetAll(ctx context.Context, factory func() protocol.Objec
 }
 
 //ListAll get object lit from data store, return error
-func (db *DBFirestore) ListAll(ctx context.Context, factory func() protocol.Object, limit int) ([]protocol.Object, error) {
+func (db *DBFirestore) ListAll(ctx context.Context, factory func() Object, limit int) ([]Object, error) {
 	if limit > 100 {
 		panic("ListAll() limit need under 100")
 	}
 	obj := factory()
 	ref := db.client.Collection(obj.Class())
 	iter := ref.Limit(limit).Documents(ctx)
-	list := []protocol.Object{}
+	list := []Object{}
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
@@ -136,7 +127,7 @@ func (db *DBFirestore) ListAll(ctx context.Context, factory func() protocol.Obje
 }
 
 //Delete data object from data store
-func (db *DBFirestore) Delete(ctx context.Context, obj protocol.Object) error {
+func (db *DBFirestore) Delete(ctx context.Context, obj Object) error {
 	id := obj.ID()
 	class := obj.Class()
 	ref := db.client.Collection(class).Doc(id)
@@ -181,13 +172,13 @@ func (db *DBFirestore) DeleteAll(ctx context.Context, className string, timeout 
 		totalDeleted += numDeleted
 		diff := time.Now().Sub(beginTime).Seconds()
 		if int(diff) >= timeout {
-			return totalDeleted, protocol.ErrTimeout
+			return totalDeleted, ErrOperationTimeout
 		}
 	}
 }
 
 //Select data object from firestore
-func (db *DBFirestore) Select(ctx context.Context, f func() protocol.Object) protocol.Query {
+func (db *DBFirestore) Select(ctx context.Context, f func() Object) Query {
 	if f == nil {
 		panic("Select must have new function like func(){new(object)}")
 	}
@@ -197,9 +188,9 @@ func (db *DBFirestore) Select(ctx context.Context, f func() protocol.Object) pro
 }
 
 //RunTransaction implement firestore run transaction
-func (db *DBFirestore) RunTransaction(ctx context.Context, f func(tx protocol.Transaction) error) error {
+func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Context, tx Transaction) error) error {
 	return db.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		tf := NewTransactionFirestore(ctx, db.client, tx)
-		return f(tf)
+		return f(ctx, tf)
 	})
 }

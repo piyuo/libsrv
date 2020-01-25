@@ -1,4 +1,4 @@
-package protocol
+package data
 
 // Object is base data interface
 type Object interface {

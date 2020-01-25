@@ -1,6 +1,7 @@
-package fire
+package data
 
 import (
+	"context"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -16,35 +17,36 @@ func TestTransaction(t *testing.T) {
 		From:        "2",
 		Description: "2",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
-	db.DeleteAll(greet1.Class(), 9)
-	err := db.RunTransaction(func(tx ITransaction) error {
-		tx.Put(&greet1)
-		tx.Put(&greet2)
+	db.DeleteAll(ctx, greet1.Class(), 9)
+	err := db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
+		tx.Put(ctx, &greet1)
+		tx.Put(ctx, &greet2)
 		return nil
 	})
 	Convey("transaction should not have error '", t, func() {
 		So(err, ShouldBeNil)
 	})
-	list, _ := db.ListAll(GreetFactory, 100)
+	list, _ := db.ListAll(ctx, GreetFactory, 100)
 	Convey("transaction fail should rollback '", t, func() {
 		So(len(list), ShouldEqual, 2)
 	})
 
-	db.DeleteAll(greet1.Class(), 9)
-	err = db.RunTransaction(func(tx ITransaction) error {
-		tx.Put(&greet1)
+	db.DeleteAll(ctx, greet1.Class(), 9)
+	err = db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
+		tx.Put(ctx, &greet1)
 		return errors.New("some thing wrong")
 	})
 	Convey("transaction should have error '", t, func() {
 		So(err, ShouldNotBeNil)
 	})
-	list, _ = db.ListAll(GreetFactory, 100)
+	list, _ = db.ListAll(ctx, GreetFactory, 100)
 	Convey("transaction fail should rollback '", t, func() {
 		So(len(list), ShouldEqual, 0)
 	})
 
-	db.DeleteAll(greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.Class(), 9)
 }

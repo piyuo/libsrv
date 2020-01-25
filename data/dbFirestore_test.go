@@ -1,6 +1,7 @@
-package fire
+package data
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
@@ -8,13 +9,13 @@ import (
 )
 
 type Greet struct {
-	Object
+	object
 	From        string
 	Description string
 }
 
 //GreetFactory provide function to create instance
-var GreetFactory = func() IObject {
+var GreetFactory = func() Object {
 	return new(Greet)
 }
 
@@ -23,11 +24,12 @@ func (g *Greet) Class() string {
 }
 
 func TestGetNotFound(t *testing.T) {
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
-	err := db.Get(&Greet{})
+	err := db.Get(ctx, &Greet{})
 	Convey("get not exist object", t, func() {
-		So(err, ShouldEqual, ErrNotFound)
+		So(err, ShouldNotBeNil)
 	})
 }
 
@@ -36,12 +38,12 @@ func TestPutGetDelete(t *testing.T) {
 		From:        "me",
 		Description: "hello",
 	}
-
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
 	//test put
-	err := db.Put(&greet)
+	err := db.Put(ctx, &greet)
 	Convey("greet should have id after db.put", t, func() {
 		So(err, ShouldBeNil)
 	})
@@ -54,13 +56,13 @@ func TestPutGetDelete(t *testing.T) {
 	//test get
 	greet2 := Greet{}
 	greet2.SetID(objID)
-	_ = db.Get(&greet2)
+	_ = db.Get(ctx, &greet2)
 	Convey("object load from datastore should equal to insert", t, func() {
 		So(greet2.From, ShouldEqual, greet.From)
 	})
 
 	//test delete
-	err = db.Delete(&greet)
+	err = db.Delete(ctx, &greet)
 	Convey("delete greet from datastore'", t, func() {
 		So(err, ShouldBeNil)
 	})
@@ -73,15 +75,16 @@ func TestUpdate(t *testing.T) {
 		Description: "hello",
 	}
 
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
-	err := db.Put(&greet)
+	err := db.Put(ctx, &greet)
 	Convey("put sample ", t, func() {
 		So(err, ShouldBeNil)
 	})
 
-	err = db.Update(greet.Class(), greet.ID(), map[string]interface{}{
+	err = db.Update(ctx, greet.Class(), greet.ID(), map[string]interface{}{
 		"Description": "helloworld",
 	})
 	Convey("update sample description", t, func() {
@@ -90,12 +93,12 @@ func TestUpdate(t *testing.T) {
 
 	greet2 := Greet{}
 	greet2.SetID(greet.ID())
-	_ = db.Get(&greet2)
+	_ = db.Get(ctx, &greet2)
 	Convey("sample description should be updated", t, func() {
 		So(greet2.Description, ShouldEqual, "helloworld")
 	})
 
-	_ = db.Delete(&greet)
+	_ = db.Delete(ctx, &greet)
 }
 
 func TestSelectDelete(t *testing.T) {
@@ -107,22 +110,22 @@ func TestSelectDelete(t *testing.T) {
 		From:        "2",
 		Description: "2",
 	}
-
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
-	db.Put(&greet1)
-	db.Put(&greet2)
+	db.Put(ctx, &greet1)
+	db.Put(ctx, &greet2)
 
 	//test select
-	qry := db.Select(func() IObject {
+	qry := db.Select(ctx, func() Object {
 		return new(Greet)
 	})
 
 	var i int
-	qry.Run(func(o IObject) {
+	qry.Run(func(o Object) {
 		i++
-		err := db.Delete(o)
+		err := db.Delete(ctx, o)
 		Convey("delete select document ", t, func() {
 			So(err, ShouldBeNil)
 		})
@@ -141,12 +144,13 @@ func TestDeleteAll(t *testing.T) {
 		From:        "2",
 		Description: "2",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
-	db.Put(&greet1)
-	db.Put(&greet2)
+	db.Put(ctx, &greet1)
+	db.Put(ctx, &greet2)
 
-	numDeleted, err := db.DeleteAll(greet1.Class(), 10)
+	numDeleted, err := db.DeleteAll(ctx, greet1.Class(), 10)
 
 	Convey("DeleteAll should not have error '", t, func() {
 		So(err, ShouldBeNil)
@@ -166,14 +170,15 @@ func TestGetAll(t *testing.T) {
 		From:        "2",
 		Description: "2",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
-	db.DeleteAll(greet1.Class(), 9)
-	db.Put(&greet1)
-	db.Put(&greet2)
+	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.Put(ctx, &greet1)
+	db.Put(ctx, &greet2)
 
 	list := []*Greet{}
-	err := db.GetAll(GreetFactory, func(o IObject) {
+	err := db.GetAll(ctx, GreetFactory, func(o Object) {
 		list = append(list, o.(*Greet))
 	}, 100)
 	Convey("GetAll should not have error '", t, func() {
@@ -182,7 +187,7 @@ func TestGetAll(t *testing.T) {
 	Convey("list should hold all object", t, func() {
 		So(len(list), ShouldEqual, 2)
 	})
-	db.DeleteAll(greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.Class(), 9)
 }
 
 func TestListAll(t *testing.T) {
@@ -194,20 +199,21 @@ func TestListAll(t *testing.T) {
 		From:        "2",
 		Description: "2",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
-	db.DeleteAll(greet1.Class(), 9)
-	db.Put(&greet1)
-	db.Put(&greet2)
+	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.Put(ctx, &greet1)
+	db.Put(ctx, &greet2)
 
-	list, err := db.ListAll(GreetFactory, 100)
+	list, err := db.ListAll(ctx, GreetFactory, 100)
 	Convey("GetAll should not have error '", t, func() {
 		So(err, ShouldBeNil)
 	})
 	Convey("list should hold all object", t, func() {
 		So(len(list), ShouldEqual, 2)
 	})
-	db.DeleteAll(greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.Class(), 9)
 }
 
 func BenchmarkPutSpeed(b *testing.B) {
@@ -215,10 +221,11 @@ func BenchmarkPutSpeed(b *testing.B) {
 		From:        "me",
 		Description: "hello",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
-	err := db.Put(&greet)
+	err := db.Put(ctx, &greet)
 	if err != nil {
 		return
 	}
@@ -226,7 +233,7 @@ func BenchmarkPutSpeed(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		greet.Description = "hello" + strconv.Itoa(i)
-		db.Put(&greet)
+		db.Put(ctx, &greet)
 	}
 }
 
@@ -235,17 +242,18 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 		From:        "me",
 		Description: "hello",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
-	err := db.Put(&greet)
+	err := db.Put(ctx, &greet)
 	if err != nil {
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		db.Update(greet.Class(), greet.ID(), map[string]interface{}{
+		db.Update(ctx, greet.Class(), greet.ID(), map[string]interface{}{
 			"Description": "hello" + strconv.Itoa(i),
 		})
 	}

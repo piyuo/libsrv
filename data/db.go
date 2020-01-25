@@ -1,4 +1,4 @@
-package protocol
+package data
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type DB interface {
 	Delete(ctx context.Context, obj Object) error
 	DeleteAll(ctx context.Context, class string, timeout int) (int, error)
 	Select(ctx context.Context, factory func() Object) Query
-	RunTransaction(ctx context.Context, callback func(tx Transaction) error) error
+	RunTransaction(ctx context.Context, callback func(ctx context.Context, tx Transaction) error) error
 
 	//AddCount(className string) (int, int, error)
 	//Counter(className string) (int, error)
@@ -47,11 +47,11 @@ type Shard struct {
 	c int // counter
 }
 
-// ErrTimeout is returned by DeleteAll method when the method is run too long
-var ErrTimeout = errors.New("db operation timeout")
+// ErrOperationTimeout is returned by DeleteAll method when the method is run too long
+var ErrOperationTimeout = errors.New("db operation timeout")
 
-// ErrNotFound is returned by Get method object not exist
-var ErrNotFound = errors.New("object not found")
+// ErrObjectNotFound is returned by Get method object not exist
+var ErrObjectNotFound = errors.New("object not found")
 
 //AddCount implement sharding counter, shards limit usually 20
 //return shard number, shard count, error
@@ -63,7 +63,7 @@ func (d *db) AddCount(className string, shards int) (int, int, error) {
 
 	err := d.Get(&shard)
 	if err != nil {
-		if err == ErrNotFound {
+		if err == ErrObjectNotFound {
 		} else {
 			return shardNumber, -1, err
 		}

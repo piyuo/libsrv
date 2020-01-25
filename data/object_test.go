@@ -1,4 +1,4 @@
-package protocol
+package data
 
 import (
 	"reflect"
@@ -9,7 +9,7 @@ import (
 )
 
 type DataObjectChild struct {
-	Object
+	object
 }
 
 //NewDataObjectChild create DataObjectChild instance
@@ -64,22 +64,22 @@ func TestFunctionCallback(t *testing.T) {
 	text := doWork(func(i int) string {
 		return strconv.Itoa(i)
 	})
-	Convey("dowork return work", t, func() {
+	Convey("doWork return work", t, func() {
 		So(text, ShouldEqual, "1")
 	})
 }
 
 func ThrowTimeout() error {
-	return ErrTimeout
+	return ErrOperationTimeout
 }
 
 func TestCustomError(t *testing.T) {
 	err := ThrowTimeout()
-	if err != ErrTimeout {
+	if err != ErrOperationTimeout {
 		err = nil
 	}
 	Convey("compare custom error", t, func() {
-		So(err, ShouldEqual, ErrTimeout)
+		So(err, ShouldEqual, ErrOperationTimeout)
 	})
 }
 

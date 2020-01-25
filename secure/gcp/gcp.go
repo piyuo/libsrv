@@ -29,7 +29,7 @@ var dataCred *google.Credentials
 
 //DataCredential provide google credential for data
 func DataCredential(ctx context.Context) (*google.Credentials, error) {
-	key := "db"
+	key := "data"
 	scope := "https://www.googleapis.com/auth/datastore"
 	if dataCred == nil {
 		cred, err := createCredential(ctx, key, scope)

@@ -5,6 +5,7 @@ import (
 
 	shared "github.com/piyuo/go-libsrv/command/shared"
 	log "github.com/piyuo/go-libsrv/log"
+	//data "github.com/piyuo/go-libsrv/data"
 )
 
 // Main entry for client command execution
@@ -27,14 +28,18 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 
 	// use sys.LogInfo to print message to the console
 	log.Info(ctx, "hi")
-
-	// log significant events to google cloud
 	// log.Notice(ctx, "hi")
 	// log.Warning(ctx, "hi")
 	// log.Critical(ctx, "hi")
 	// log.Alert(ctx, "hi")
-
 	// no need to log error, just return error and client will get internal server error, error will log to google cloud
+
+	// data operation
+	//db, err := data.NewDB(ctx)
+	//err = db.Put(ctx, &greet)
+	//result := Greet{}
+	//result.SetID(greet.ID())
+	//err = db.Get(ctx, &result)
 
 	// return custom response to client
 	//return &StringResponse{Text: "hello"}

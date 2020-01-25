@@ -1,6 +1,7 @@
-package fire
+package data
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,17 +17,18 @@ func TestSelectQuery(t *testing.T) {
 		Description: "2",
 	}
 
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
 
-	db.Put(&greet1)
-	db.Put(&greet2)
+	db.Put(ctx, &greet1)
+	db.Put(ctx, &greet2)
 
 	//test select
 	var i int
-	db.Select(GreetFactory).Where("From", "==", "1").Run(func(o Object) {
+	db.Select(ctx, GreetFactory).Where("From", "==", "1").Run(func(o Object) {
 		i++
-		err := db.Delete(o)
+		err := db.Delete(ctx, o)
 		Convey("delete select document ", t, func() {
 			So(err, ShouldBeNil)
 		})
@@ -36,7 +38,7 @@ func TestSelectQuery(t *testing.T) {
 		So(i, ShouldBeGreaterThanOrEqualTo, 1)
 	})
 
-	db.DeleteAll(greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.Class(), 9)
 }
 
 func TestOrder(t *testing.T) {
@@ -48,13 +50,15 @@ func TestOrder(t *testing.T) {
 		From:        "2",
 		Description: "2",
 	}
-	db, _ := ProviderInstance().NewDB()
+	ctx := context.Background()
+	db, _ := NewFirestoreDB(ctx)
 	defer db.Close()
-	db.Put(&greet1)
-	db.Put(&greet2)
+
+	db.Put(ctx, &greet1)
+	db.Put(ctx, &greet2)
 
 	list := []*Greet{}
-	db.Select(GreetFactory).OrderByDesc("From").Run(func(o Object) {
+	db.Select(ctx, GreetFactory).OrderByDesc("From").Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
@@ -63,7 +67,7 @@ func TestOrder(t *testing.T) {
 	})
 
 	list = []*Greet{}
-	db.Select(GreetFactory).OrderBy("From").Run(func(o Object) {
+	db.Select(ctx, GreetFactory).OrderBy("From").Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
@@ -72,7 +76,7 @@ func TestOrder(t *testing.T) {
 	})
 
 	list = []*Greet{}
-	db.Select(GreetFactory).Limit(1).Run(func(o Object) {
+	db.Select(ctx, GreetFactory).Limit(1).Run(func(o Object) {
 		greet := o.(*Greet)
 		list = append(list, greet)
 	})
@@ -80,7 +84,7 @@ func TestOrder(t *testing.T) {
 		So(len(list), ShouldEqual, 1)
 	})
 
-	db.DeleteAll(greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.Class(), 9)
 }
 
 /*

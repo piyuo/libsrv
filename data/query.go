@@ -1,4 +1,4 @@
-package protocol
+package data
 
 // Query is query interface
 type Query interface {
