@@ -13,7 +13,7 @@ var logCred *google.Credentials
 
 //LogCredential provide google credential for log
 func LogCredential(ctx context.Context) (*google.Credentials, error) {
-	key := "log"
+	key := "log-gcp"
 	scope := "https://www.googleapis.com/auth/cloud-platform"
 	if logCred == nil {
 		cred, err := createCredential(ctx, key, scope)
@@ -29,7 +29,7 @@ var dataCred *google.Credentials
 
 //DataCredential provide google credential for data
 func DataCredential(ctx context.Context) (*google.Credentials, error) {
-	key := "data"
+	key := "data-gcp"
 	scope := "https://www.googleapis.com/auth/datastore"
 	if dataCred == nil {
 		cred, err := createCredential(ctx, key, scope)

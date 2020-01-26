@@ -10,7 +10,7 @@ import (
 func TestCredential(t *testing.T) {
 
 	Convey("should init google credential", t, func() {
-		cred, _ := createCredential(context.Background(), "log", "https://www.googleapis.com/auth/cloud-platform")
+		cred, _ := createCredential(context.Background(), "log-gcp", "https://www.googleapis.com/auth/cloud-platform")
 		So(cred, ShouldNotBeNil)
 	})
 
