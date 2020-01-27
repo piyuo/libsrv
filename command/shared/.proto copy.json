@@ -1,7 +1,6 @@
 {
 	"name": "shared",
 	"index": 3,
-	"debugPort": 0,
 	"typeOnly": true,
 	"shared": true,
 	"goPath": [
