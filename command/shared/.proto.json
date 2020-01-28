@@ -2,7 +2,6 @@
 	"name": "shared",
 	"index": 3,
 	"debugPort": 0,
-	"typeOnly": true,
 	"shared": true,
 	"goPath": [
 		"../shared/commands"
@@ -12,7 +11,7 @@
 	],
 	"protos": {
 		"err": 1,
-		"text": 2,
-		"num": 3
+		"num": 2,
+		"text": 3
 	}
 }

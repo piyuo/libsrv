@@ -80,7 +80,7 @@ func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 //when id <= 100 use shared map, id > 100 use dispatch map
 func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error) {
 	var obj interface{}
-	if id <= 100 {
+	if id <= 1000 {
 		shareMap := &sharedcommands.MapXXX{}
 		obj = shareMap.NewObjectByID(id)
 	} else {
