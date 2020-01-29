@@ -5,8 +5,9 @@ package commands
 
 import (
 	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
 	math "math"
+
+	proto "github.com/golang/protobuf/proto"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -85,11 +86,6 @@ var fileDescriptor_b4a1db73bc95ee8c = []byte{
 	0x1e, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe2, 0xfd, 0x88, 0x43, 0x40, 0x00, 0x00, 0x00,
 }
 
-
 func (m *Err) XXX_MapID() uint16 {
 	return 1
-}
-
-func (m *Err) XXX_MapName() string {
-	return "Err"
 }

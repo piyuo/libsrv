@@ -117,7 +117,7 @@ func errorToGcp(ctx context.Context, message, application, identity, stack, errI
 	head := logHeadFromAI(application, identity, fromClient)
 	client, err := createErrorClient(ctx)
 	if err != nil {
-		fmt.Printf("failed to create error client\n%v\n", err)
+		fmt.Printf("[not logged]: failed to create error client\n%v\n", err)
 		return
 	}
 	defer client.Close()

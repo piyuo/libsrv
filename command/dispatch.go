@@ -9,7 +9,6 @@ import (
 	shared "github.com/piyuo/go-libsrv/command/shared"
 	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 	log "github.com/piyuo/go-libsrv/log"
-	tools "github.com/piyuo/go-libsrv/tools"
 
 	"github.com/pkg/errors"
 )
@@ -40,7 +39,8 @@ type Dispatch struct {
 }
 
 // Route get action from httpRequest and write response to httpResponse
-// write error text if some thing is wrong
+//
+// write http error text if some thing went wrong
 func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	//bytes is command contain [proto,id], id is 2 bytes
 	_, action, err := dp.decodeCommand(bytes)
@@ -48,19 +48,21 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	commandLog := fmt.Sprintf("execute %v(%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
-	timer := tools.NewTimer()
-	timer.Start()
-
+	//no timer for now, cause google platform log provide time
+	//timer := tools.NewTimer()
+	//timer.Start()
 	responseID, response := dp.handle(ctx, action)
 	var returnBytes []byte
 	returnBytes, err = dp.encodeCommand(responseID, response)
-	ms := timer.Stop()
+	//ms := timer.Stop()
 	if err != nil {
-		commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
+		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
+		commandLog += fmt.Sprintf("failed with %v \n", err.Error())
 		log.Info(ctx, commandLog)
 		return nil, err
 	}
-	commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
+	//commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
+	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", response.(Response).XXX_MapName(), len(returnBytes))
 	log.Info(ctx, commandLog)
 	return returnBytes, nil
 }
