@@ -17,13 +17,13 @@ func NewFirestoreDB(ctx context.Context) (DB, error) {
 	if firebaseApp == nil {
 		cred, err := gcp.DataCredential(ctx)
 		if err != nil {
-			log.Critical(ctx, here, "database operation failed to get data google credential")
+			log.Alert(ctx, here, "database operation failed to get data google credential")
 			return nil, err
 		}
 
 		firebaseApp, err = firebase.NewApp(ctx, nil, option.WithCredentials(cred))
 		if err != nil {
-			log.Critical(ctx, here, "database operation failed to create firebase app")
+			log.Alert(ctx, here, "database operation failed to create firebase app")
 			return nil, err
 		}
 	}
