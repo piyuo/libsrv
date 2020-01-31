@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	app "github.com/piyuo/go-libsrv/app"
 	tools "github.com/piyuo/go-libsrv/tools"
@@ -44,15 +43,14 @@ func aiFromContext(ctx context.Context) (string, string) {
 //
 //	h,identity := head("piyuo-m-us-sys","user-store","where")
 func head(application, identity, where string) string {
-	text := fmt.Sprintf("%v.%v.%v: ", application, identity, where)
-	return strings.Replace(text, "..", "", 1)
+	return fmt.Sprintf("%v.%v.%v: ", application, identity, where)
 }
 
-//Info as Routine information, such as ongoing status or performance.
+//Debug as Routine information, such as ongoing status or performance.
 //
 //	HERE := "log_test"
 //	Info(ctx,HERE,"hello")
-func Info(ctx context.Context, where, message string) {
+func Debug(ctx context.Context, where, message string) {
 	application, identity := aiFromContext(ctx)
 	h := head(application, identity, where)
 	fmt.Printf("%v%v\n", h, message)

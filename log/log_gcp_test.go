@@ -32,7 +32,7 @@ func TestCreateErrorClient(t *testing.T) {
 func TestInfo(t *testing.T) {
 	Convey("should print'", t, func() {
 		ctx := context.Background()
-		Info(ctx, HERE, "hello log")
+		Debug(ctx, HERE, "debug msg")
 	})
 }
 
