@@ -9,36 +9,38 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-var logCred *google.Credentials
+//save credential to global, so every cloud function can reuse this credential
+var globalCredentialLog *google.Credentials
 
 //LogCredential provide google credential for log
 func LogCredential(ctx context.Context) (*google.Credentials, error) {
 	key := "log-gcp"
 	scope := "https://www.googleapis.com/auth/cloud-platform"
-	if logCred == nil {
+	if globalCredentialLog == nil {
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create  google log credential, "+key+".key")
 		}
-		logCred = cred
+		globalCredentialLog = cred
 	}
-	return logCred, nil
+	return globalCredentialLog, nil
 }
 
-var dataCred *google.Credentials
+//save credential to global, so every cloud function can reuse this credential
+var globalCredentialData *google.Credentials
 
 //DataCredential provide google credential for data
 func DataCredential(ctx context.Context) (*google.Credentials, error) {
 	key := "data-gcp"
 	scope := "https://www.googleapis.com/auth/datastore"
-	if dataCred == nil {
+	if globalCredentialData == nil {
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create google data  credential, "+key+".key")
 		}
-		dataCred = cred
+		globalCredentialData = cred
 	}
-	return dataCred, nil
+	return globalCredentialData, nil
 }
 
 //createCredential base on key and scope
