@@ -15,9 +15,9 @@ import (
 
 //Log level
 const (
-	info     int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
-	warning  int32 = 2 //Warning events might cause problems.
-	critical int32 = 3 //Critical events cause more severe problems or outages.
+	info    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
+	warning int32 = 2 //Warning events might cause problems.
+	alert   int32 = 3 //A person must take an action immediately
 )
 
 // aiFromContext get application, identity from context
@@ -74,13 +74,13 @@ func Warning(ctx context.Context, where, message string) {
 	CustomLog(ctx, message, application, identity, where, warning)
 }
 
-//Critical as Critical events cause more severe problems or outages.
+//Alert A person must take an action immediately
 //
 //	HERE := "log_test"
 //	Critical(ctx,HERE,"hi")
-func Critical(ctx context.Context, where, message string) {
+func Alert(ctx context.Context, where, message string) {
 	application, identity := aiFromContext(ctx)
-	CustomLog(ctx, message, application, identity, where, critical)
+	CustomLog(ctx, message, application, identity, where, alert)
 }
 
 //Error log error to google cloud and return error id

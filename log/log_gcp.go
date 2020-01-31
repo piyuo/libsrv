@@ -71,7 +71,7 @@ func logToGcp(ctx context.Context, message, application, identity, where string,
 	switch level {
 	case warning:
 		severity = logging.Warning
-	case critical:
+	case alert:
 		severity = logging.Critical
 	}
 

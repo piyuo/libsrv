@@ -43,7 +43,7 @@ func TestLog(t *testing.T) {
 		ctx := context.Background()
 		Info(ctx, HERE, "my info log")
 		Warning(ctx, HERE, "my warning log")
-		Critical(ctx, HERE, "my critical log")
+		Alert(ctx, HERE, "my alert log")
 	})
 }
 
