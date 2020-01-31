@@ -107,7 +107,7 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 //	HERE := "log_test"
 //	CustomLog(ctx, "hello", "piyuo-m-us-sys", "user-store",HERE, WARNING)
 func CustomLog(ctx context.Context, message, application, identity, where string, level int32) {
-	logToGcp(ctx, message, application, identity, where, level)
+	gcpLog(ctx, message, application, identity, where, level)
 }
 
 //CustomError log error and stack to server
@@ -123,5 +123,5 @@ func CustomLog(ctx context.Context, message, application, identity, where string
 //	HERE := "log_test"
 //	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",HERE, stack, errID)
 func CustomError(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
-	errorToGcp(ctx, message, application, identity, where, stack, errID, r)
+	gcpError(ctx, message, application, identity, where, stack, errID, r)
 }

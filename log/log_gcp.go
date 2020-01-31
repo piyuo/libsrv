@@ -14,11 +14,11 @@ import (
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"
 )
 
-//createLogClient return stackdriver log client using credential from log-gcp.key
+//gcpCreateLogClient return stackdriver log client using credential from log-gcp.key
 //
 //	ctx := context.Background()
-//	logClient, _ := createLogClient(ctx)
-func createLogClient(ctx context.Context) (*logging.Client, error) {
+//	logClient, _ := gcpCreateLogClient(ctx)
+func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 	cred, err := gcp.LogCredential(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
@@ -31,11 +31,11 @@ func createLogClient(ctx context.Context) (*logging.Client, error) {
 	return client, nil
 }
 
-//createErrorClient return stackdriver error client using credential from log-gcp.key
+//gcpCreateErrorClient return stackdriver error client using credential from log-gcp.key
 //
 //	ctx := context.Background()
-//	errClient, _ := createErrorClient(ctx)
-func createErrorClient(ctx context.Context, serviceName, serviceVersion string) (*errorreporting.Client, error) {
+//	errClient, _ := gcpCreateErrorClient(ctx)
+func gcpCreateErrorClient(ctx context.Context, serviceName, serviceVersion string) (*errorreporting.Client, error) {
 	cred, err := gcp.LogCredential(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
@@ -57,11 +57,29 @@ func createErrorClient(ctx context.Context, serviceName, serviceVersion string) 
 	return client, nil
 }
 
-//Log custom message and level to google cloud platform
+//gcpLog log message and level to server
+//
+//	HERE := "log_test"
+//	gcpLog(ctx, "hello", "piyuo-m-us-sys", "user-store",HERE, WARNING)
+func gcpLog(ctx context.Context, message, application, identity, where string, level int32) {
+	client, err := gcpCreateLogClient(ctx)
+	if err != nil {
+		Error(ctx, where, errors.Wrap(err, "failed to create log client"), nil)
+		return
+	}
+	logger := client.Logger(app.PiyuoID())
+	gcpWriteByLogger(ctx, logger, message, application, identity, where, level)
+	if err := client.Close(); err != nil {
+		Error(ctx, where, errors.Wrap(err, "failed to close client"), nil)
+		return
+	}
+}
+
+//gcpWriteByLogger custom message and level to google cloud platform
 //
 //	const HERE = "log_gcp"
-//	logToGcp(ctx,"my error","piyuo-t-sys",'"user-store",HERE,WARNING)
-func logToGcp(ctx context.Context, message, application, identity, where string, level int32) {
+//	gcpWriteByLogger(ctx,logger, "my error","piyuo-t-sys",'"user-store",HERE,WARNING)
+func gcpWriteByLogger(ctx context.Context, logger *logging.Logger, message, application, identity, where string, level int32) {
 	if message == "" {
 		return
 	}
@@ -73,18 +91,6 @@ func logToGcp(ctx context.Context, message, application, identity, where string,
 		severity = logging.Warning
 	case alert:
 		severity = logging.Critical
-	}
-
-	client, err := createLogClient(ctx)
-	if err != nil {
-		Error(ctx, where, errors.Wrap(err, "failed to create log client"), nil)
-		return
-	}
-
-	file := client.Logger(app.PiyuoID())
-	if err != nil {
-		Error(ctx, where, errors.Wrap(err, "failed to create log file"), nil)
-		return
 	}
 
 	entry := logging.Entry{
@@ -101,16 +107,23 @@ func logToGcp(ctx context.Context, message, application, identity, where string,
 	if identity != "" {
 		entry.Labels["identity"] = identity
 	}
-
-	file.Log(entry)
-
-	if err := client.Close(); err != nil {
-		Error(ctx, where, errors.Wrap(err, "failed to close client"), nil)
-		return
-	}
+	logger.Log(entry)
 }
 
-//errorToGcp log error to google cloud
+//gcpError log error and stack to google cloud
+func gcpError(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
+
+	client, err := gcpCreateErrorClient(ctx, application, where)
+	if err != nil {
+		fmt.Printf("[not logged]: failed to create error client\n%v\n", err)
+		return
+	}
+	defer client.Close()
+
+	gcpErrorByClient(ctx, client, message, application, identity, where, stack, errID, r)
+}
+
+//gcpError log error to google cloud
 //
 //stack format like
 //
@@ -119,15 +132,9 @@ func logToGcp(ctx context.Context, message, application, identity, where string,
 //at secondLine (b.js:3)
 //
 //	err := errors.New("my error1")
-//	LogError(ctx, message, stack, id, true)
-func errorToGcp(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
+//	gcpError(ctx, message, stack, id, true)
+func gcpErrorByClient(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
 	h := head(application, identity, where)
-	client, err := createErrorClient(ctx, application, where)
-	if err != nil {
-		fmt.Printf("[not logged]: failed to create error client\n%v\n", err)
-		return
-	}
-	defer client.Close()
 
 	e := errors.New(h + message + " (" + errID + ")")
 	if stack == "" {
