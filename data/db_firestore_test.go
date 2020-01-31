@@ -25,7 +25,7 @@ func (g *Greet) Class() string {
 
 func TestGetNotFound(t *testing.T) {
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 	err := db.Get(ctx, &Greet{})
 	Convey("get not exist object", t, func() {
@@ -39,7 +39,7 @@ func TestPutGetDelete(t *testing.T) {
 		Description: "hello",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
 	//test put
@@ -76,7 +76,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
 	err := db.Put(ctx, &greet)
@@ -112,7 +112,7 @@ func TestSelectDelete(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
 	db.Put(ctx, &greet1)
@@ -146,7 +146,7 @@ func TestDeleteAll(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 	db.Put(ctx, &greet1)
 	db.Put(ctx, &greet2)
@@ -172,7 +172,7 @@ func TestGetAll(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 	db.DeleteAll(ctx, greet1.Class(), 9)
 	db.Put(ctx, &greet1)
@@ -201,7 +201,7 @@ func TestListAll(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 	db.DeleteAll(ctx, greet1.Class(), 9)
 	db.Put(ctx, &greet1)
@@ -223,7 +223,7 @@ func BenchmarkPutSpeed(b *testing.B) {
 		Description: "hello",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
 	err := db.Put(ctx, &greet)
@@ -244,7 +244,7 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 		Description: "hello",
 	}
 	ctx := context.Background()
-	db, _ := NewFirestoreDB(ctx)
+	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
 	err := db.Put(ctx, &greet)

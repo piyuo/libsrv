@@ -3,32 +3,22 @@ package data
 import (
 	"context"
 
-	firebase "firebase.google.com/go"
+	"cloud.google.com/go/firestore"
 	log "github.com/piyuo/go-libsrv/log"
 	gcp "github.com/piyuo/go-libsrv/secure/gcp"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 )
 
-var firebaseApp *firebase.App
-
-//NewFirestoreDB create db instance
-func NewFirestoreDB(ctx context.Context) (DB, error) {
-	if firebaseApp == nil {
-		cred, err := gcp.DataCredential(ctx)
-		if err != nil {
-			log.Alert(ctx, here, "database operation failed to get data google credential")
-			return nil, err
-		}
-
-		firebaseApp, err = firebase.NewApp(ctx, nil, option.WithCredentials(cred))
-		if err != nil {
-			log.Alert(ctx, here, "database operation failed to create firebase app")
-			return nil, err
-		}
+//firestoreNewDB create db instance
+func firestoreNewDB(ctx context.Context) (DB, error) {
+	cred, err := gcp.DataCredential(ctx)
+	if err != nil {
+		log.Alert(ctx, here, "failed to get firestore credential")
+		return nil, err
 	}
 
-	client, err := firebaseApp.Firestore(ctx)
+	client, err := firestore.NewClient(ctx, cred.ProjectID, option.WithCredentials(cred))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create firestore client")
 	}

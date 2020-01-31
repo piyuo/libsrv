@@ -7,7 +7,6 @@ require (
 	cloud.google.com/go/firestore v1.1.1
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/storage v1.5.0 // indirect
-	firebase.google.com/go v3.12.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.4
