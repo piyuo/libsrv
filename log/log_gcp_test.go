@@ -16,7 +16,7 @@ const HERE = "log_test"
 func TestCreateLogClient(t *testing.T) {
 	Convey("should create log client'", t, func() {
 		ctx := context.Background()
-		logClient, _ := createLogClient(ctx)
+		logClient, _ := gcpCreateLogClient(ctx)
 		So(logClient, ShouldNotBeNil)
 	})
 }
@@ -24,7 +24,7 @@ func TestCreateLogClient(t *testing.T) {
 func TestCreateErrorClient(t *testing.T) {
 	Convey("should create error client'", t, func() {
 		ctx := context.Background()
-		errClient, _ := createErrorClient(ctx, "my service", "my version")
+		errClient, _ := gcpCreateErrorClient(ctx, "my service", "my version")
 		So(errClient, ShouldNotBeNil)
 	})
 }
