@@ -67,7 +67,7 @@ func logToGcp(ctx context.Context, message, application, identity, where string,
 	}
 	h := head(application, identity, where)
 	fmt.Printf("%v%v (logged)\n", h, message)
-	severity := logging.Notice
+	severity := logging.Info
 	switch level {
 	case warning:
 		severity = logging.Warning

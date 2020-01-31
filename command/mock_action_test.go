@@ -26,10 +26,13 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// a.putToShopCart(token.UserID(),a.itemID)
 	// }
 
-	// use sys.LogInfo to print message to the console
+	// use log.Debug print message to the debug console
 	log.Debug(ctx, "TestAction", "hi")
-	// log.Warning(ctx, HERE, "hi")
-	// log.Critical(ctx, HERE, "hi")
+
+	// log significant events
+	// log.Info(ctx, "%name", "hi")
+	// log.Warning(ctx, "%name", "hi")
+	// log.Critical(ctx, "%name", "hi")
 	// no need to log error, just return error and client will get internal server error, error will log to google cloud
 
 	// data operation

@@ -41,9 +41,9 @@ func TestLog(t *testing.T) {
 	Convey("should log to server'", t, func() {
 
 		ctx := context.Background()
-		Notice(ctx, HERE, "my notice log")
+		Info(ctx, HERE, "my info log")
 		Warning(ctx, HERE, "my warning log")
-		Critical(ctx, HERE, "my alert log")
+		Critical(ctx, HERE, "my critical log")
 	})
 }
 

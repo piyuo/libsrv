@@ -15,7 +15,7 @@ import (
 
 //Log level
 const (
-	notice   int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
+	info     int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
 	warning  int32 = 2 //Warning events might cause problems.
 	critical int32 = 3 //Critical events cause more severe problems or outages.
 )
@@ -49,20 +49,20 @@ func head(application, identity, where string) string {
 //Debug as Routine information, such as ongoing status or performance.
 //
 //	HERE := "log_test"
-//	Info(ctx,HERE,"hello")
+//	Debug(ctx,HERE,"hello")
 func Debug(ctx context.Context, where, message string) {
 	application, identity := aiFromContext(ctx)
 	h := head(application, identity, where)
 	fmt.Printf("%v%v\n", h, message)
 }
 
-//Notice as Normal but significant events, such as start up, shut down, or a configuration change.
+//Info as Normal but significant events, such as start up, shut down, or a configuration change.
 //
 //	HERE := "log_test"
-//	Notice(ctx,HERE,"hi")
-func Notice(ctx context.Context, where, message string) {
+//	Info(ctx,HERE,"hi")
+func Info(ctx context.Context, where, message string) {
 	application, identity := aiFromContext(ctx)
-	CustomLog(ctx, message, application, identity, where, notice)
+	CustomLog(ctx, message, application, identity, where, info)
 }
 
 //Warning as Warning events might cause problems.
