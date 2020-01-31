@@ -7,8 +7,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 )
 
 // DBFirestore implement db on firestore
@@ -60,12 +58,13 @@ func (db *DBFirestore) GetByClass(ctx context.Context, class string, obj Object)
 		return errors.New("get object need object  have ID")
 	}
 	snapshot, err := db.client.Collection(class).Doc(id).Get(ctx)
+	if snapshot != nil && !snapshot.Exists() {
+		return ErrObjectNotFound
+	}
 	if err != nil {
-		if grpc.Code(err) == codes.NotFound {
-			return ErrObjectNotFound
-		}
 		return err
 	}
+
 	if err := snapshot.DataTo(obj); err != nil {
 		return err
 	}

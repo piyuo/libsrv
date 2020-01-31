@@ -5,8 +5,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 )
 
 // TransactionFirestore implement google firestore
@@ -32,10 +30,11 @@ func (trans *TransactionFirestore) Get(ctx context.Context, obj Object) error {
 	class := obj.Class()
 	ref := trans.client.Collection(class).Doc(id)
 	snapshot, err := trans.tx.Get(ref)
+	if snapshot != nil && !snapshot.Exists() {
+		return ErrObjectNotFound
+	}
+
 	if err != nil {
-		if grpc.Code(err) == codes.NotFound {
-			return ErrObjectNotFound
-		}
 		return err
 	}
 	if err := snapshot.DataTo(obj); err != nil {

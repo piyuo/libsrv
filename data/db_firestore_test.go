@@ -23,41 +23,56 @@ func (g *Greet) Class() string {
 	return "Greet"
 }
 
-func TestGetNotFound(t *testing.T) {
-	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
-	defer db.Close()
-	err := db.Get(ctx, &Greet{})
-	Convey("get not exist object", t, func() {
+func TestGetWithNoID(t *testing.T) {
+	Convey("get object with no id", t, func() {
+		ctx := context.Background()
+		db, err := firestoreNewDB(ctx)
+		So(err, ShouldBeNil)
+		defer db.Close()
+
+		err = db.Get(ctx, &Greet{})
 		So(err, ShouldNotBeNil)
+	})
+}
+
+func TestGetWithNotExistID(t *testing.T) {
+	Convey("get object with id not exist", t, func() {
+		ctx := context.Background()
+		db, err := firestoreNewDB(ctx)
+		So(err, ShouldBeNil)
+		defer db.Close()
+
+		greet := &Greet{}
+		greet.SetID("notexist")
+		err = db.Get(ctx, greet)
+		So(err, ShouldEqual, ErrObjectNotFound)
 	})
 }
 
 func TestPutGetDelete(t *testing.T) {
 	greet := Greet{
 		From:        "me",
-		Description: "hello",
+		Description: "hi",
 	}
 	ctx := context.Background()
 	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
-	//test put
 	err := db.Put(ctx, &greet)
-	Convey("greet should have id after db.put", t, func() {
+	Convey("greet should have id after put", t, func() {
 		So(err, ShouldBeNil)
 	})
 
 	objID := greet.ID()
-	Convey("greet ID should be set", t, func() {
+	Convey("greet ID should set", t, func() {
 		So(objID, ShouldNotBeEmpty)
 	})
 
-	//test get
-	greet2 := Greet{}
-	greet2.SetID(objID)
-	_ = db.Get(ctx, &greet2)
 	Convey("object load from datastore should equal to insert", t, func() {
+		greet2 := Greet{}
+		greet2.SetID(objID)
+		err = db.Get(ctx, &greet2)
+		So(err, ShouldBeNil)
 		So(greet2.From, ShouldEqual, greet.From)
 	})
 
