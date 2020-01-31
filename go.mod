@@ -35,5 +35,5 @@ require (
 	google.golang.org/genproto v0.0.0-20200108215221-bd8f9a0ef82f
 	google.golang.org/grpc v1.26.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.2.7 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
