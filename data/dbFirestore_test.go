@@ -91,10 +91,11 @@ func TestUpdate(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
-	greet2 := Greet{}
-	greet2.SetID(greet.ID())
-	_ = db.Get(ctx, &greet2)
 	Convey("sample description should be updated", t, func() {
+		greet2 := Greet{}
+		greet2.SetID(greet.ID())
+		err = db.Get(ctx, &greet2)
+		So(err, ShouldBeNil)
 		So(greet2.Description, ShouldEqual, "helloworld")
 	})
 

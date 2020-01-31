@@ -7,9 +7,9 @@ type TestMap struct {
 // IDToObject return object from id
 func (r *TestMap) NewObjectByID(id uint16) interface{} {
 	switch id {
-	case 101:
+	case 1001:
 		return new(TestAction)
-	case 102:
+	case 1002:
 		return new(TestActionNotRespond)
 	}
 	return nil

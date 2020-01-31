@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/storage v1.5.0 // indirect
 	dmitri.shuralyov.com/gpu/mtl v0.0.0-20191203043605-d42048ed14fd // indirect
-	firebase.google.com/go v3.7.0+incompatible
+	firebase.google.com/go v3.12.0+incompatible
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.1 // indirect
 	github.com/go-errors/errors v1.0.1

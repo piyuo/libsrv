@@ -20,12 +20,10 @@ func TestAiFromContext(t *testing.T) {
 	})
 }
 
-func TestLogHeadFromAI(t *testing.T) {
+func TestLogHead(t *testing.T) {
 	Convey("should get head from application and identity'", t, func() {
-		head := logHeadFromAI("piyuo-m-us-sys", "user-store", false)
-		So(head, ShouldEqual, "[piyuo-m-us-sys] user-store: ")
-
-		head = logHeadFromAI("piyuo-m-us-web-page", "user-store", true)
-		So(head, ShouldEqual, "<piyuo-m-us-web-page> user-store: ")
+		HERE := "log_test"
+		h := head("piyuo-m-us-sys", "user-store", HERE)
+		So(h, ShouldEqual, "piyuo-m-us-sys.user-store.log_test: ")
 	})
 }

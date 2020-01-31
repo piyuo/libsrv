@@ -16,12 +16,12 @@ func TestEncodeDecodeCommand(t *testing.T) {
 	dispatch := &Dispatch{
 		Map: &TestMap{},
 	}
-	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
-	actID, iAct2, err2 := dispatch.decodeCommand(actBytes)
-	act2 := iAct2.(*TestAction)
 	Convey("test decode command is right", t, func() {
-		So(err, ShouldBeNil)
+		actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
+		actID, iAct2, err2 := dispatch.decodeCommand(actBytes)
 		So(err2, ShouldBeNil)
+		act2 := iAct2.(*TestAction)
+		So(err, ShouldBeNil)
 		So(actID, ShouldEqual, act.XXX_MapID())
 		So(act2.Text, ShouldEqual, act.Text)
 	})

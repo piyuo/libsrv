@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+const here = "data"
+
 // NewDB create db from default provider
 //
 //	db := data.NewDB(ctx)

@@ -18,18 +18,18 @@ func TestBasicFunction(t *testing.T) {
 		So(IsProduction(), ShouldEqual, false)
 	})
 	Convey("should get key path'", t, func() {
-		path, err := KeyPath("log")
+		path, err := KeyPath("log-gcp")
 		So(err, ShouldBeNil)
-		So(strings.HasSuffix(path, "/log.key"), ShouldBeTrue)
+		So(strings.HasSuffix(path, "/log-gcp.key"), ShouldBeTrue)
 	})
 }
 
 func TestAppCrypto(t *testing.T) {
 	Convey("should encrypt decrypt string", t, func() {
-		crypted, _ := Encrypt("hello")
+		crypted, _ := Encrypt("hi")
 		So(crypted, ShouldNotBeEmpty)
 		result, _ := Decrypt(crypted)
-		So(result, ShouldEqual, "hello")
+		So(result, ShouldEqual, "hi")
 	})
 
 }

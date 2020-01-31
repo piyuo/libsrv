@@ -14,6 +14,10 @@ import (
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"
 )
 
+//createLogClient return stackdriver log client using credential from log-gcp.key
+//
+//	ctx := context.Background()
+//	logClient, _ := createLogClient(ctx)
 func createLogClient(ctx context.Context) (*logging.Client, error) {
 	cred, err := gcp.LogCredential(ctx)
 	if err != nil {
@@ -27,7 +31,11 @@ func createLogClient(ctx context.Context) (*logging.Client, error) {
 	return client, nil
 }
 
-func createErrorClient(ctx context.Context) (*errorreporting.Client, error) {
+//createErrorClient return stackdriver error client using credential from log-gcp.key
+//
+//	ctx := context.Background()
+//	errClient, _ := createErrorClient(ctx)
+func createErrorClient(ctx context.Context, serviceName, serviceVersion string) (*errorreporting.Client, error) {
 	cred, err := gcp.LogCredential(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
@@ -36,7 +44,8 @@ func createErrorClient(ctx context.Context) (*errorreporting.Client, error) {
 	client, err := errorreporting.NewClient(ctx,
 		cred.ProjectID,
 		errorreporting.Config{
-			ServiceName: app.PiyuoID(),
+			ServiceName:    serviceName,
+			ServiceVersion: serviceVersion,
 			OnError: func(err error) {
 				fmt.Printf("failed to config error reporting %v\n", err)
 			},
@@ -50,34 +59,31 @@ func createErrorClient(ctx context.Context) (*errorreporting.Client, error) {
 
 //Log custom message and level to google cloud platform
 //
-//	Log(ctx,"hello",WARNING,true)
-func logToGcp(ctx context.Context, message, application, identity string, level int32, fromClient bool) {
+//	const HERE = "log_gcp"
+//	logToGcp(ctx,"my error","piyuo-t-sys",'"user-store",HERE,WARNING)
+func logToGcp(ctx context.Context, message, application, identity, where string, level int32) {
 	if message == "" {
 		return
 	}
-	head := logHeadFromAI(application, identity, fromClient)
-	fmt.Printf("%v%v (logged)\n", head, message)
+	h := head(application, identity, where)
+	fmt.Printf("%v%v (logged)\n", h, message)
 	severity := logging.Notice
 	switch level {
-	case WARNING:
+	case warning:
 		severity = logging.Warning
-	case CRITICAL:
+	case critical:
 		severity = logging.Critical
-	case ALERT:
-		severity = logging.Alert
-	case EMERGENCY:
-		severity = logging.Emergency
 	}
 
 	client, err := createLogClient(ctx)
 	if err != nil {
-		Error(ctx, errors.Wrap(err, "failed to create log client"), nil)
+		Error(ctx, where, errors.Wrap(err, "failed to create log client"), nil)
 		return
 	}
 
 	file := client.Logger(app.PiyuoID())
 	if err != nil {
-		Error(ctx, errors.Wrap(err, "failed to create log file"), nil)
+		Error(ctx, where, errors.Wrap(err, "failed to create log file"), nil)
 		return
 	}
 
@@ -89,6 +95,7 @@ func logToGcp(ctx context.Context, message, application, identity string, level 
 		Severity: severity,
 		Labels: map[string]string{
 			"application": app.PiyuoID(),
+			"where":       where,
 		},
 	}
 	if identity != "" {
@@ -98,7 +105,7 @@ func logToGcp(ctx context.Context, message, application, identity string, level 
 	file.Log(entry)
 
 	if err := client.Close(); err != nil {
-		Error(ctx, errors.Wrap(err, "failed to close client"), nil)
+		Error(ctx, where, errors.Wrap(err, "failed to close client"), nil)
 		return
 	}
 }
@@ -113,19 +120,20 @@ func logToGcp(ctx context.Context, message, application, identity string, level 
 //
 //	err := errors.New("my error1")
 //	LogError(ctx, message, stack, id, true)
-func errorToGcp(ctx context.Context, message, application, identity, stack, errID string, fromClient bool, r *http.Request) {
-	head := logHeadFromAI(application, identity, fromClient)
-	client, err := createErrorClient(ctx)
+func errorToGcp(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
+	h := head(application, identity, where)
+	client, err := createErrorClient(ctx, application, where)
 	if err != nil {
 		fmt.Printf("[not logged]: failed to create error client\n%v\n", err)
 		return
 	}
 	defer client.Close()
 
-	e := errors.New(head + message + " (" + errID + ")")
+	e := errors.New(h + message + " (" + errID + ")")
 	if stack == "" {
 		client.Report(errorreporting.Entry{
 			Error: e, User: identity,
+			Req: r,
 		})
 
 	} else {

@@ -58,12 +58,12 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	if err != nil {
 		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
 		commandLog += fmt.Sprintf("failed with %v \n", err.Error())
-		log.Info(ctx, commandLog)
+		log.Info(ctx, here, commandLog)
 		return nil, err
 	}
 	//commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
 	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", response.(Response).XXX_MapName(), len(returnBytes))
-	log.Info(ctx, commandLog)
+	log.Info(ctx, here, commandLog)
 	return returnBytes, nil
 }
 
@@ -115,12 +115,12 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}) {
 	responseInterface, err := action.(Action).Main(ctx)
 	if err != nil {
-		errID := log.Error(ctx, err, nil)
+		errID := log.Error(ctx, here, err, nil)
 		errResp := shared.Error(shared.ErrorInternal, errID)
 		return errResp.(Response).XXX_MapID(), errResp
 	}
 	if responseInterface == nil {
-		errID := log.Error(ctx, errors.New("action main() return nil response"), nil)
+		errID := log.Error(ctx, here, errors.New("action main() return nil response"), nil)
 		errResp := shared.Error(shared.ErrorInternal, errID)
 		return errResp.(Response).XXX_MapID(), errResp
 	}

@@ -75,7 +75,7 @@ var fileDescriptor_d83791fb8244f8c0 = []byte{
 }
 
 func (m *TestAction) XXX_MapID() uint16 {
-	return 101
+	return 1001
 }
 
 func (m *TestAction) XXX_MapName() string {
