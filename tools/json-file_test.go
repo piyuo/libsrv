@@ -10,7 +10,7 @@ import (
 
 func TestJSONFIle(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	keyPath := path.Join(currentDir, "../keys/log-gcp.key")
+	keyPath := path.Join(currentDir, "../../keys/log-gcp.key")
 	jsonfile, _ := NewJSONFile(keyPath)
 	defer jsonfile.Close()
 

@@ -58,12 +58,12 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	if err != nil {
 		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
 		commandLog += fmt.Sprintf("failed with %v \n", err.Error())
-		log.Info(ctx, here, commandLog)
+		log.Debug(ctx, here, commandLog)
 		return nil, err
 	}
 	//commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
 	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", response.(Response).XXX_MapName(), len(returnBytes))
-	log.Info(ctx, here, commandLog)
+	log.Debug(ctx, here, commandLog)
 	return returnBytes, nil
 }
 

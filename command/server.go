@@ -79,7 +79,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request. request is empty"
 		s.writeText(w, msg)
-		log.Info(ctx, here, msg)
+		log.Debug(ctx, here, msg)
 		return
 	}
 
@@ -87,14 +87,14 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		s.writeText(w, err.Error())
-		log.Info(ctx, here, "bad request. "+err.Error())
+		log.Debug(ctx, here, "bad request. "+err.Error())
 		return
 	}
 	if len(bytes) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request, need command in request"
 		s.writeText(w, msg)
-		log.Info(ctx, here, msg)
+		log.Debug(ctx, here, msg)
 		return
 	}
 

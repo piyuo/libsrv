@@ -27,7 +27,7 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// }
 
 	// use sys.LogInfo to print message to the console
-	log.Info(ctx, "TestAction", "hi")
+	log.Debug(ctx, "TestAction", "hi")
 	// log.Warning(ctx, HERE, "hi")
 	// log.Critical(ctx, HERE, "hi")
 	// no need to log error, just return error and client will get internal server error, error will log to google cloud
