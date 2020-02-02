@@ -64,7 +64,7 @@ func gcpCreateErrorClient(ctx context.Context, serviceName, serviceVersion strin
 func gcpLog(ctx context.Context, message, application, identity, where string, level int32) {
 	client, err := gcpCreateLogClient(ctx)
 	if err != nil {
-		Error(ctx, where, errors.Wrap(err, "failed to create log client"), nil)
+		Error(ctx, where, err, nil)
 		return
 	}
 	logger := client.Logger(app.PiyuoID())
@@ -115,7 +115,7 @@ func gcpError(ctx context.Context, message, application, identity, where, stack,
 
 	client, err := gcpCreateErrorClient(ctx, application, where)
 	if err != nil {
-		fmt.Printf("[not logged]: failed to create error client\n%v\n", err)
+		fmt.Printf("!!! %v\n", err)
 		return
 	}
 	defer client.Close()
@@ -132,7 +132,7 @@ func gcpError(ctx context.Context, message, application, identity, where, stack,
 //at secondLine (b.js:3)
 //
 //	err := errors.New("my error1")
-//	gcpError(ctx, message, stack, id, true)
+//	gcpErrorByClient(ctx, message,application,identity,where, stack, id, request)
 func gcpErrorByClient(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
 	h := head(application, identity, where)
 
