@@ -21,32 +21,6 @@ const (
 	alert   int32 = 3 //A person must take an action immediately
 )
 
-// aiFromContext get application, identity from context
-//
-// application: piyuo-m-us-sys
-//
-// identity: user-store
-//
-//	application,identity := aiFromContext(ctx)
-func aiFromContext(ctx context.Context) (string, string) {
-	application := app.PiyuoID()
-	identity := ""
-	token, err := app.TokenFromContext(ctx)
-	if err == nil {
-		identity = token.Identity()
-	}
-	return application, identity
-}
-
-// head get log head from  application, identity
-//
-// piyuo-m-us-sys.user-store.where:
-//
-//	h,identity := head("piyuo-m-us-sys","user-store","where")
-func head(application, identity, where string) string {
-	return fmt.Sprintf("%v.%v.%v: ", application, identity, where)
-}
-
 //Debug as Routine information, such as ongoing status or performance.
 //
 //	HERE := "log_test"
@@ -74,6 +48,9 @@ func Info(ctx context.Context, where, message string) {
 //	HERE := "log_test"
 //	Warning(ctx,HERE,"hi")
 func Warning(ctx context.Context, where, message string) {
+	if ctx.Err() != nil {
+		return
+	}
 	application, identity := aiFromContext(ctx)
 	CustomLog(ctx, message, application, identity, where, warning)
 }
@@ -83,6 +60,9 @@ func Warning(ctx context.Context, where, message string) {
 //	HERE := "log_test"
 //	Critical(ctx,HERE,"hi")
 func Alert(ctx context.Context, where, message string) {
+	if ctx.Err() != nil {
+		return
+	}
 	application, identity := aiFromContext(ctx)
 	CustomLog(ctx, message, application, identity, where, alert)
 }
@@ -91,12 +71,15 @@ func Alert(ctx context.Context, where, message string) {
 //
 //	err := errors.New("my error1")
 //	LogErr(ctx, err)
-//Error log error to google cloud and return error id
+//Error log error to google cloud and return error id, return empty if error not logged
 //
 //	err := errors.New("my error1")
 //	HERE := "log_test"
 //	LogErr(ctx,HERE, err)
 func Error(ctx context.Context, where string, err error, r *http.Request) string {
+	if ctx.Err() != nil {
+		return ""
+	}
 	errID := tools.UUID()
 	application, identity := aiFromContext(ctx)
 	h := head(application, identity, where)
@@ -112,6 +95,9 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 //	HERE := "log_test"
 //	CustomLog(ctx, "hello", "piyuo-m-us-sys", "user-store",HERE, WARNING)
 func CustomLog(ctx context.Context, message, application, identity, where string, level int32) {
+	if ctx.Err() != nil {
+		return
+	}
 	gcpLog(ctx, message, application, identity, where, level)
 }
 
@@ -128,7 +114,36 @@ func CustomLog(ctx context.Context, message, application, identity, where string
 //	HERE := "log_test"
 //	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",HERE, stack, errID)
 func CustomError(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
+	if ctx.Err() != nil {
+		return
+	}
 	gcpError(ctx, message, application, identity, where, stack, errID, r)
+}
+
+// aiFromContext get application, identity from context
+//
+// application: piyuo-m-us-sys
+//
+// identity: user-store
+//
+//	application,identity := aiFromContext(ctx)
+func aiFromContext(ctx context.Context) (string, string) {
+	application := app.PiyuoID()
+	identity := ""
+	token, err := app.TokenFromContext(ctx)
+	if err == nil {
+		identity = token.Identity()
+	}
+	return application, identity
+}
+
+// head get log head from  application, identity
+//
+// piyuo-m-us-sys.user-store.where:
+//
+//	h,identity := head("piyuo-m-us-sys","user-store","where")
+func head(application, identity, where string) string {
+	return fmt.Sprintf("%v.%v.%v: ", application, identity, where)
 }
 
 //beautyStack return simple format stack trace
