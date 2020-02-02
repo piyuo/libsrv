@@ -3,9 +3,33 @@ package app
 import (
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func TestCheck(t *testing.T) {
+	Convey("should pass check with no panic'", t, func() {
+		Check()
+		So(IsProduction(), ShouldBeFalse)
+	})
+	Convey("should return piyuo id'", t, func() {
+		piyuoID := PiyuoID()
+		So(piyuoID, ShouldNotBeEmpty)
+	})
+}
+
+func TestDateline(t *testing.T) {
+	Convey("should return deadline'", t, func() {
+		dateline, err := ContextDateline()
+		So(err, ShouldBeNil)
+		So(dateline.After(time.Now()), ShouldBeTrue)
+
+		//dateline should not greater than 10 min.
+		tenMinutesLater := time.Now().Add(10 * time.Minute)
+		So(dateline.Before(tenMinutesLater), ShouldBeTrue)
+	})
+}
 
 func TestBasicFunction(t *testing.T) {
 	Convey("should able join dir and current dir'", t, func() {

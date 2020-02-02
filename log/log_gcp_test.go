@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	tools "github.com/piyuo/go-libsrv/tools"
 	"github.com/pkg/errors"
@@ -39,11 +40,20 @@ func TestInfo(t *testing.T) {
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	Convey("should log to server'", t, func() {
-
 		ctx := context.Background()
 		Info(ctx, HERE, "my info log")
 		Warning(ctx, HERE, "my warning log")
 		Alert(ctx, HERE, "my alert log")
+	})
+}
+
+func TestLogWhenContextCanceled(t *testing.T) {
+	Convey("should get error when context canceled", t, func() {
+		dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
+		ctx, cancel := context.WithDeadline(context.Background(), dateline)
+		defer cancel()
+		time.Sleep(time.Duration(2) * time.Second)
+		Info(ctx, HERE, "my info log canceled")
 	})
 }
 

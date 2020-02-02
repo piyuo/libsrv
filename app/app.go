@@ -3,7 +3,9 @@ package app
 import (
 	"os"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -36,31 +38,52 @@ func KeyPath(name string) (string, error) {
 	return "", errors.New("failed to find " + name + ".key in keys/ or ../keys/")
 }
 
-//Check check environment variable is set properly
+//Check environment variable is set properly
+//
+//	app.Check()
 func Check() {
 	//id format like piyuo-tw-m-app
 	id := os.Getenv("PIYUO_APP")
 	if id == "" {
-		panic("need set env var PIYUO_APP=...")
+		panic("need set env like PIYUO_APP=piyuo-t-us")
 	}
+	deadline := os.Getenv("PIYUO_TIMEOUT")
+	if deadline == "" {
+		panic("need set env like PIYUO_TIMEOUT=25")
+	}
+
 	isProduction = false
-	if strings.Contains(strings.ToLower(id), "-m-") {
+	if strings.Contains(id, "-m-") {
 		isProduction = true
 	}
 }
 
 //IsProduction return true if is production environment
+//
+//	app.IsProduction()
 func IsProduction() bool {
 	return isProduction
 }
 
 //PiyuoID return environment variable PIYUO_APP
+//
+//	app.PiyuoID()
 func PiyuoID() string {
-	var env = os.Getenv("PIYUO_APP")
-	if env == "" {
-		panic("need  environment var PIYUO_APP")
+	return os.Getenv("PIYUO_APP")
+}
+
+//ContextDateline get context deadline
+//
+//dateline should not greater than 10 min.
+//
+//	dateline,err := ContextDateline()
+func ContextDateline() (time.Time, error) {
+	text := os.Getenv("PIYUO_TIMEOUT")
+	seconds, err := strconv.Atoi(text)
+	if err != nil {
+		return time.Time{}, err
 	}
-	return env
+	return time.Now().Add(time.Duration(seconds) * time.Millisecond), nil
 }
 
 var cryptoInstance Crypto

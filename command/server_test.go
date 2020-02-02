@@ -2,9 +2,12 @@ package command
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	shared "github.com/piyuo/go-libsrv/command/shared"
 	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
@@ -125,4 +128,30 @@ func okResponse() []byte {
 	ok := shared.OK().(*sharedcommands.Err)
 	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
 	return bytes
+}
+
+func TestContextWithTokenAndDeadline(t *testing.T) {
+	Convey("should context have deadline", t, func() {
+		req, err := http.NewRequest("GET", "/", nil)
+		So(err, ShouldBeNil)
+		ctx, cancel, token, err := contextWithTokenAndDeadline(req)
+		defer cancel()
+		So(err, ShouldBeNil)
+		So(token, ShouldBeNil)
+		So(cancel, ShouldNotBeNil)
+		So(ctx, ShouldNotBeNil)
+	})
+}
+
+func TestContextCanceled(t *testing.T) {
+	Convey("should get error when context canceled", t, func() {
+		dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
+		ctx, cancel := context.WithDeadline(context.Background(), dateline)
+		defer cancel()
+
+		So(ctx.Err(), ShouldBeNil)
+		time.Sleep(time.Duration(2) * time.Second)
+		So(ctx.Err(), ShouldNotBeNil)
+		fmt.Println(ctx.Err())
+	})
 }

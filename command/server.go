@@ -9,6 +9,7 @@ import (
 
 	app "github.com/piyuo/go-libsrv/app"
 	log "github.com/piyuo/go-libsrv/log"
+	"github.com/pkg/errors"
 )
 
 const here = "command"
@@ -55,26 +56,22 @@ func (s *Server) newHandler() http.Handler {
 	return withoutArchive
 }
 
-//contextWithToken add token to context if token exist in cookies
-func (s *Server) contextWithToken(r *http.Request) (context.Context, app.Token) {
-	ctx := r.Context()
-	if len(r.Cookies()) == 0 {
-		return ctx, nil
-	}
-	token, err := app.TokenFromCookie(r)
-	if err != nil { // it is fine with no token, just return the context
-		return ctx, nil
-	}
-	//return new context with token
-	return token.ToContext(ctx), token
-}
-
 // Serve entry for http request, filter empty and bad request and send correct one to dispatch
 //
-// enable cross origin access
+//cross origin access enabled
+//
 func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
-	ctx, token := s.contextWithToken(r)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	ctx, cancel, token, err := contextWithTokenAndDeadline(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg := "failed to set context deadline, may need app.Check()"
+		s.writeText(w, msg)
+		log.Debug(ctx, here, msg)
+		return
+	}
+	defer cancel()
+
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "bad request. request is empty"
@@ -125,4 +122,25 @@ func (s *Server) writeText(w http.ResponseWriter, text string) {
 func (s *Server) writeBinary(w http.ResponseWriter, bytes []byte) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Write(bytes)
+}
+
+//contextWithTokenAndDeadline add token to context if token exist in cookies and deadline
+//
+//	context,cancel, token, err := contextWithTokenAndDeadline(req)
+func contextWithTokenAndDeadline(r *http.Request) (context.Context, context.CancelFunc, app.Token, error) {
+	dateline, err := app.ContextDateline()
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to get context deadline")
+	}
+
+	ctx, cancel := context.WithDeadline(r.Context(), dateline)
+	if len(r.Cookies()) == 0 {
+		return ctx, cancel, nil, nil
+	}
+	token, err := app.TokenFromCookie(r)
+	if err != nil { // it is fine with no token, just return the context
+		return ctx, cancel, nil, nil
+	}
+	//return new context with token
+	return token.ToContext(ctx), cancel, token, nil
 }
