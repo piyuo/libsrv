@@ -10,37 +10,44 @@ import (
 )
 
 //save credential to global, so every cloud function can reuse this credential
-var globalCredentialLog *google.Credentials
+var logCredGlobal *google.Credentials
 
 //LogCredential provide google credential for log
 func LogCredential(ctx context.Context) (*google.Credentials, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	key := "log-gcp"
 	scope := "https://www.googleapis.com/auth/cloud-platform"
-	if globalCredentialLog == nil {
+	if logCredGlobal == nil {
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create  google log credential, "+key+".key")
 		}
-		globalCredentialLog = cred
+		logCredGlobal = cred
 	}
-	return globalCredentialLog, nil
+	return logCredGlobal, nil
 }
 
 //save credential to global, so every cloud function can reuse this credential
-var globalCredentialData *google.Credentials
+var dataCredGlobal *google.Credentials
 
 //DataCredential provide google credential for data
 func DataCredential(ctx context.Context) (*google.Credentials, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
 	key := "data-gcp"
 	scope := "https://www.googleapis.com/auth/datastore"
-	if globalCredentialData == nil {
+	if dataCredGlobal == nil {
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create google data  credential, "+key+".key")
 		}
-		globalCredentialData = cred
+		dataCredGlobal = cred
 	}
-	return globalCredentialData, nil
+	return dataCredGlobal, nil
 }
 
 //createCredential base on key and scope
