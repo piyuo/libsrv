@@ -29,7 +29,7 @@ func TestLogHead(t *testing.T) {
 	Convey("should get head from application and identity'", t, func() {
 		HERE := "log_test"
 		h := head("piyuo-m-us-sys", "user-store", HERE)
-		So(h, ShouldEqual, "piyuo-m-us-sys.user-store.log_test: ")
+		So(h, ShouldEqual, "user-store@piyuo-m-us-sys/log_test: ")
 	})
 }
 
@@ -55,7 +55,7 @@ func TestLogWhenContextCanceled(t *testing.T) {
 		dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 		ctx, cancel := context.WithDeadline(context.Background(), dateline)
 		defer cancel()
-		time.Sleep(time.Duration(2) * time.Second)
+		time.Sleep(time.Duration(2) * time.Millisecond)
 		Info(ctx, HERE, "my info log canceled")
 	})
 }

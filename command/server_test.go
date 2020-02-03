@@ -150,7 +150,7 @@ func TestContextCanceled(t *testing.T) {
 		defer cancel()
 
 		So(ctx.Err(), ShouldBeNil)
-		time.Sleep(time.Duration(2) * time.Second)
+		time.Sleep(time.Duration(2) * time.Millisecond)
 		So(ctx.Err(), ShouldNotBeNil)
 		fmt.Println(ctx.Err())
 	})

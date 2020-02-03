@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -55,10 +56,14 @@ func TestPutGetDelete(t *testing.T) {
 		Description: "hi",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, err := firestoreNewDB(ctx)
+	Convey("should get db without error", t, func() {
+		So(err, ShouldBeNil)
+	})
+
 	defer db.Close()
 
-	err := db.Put(ctx, &greet)
+	err = db.Put(ctx, &greet)
 	Convey("greet should have id after put", t, func() {
 		So(err, ShouldBeNil)
 	})
@@ -81,7 +86,32 @@ func TestPutGetDelete(t *testing.T) {
 	Convey("delete greet from datastore'", t, func() {
 		So(err, ShouldBeNil)
 	})
+}
 
+func TestGetPutDeleteWhenContextCanceled(t *testing.T) {
+	Convey("should get error when context canceled", t, func() {
+		greet := Greet{
+			From:        "me",
+			Description: "hi",
+		}
+		db, err := firestoreNewDB(context.Background())
+		So(err, ShouldBeNil)
+
+		dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
+		ctx, cancel := context.WithDeadline(context.Background(), dateline)
+		defer cancel()
+		time.Sleep(time.Duration(2) * time.Millisecond)
+
+		err = db.Put(ctx, &greet)
+		So(err, ShouldNotBeNil)
+		err = db.Get(ctx, &greet)
+		So(err, ShouldNotBeNil)
+		err = db.GetByClass(ctx, "Greet", &greet)
+		So(err, ShouldNotBeNil)
+		err = db.GetAll(ctx, GreetFactory, func(o Object) {}, 100)
+		So(err, ShouldNotBeNil)
+
+	})
 }
 
 func TestUpdate(t *testing.T) {

@@ -2,9 +2,6 @@ package data
 
 import (
 	"context"
-	"math/rand"
-	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -31,16 +28,6 @@ type DB interface {
 type db struct {
 }
 
-//Put object into data store
-func (d *db) Put(obj Object) error {
-	panic("need implement Put")
-}
-
-//Get object from data store, return ErrNotFound if object not exist
-func (d *db) Get(obj Object) error {
-	panic("need implement Gut")
-}
-
 // Shard use by Counter()
 type Shard struct {
 	Object
@@ -55,6 +42,7 @@ var ErrObjectNotFound = errors.New("object not found")
 
 //AddCount implement sharding counter, shards limit usually 20
 //return shard number, shard count, error
+/*
 func (d *db) AddCount(className string, shards int) (int, int, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	shardNumber := rand.Intn(shards)
@@ -76,3 +64,4 @@ func (d *db) AddCount(className string, shards int) (int, int, error) {
 	}
 	return shardNumber, shard.c, nil
 }
+*/
