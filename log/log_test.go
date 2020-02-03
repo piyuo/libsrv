@@ -33,8 +33,8 @@ func TestLogHead(t *testing.T) {
 	})
 }
 
-func TestInfo(t *testing.T) {
-	Convey("should print'", t, func() {
+func TestDebug(t *testing.T) {
+	Convey("should print info to debug console'", t, func() {
 		ctx := context.Background()
 		Debug(ctx, HERE, "debug msg")
 	})

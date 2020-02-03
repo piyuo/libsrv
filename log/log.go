@@ -139,11 +139,15 @@ func aiFromContext(ctx context.Context) (string, string) {
 
 // head get log head from  application, identity
 //
-// piyuo-m-us-sys.user-store.where:
+// user-store@piyuo-m-us-sys/where:
 //
 //	h,identity := head("piyuo-m-us-sys","user-store","where")
 func head(application, identity, where string) string {
-	return fmt.Sprintf("%v.%v.%v: ", application, identity, where)
+	text := application + "/" + where
+	if identity != "" {
+		text = identity + "@" + text
+	}
+	return text + ": "
 }
 
 //beautyStack return simple format stack trace

@@ -94,7 +94,7 @@ func gcpWriteByLogger(ctx context.Context, logger *logging.Logger, message, appl
 	}
 
 	entry := logging.Entry{
-		Payload: message,
+		Payload: h + message,
 		Resource: &mrpb.MonitoredResource{
 			Type: "project",
 		},
