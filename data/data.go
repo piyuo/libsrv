@@ -14,5 +14,8 @@ const here = "data"
 //	retrive.SetID(greet.ID())
 //	err = db.Get(ctx, &retrive)
 func NewDB(ctx context.Context) (DB, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
 	return firestoreNewDB(ctx)
 }
