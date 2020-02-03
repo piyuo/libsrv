@@ -11,6 +11,10 @@ func (r *TestMap) NewObjectByID(id uint16) interface{} {
 		return new(TestAction)
 	case 1002:
 		return new(TestActionNotRespond)
+	case 1003:
+		return new(SlowAction)
+	case 1004:
+		return new(DeadlineAction)
 	}
 	return nil
 }

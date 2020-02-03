@@ -3,12 +3,16 @@ package command
 import (
 	"context"
 	"encoding/binary"
+	goerrors "errors"
 	"fmt"
+
+	"github.com/piyuo/go-libsrv/app"
 
 	proto "github.com/golang/protobuf/proto"
 	shared "github.com/piyuo/go-libsrv/command/shared"
 	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 	log "github.com/piyuo/go-libsrv/log"
+	tools "github.com/piyuo/go-libsrv/tools"
 
 	"github.com/pkg/errors"
 )
@@ -48,13 +52,12 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	commandLog := fmt.Sprintf("execute %v(%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
-	//no timer for now, cause google platform log provide time
-	//timer := tools.NewTimer()
-	//timer.Start()
-	responseID, response := dp.handle(ctx, action)
+	responseID, response, err := dp.timeExecuteAction(ctx, action)
+	if err != nil {
+		return nil, err
+	}
 	var returnBytes []byte
 	returnBytes, err = dp.encodeCommand(responseID, response)
-	//ms := timer.Stop()
 	if err != nil {
 		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
 		commandLog += fmt.Sprintf("failed with %v \n", err.Error())
@@ -65,6 +68,19 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", response.(Response).XXX_MapName(), len(returnBytes))
 	log.Debug(ctx, here, commandLog)
 	return returnBytes, nil
+}
+
+// timeExecuteAction execute action and measure time, log warning if too slow
+func (dp *Dispatch) timeExecuteAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
+	timer := tools.NewTimer()
+	timer.Start()
+	responseID, response, err := dp.handle(ctx, action)
+	ms := int(timer.Stop())
+	slow := app.IsSlow(ms)
+	if slow > 0 {
+		log.Warning(ctx, here, fmt.Sprintf("%v is slow, expected finish in %v ms but it took %v ms", action.(Action).XXX_MapName(), int(slow), int(ms)))
+	}
+	return responseID, response, err
 }
 
 //fastAppend provide better performance than append
@@ -112,20 +128,27 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 }
 
 // handle send action to handler and get response
-func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}) {
+//
+//normally we don't return err here, because we can log err to database let programmer to fix it. just return error response and error id let user track the problem
+//
+//DeadlineExceeded is the only error return
+func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}, error) {
 	responseInterface, err := action.(Action).Main(ctx)
+	if goerrors.Is(err, context.DeadlineExceeded) {
+		return 0, nil, err
+	}
 	if err != nil {
 		errID := log.Error(ctx, here, err, nil)
 		errResp := shared.Error(shared.ErrorInternal, errID)
-		return errResp.(Response).XXX_MapID(), errResp
+		return errResp.(Response).XXX_MapID(), errResp, nil
 	}
 	if responseInterface == nil {
 		errID := log.Error(ctx, here, errors.New("action main() return nil response"), nil)
 		errResp := shared.Error(shared.ErrorInternal, errID)
-		return errResp.(Response).XXX_MapID(), errResp
+		return errResp.(Response).XXX_MapID(), errResp, nil
 	}
 	response := responseInterface.(Response)
-	return response.XXX_MapID(), response
+	return response.XXX_MapID(), response, nil
 }
 
 // encodeCommand, comand is array contain [protobuf,id]

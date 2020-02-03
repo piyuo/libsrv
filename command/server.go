@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	goerrors "errors"
 	fmt "fmt"
 	"io"
 	"io/ioutil"
@@ -9,7 +10,6 @@ import (
 
 	app "github.com/piyuo/go-libsrv/app"
 	log "github.com/piyuo/go-libsrv/log"
-	"github.com/pkg/errors"
 )
 
 const here = "command"
@@ -65,7 +65,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel, token, err := contextWithTokenAndDeadline(r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		msg := "failed to set context deadline, may need app.Check()"
+		msg := "failed to set context deadline, use app.Check() to make sure all env are set"
 		s.writeText(w, msg)
 		log.Debug(ctx, here, msg)
 		return
@@ -100,6 +100,15 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	}
 	bytes, err = s.dispatch.Route(ctx, bytes)
 	if err != nil {
+		if goerrors.Is(err, context.DeadlineExceeded) {
+			//when deadline exceed, there is nothing we can do but write error to console
+			w.WriteHeader(http.StatusGatewayTimeout)
+			s.writeText(w, "execution timeout")
+			fmt.Printf("%+v", err)
+			return
+		}
+		// error here is critical, usually mean bad request or something is very wrong in code,
+		// we can't event log to database to alert programmer
 		w.WriteHeader(http.StatusInternalServerError)
 		//if anything wrong just log error and send error id to client
 		errID := log.Error(ctx, here, err, r)
@@ -128,11 +137,7 @@ func (s *Server) writeBinary(w http.ResponseWriter, bytes []byte) {
 //
 //	context,cancel, token, err := contextWithTokenAndDeadline(req)
 func contextWithTokenAndDeadline(r *http.Request) (context.Context, context.CancelFunc, app.Token, error) {
-	dateline, err := app.ContextDateline()
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to get context deadline")
-	}
-
+	dateline := app.ContextDateline()
 	ctx, cancel := context.WithDeadline(r.Context(), dateline)
 	if len(r.Cookies()) == 0 {
 		return ctx, cancel, nil, nil

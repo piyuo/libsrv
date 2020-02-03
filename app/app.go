@@ -42,18 +42,23 @@ func KeyPath(name string) (string, error) {
 //
 //	app.Check()
 func Check() {
-	//id format like piyuo-tw-m-app
+	//id format like m-tw-api
 	id := os.Getenv("PIYUO_APP")
 	if id == "" {
 		panic("need set env like PIYUO_APP=piyuo-t-us")
 	}
-	deadline := os.Getenv("PIYUO_TIMEOUT")
-	if deadline == "" {
-		panic("need set env like PIYUO_TIMEOUT=25")
+	//slow warning, usually 12 seconds
+	slow := os.Getenv("PIYUO_SLOW")
+	if slow == "" {
+		panic("need set env like PIYUO_SLOW=10")
 	}
-
+	//time to meet context deadline, this will stop all service, usually 16 seconds
+	deadline := os.Getenv("PIYUO_DEADLINE")
+	if deadline == "" {
+		panic("need set env like PIYUO_DEADLINE=16")
+	}
 	isProduction = false
-	if strings.Contains(id, "-m-") {
+	if strings.Contains(id, "m-") {
 		isProduction = true
 	}
 }
@@ -77,13 +82,28 @@ func PiyuoID() string {
 //dateline should not greater than 10 min.
 //
 //	dateline,err := ContextDateline()
-func ContextDateline() (time.Time, error) {
-	text := os.Getenv("PIYUO_TIMEOUT")
-	seconds, err := strconv.Atoi(text)
+func ContextDateline() time.Time {
+	text := os.Getenv("PIYUO_DEADLINE")
+	ms, err := strconv.Atoi(text)
 	if err != nil {
-		return time.Time{}, err
+		panic("PIYUO_DEADLINE must be int")
 	}
-	return time.Now().Add(time.Duration(seconds) * time.Millisecond), nil
+	return time.Now().Add(time.Duration(ms) * time.Millisecond)
+}
+
+//IsSlow check execution time is greater than slow definition,if so return slow limit, other return 0
+//
+//	So(IsSlow(5), ShouldBeFalse)
+func IsSlow(executionTime int) int {
+	text := os.Getenv("PIYUO_SLOW")
+	ms, err := strconv.Atoi(text)
+	if err != nil {
+		panic("PIYUO_SLOW must be int")
+	}
+	if executionTime > ms {
+		return ms
+	}
+	return 0
 }
 
 var cryptoInstance Crypto

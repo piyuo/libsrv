@@ -9,7 +9,7 @@ import (
 )
 
 func TestCheck(t *testing.T) {
-	Convey("should pass check with no panic'", t, func() {
+	Convey("should pass check with no panic", t, func() {
 		Check()
 		So(IsProduction(), ShouldBeFalse)
 	})
@@ -21,8 +21,7 @@ func TestCheck(t *testing.T) {
 
 func TestDateline(t *testing.T) {
 	Convey("should return deadline'", t, func() {
-		dateline, err := ContextDateline()
-		So(err, ShouldBeNil)
+		dateline := ContextDateline()
 		So(dateline.After(time.Now()), ShouldBeTrue)
 
 		//dateline should not greater than 10 min.
@@ -31,14 +30,23 @@ func TestDateline(t *testing.T) {
 	})
 }
 
+func TestIsSlow(t *testing.T) {
+	Convey("should determine slow work'", t, func() {
+		// 3 seconds execution time is not slow
+		So(IsSlow(5000), ShouldEqual, 0)
+		// 20 seconds execution time is really slow
+		So(IsSlow(20000), ShouldEqual, 10000)
+	})
+}
+
 func TestBasicFunction(t *testing.T) {
 	Convey("should able join dir and current dir'", t, func() {
 		text := JoinCurrentDir("../../../")
 		So(strings.HasSuffix(text, "/go"), ShouldBeTrue)
 	})
-	Convey("should env PIYUO_ENV'", t, func() {
+	Convey("should env PIYUO_APP'", t, func() {
 		id := PiyuoID()
-		So(id, ShouldEqual, "piyuo-dev")
+		So(id, ShouldEqual, "dev")
 		So(IsProduction(), ShouldEqual, false)
 	})
 	Convey("should get key path'", t, func() {

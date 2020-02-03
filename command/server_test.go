@@ -3,7 +3,7 @@ package command
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -152,6 +152,29 @@ func TestContextCanceled(t *testing.T) {
 		So(ctx.Err(), ShouldBeNil)
 		time.Sleep(time.Duration(2) * time.Millisecond)
 		So(ctx.Err(), ShouldNotBeNil)
-		fmt.Println(ctx.Err())
+
+		err := ctx.Err()
+		So(errors.Is(err, context.DeadlineExceeded), ShouldBeTrue)
+	})
+}
+
+func newDeadlineAction() []byte {
+	dispatch := &Dispatch{
+		Map: &TestMap{},
+	}
+	act := &DeadlineAction{}
+	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
+	return actBytes
+}
+
+func TestServeWhenContextCanceled(t *testing.T) {
+	Convey("should get error when context canceled", t, func() {
+		handler := newTestServerHandler()
+		actBytes := newDeadlineAction()
+		req, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		res := resp.Result()
+		So(res.StatusCode, ShouldEqual, 504)
 	})
 }

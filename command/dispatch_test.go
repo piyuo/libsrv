@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"testing"
 
@@ -75,10 +76,24 @@ func TestHandle(t *testing.T) {
 	}
 
 	//test dispatch route
-	_, respInterface := dispatch.handle(context.Background(), act)
+	_, respInterface, err := dispatch.handle(context.Background(), act)
 	response := respInterface.(*sharedcommands.Err)
 	Convey("test despatch handle", t, func() {
+		So(err, ShouldBeNil)
 		So(response.Code, ShouldEqual, 0)
+	})
+}
+
+func TestTimeExecuteAction(t *testing.T) {
+	Convey("should warn slow action", t, func() {
+		os.Setenv("PIYUO_SLOW", "1")
+		act := &SlowAction{}
+		dispatch := &Dispatch{
+			Map: &TestMap{},
+		}
+		_, respInterface, err := dispatch.timeExecuteAction(context.Background(), act)
+		So(err, ShouldBeNil)
+		So(respInterface, ShouldNotBeNil)
 	})
 }
 
