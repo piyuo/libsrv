@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
@@ -106,7 +107,7 @@ func Log(ctx context.Context, message, application, identity, where string, leve
 		return
 	}
 	defer close()
-	Write(ctx, logger, message, application, identity, where, level)
+	Write(ctx, logger, time.Now(), message, application, identity, where, level)
 }
 
 //Open log client to do batch log
@@ -122,11 +123,11 @@ func Open(ctx context.Context) (*logging.Logger, func(), error) {
 //Write log through client
 //
 //	Write(ctx, logger, message, application, identity, here, info)
-func Write(ctx context.Context, logger *logging.Logger, message, application, identity, where string, level int32) {
+func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, message, application, identity, where string, level int32) {
 	if ctx.Err() != nil {
 		return
 	}
-	gcpLogWrite(logger, message, application, identity, where, level)
+	gcpLogWrite(logger, logtime, message, application, identity, where, level)
 }
 
 //ErrorLog log error and stack to server

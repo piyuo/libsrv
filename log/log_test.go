@@ -146,6 +146,6 @@ func TestLogOpenWrite(t *testing.T) {
 		logger, close, err := Open(ctx)
 		So(err, ShouldBeNil)
 		defer close()
-		Write(ctx, logger, message, application, "001-CHIENCHIH", here, LevelInfo)
+		Write(ctx, logger, time.Now(), message, application, "001-CHIENCHIH", here, LevelInfo)
 	})
 }

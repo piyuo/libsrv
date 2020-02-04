@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
@@ -78,7 +79,7 @@ func gcpLogOpen(ctx context.Context) (*logging.Logger, func(), error) {
 //
 //	const here = "log_gcp"
 //	gcpLogWrite(logger, "my error","piyuo-t-sys",'"user-store",here,WARNING)
-func gcpLogWrite(logger *logging.Logger, message, application, identity, where string, level int32) {
+func gcpLogWrite(logger *logging.Logger, logtime time.Time, message, application, identity, where string, level int32) {
 	if message == "" {
 		return
 	}
@@ -95,7 +96,8 @@ func gcpLogWrite(logger *logging.Logger, message, application, identity, where s
 	}
 
 	entry := logging.Entry{
-		Payload: h + message,
+		Timestamp: logtime,
+		Payload:   h + message,
 		Resource: &mrpb.MonitoredResource{
 			Type: "project",
 		},

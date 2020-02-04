@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"testing"
+	"time"
 
 	tools "github.com/piyuo/go-libsrv/tools"
 	. "github.com/smartystreets/goconvey/convey"
@@ -48,6 +49,6 @@ func TestGcpLogOpenWrite(t *testing.T) {
 		logger, close, err := gcpLogOpen(ctx)
 		So(err, ShouldBeNil)
 		defer close()
-		gcpLogWrite(logger, message, application, identity, here, LevelInfo)
+		gcpLogWrite(logger, time.Now(), message, application, identity, here, LevelInfo)
 	})
 }
