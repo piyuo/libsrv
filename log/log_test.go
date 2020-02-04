@@ -131,7 +131,7 @@ func TestErrorOpenWrite(t *testing.T) {
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := tools.UUID()
-		client, close, err := ErrorOpen(ctx, application, here)
+		client, close, err := ErrorOpen(ctx)
 		So(err, ShouldBeNil)
 		defer close()
 		ErrorWrite(ctx, client, message, application, identity, here, stack, id, nil)

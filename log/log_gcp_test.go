@@ -21,7 +21,7 @@ func TestCreateLogClient(t *testing.T) {
 func TestCreateErrorClient(t *testing.T) {
 	Convey("should create error client'", t, func() {
 		ctx := context.Background()
-		errClient, _ := gcpCreateErrorClient(ctx, "my service", "my version")
+		errClient, _ := gcpCreateErrorClient(ctx)
 		So(errClient, ShouldNotBeNil)
 	})
 }
@@ -33,7 +33,7 @@ func TestGcpErrorOpenWrite(t *testing.T) {
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := tools.UUID()
-		client, close, err := gcpErrorOpen(ctx, application, here)
+		client, close, err := gcpErrorOpen(ctx)
 		So(err, ShouldBeNil)
 		defer close()
 		gcpErrorWrite(client, message, application, identity, here, stack, id, nil)

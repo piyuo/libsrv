@@ -145,7 +145,7 @@ func ErrorLog(ctx context.Context, message, application, identity, where, stack,
 	if ctx.Err() != nil {
 		return
 	}
-	client, close, err := ErrorOpen(ctx, application, where)
+	client, close, err := ErrorOpen(ctx)
 	if err != nil {
 		return
 	}
@@ -155,12 +155,12 @@ func ErrorLog(ctx context.Context, message, application, identity, where, stack,
 
 //ErrorOpen open error client to do batch log
 //
-//	client, close, err := ErrorOpen(ctx, application, here)
-func ErrorOpen(ctx context.Context, application, where string) (*errorreporting.Client, func(), error) {
+//	client, close, err := ErrorOpen(ctx)
+func ErrorOpen(ctx context.Context) (*errorreporting.Client, func(), error) {
 	if ctx.Err() != nil {
 		return nil, nil, ctx.Err()
 	}
-	return gcpErrorOpen(ctx, application, where)
+	return gcpErrorOpen(ctx)
 }
 
 //ErrorWrite log error through client
