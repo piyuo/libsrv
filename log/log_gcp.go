@@ -87,11 +87,11 @@ func gcpLogWrite(logger *logging.Logger, message, application, identity, where s
 	fmt.Printf("%v%v (logged)\n", h, message)
 	severity := logging.Info
 	switch level {
-	case warning:
+	case LevelWarning:
 		severity = logging.Warning
-	case alert:
+	case LevelAlert:
 		severity = logging.Critical
-	case debug:
+	case LevelDebug:
 		severity = logging.Debug
 	}
 

@@ -48,6 +48,6 @@ func TestGcpLogOpenWrite(t *testing.T) {
 		logger, close, err := gcpLogOpen(ctx)
 		So(err, ShouldBeNil)
 		defer close()
-		gcpLogWrite(logger, message, application, identity, here, info)
+		gcpLogWrite(logger, message, application, identity, here, LevelInfo)
 	})
 }

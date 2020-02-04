@@ -18,10 +18,10 @@ import (
 
 //Log level
 const (
-	debug   int32 = 0 //debug info
-	info    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
-	warning int32 = 2 //Warning events might cause problems.
-	alert   int32 = 3 //A person must take an action immediately
+	LevelDebug   int32 = 0 //debug info
+	LevelInfo    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
+	LevelWarning int32 = 2 //Warning events might cause problems.
+	LevelAlert   int32 = 3 //A person must take an action immediately
 )
 
 //Debug as Routine information, such as ongoing status or performance.
@@ -43,7 +43,7 @@ func Info(ctx context.Context, where, message string) {
 		return
 	}
 	application, identity := aiFromContext(ctx)
-	Log(ctx, message, application, identity, where, info)
+	Log(ctx, message, application, identity, where, LevelInfo)
 }
 
 //Warning as Warning events might cause problems.
@@ -55,7 +55,7 @@ func Warning(ctx context.Context, where, message string) {
 		return
 	}
 	application, identity := aiFromContext(ctx)
-	Log(ctx, message, application, identity, where, warning)
+	Log(ctx, message, application, identity, where, LevelWarning)
 }
 
 //Alert A person must take an action immediately
@@ -67,7 +67,7 @@ func Alert(ctx context.Context, where, message string) {
 		return
 	}
 	application, identity := aiFromContext(ctx)
-	Log(ctx, message, application, identity, where, alert)
+	Log(ctx, message, application, identity, where, LevelAlert)
 }
 
 //Error log error to google cloud and return error id
