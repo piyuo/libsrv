@@ -165,7 +165,7 @@ func ErrorOpen(ctx context.Context) (*errorreporting.Client, func(), error) {
 
 //ErrorWrite log error through client
 //
-//	ErrorWrite(client, message, application, identity, here, stack, id, nil)
+//	ErrorWrite(ctx,client, message, application, identity, here, stack, id, nil)
 func ErrorWrite(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
 	if ctx.Err() != nil {
 		return
