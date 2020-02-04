@@ -96,8 +96,8 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 
 //Log message and level to server
 //
-//	HERE := "log_test"
-//	CustomLog(ctx, "hello", "piyuo-m-us-sys", "user-store",HERE, WARNING)
+//	here := "log_test"
+//	CustomLog(ctx, "hello", "piyuo-m-us-sys", "user-store",here, WARNING)
 func Log(ctx context.Context, message, application, identity, where string, level int32) {
 	if ctx.Err() != nil {
 		return
@@ -122,7 +122,7 @@ func Open(ctx context.Context) (*logging.Logger, func(), error) {
 
 //Write log through client
 //
-//	Write(ctx, logger, message, application, identity, here, info)
+//	Write(ctx, logger,time.Now(), message, application, identity, here, info)
 func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, message, application, identity, where string, level int32) {
 	if ctx.Err() != nil {
 		return
