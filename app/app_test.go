@@ -54,6 +54,11 @@ func TestBasicFunction(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(strings.HasSuffix(path, "/log-gcp.key"), ShouldBeTrue)
 	})
+	Convey("should get key content'", t, func() {
+		text, err := Key("log-gcp")
+		So(err, ShouldBeNil)
+		So(text, ShouldNotBeEmpty)
+	})
 }
 
 func TestAppCrypto(t *testing.T) {

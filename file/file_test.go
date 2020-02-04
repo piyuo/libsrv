@@ -1,4 +1,4 @@
-package tools
+package file
 
 import (
 	"os"
@@ -8,20 +8,26 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestJSONFIle(t *testing.T) {
+func TestFIle(t *testing.T) {
 	currentDir, _ := os.Getwd()
 	keyPath := path.Join(currentDir, "../../keys/log-gcp.key")
-	jsonfile, _ := NewJSONFile(keyPath)
-	defer jsonfile.Close()
+	f, _ := Open(keyPath)
+	defer f.Close()
 
 	Convey("should have text'", t, func() {
-		text, _ := jsonfile.Text()
+		text := f.Text()
 		So(len(text), ShouldBeGreaterThan, 1)
 	})
 
 	Convey("should have json'", t, func() {
-		json, _ := jsonfile.JSON()
+		json, err := f.JSON()
+		So(err, ShouldBeNil)
 		So(json["project_id"], ShouldEqual, "master-255220")
+	})
+
+	Convey("should have bytes'", t, func() {
+		bytes := f.Bytes()
+		So(len(bytes), ShouldBeGreaterThan, 0)
 	})
 
 }

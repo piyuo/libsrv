@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	file "github.com/piyuo/go-libsrv/file"
 	"github.com/pkg/errors"
 )
 
@@ -36,6 +37,22 @@ func KeyPath(name string) (string, error) {
 		keyDir = "../" + keyDir
 	}
 	return "", errors.New("failed to find " + name + ".key in keys/ or ../keys/")
+}
+
+//Key get key file content from name
+//
+//	keyPath, err := EnvKeyPath("log")
+func Key(name string) (string, error) {
+	keyPath, err := KeyPath(name)
+	if err != nil {
+		return "", err
+	}
+	f, err := file.Open(keyPath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	return f.Text(), nil
 }
 
 //Check environment variable is set properly

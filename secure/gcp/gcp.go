@@ -4,7 +4,6 @@ import (
 	"context"
 
 	app "github.com/piyuo/go-libsrv/app"
-	tools "github.com/piyuo/go-libsrv/tools"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 )
@@ -51,25 +50,18 @@ func DataCredential(ctx context.Context) (*google.Credentials, error) {
 }
 
 //createCredential base on key and scope
+//
+//	cred, err := createCredential(context.Background(), "log-gcp", "https://www.googleapis.com/auth/cloud-platform")
 func createCredential(ctx context.Context, key, scope string) (*google.Credentials, error) {
-	keyPath, err := app.KeyPath(key)
-	if err != nil {
-		return nil, errors.Wrap(err, key+".key not found")
-	}
-	jsonfile, err := tools.NewJSONFile(keyPath)
-	if err != nil {
-		return nil, errors.Wrap(err, "can no open key file "+keyPath)
-	}
-	defer jsonfile.Close()
 
-	text, err := jsonfile.Text()
+	text, err := app.Key(key)
 	if err != nil {
-		return nil, errors.Wrap(err, " keyfile content maybe empty or wrong format. "+keyPath)
+		return nil, errors.Wrap(err, "failed to get key "+key)
 	}
 
 	creds, err := google.CredentialsFromJSON(ctx, []byte(text), scope)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to convert json to google credentials.\n"+text)
+		return nil, errors.Wrap(err, "failed to convert json to google credentials"+text)
 	}
 	return creds, nil
 }
