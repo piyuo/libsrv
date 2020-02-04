@@ -1,9 +1,8 @@
-package commands
+package shared
 
 import (
 	"context"
-
-	shared "github.com/piyuo/go-libsrv/command/shared"
+	//data "github.com/piyuo/go-libsrv/data"
 )
 
 // Main entry for client command execution
@@ -11,5 +10,5 @@ import (
 //
 // do not return nil on response
 func (a *PingAction) Main(ctx context.Context) (interface{}, error) {
-	return shared.OK(), nil
+	return OK(), nil
 }

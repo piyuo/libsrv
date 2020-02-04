@@ -1,6 +1,6 @@
 {
 	"name": "shared",
-	"index": 4,
+	"index": 5,
 	"debugPort": 0,
 	"shared": true,
 	"goPath": [
@@ -12,7 +12,7 @@
 	"protos": {
 		"err": 1,
 		"num": 2,
-		"text": 3,
-		"ping_action": 4
+		"ping_action": 4,
+		"text": 5
 	}
 }
