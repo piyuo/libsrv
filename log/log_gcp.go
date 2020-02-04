@@ -91,6 +91,8 @@ func gcpLogWrite(logger *logging.Logger, message, application, identity, where s
 		severity = logging.Warning
 	case alert:
 		severity = logging.Critical
+	case debug:
+		severity = logging.Debug
 	}
 
 	entry := logging.Entry{

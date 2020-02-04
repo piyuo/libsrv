@@ -18,6 +18,7 @@ import (
 
 //Log level
 const (
+	debug   int32 = 0 //debug info
 	info    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
 	warning int32 = 2 //Warning events might cause problems.
 	alert   int32 = 3 //A person must take an action immediately
