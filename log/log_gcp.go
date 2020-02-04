@@ -57,29 +57,29 @@ func gcpCreateErrorClient(ctx context.Context, serviceName, serviceVersion strin
 	return client, nil
 }
 
-//gcpLog log message and level to server
+//gcpLogOpen create logger to write log
 //
-//	HERE := "log_test"
-//	gcpLog(ctx, "hello", "piyuo-m-us-sys", "user-store",HERE, WARNING)
-func gcpLog(ctx context.Context, message, application, identity, where string, level int32) {
+//	logger, close, err := gcpLogOpen(ctx)
+func gcpLogOpen(ctx context.Context) (*logging.Logger, func(), error) {
 	client, err := gcpCreateLogClient(ctx)
 	if err != nil {
-		Error(ctx, where, err, nil)
-		return
+		fmt.Printf("!!! %v\n", err)
+		return nil, nil, err
 	}
 	logger := client.Logger(app.PiyuoID())
-	gcpWriteByLogger(ctx, logger, message, application, identity, where, level)
-	if err := client.Close(); err != nil {
-		Error(ctx, where, errors.Wrap(err, "failed to close client"), nil)
-		return
-	}
+	return logger, func() {
+		if err := client.Close(); err != nil {
+			fmt.Printf("!!! %v\n", err)
+			return
+		}
+	}, nil
 }
 
-//gcpWriteByLogger custom message and level to google cloud platform
+//gcpLogWrite message and level to google cloud platform
 //
-//	const HERE = "log_gcp"
-//	gcpWriteByLogger(ctx,logger, "my error","piyuo-t-sys",'"user-store",HERE,WARNING)
-func gcpWriteByLogger(ctx context.Context, logger *logging.Logger, message, application, identity, where string, level int32) {
+//	const here = "log_gcp"
+//	gcpLogWrite(logger, "my error","piyuo-t-sys",'"user-store",here,WARNING)
+func gcpLogWrite(logger *logging.Logger, message, application, identity, where string, level int32) {
 	if message == "" {
 		return
 	}
@@ -110,17 +110,18 @@ func gcpWriteByLogger(ctx context.Context, logger *logging.Logger, message, appl
 	logger.Log(entry)
 }
 
-//gcpError log error and stack to google cloud
-func gcpError(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
-
+//gcpErrorOpen log error and stack to google cloud
+//
+//	client, close, err := gcpErrorOpen(ctx, application, here)
+func gcpErrorOpen(ctx context.Context, application, where string) (*errorreporting.Client, func(), error) {
 	client, err := gcpCreateErrorClient(ctx, application, where)
 	if err != nil {
 		fmt.Printf("!!! %v\n", err)
-		return
+		return nil, nil, err
 	}
-	defer client.Close()
-
-	gcpErrorByClient(ctx, client, message, application, identity, where, stack, errID, r)
+	return client, func() {
+		client.Close()
+	}, nil
 }
 
 //gcpError log error to google cloud
@@ -131,24 +132,20 @@ func gcpError(ctx context.Context, message, application, identity, where, stack,
 //
 //at secondLine (b.js:3)
 //
-//	err := errors.New("my error1")
-//	gcpErrorByClient(ctx, message,application,identity,where, stack, id, request)
-func gcpErrorByClient(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
+//	gcpErrorWrite(client, message, application, identity, here, stack, id, request)
+func gcpErrorWrite(client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
 	h := head(application, identity, where)
-
 	e := errors.New(h + message + " (" + errID + ")")
 	if stack == "" {
 		client.Report(errorreporting.Entry{
 			Error: e, User: identity,
 			Req: r,
 		})
-
 	} else {
 		client.Report(errorreporting.Entry{
 			Error: e, User: identity,
 			Stack: []byte(stack),
 			Req:   r,
 		})
-
 	}
 }

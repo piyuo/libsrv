@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"cloud.google.com/go/errorreporting"
+	"cloud.google.com/go/logging"
 	app "github.com/piyuo/go-libsrv/app"
 	tools "github.com/piyuo/go-libsrv/tools"
 )
@@ -40,7 +42,7 @@ func Info(ctx context.Context, where, message string) {
 		return
 	}
 	application, identity := aiFromContext(ctx)
-	CustomLog(ctx, message, application, identity, where, info)
+	Log(ctx, message, application, identity, where, info)
 }
 
 //Warning as Warning events might cause problems.
@@ -52,7 +54,7 @@ func Warning(ctx context.Context, where, message string) {
 		return
 	}
 	application, identity := aiFromContext(ctx)
-	CustomLog(ctx, message, application, identity, where, warning)
+	Log(ctx, message, application, identity, where, warning)
 }
 
 //Alert A person must take an action immediately
@@ -64,7 +66,7 @@ func Alert(ctx context.Context, where, message string) {
 		return
 	}
 	application, identity := aiFromContext(ctx)
-	CustomLog(ctx, message, application, identity, where, alert)
+	Log(ctx, message, application, identity, where, alert)
 }
 
 //Error log error to google cloud and return error id
@@ -86,22 +88,47 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 	message := err.Error()
 	stack := beautyStack(err)
 	fmt.Printf("%v%v (%v)\n%v\n", h, err.Error(), errID, stack)
-	CustomError(ctx, message, application, identity, where, stack, errID, r)
+	ErrorLog(ctx, message, application, identity, where, stack, errID, r)
 	return errID
 }
 
-//CustomLog log message and level to server
+//Log message and level to server
 //
 //	HERE := "log_test"
 //	CustomLog(ctx, "hello", "piyuo-m-us-sys", "user-store",HERE, WARNING)
-func CustomLog(ctx context.Context, message, application, identity, where string, level int32) {
+func Log(ctx context.Context, message, application, identity, where string, level int32) {
 	if ctx.Err() != nil {
 		return
 	}
-	gcpLog(ctx, message, application, identity, where, level)
+	logger, close, err := Open(ctx)
+	if err != nil {
+		return
+	}
+	defer close()
+	Write(ctx, logger, message, application, identity, where, level)
 }
 
-//CustomError log error and stack to server
+//Open log client to do batch log
+//
+//	logger, close, err := Open(ctx)
+func Open(ctx context.Context) (*logging.Logger, func(), error) {
+	if ctx.Err() != nil {
+		return nil, nil, ctx.Err()
+	}
+	return gcpLogOpen(ctx)
+}
+
+//Write log through client
+//
+//	Write(ctx, logger, message, application, identity, here, info)
+func Write(ctx context.Context, logger *logging.Logger, message, application, identity, where string, level int32) {
+	if ctx.Err() != nil {
+		return
+	}
+	gcpLogWrite(logger, message, application, identity, where, level)
+}
+
+//ErrorLog log error and stack to server
 //
 //stack format like
 //
@@ -113,11 +140,36 @@ func CustomLog(ctx context.Context, message, application, identity, where string
 //	errID := tools.UUID()
 //	HERE := "log_test"
 //	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",HERE, stack, errID)
-func CustomError(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
+func ErrorLog(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
 	if ctx.Err() != nil {
 		return
 	}
-	gcpError(ctx, message, application, identity, where, stack, errID, r)
+	client, close, err := ErrorOpen(ctx, application, where)
+	if err != nil {
+		return
+	}
+	defer close()
+	ErrorWrite(ctx, client, message, application, identity, where, stack, errID, r)
+}
+
+//ErrorOpen open error client to do batch log
+//
+//	client, close, err := ErrorOpen(ctx, application, here)
+func ErrorOpen(ctx context.Context, application, where string) (*errorreporting.Client, func(), error) {
+	if ctx.Err() != nil {
+		return nil, nil, ctx.Err()
+	}
+	return gcpErrorOpen(ctx, application, where)
+}
+
+//ErrorWrite log error through client
+//
+//	ErrorWrite(client, message, application, identity, here, stack, id, nil)
+func ErrorWrite(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
+	if ctx.Err() != nil {
+		return
+	}
+	gcpErrorWrite(client, message, application, identity, where, stack, errID, r)
 }
 
 // aiFromContext get application, identity from context
