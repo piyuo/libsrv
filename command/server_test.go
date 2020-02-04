@@ -10,7 +10,6 @@ import (
 	"time"
 
 	shared "github.com/piyuo/go-libsrv/command/shared"
-	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -123,9 +122,9 @@ func newTestAction(text string) []byte {
 
 func okResponse() []byte {
 	dispatch := &Dispatch{
-		Map: &sharedcommands.MapXXX{},
+		Map: &shared.MapXXX{},
 	}
-	ok := shared.OK().(*sharedcommands.Err)
+	ok := shared.OK().(*shared.Err)
 	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
 	return bytes
 }

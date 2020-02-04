@@ -141,11 +141,11 @@ func TestErrorOpenWrite(t *testing.T) {
 func TestLogOpenWrite(t *testing.T) {
 	Convey("should open and write log'", t, func() {
 		ctx := context.Background()
-		application, identity := aiFromContext(ctx)
+		application, _ := aiFromContext(ctx)
 		message := "mock error happening in flutter"
 		logger, close, err := Open(ctx)
 		So(err, ShouldBeNil)
 		defer close()
-		Write(ctx, logger, message, application, identity, here, info)
+		Write(ctx, logger, message, application, "001-CHIENCHIH", here, info)
 	})
 }

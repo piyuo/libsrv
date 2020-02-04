@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
+	shared "github.com/piyuo/go-libsrv/command/shared"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -55,7 +55,7 @@ func TestRoute(t *testing.T) {
 	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
 	_, resp, err3 := dispatch.decodeCommand(resultBytes)
-	actualResponse := resp.(*sharedcommands.Err)
+	actualResponse := resp.(*shared.Err)
 	Convey("test dispatch route", t, func() {
 		So(err, ShouldBeNil)
 		So(err2, ShouldBeNil)
@@ -77,7 +77,7 @@ func TestHandle(t *testing.T) {
 
 	//test dispatch route
 	_, respInterface, err := dispatch.handle(context.Background(), act)
-	response := respInterface.(*sharedcommands.Err)
+	response := respInterface.(*shared.Err)
 	Convey("test despatch handle", t, func() {
 		So(err, ShouldBeNil)
 		So(response.Code, ShouldEqual, 0)

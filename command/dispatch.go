@@ -10,7 +10,6 @@ import (
 
 	proto "github.com/golang/protobuf/proto"
 	shared "github.com/piyuo/go-libsrv/command/shared"
-	sharedcommands "github.com/piyuo/go-libsrv/command/shared/commands"
 	log "github.com/piyuo/go-libsrv/log"
 	tools "github.com/piyuo/go-libsrv/tools"
 
@@ -99,13 +98,13 @@ func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error) {
 	var obj interface{}
 	if id <= 1000 {
-		shareMap := &sharedcommands.MapXXX{}
+		shareMap := &shared.MapXXX{}
 		obj = shareMap.NewObjectByID(id)
 	} else {
 		obj = dp.Map.NewObjectByID(id)
 	}
 	if obj == nil {
-		return nil, errors.New(fmt.Sprintf("failed to map id %v", id))
+		return nil, errors.Errorf("failed to map id %v", id)
 	}
 	err := proto.Unmarshal(bytes, obj.(proto.Message))
 	if err != nil {

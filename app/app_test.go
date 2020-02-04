@@ -44,9 +44,9 @@ func TestBasicFunction(t *testing.T) {
 		text := JoinCurrentDir("../../../")
 		So(strings.HasSuffix(text, "/go"), ShouldBeTrue)
 	})
-	Convey("should env PIYUO_APP'", t, func() {
+	Convey("should set env PIYUO_APP'", t, func() {
 		id := PiyuoID()
-		So(id, ShouldEqual, "dev")
+		So(id, ShouldNotBeEmpty)
 		So(IsProduction(), ShouldEqual, false)
 	})
 	Convey("should get key path'", t, func() {
