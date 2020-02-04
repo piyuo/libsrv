@@ -1,16 +1,6 @@
 package mail
 
-import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-	app "github.com/piyuo/go-libsrv/app"
-
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
-)
-
+/*
 //SendGrid using sendgrid to send email
 //
 //	mail.Send('from','to','subject','text')
@@ -44,3 +34,4 @@ func SendGrid(ctx context.Context, fromName, fromEmail, toName, toEmail, subject
 		fmt.Println(response.Headers)
 	}
 }
+*/
