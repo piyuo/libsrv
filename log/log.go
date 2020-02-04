@@ -139,8 +139,8 @@ func Write(ctx context.Context, logger *logging.Logger, message, application, id
 //
 //	err := errors.New("my error1")
 //	errID := tools.UUID()
-//	HERE := "log_test"
-//	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",HERE, stack, errID)
+//	here := "log_test"
+//	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",here, stack, errID)
 func ErrorLog(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
 	if ctx.Err() != nil {
 		return
