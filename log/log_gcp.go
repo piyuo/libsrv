@@ -41,11 +41,11 @@ func gcpCreateErrorClient(ctx context.Context) (*errorreporting.Client, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
 	}
-
+	serviceName := app.PiyuoID()
 	client, err := errorreporting.NewClient(ctx,
 		cred.ProjectID,
 		errorreporting.Config{
-			ServiceName: app.PiyuoID(),
+			ServiceName: serviceName,
 			OnError: func(err error) {
 				fmt.Printf("failed to config error reporting %v\n", err)
 			},

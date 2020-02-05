@@ -30,7 +30,8 @@ func TestCreateErrorClient(t *testing.T) {
 func TestGcpErrorOpenWrite(t *testing.T) {
 	Convey("should open and write error'", t, func() {
 		ctx := context.Background()
-		application, identity := aiFromContext(ctx)
+		application := "go"
+		identity := "test"
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := tools.UUID()
