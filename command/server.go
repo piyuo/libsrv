@@ -63,7 +63,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx, cancel, token, err := contextWithTokenAndDeadline(r)
 	if err != nil {
-		logEnvMissing(ctx, w)
+		handleEnvNotReady(ctx, w)
 		return
 	}
 	defer cancel()
@@ -98,6 +98,16 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	writeBinary(w, bytes)
 }
 
+// handleEnvNotReady write error to response, the server environment variable is not set
+//
+//	logEnvMissing(context.Background(), w)
+func handleEnvNotReady(ctx context.Context, w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotImplemented)
+	msg := "failed to set context deadline, may be missing environment variable, use app.Check() to make sure all var are set"
+	writeText(w, msg)
+	log.Debug(ctx, here, msg)
+}
+
 //handleRouteException convert error to status code, so client command service know how to deal with it
 //
 //	context,cancel, token, err := contextWithTokenAndDeadline(req)
@@ -116,7 +126,6 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Re
 		writeError(w, err, http.StatusPaymentRequired, err.Error())
 		return
 	}
-
 	errID := log.Error(ctx, here, err, r)
 	writeError(w, err, http.StatusInternalServerError, errID)
 }
@@ -160,16 +169,6 @@ func writeText(w http.ResponseWriter, text string) {
 func writeError(w http.ResponseWriter, err error, statusCode int, text string) {
 	w.WriteHeader(statusCode)
 	writeText(w, text)
-}
-
-// logEnvMissing to response
-//
-//	logEnvMissing(context.Background(), w)
-func logEnvMissing(ctx context.Context, w http.ResponseWriter) {
-	w.WriteHeader(http.StatusNotImplemented)
-	msg := "failed to set context deadline, use app.Check() to make sure all env are set"
-	writeText(w, msg)
-	log.Debug(ctx, here, msg)
 }
 
 // logBadRequest to response

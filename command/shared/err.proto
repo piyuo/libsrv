@@ -6,5 +6,5 @@ syntax = "proto3";
 */
 message Err {
     int32 code= 1;
-    string tag=2;
+    string msg=2;
 }

@@ -52,7 +52,7 @@ func Error(code int32, msg string) interface{} {
 func errorInt32(code int32, tag string) interface{} {
 	return &Err{
 		Code: code,
-		Tag:  tag,
+		Msg:  tag,
 	}
 }
 

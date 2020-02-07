@@ -185,7 +185,7 @@ func TestWriteResponse(t *testing.T) {
 		writeBinary(w, bytes)
 		writeText(w, "code")
 		writeError(w, errors.New("error"), 500, "error")
-		logEnvMissing(context.Background(), w)
+		handleEnvNotReady(context.Background(), w)
 		logBadRequest(context.Background(), w, "message")
 	})
 }

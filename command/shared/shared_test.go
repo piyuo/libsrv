@@ -26,9 +26,9 @@ func TestShared(t *testing.T) {
 	})
 
 	Convey("should create error response'", t, func() {
-		err := Error(ErrorUnknown, "tag").(*Err)
-		So(err.Code, ShouldEqual, int32(ErrorUnknown))
-		So(err.Tag, ShouldEqual, "tag")
+		err := Error(1, "hi").(*Err)
+		So(err.Code, ShouldEqual, 1)
+		So(err.Msg, ShouldEqual, "hi")
 	})
 
 }
