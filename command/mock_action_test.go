@@ -8,16 +8,17 @@ import (
 	//data "github.com/piyuo/go-libsrv/data"
 )
 
-// Main entry for client command execution
-// you can return a response to user and error will be log to server
+// Main entry for client command execution, need return response to client, client will get response use following code
 //
-// do not return nil on response
+//	var response = await service.send(action);
+//
+// return error will Intercept by command service on server and client. client response will be null
 func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
-	// get token if you need userid
-	//token, errResp := shared.Token(ctx)
-	// if errResp != nil {
-	// 	 return errResp, nil
-	// }
+	// get token if you need user id
+	//token, err := shared.Token(ctx)
+	//if err != nil {
+	//	return nil, err
+	//}
 	// if token.IsUserJustLogin() {
 	// user just enter password to login iin 3 min. consider high security
 	// a.placeOrder(token.UserID(),a.orderID)
@@ -32,8 +33,8 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// log significant events
 	// log.Info(ctx, "%name", "hi")
 	// log.Warning(ctx, "%name", "hi")
-	// log.Critical(ctx, "%name", "hi")
-	// no need to log error, just return error and client will get internal server error, error will log to google cloud
+	// log.Alert(ctx, "%name", "hi")
+	// no need to log error, just return error
 
 	// data operation
 	//db, err := data.NewDB(ctx)
@@ -45,12 +46,16 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// return custom response to client
 	//return &StringResponse{Text: "hello"}
 
-	// return error code to client
-	//return Error(ErrorNeedJustLogin)
+	// if you need return error to client, use
+	//
+	//return shared.Error(code,"error message")
+	//
+	// client will use following code to find is response error
+	//	var response = await service.send(action);
+	//	if(response != null && response is Err){print('response is error')}
 
-	//do not return nil, it will result internal server error
-	// return shared.OK() if nothing else to return
 	// return shared.Text("hi")
 	// return shared.Number(101)
+	// return shared.OK() if nothing else to return
 	return shared.OK(), nil
 }

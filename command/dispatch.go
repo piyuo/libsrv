@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"encoding/binary"
-	goerrors "errors"
 	"fmt"
 
 	"github.com/piyuo/go-libsrv/app"
@@ -73,7 +72,7 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 func (dp *Dispatch) timeExecuteAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
 	timer := tools.NewTimer()
 	timer.Start()
-	responseID, response, err := dp.handle(ctx, action)
+	responseID, response, err := dp.runAction(ctx, action)
 	ms := int(timer.Stop())
 	slow := app.IsSlow(ms)
 	if slow > 0 {
@@ -126,25 +125,18 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 	return bytes, nil
 }
 
-// handle send action to handler and get response
+// runAction send action to handler and get response
 //
 //normally we don't return err here, because we can log err to database let programmer to fix it. just return error response and error id let user track the problem
 //
 //DeadlineExceeded is the only error return
-func (dp *Dispatch) handle(ctx context.Context, action interface{}) (uint16, interface{}, error) {
+func (dp *Dispatch) runAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
 	responseInterface, err := action.(Action).Main(ctx)
-	if goerrors.Is(err, context.DeadlineExceeded) {
+	if err != nil {
 		return 0, nil, err
 	}
-	if err != nil {
-		errID := log.Error(ctx, here, err, nil)
-		errResp := shared.Error(shared.ErrorInternal, errID)
-		return errResp.(Response).XXX_MapID(), errResp, nil
-	}
 	if responseInterface == nil {
-		errID := log.Error(ctx, here, errors.New("action main() return nil response"), nil)
-		errResp := shared.Error(shared.ErrorInternal, errID)
-		return errResp.(Response).XXX_MapID(), errResp, nil
+		return 0, nil, errors.New("failed to get response from action.Main()")
 	}
 	response := responseInterface.(Response)
 	return response.XXX_MapID(), response, nil

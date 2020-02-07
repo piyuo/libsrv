@@ -35,13 +35,13 @@ func TestActionNoRespose(t *testing.T) {
 	dispatch := &Dispatch{
 		Map: &TestMap{},
 	}
-	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
-	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
 	//no response action,will cause &shared.Err{}
 	Convey("test dispatch route", t, func() {
+		actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
 		So(err, ShouldBeNil)
-		So(err2, ShouldBeNil)
-		So(resultBytes, ShouldNotBeNil)
+		resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
+		So(err2, ShouldNotBeNil)
+		So(resultBytes, ShouldBeNil)
 	})
 }
 
@@ -74,11 +74,9 @@ func TestHandle(t *testing.T) {
 	dispatch := &Dispatch{
 		Map: &TestMap{},
 	}
-
-	//test dispatch route
-	_, respInterface, err := dispatch.handle(context.Background(), act)
-	response := respInterface.(*shared.Err)
-	Convey("test despatch handle", t, func() {
+	Convey("should run action", t, func() {
+		_, respInterface, err := dispatch.runAction(context.Background(), act)
+		response := respInterface.(*shared.Err)
 		So(err, ShouldBeNil)
 		So(response.Code, ShouldEqual, 0)
 	})

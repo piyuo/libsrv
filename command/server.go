@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	app "github.com/piyuo/go-libsrv/app"
+	shared "github.com/piyuo/go-libsrv/command/shared"
 	log "github.com/piyuo/go-libsrv/log"
 )
 
@@ -34,7 +35,6 @@ type Server struct {
 //     }
 func (s *Server) Start(port int) {
 	app.Check()
-
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
 		panic(msg)
@@ -59,39 +59,26 @@ func (s *Server) newHandler() http.Handler {
 // Serve entry for http request, filter empty and bad request and send correct one to dispatch
 //
 //cross origin access enabled
-//
 func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx, cancel, token, err := contextWithTokenAndDeadline(r)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		msg := "failed to set context deadline, use app.Check() to make sure all env are set"
-		s.writeText(w, msg)
-		log.Debug(ctx, here, msg)
+		logEnvMissing(ctx, w)
 		return
 	}
 	defer cancel()
 
 	if r.Body == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "bad request. request is empty"
-		s.writeText(w, msg)
-		log.Debug(ctx, here, msg)
+		logBadRequest(ctx, w, "bad request. request is empty")
 		return
 	}
-
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		s.writeText(w, err.Error())
-		log.Debug(ctx, here, "bad request. "+err.Error())
+		logBadRequest(ctx, w, "bad request. "+err.Error())
 		return
 	}
 	if len(bytes) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "bad request, need command in request"
-		s.writeText(w, msg)
-		log.Debug(ctx, here, msg)
+		logBadRequest(ctx, w, "bad request, need command in request")
 		return
 	}
 
@@ -100,19 +87,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	}
 	bytes, err = s.dispatch.Route(ctx, bytes)
 	if err != nil {
-		if goerrors.Is(err, context.DeadlineExceeded) {
-			//when deadline exceed, there is nothing we can do but write error to console
-			w.WriteHeader(http.StatusGatewayTimeout)
-			s.writeText(w, "execution timeout")
-			fmt.Printf("%+v", err)
-			return
-		}
-		// error here is critical, usually mean bad request or something is very wrong in code,
-		// we can't event log to database to alert programmer
-		w.WriteHeader(http.StatusInternalServerError)
-		//if anything wrong just log error and send error id to client
-		errID := log.Error(ctx, here, err, r)
-		s.writeText(w, errID)
+		handleRouteException(ctx, w, r, err)
 		return
 	}
 
@@ -120,17 +95,30 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if token != nil && token.Revive() {
 		token.ToCookie(w)
 	}
-	s.writeBinary(w, bytes)
+	writeBinary(w, bytes)
 }
 
-func (s *Server) writeText(w http.ResponseWriter, text string) {
-	w.Header().Set("Content-Type", "text/plain")
-	io.WriteString(w, text)
-}
+//handleRouteException convert error to status code, so client command service know how to deal with it
+//
+//	context,cancel, token, err := contextWithTokenAndDeadline(req)
+func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+	if goerrors.Is(err, context.DeadlineExceeded) {
+		errID := log.Error(ctx, here, err, r)
+		writeError(w, err, http.StatusGatewayTimeout, errID)
+		return
+	} else if goerrors.Is(err, shared.ErrNeedToken) {
+		writeError(w, err, http.StatusNetworkAuthenticationRequired, err.Error())
+		return
+	} else if goerrors.Is(err, shared.ErrorTokenExpired) {
+		writeError(w, err, http.StatusPreconditionFailed, err.Error())
+		return
+	} else if goerrors.Is(err, shared.ErrorNeedLoginNow) {
+		writeError(w, err, http.StatusPaymentRequired, err.Error())
+		return
+	}
 
-func (s *Server) writeBinary(w http.ResponseWriter, bytes []byte) {
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Write(bytes)
+	errID := log.Error(ctx, here, err, r)
+	writeError(w, err, http.StatusInternalServerError, errID)
 }
 
 //contextWithTokenAndDeadline add token to context if token exist in cookies and deadline
@@ -148,4 +136,47 @@ func contextWithTokenAndDeadline(r *http.Request) (context.Context, context.Canc
 	}
 	//return new context with token
 	return token.ToContext(ctx), cancel, token, nil
+}
+
+// writeBinary to response
+//
+//	writeBinary(w, bytes)
+func writeBinary(w http.ResponseWriter, bytes []byte) {
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Write(bytes)
+}
+
+// writeText to response
+//
+//	writeText(w, "code")
+func writeText(w http.ResponseWriter, text string) {
+	w.Header().Set("Content-Type", "text/plain")
+	io.WriteString(w, text)
+}
+
+// writeError to response
+//
+//	writeError(w, errors.New("error"), 500, "error")
+func writeError(w http.ResponseWriter, err error, statusCode int, text string) {
+	w.WriteHeader(statusCode)
+	writeText(w, text)
+}
+
+// logEnvMissing to response
+//
+//	logEnvMissing(context.Background(), w)
+func logEnvMissing(ctx context.Context, w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotImplemented)
+	msg := "failed to set context deadline, use app.Check() to make sure all env are set"
+	writeText(w, msg)
+	log.Debug(ctx, here, msg)
+}
+
+// logBadRequest to response
+//
+//	logBadRequest(context.Background(), w, "message")
+func logBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
+	w.WriteHeader(http.StatusBadRequest)
+	writeText(w, msg)
+	log.Debug(ctx, here, msg)
 }

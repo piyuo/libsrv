@@ -177,3 +177,23 @@ func TestServeWhenContextCanceled(t *testing.T) {
 		So(res.StatusCode, ShouldEqual, 504)
 	})
 }
+
+func TestWriteResponse(t *testing.T) {
+	Convey("should write binary", t, func() {
+		w := httptest.NewRecorder()
+		bytes := newTestAction(textLong)
+		writeBinary(w, bytes)
+		writeText(w, "code")
+		writeError(w, errors.New("error"), 500, "error")
+		logEnvMissing(context.Background(), w)
+		logBadRequest(context.Background(), w, "message")
+	})
+}
+
+func TestHandleRouteException(t *testing.T) {
+	Convey("should write binary", t, func() {
+		r, _ := http.NewRequest("POST", "/", nil)
+		w := httptest.NewRecorder()
+		handleRouteException(context.Background(), w, r, shared.ErrorTokenExpired)
+	})
+}

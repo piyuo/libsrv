@@ -2,33 +2,19 @@ package shared
 
 import (
 	"context"
+	"errors"
 
 	app "github.com/piyuo/go-libsrv/app"
 )
 
-//ErrorCode use for code in ErrorResponse
-type ErrorCode int32
+//ErrNeedToken no token mean we need user login
+var ErrNeedToken = errors.New("need login")
 
-const (
-	//ErrorUnknown is unknown error, may happen  anywhere
-	//
-	//tag is log error id
-	ErrorUnknown ErrorCode = 1
+//ErrorTokenExpired mean token expired and we need user login or refresh token
+var ErrorTokenExpired = errors.New("need token")
 
-	//ErrorInternal is internal server error ,happen in action Main()
-	//
-	//tag is log error id
-	ErrorInternal ErrorCode = 2
-
-	//ErrorNeedToken need token
-	ErrorNeedToken ErrorCode = 3
-
-	//ErrorTokenExpired access token expired
-	ErrorTokenExpired ErrorCode = 4
-
-	//ErrorNeedJustLogin in high security like place order, we need user just enter  the password
-	ErrorNeedJustLogin ErrorCode = 5
-)
+//ErrorNeedLoginNow mean we are doing payment operation and  need confirm login again
+var ErrorNeedLoginNow = errors.New("need login now")
 
 // Token return token or ErrorResponse
 //
@@ -36,13 +22,13 @@ const (
 // 	if errResp != nil {
 // 		return errResp, nil
 // 	}
-func Token(ctx context.Context) (app.Token, interface{}) {
+func Token(ctx context.Context) (app.Token, error) {
 	token, err := app.TokenFromContext(ctx)
 	if err != nil {
-		return nil, Error(ErrorNeedToken, "")
+		return nil, ErrNeedToken
 	}
 	if token.Expired() {
-		return nil, Error(ErrorTokenExpired, "")
+		return nil, ErrorTokenExpired
 	}
 	return token, nil
 }
@@ -59,8 +45,8 @@ func OK() interface{} {
 //Error return  error response with code
 //
 //	return shared.Error(shared.ErrorUnknown),nil
-func Error(code ErrorCode, tag string) interface{} {
-	return errorInt32(int32(code), tag)
+func Error(code int32, msg string) interface{} {
+	return errorInt32(code, msg)
 }
 
 func errorInt32(code int32, tag string) interface{} {
