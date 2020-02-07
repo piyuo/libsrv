@@ -112,6 +112,7 @@ func handleEnvNotReady(ctx context.Context, w http.ResponseWriter) {
 //
 //	context,cancel, token, err := contextWithTokenAndDeadline(req)
 func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+	log.Debug(ctx, here, "[solved] "+err.Error())
 	if goerrors.Is(err, context.DeadlineExceeded) {
 		errID := log.Error(ctx, here, err, r)
 		writeError(w, err, http.StatusGatewayTimeout, errID)
