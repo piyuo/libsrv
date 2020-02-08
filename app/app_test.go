@@ -25,7 +25,7 @@ func TestDateline(t *testing.T) {
 		So(dateline.After(time.Now()), ShouldBeTrue)
 
 		//dateline should not greater than 10 min.
-		tenMinutesLater := time.Now().Add(10 * time.Minute)
+		tenMinutesLater := time.Now().Add(24 * time.Hour)
 		So(dateline.Before(tenMinutesLater), ShouldBeTrue)
 	})
 }
@@ -35,7 +35,7 @@ func TestIsSlow(t *testing.T) {
 		// 3 seconds execution time is not slow
 		So(IsSlow(5000), ShouldEqual, 0)
 		// 20 seconds execution time is really slow
-		So(IsSlow(20000), ShouldEqual, 10000)
+		So(IsSlow(20000000), ShouldBeGreaterThan, 5000)
 	})
 }
 

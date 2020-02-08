@@ -117,13 +117,13 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Re
 		errID := log.Error(ctx, here, err, r)
 		writeError(w, err, http.StatusGatewayTimeout, errID)
 		return
-	} else if goerrors.Is(err, shared.ErrNeedToken) {
+	} else if goerrors.Is(err, shared.ErrAccessTokenRequired) {
 		writeError(w, err, http.StatusNetworkAuthenticationRequired, err.Error())
 		return
-	} else if goerrors.Is(err, shared.ErrorTokenExpired) {
+	} else if goerrors.Is(err, shared.ErrAccessTokenExpired) {
 		writeError(w, err, http.StatusPreconditionFailed, err.Error())
 		return
-	} else if goerrors.Is(err, shared.ErrorNeedLoginNow) {
+	} else if goerrors.Is(err, shared.ErrPaymentTokenRequired) {
 		writeError(w, err, http.StatusPaymentRequired, err.Error())
 		return
 	}

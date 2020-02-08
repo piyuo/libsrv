@@ -194,6 +194,6 @@ func TestHandleRouteException(t *testing.T) {
 	Convey("should write binary", t, func() {
 		r, _ := http.NewRequest("POST", "/", nil)
 		w := httptest.NewRecorder()
-		handleRouteException(context.Background(), w, r, shared.ErrorTokenExpired)
+		handleRouteException(context.Background(), w, r, shared.ErrAccessTokenExpired)
 	})
 }

@@ -7,14 +7,14 @@ import (
 	app "github.com/piyuo/go-libsrv/app"
 )
 
-//ErrNeedToken no token mean we need user login
-var ErrNeedToken = errors.New("need login")
+//ErrAccessTokenRequired mean service need access  token
+var ErrAccessTokenRequired = errors.New("access token required")
 
-//ErrorTokenExpired mean token expired and we need user login or refresh token
-var ErrorTokenExpired = errors.New("need token")
+//ErrAccessTokenExpired mean access token is expired, client need use refresh token to get new access token
+var ErrAccessTokenExpired = errors.New("access token expired")
 
-//ErrorNeedLoginNow mean we are doing payment operation and  need confirm login again
-var ErrorNeedLoginNow = errors.New("need login now")
+//ErrPaymentTokenRequired mean service need access toke that generate from user enter password in 5 min
+var ErrPaymentTokenRequired = errors.New("payment token required")
 
 // Token return token or ErrorResponse
 //
@@ -25,10 +25,10 @@ var ErrorNeedLoginNow = errors.New("need login now")
 func Token(ctx context.Context) (app.Token, error) {
 	token, err := app.TokenFromContext(ctx)
 	if err != nil {
-		return nil, ErrNeedToken
+		return nil, ErrAccessTokenRequired
 	}
 	if token.Expired() {
-		return nil, ErrorTokenExpired
+		return nil, ErrAccessTokenExpired
 	}
 	return token, nil
 }
