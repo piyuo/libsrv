@@ -128,7 +128,7 @@ func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, messa
 		return
 	}
 	h := head(application, identity, where)
-	fontColor := "\u001b[0m" // white
+	fontColor := "\u001b[0m" // reset
 	switch level {
 	case LevelInfo:
 		fontColor = "\u001b[36m" // Cyan
