@@ -11,11 +11,13 @@ import (
 func TestCheck(t *testing.T) {
 	Convey("should pass check with no panic", t, func() {
 		Check()
-		So(IsProduction(), ShouldBeFalse)
 	})
 	Convey("should return piyuo id'", t, func() {
 		piyuoID := PiyuoID()
 		So(piyuoID, ShouldNotBeEmpty)
+	})
+	Convey("should debug true'", t, func() {
+		So(IsDebug(), ShouldBeTrue)
 	})
 }
 
@@ -47,7 +49,6 @@ func TestBasicFunction(t *testing.T) {
 	Convey("should set env PIYUO_APP'", t, func() {
 		id := PiyuoID()
 		So(id, ShouldNotBeEmpty)
-		So(IsProduction(), ShouldEqual, false)
 	})
 	Convey("should get key path'", t, func() {
 		path, err := KeyPath("log-gcp")

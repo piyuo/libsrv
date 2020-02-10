@@ -4,14 +4,17 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	file "github.com/piyuo/go-libsrv/file"
 	"github.com/pkg/errors"
 )
 
-//IsDebug return true if running in local debug environment
-var IsDebug = true
+//production -1 mean value not set
+//0 debug
+//1 in cloud
+var production int8 = -1
 
 //JoinCurrentDir join dir with current dir
 func JoinCurrentDir(dir string) string {
@@ -73,6 +76,19 @@ func Check() {
 	if deadline == "" {
 		panic("need set env like PIYUO_DEADLINE=16")
 	}
+}
+
+//IsDebug return true in local debug mode
+func IsDebug() bool {
+	if production == -1 {
+		id := PiyuoID()
+		if strings.Contains(id, "-m-") || strings.Contains(id, "-b-") || strings.Contains(id, "-a-") || strings.Contains(id, "-t-") || strings.Contains(id, "-sys-") {
+			production = 1
+		} else {
+			production = 0
+		}
+	}
+	return production == 0
 }
 
 //PiyuoID return environment variable PIYUO_APP
