@@ -152,7 +152,7 @@ func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, messa
 	if app.IsDebug() {
 		fmt.Printf("\u001b[34m%v%v%v \u001b[35m(logged)\n", h, fontColor, message)
 	} else {
-		fmt.Printf("%v%v%v (logged)\n", h, fontColor, message)
+		fmt.Printf("%v%v (logged)\n", h, message)
 	}
 	gcpLogWrite(logger, logtime, message, application, identity, where, level)
 }
