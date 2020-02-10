@@ -90,7 +90,11 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 	message := err.Error()
 	stack := beautyStack(err)
 	fmt.Printf("\u001b[34m%v\u001b[31m%v \u001b[35m(%v)\n\u001b[33m%v\n", h, err.Error(), errID, stack)
+	timer := tools.NewTimer()
+	timer.Start()
 	ErrorLog(ctx, message, application, identity, where, stack, errID, r)
+	ms := int(timer.Stop())
+	Debug(ctx, where, fmt.Sprintf("error log took %v ms", int(ms)))
 	return errID
 }
 
@@ -236,7 +240,7 @@ func beautyStack(err error) string {
 			}
 		}
 	}
-	return sb.String()
+	return strings.Trim(sb.String(), "\n")
 }
 
 //isLineUsable check line to see if we need it for debug
@@ -244,7 +248,7 @@ func beautyStack(err error) string {
 //	line := "/convey/doc.go:75"
 //	So(isLineUsable(line), ShouldBeFalse)
 func isLineUsable(line string) bool {
-	notUsableKeywords := []string{"smartystreets", "jtolds", "log.go", "log_gcp.go"}
+	notUsableKeywords := []string{"smartystreets", "jtolds", "log.go", "log_gcp.go", "net/http", "runtime.goexit", "testing.tRunner"}
 	for _, keyword := range notUsableKeywords {
 		if strings.Contains(line, keyword) {
 			return false

@@ -142,11 +142,12 @@ func gcpErrorWrite(client *errorreporting.Client, message, application, identity
 			Error: e, User: identity,
 			Req: r,
 		})
-	} else {
-		client.Report(errorreporting.Entry{
-			Error: e, User: identity,
-			Stack: []byte(stack),
-			Req:   r,
-		})
+		return
 	}
+	client.Report(errorreporting.Entry{
+		Error: e, User: identity,
+		Stack: []byte(stack),
+		Req:   r,
+	})
+
 }
