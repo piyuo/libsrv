@@ -4,15 +4,14 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
 	file "github.com/piyuo/go-libsrv/file"
 	"github.com/pkg/errors"
 )
 
-// Credential LOG,DB,...
-var isProduction bool
+//IsDebug return true if running in local debug environment
+var IsDebug = true
 
 //JoinCurrentDir join dir with current dir
 func JoinCurrentDir(dir string) string {
@@ -55,7 +54,7 @@ func Key(name string) (string, error) {
 	return f.Text(), nil
 }
 
-//Check environment variable is set properly
+//Check only trigger in local debug environment
 //
 //	app.Check()
 func Check() {
@@ -74,17 +73,6 @@ func Check() {
 	if deadline == "" {
 		panic("need set env like PIYUO_DEADLINE=16")
 	}
-	isProduction = false
-	if strings.Contains(id, "m-") {
-		isProduction = true
-	}
-}
-
-//IsProduction return true if is production environment
-//
-//	app.IsProduction()
-func IsProduction() bool {
-	return isProduction
 }
 
 //PiyuoID return environment variable PIYUO_APP
