@@ -41,7 +41,6 @@ func TestBetterResponseName(t *testing.T) {
 		errText := &shared.Text{}
 		result = betterResponseName(errText.XXX_MapID(), errText)
 		So(result, ShouldEqual, "Text")
-
 	})
 }
 
