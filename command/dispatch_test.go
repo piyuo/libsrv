@@ -28,6 +28,23 @@ func TestEncodeDecodeCommand(t *testing.T) {
 	})
 }
 
+func TestBetterResponseName(t *testing.T) {
+	Convey("should get better response name", t, func() {
+		errOK := &shared.Err{Code: 0}
+		result := betterResponseName(errOK.XXX_MapID(), errOK)
+		So(result, ShouldEqual, "OK")
+
+		err := &shared.Err{Code: 2}
+		result = betterResponseName(err.XXX_MapID(), err)
+		So(result, ShouldEqual, "Err=2")
+
+		errText := &shared.Text{}
+		result = betterResponseName(errText.XXX_MapID(), errText)
+		So(result, ShouldEqual, "Text")
+
+	})
+}
+
 func TestActionNoRespose(t *testing.T) {
 	act := &TestActionNotRespond{
 		Text: "Hi",

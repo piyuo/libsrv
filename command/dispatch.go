@@ -49,7 +49,7 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	commandLog := fmt.Sprintf("execute %v(%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
+	commandLog := fmt.Sprintf("exec %v(%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
 	responseID, response, err := dp.timeExecuteAction(ctx, action)
 	if err != nil {
 		return nil, err
@@ -62,10 +62,24 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 		log.Debug(ctx, here, commandLog)
 		return nil, err
 	}
-	//commandLog += fmt.Sprintf("respond %v(%v bytes), %v ms\n", response.(Response).XXX_MapName(), len(returnBytes), ms)
-	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", response.(Response).XXX_MapName(), len(returnBytes))
+	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", betterResponseName(responseID, response), len(returnBytes))
 	log.Debug(ctx, here, commandLog)
 	return returnBytes, nil
+}
+
+//betterResponseName return response name but return ok when err=0
+//
+//	result := betterResponseName(errOK.XXX_MapID(), errOK)
+func betterResponseName(id uint16, response interface{}) string {
+	name := response.(Response).XXX_MapName()
+	if id == 1 {
+		err := response.(*shared.Err)
+		if err.Code == 0 {
+			return "OK"
+		}
+		return fmt.Sprintf("Err=%v", err.Code)
+	}
+	return name
 }
 
 // timeExecuteAction execute action and measure time, log warning if too slow
