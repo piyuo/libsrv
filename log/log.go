@@ -90,19 +90,13 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 	}
 	errID := tools.UUID()
 	application, identity := aiFromContext(ctx)
-	h := head(application, identity, where)
 	message := err.Error()
 	stack := beautyStack(err)
-	if app.IsDebug() {
-		fmt.Printf("\u001b[34m%v\u001b[31m%v \u001b[35m(%v)\n\u001b[33m%v\n", h, err.Error(), errID, stack)
-	} else {
-		fmt.Printf("%v%v (%v)\n%v\n", h, err.Error(), errID, stack)
-	}
 	timer := tools.NewTimer()
 	timer.Start()
 	ErrorLog(ctx, message, application, identity, where, stack, errID, r)
 	ms := int(timer.Stop())
-	Debug(ctx, where, fmt.Sprintf("error log took %v ms", int(ms)))
+	fmt.Printf("error log took %v ms\n", int(ms))
 	return errID
 }
 
@@ -197,6 +191,12 @@ func ErrorOpen(ctx context.Context) (*errorreporting.Client, func(), error) {
 func ErrorWrite(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
 	if ctx.Err() != nil {
 		return
+	}
+	h := head(application, identity, where)
+	if app.IsDebug() {
+		fmt.Printf("\u001b[34m%v\u001b[31m%v \u001b[35m(%v)\n\u001b[33m%v\n", h, message, errID, stack)
+	} else {
+		fmt.Printf("%v%v (%v)\n%v\n", h, message, errID, stack)
 	}
 	gcpErrorWrite(client, message, application, identity, where, stack, errID, r)
 }
