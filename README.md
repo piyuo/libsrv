@@ -24,22 +24,6 @@ write test file and using go extension
 run test | debug test
 ```
 
-or
-
-using launch.json configuration
-
-```json
-{
-  "name": "libsrv debug",
-  "type": "go",
-  "request": "launch",
-  "mode": "auto",
-  "program": "${workspaceFolder}/src/libsrv-debug"
-}
-```
-
-update go.mod, set go-libsrv to latest
-
 set break point on main.go, trace into server.Start() to get libsrv server.go
 
 use curl to debug
