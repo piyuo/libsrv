@@ -36,16 +36,15 @@ func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 //
 //	ctx := context.Background()
 //	errClient, _ := gcpCreateErrorClient(ctx)
-func gcpCreateErrorClient(ctx context.Context) (*errorreporting.Client, error) {
+func gcpCreateErrorClient(ctx context.Context, application string) (*errorreporting.Client, error) {
 	cred, err := gcp.LogCredential(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
 	}
-	serviceName := app.PiyuoID()
 	client, err := errorreporting.NewClient(ctx,
 		cred.ProjectID,
 		errorreporting.Config{
-			ServiceName: serviceName,
+			ServiceName: application,
 			OnError: func(err error) {
 				fmt.Printf("failed to config error reporting %v\n", err)
 			},
@@ -101,7 +100,7 @@ func gcpLogWrite(logger *logging.Logger, logtime time.Time, message, application
 		},
 		Severity: severity,
 		Labels: map[string]string{
-			"application": app.PiyuoID(),
+			"application": application,
 			"where":       where,
 		},
 	}
@@ -114,8 +113,8 @@ func gcpLogWrite(logger *logging.Logger, logtime time.Time, message, application
 //gcpErrorOpen log error and stack to google cloud
 //
 //	client, close, err := gcpErrorOpen(ctx)
-func gcpErrorOpen(ctx context.Context) (*errorreporting.Client, func(), error) {
-	client, err := gcpCreateErrorClient(ctx)
+func gcpErrorOpen(ctx context.Context, application string) (*errorreporting.Client, func(), error) {
+	client, err := gcpCreateErrorClient(ctx, application)
 	if err != nil {
 		fmt.Printf("!!! %v\n", err)
 		return nil, nil, err

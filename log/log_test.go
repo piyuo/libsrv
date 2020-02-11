@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/piyuo/go-libsrv/app"
+
 	tools "github.com/piyuo/go-libsrv/tools"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
@@ -131,7 +133,7 @@ func TestErrorOpenWrite(t *testing.T) {
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := tools.UUID()
-		client, close, err := ErrorOpen(ctx)
+		client, close, err := ErrorOpen(ctx, app.PiyuoID())
 		So(err, ShouldBeNil)
 		defer close()
 		ErrorWrite(ctx, client, message, application, identity, here, stack, id, nil)
