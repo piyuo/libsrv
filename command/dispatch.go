@@ -49,7 +49,7 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	commandLog := fmt.Sprintf("exec %v(%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
+	commandLog := fmt.Sprintf("exec %v (%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
 	responseID, response, err := dp.timeExecuteAction(ctx, action)
 	if err != nil {
 		return nil, err
@@ -58,11 +58,11 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	returnBytes, err = dp.encodeCommand(responseID, response)
 	if err != nil {
 		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
-		commandLog += fmt.Sprintf("failed with %v \n", err.Error())
+		commandLog += fmt.Sprintf("failed with %v\n", err.Error())
 		log.Debug(ctx, here, commandLog)
 		return nil, err
 	}
-	commandLog += fmt.Sprintf("respond %v(%v bytes)\n", betterResponseName(responseID, response), len(returnBytes))
+	commandLog += fmt.Sprintf("return %v (%v bytes)\n", betterResponseName(responseID, response), len(returnBytes))
 	log.Debug(ctx, here, commandLog)
 	return returnBytes, nil
 }
