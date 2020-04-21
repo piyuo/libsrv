@@ -7,7 +7,7 @@
 		"./"
 	],
 	"dartPath": [
-		"../../../../../fl/libcli/lib/command/commands/shared"
+		"../../../../../fl/libcli/lib/commands/shared"
 	],
 	"protos": {
 		"err": 1,
