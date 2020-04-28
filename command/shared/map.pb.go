@@ -12,6 +12,7 @@ func (r *MapXXX) NewObjectByID(id uint16) (interface{}) {
 	case 2: return new(Num)
 	case 4: return new(PingAction)
 	case 5: return new(Text)
+	case 6: return new(Bool)
 	}
 	return nil
 }

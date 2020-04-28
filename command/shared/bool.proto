@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+/**
+*  Number Response
+*
+*/
+message Bool {
+    bool value= 1;
+}

@@ -1,17 +1,15 @@
 {
-	"name": "shared",
-	"index": 3,
-	"debugPort": 0,
-	"shared": true,
-	"goPath": [
-		"../shared/commands"
-	],
-	"dartPath": [
-		"../../../../../fl/libcli/lib/command/commands/shared"
-	],
-	"protos": {
-		"err": 1,
-		"num": 2,
-		"text": 3
-	}
+  "name": "shared",
+  "index": 6,
+  "debugPort": 0,
+  "shared": true,
+  "goPath": ["./"],
+  "dartPath": ["../../../../../fl/libcli/lib/commands/shared"],
+  "protos": {
+    "err": 1,
+    "num": 2,
+    "ping_action": 4,
+    "text": 5,
+    "bool": 6
+  }
 }
