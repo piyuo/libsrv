@@ -72,12 +72,16 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 //	result := betterResponseName(errOK.XXX_MapID(), errOK)
 func betterResponseName(id uint16, response interface{}) string {
 	name := response.(Response).XXX_MapName()
-	if id == 1 {
-		err := response.(*shared.Err)
-		if err.Code == 0 {
+	if id == 3 { // Text
+		text := response.(*shared.Text)
+		textLen := len(text.Value)
+		if textLen == 0 {
 			return "OK"
 		}
-		return fmt.Sprintf("Err=%v", err.Code)
+		if textLen < 16 {
+			return text.Value
+		}
+		return string(text.Value[0:12]) + "..."
 	}
 	return name
 }

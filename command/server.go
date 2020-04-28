@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	app "github.com/piyuo/go-libsrv/app"
-	shared "github.com/piyuo/go-libsrv/command/shared"
 	log "github.com/piyuo/go-libsrv/log"
 )
 
@@ -117,13 +116,13 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Re
 		errID := log.Error(ctx, here, err, r)
 		writeError(w, err, http.StatusGatewayTimeout, errID)
 		return
-	} else if goerrors.Is(err, shared.ErrAccessTokenRequired) {
+	} else if goerrors.Is(err, ErrAccessTokenRequired) {
 		writeError(w, err, http.StatusNetworkAuthenticationRequired, err.Error())
 		return
-	} else if goerrors.Is(err, shared.ErrAccessTokenExpired) {
+	} else if goerrors.Is(err, ErrAccessTokenExpired) {
 		writeError(w, err, http.StatusPreconditionFailed, err.Error())
 		return
-	} else if goerrors.Is(err, shared.ErrPaymentTokenRequired) {
+	} else if goerrors.Is(err, ErrPaymentTokenRequired) {
 		writeError(w, err, http.StatusPaymentRequired, err.Error())
 		return
 	}

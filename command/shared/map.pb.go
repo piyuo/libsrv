@@ -8,10 +8,9 @@ type MapXXX struct {
 // NewObjectByID return new object from id
 func (r *MapXXX) NewObjectByID(id uint16) (interface{}) {
 	switch id {
-	case 1: return new(Err)
+	case 1: return new(Bool)
 	case 2: return new(Num)
-	case 5: return new(Text)
-	case 6: return new(Bool)
+	case 3: return new(Text)
 	}
 	return nil
 }

@@ -1,8 +1,10 @@
-package shared
+package command
 
 import (
 	"context"
 	"errors"
+
+	shared "github.com/piyuo/go-libsrv/command/shared"
 
 	app "github.com/piyuo/go-libsrv/app"
 )
@@ -51,7 +53,7 @@ func Error(errCode string) interface{} {
 //
 //	return shared.Text("hi"),nil
 func String(text string) interface{} {
-	return &Text{
+	return &shared.Text{
 		Value: text,
 	}
 }
@@ -60,7 +62,7 @@ func String(text string) interface{} {
 //
 //	return shared.Number(101),nil
 func Number(num int64) interface{} {
-	return &Num{
+	return &shared.Num{
 		Value: num,
 	}
 }
