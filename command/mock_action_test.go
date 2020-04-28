@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 
-	shared "github.com/piyuo/go-libsrv/command/shared"
 	log "github.com/piyuo/go-libsrv/log"
 	//data "github.com/piyuo/go-libsrv/data"
 )
@@ -57,5 +56,5 @@ func (a *TestAction) Main(ctx context.Context) (interface{}, error) {
 	// return shared.Text("hi")
 	// return shared.Number(101)
 	// return shared.OK() if nothing else to return
-	return shared.OK(), nil
+	return OK(), nil
 }

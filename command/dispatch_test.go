@@ -30,13 +30,13 @@ func TestEncodeDecodeCommand(t *testing.T) {
 
 func TestBetterResponseName(t *testing.T) {
 	Convey("should get better response name", t, func() {
-		errOK := &shared.Err{Code: 0}
+		errOK := OK().(*shared.Err)
 		result := betterResponseName(errOK.XXX_MapID(), errOK)
 		So(result, ShouldEqual, "OK")
 
-		err := &shared.Err{Code: 2}
+		err := Error("failed").(*shared.Err)
 		result = betterResponseName(err.XXX_MapID(), err)
-		So(result, ShouldEqual, "Err=2")
+		So(result, ShouldEqual, "failed")
 
 		errText := &shared.Text{}
 		result = betterResponseName(errText.XXX_MapID(), errText)
@@ -76,7 +76,7 @@ func TestRoute(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(err2, ShouldBeNil)
 		So(err3, ShouldBeNil)
-		So(actualResponse.Code, ShouldEqual, 0)
+		So(actualResponse.Code, ShouldEqual, "")
 	})
 }
 
@@ -94,7 +94,7 @@ func TestHandle(t *testing.T) {
 		_, respInterface, err := dispatch.runAction(context.Background(), act)
 		response := respInterface.(*shared.Err)
 		So(err, ShouldBeNil)
-		So(response.Code, ShouldEqual, 0)
+		So(response.Code, ShouldEqual, "")
 	})
 }
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	shared "github.com/piyuo/go-libsrv/command/shared"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -16,19 +18,18 @@ func TestShared(t *testing.T) {
 	})
 
 	Convey("should create text response'", t, func() {
-		text := String("hi").(*Text)
+		text := String("hi").(*shared.Text)
 		So(text.Value, ShouldEqual, "hi")
 	})
 
 	Convey("should create number response'", t, func() {
-		num := Number(201).(*Num)
+		num := Number(201).(*shared.Num)
 		So(num.Value, ShouldEqual, 201)
 	})
 
 	Convey("should create error response'", t, func() {
-		err := Error(1, "hi").(*Err)
-		So(err.Code, ShouldEqual, 1)
-		So(err.Msg, ShouldEqual, "hi")
+		err := Error("errCode").(*shared.Err)
+		So(err.Code, ShouldEqual, "errCode")
 	})
 
 }

@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 
-	shared "github.com/piyuo/go-libsrv/command/shared"
-
 	app "github.com/piyuo/go-libsrv/app"
+	shared "github.com/piyuo/go-libsrv/command/shared"
 )
 
 //ErrAccessTokenRequired mean service need access  token
@@ -39,14 +38,18 @@ func Token(ctx context.Context) (app.Token, error) {
 //
 //	return shared.OK(),nil
 func OK() interface{} {
-	return String("")
+	return &shared.Err{
+		Code: "",
+	}
 }
 
 //Error return  error response with code
 //
 //	return shared.Error(shared.ErrorUnknown),nil
 func Error(errCode string) interface{} {
-	return String(errCode)
+	return &shared.Err{
+		Code: errCode,
+	}
 }
 
 //String return string response

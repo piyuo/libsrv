@@ -1,6 +1,6 @@
 {
 	"name": "shared",
-	"index": 3,
+	"index": 4,
 	"debugPort": 0,
 	"shared": true,
 	"goPath": [
@@ -10,6 +10,7 @@
 		"../../../../../fl/libcli/lib/commands/shared"
 	],
 	"protos": {
+		"err": 0,
 		"bool": 1,
 		"num": 2,
 		"text": 3

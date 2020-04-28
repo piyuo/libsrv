@@ -124,7 +124,7 @@ func okResponse() []byte {
 	dispatch := &Dispatch{
 		Map: &shared.MapXXX{},
 	}
-	ok := shared.OK().(*shared.Err)
+	ok := OK().(*shared.Err)
 	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
 	return bytes
 }
@@ -194,6 +194,6 @@ func TestHandleRouteException(t *testing.T) {
 	Convey("should write binary", t, func() {
 		r, _ := http.NewRequest("POST", "/", nil)
 		w := httptest.NewRecorder()
-		handleRouteException(context.Background(), w, r, shared.ErrAccessTokenExpired)
+		handleRouteException(context.Background(), w, r, ErrAccessTokenExpired)
 	})
 }
