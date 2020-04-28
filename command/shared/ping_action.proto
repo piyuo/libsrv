@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-/**
-* say hi
-*
-* @returns StringResponse
-*/
-message PingAction {
-}

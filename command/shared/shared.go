@@ -33,27 +33,18 @@ func Token(ctx context.Context) (app.Token, error) {
 	return token, nil
 }
 
-//OK return code=0 no error response
+//OK return empty string
 //
 //	return shared.OK(),nil
 func OK() interface{} {
-	return &Err{
-		Code: 0,
-	}
+	return String("")
 }
 
 //Error return  error response with code
 //
 //	return shared.Error(shared.ErrorUnknown),nil
-func Error(code int32, msg string) interface{} {
-	return errorInt32(code, msg)
-}
-
-func errorInt32(code int32, tag string) interface{} {
-	return &Err{
-		Code: code,
-		Msg:  tag,
-	}
+func Error(errCode string) interface{} {
+	return String(errCode)
 }
 
 //String return string response

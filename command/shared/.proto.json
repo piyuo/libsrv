@@ -12,7 +12,6 @@
 	"protos": {
 		"err": 1,
 		"num": 2,
-		"ping_action": 4,
 		"text": 5,
 		"bool": 6
 	}
