@@ -8,8 +8,8 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
-	app "github.com/piyuo/go-libsrv/app"
-	gcp "github.com/piyuo/go-libsrv/secure/gcp"
+	app "github.com/piyuo/libsrv/app"
+	gcp "github.com/piyuo/libsrv/secure/gcp"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"

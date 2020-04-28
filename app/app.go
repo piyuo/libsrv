@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	file "github.com/piyuo/go-libsrv/file"
+	file "github.com/piyuo/libsrv/file"
 	"github.com/pkg/errors"
 )
 

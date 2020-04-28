@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"cloud.google.com/go/firestore"
-	log "github.com/piyuo/go-libsrv/log"
-	gcp "github.com/piyuo/go-libsrv/secure/gcp"
+	log "github.com/piyuo/libsrv/log"
+	gcp "github.com/piyuo/libsrv/secure/gcp"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 )

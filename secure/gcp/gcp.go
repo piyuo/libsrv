@@ -3,7 +3,7 @@ package gcp
 import (
 	"context"
 
-	app "github.com/piyuo/go-libsrv/app"
+	app "github.com/piyuo/libsrv/app"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 )

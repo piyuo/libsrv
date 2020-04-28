@@ -3,8 +3,8 @@ package command
 import (
 	"context"
 
-	log "github.com/piyuo/go-libsrv/log"
-	//data "github.com/piyuo/go-libsrv/data"
+	log "github.com/piyuo/libsrv/log"
+	//data "github.com/piyuo/libsrv/data"
 )
 
 // Main entry for client command execution, need return response to client, client will get response use following code

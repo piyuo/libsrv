@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	app "github.com/piyuo/go-libsrv/app"
-	tools "github.com/piyuo/go-libsrv/tools"
+	app "github.com/piyuo/libsrv/app"
+	tools "github.com/piyuo/libsrv/tools"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

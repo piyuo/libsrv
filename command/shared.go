@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	app "github.com/piyuo/go-libsrv/app"
-	shared "github.com/piyuo/go-libsrv/command/shared"
+	app "github.com/piyuo/libsrv/app"
+	shared "github.com/piyuo/libsrv/command/shared"
 )
 
 //ErrAccessTokenRequired mean service need access  token

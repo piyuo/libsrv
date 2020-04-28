@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/go-libsrv/app"
+	"github.com/piyuo/libsrv/app"
 
-	tools "github.com/piyuo/go-libsrv/tools"
+	tools "github.com/piyuo/libsrv/tools"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )

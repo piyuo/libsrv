@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	app "github.com/piyuo/go-libsrv/app"
-	log "github.com/piyuo/go-libsrv/log"
+	app "github.com/piyuo/libsrv/app"
+	log "github.com/piyuo/libsrv/log"
 )
 
 const here = "command"

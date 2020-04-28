@@ -9,8 +9,8 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
-	app "github.com/piyuo/go-libsrv/app"
-	tools "github.com/piyuo/go-libsrv/tools"
+	app "github.com/piyuo/libsrv/app"
+	tools "github.com/piyuo/libsrv/tools"
 )
 
 //Logger interface

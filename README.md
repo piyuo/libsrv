@@ -1,4 +1,4 @@
-# go-libsrv
+# libsrv
 
 Library for all GO server project
 
@@ -13,7 +13,7 @@ PIYUO_APP="piyuo-dev"
 clone source code to local.
 
 ```bash
-git clone git@github.com:piyuo/go-lib-server.git
+git clone git@github.com:piyuo/libsrv.git
 ```
 
 ## Dev

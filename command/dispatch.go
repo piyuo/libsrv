@@ -5,12 +5,12 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/piyuo/go-libsrv/app"
+	"github.com/piyuo/libsrv/app"
 
 	proto "github.com/golang/protobuf/proto"
-	shared "github.com/piyuo/go-libsrv/command/shared"
-	log "github.com/piyuo/go-libsrv/log"
-	tools "github.com/piyuo/go-libsrv/tools"
+	shared "github.com/piyuo/libsrv/command/shared"
+	log "github.com/piyuo/libsrv/log"
+	tools "github.com/piyuo/libsrv/tools"
 
 	"github.com/pkg/errors"
 )
