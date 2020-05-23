@@ -17,7 +17,7 @@ func LogCredential(ctx context.Context) (*google.Credentials, error) {
 		return nil, ctx.Err()
 	}
 
-	key := "log-gcp"
+	key := "gcloud"
 	scope := "https://www.googleapis.com/auth/cloud-platform"
 	if logCredGlobal == nil {
 		cred, err := createCredential(ctx, key, scope)
@@ -37,7 +37,7 @@ func DataCredential(ctx context.Context) (*google.Credentials, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	key := "data-gcp"
+	key := "gcloud"
 	scope := "https://www.googleapis.com/auth/datastore"
 	if dataCredGlobal == nil {
 		cred, err := createCredential(ctx, key, scope)
@@ -51,7 +51,7 @@ func DataCredential(ctx context.Context) (*google.Credentials, error) {
 
 //createCredential base on key and scope
 //
-//	cred, err := createCredential(context.Background(), "log-gcp", "https://www.googleapis.com/auth/cloud-platform")
+//	cred, err := createCredential(context.Background(), "gcloud", "https://www.googleapis.com/auth/cloud-platform")
 func createCredential(ctx context.Context, key, scope string) (*google.Credentials, error) {
 
 	text, err := app.Key(key)

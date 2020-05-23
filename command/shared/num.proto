@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-/**
-*  Number Response
-*
-*/
-message Num {
-    int64 value= 1;
-}

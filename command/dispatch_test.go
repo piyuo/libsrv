@@ -6,22 +6,23 @@ import (
 	"strconv"
 	"testing"
 
+	mock "github.com/piyuo/libsrv/command/mock"
 	shared "github.com/piyuo/libsrv/command/shared"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestEncodeDecodeCommand(t *testing.T) {
-	act := &TestAction{
+	act := &mock.RespondAction{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
 	Convey("test decode command is right", t, func() {
 		actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
 		actID, iAct2, err2 := dispatch.decodeCommand(actBytes)
 		So(err2, ShouldBeNil)
-		act2 := iAct2.(*TestAction)
+		act2 := iAct2.(*mock.RespondAction)
 		So(err, ShouldBeNil)
 		So(actID, ShouldEqual, act.XXX_MapID())
 		So(act2.Text, ShouldEqual, act.Text)
@@ -45,11 +46,11 @@ func TestBetterResponseName(t *testing.T) {
 }
 
 func TestActionNoRespose(t *testing.T) {
-	act := &TestActionNotRespond{
+	act := &mock.NoRespondAction{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
 	//no response action,will cause &shared.Err{}
 	Convey("test dispatch route", t, func() {
@@ -62,11 +63,11 @@ func TestActionNoRespose(t *testing.T) {
 }
 
 func TestRoute(t *testing.T) {
-	act := &TestAction{
+	act := &mock.RespondAction{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
 	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
@@ -83,12 +84,12 @@ func TestRoute(t *testing.T) {
 func TestHandle(t *testing.T) {
 
 	//create sample data
-	act := &TestAction{
+	act := &mock.RespondAction{
 		Text: "Hi",
 	}
 	//create dispatch and register
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
 	Convey("should run action", t, func() {
 		_, respInterface, err := dispatch.runAction(context.Background(), act)
@@ -101,9 +102,9 @@ func TestHandle(t *testing.T) {
 func TestTimeExecuteAction(t *testing.T) {
 	Convey("should warn slow action", t, func() {
 		os.Setenv("PIYUO_SLOW", "1")
-		act := &SlowAction{}
+		act := &mock.SlowAction{}
 		dispatch := &Dispatch{
-			Map: &TestMap{},
+			Map: &mock.MapXXX{},
 		}
 		_, respInterface, err := dispatch.timeExecuteAction(context.Background(), act)
 		So(err, ShouldBeNil)
@@ -172,11 +173,11 @@ func BenchmarkCopyPreAllocate(b *testing.B) {
 }
 
 func BenchmarkDispatch(b *testing.B) {
-	act := &TestAction{
+	act := &mock.RespondAction{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
 
 	b.ResetTimer()

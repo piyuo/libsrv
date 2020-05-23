@@ -51,12 +51,12 @@ func TestBasicFunction(t *testing.T) {
 		So(id, ShouldNotBeEmpty)
 	})
 	Convey("should get key path'", t, func() {
-		path, err := KeyPath("log-gcp")
+		path, err := KeyPath("gcloud")
 		So(err, ShouldBeNil)
-		So(strings.HasSuffix(path, "/log-gcp.key"), ShouldBeTrue)
+		So(strings.HasSuffix(path, "/gcloud.key"), ShouldBeTrue)
 	})
 	Convey("should get key content'", t, func() {
-		text, err := Key("log-gcp")
+		text, err := Key("gcloud")
 		So(err, ShouldBeNil)
 		So(text, ShouldNotBeEmpty)
 	})

@@ -15,7 +15,7 @@ import (
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"
 )
 
-//gcpCreateLogClient return stackdriver log client using credential from log-gcp.key
+//gcpCreateLogClient return stackdriver log client using credential from gcloud.key
 //
 //	ctx := context.Background()
 //	logClient, _ := gcpCreateLogClient(ctx)
@@ -32,7 +32,7 @@ func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 	return client, nil
 }
 
-//gcpCreateErrorClient return stackdriver error client using credential from log-gcp.key
+//gcpCreateErrorClient return stackdriver error client using credential from gcloud.key
 //
 //	ctx := context.Background()
 //	errClient, _ := gcpCreateErrorClient(ctx)

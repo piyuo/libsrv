@@ -8,9 +8,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestFIle(t *testing.T) {
+func TestFile(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	keyPath := path.Join(currentDir, "../../keys/log-gcp.key")
+	keyPath := path.Join(currentDir, "../../keys/gcloud.key")
 	f, _ := Open(keyPath)
 	defer f.Close()
 
@@ -22,7 +22,7 @@ func TestFIle(t *testing.T) {
 	Convey("should have json'", t, func() {
 		json, err := f.JSON()
 		So(err, ShouldBeNil)
-		So(json["project_id"], ShouldEqual, "master-255220")
+		So(json["project_id"], ShouldEqual, "piyuo-beta")
 	})
 
 	Convey("should have bytes'", t, func() {

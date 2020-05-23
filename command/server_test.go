@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	mock "github.com/piyuo/libsrv/command/mock"
 	shared "github.com/piyuo/libsrv/command/shared"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -104,16 +105,16 @@ func TestServe404(t *testing.T) {
 
 func newTestServerHandler() http.Handler {
 	server := &Server{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
 	return server.newHandler()
 }
 
 func newTestAction(text string) []byte {
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
-	act := &TestAction{
+	act := &mock.RespondAction{
 		Text: text,
 	}
 	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
@@ -159,9 +160,9 @@ func TestContextCanceled(t *testing.T) {
 
 func newDeadlineAction() []byte {
 	dispatch := &Dispatch{
-		Map: &TestMap{},
+		Map: &mock.MapXXX{},
 	}
-	act := &DeadlineAction{}
+	act := &mock.DeadlineAction{}
 	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
 	return actBytes
 }

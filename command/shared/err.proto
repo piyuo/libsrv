@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-/**
-*  String Response
-*
-*/
-message Err {
-    string code= 1;
-}
