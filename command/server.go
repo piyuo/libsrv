@@ -68,16 +68,16 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	if r.Body == nil {
-		logBadRequest(ctx, w, "bad request. request is empty")
+		logBadRequest(ctx, w, "bad request, request empty")
 		return
 	}
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		logBadRequest(ctx, w, "bad request. "+err.Error())
+		logBadRequest(ctx, w, "bad request, "+err.Error())
 		return
 	}
 	if len(bytes) == 0 {
-		logBadRequest(ctx, w, "bad request, need command in request")
+		logBadRequest(ctx, w, "bad request, need command")
 		return
 	}
 
