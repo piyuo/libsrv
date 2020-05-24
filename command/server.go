@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 
 	app "github.com/piyuo/libsrv/app"
 	log "github.com/piyuo/libsrv/log"
@@ -24,20 +26,30 @@ type Server struct {
 	Map      IMap
 }
 
-// Start http server to listen request and serve content
+// Start http server to listen request and serve content, defult port is 8080, you can change use export PORT="8080"
 //
 //      var server = &command.Server{
 //      Map: &commands.MapXXX{},
 //     }
 //     func main() {
-//      server.Start(80)
+//      server.Start()
 //     }
-func (s *Server) Start(port int) {
+func (s *Server) Start() {
 	app.Check()
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
 		panic(msg)
 	}
+	portText := os.Getenv("PORT")
+	if portText == "" {
+		portText = "8080"
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		fmt.Printf("please set http listen port like export PORT=\"8080\"")
+		return
+	}
+	fmt.Printf("start listening from http://localhost:%d\n", port)
 	http.Handle("/", s.newHandler())
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
