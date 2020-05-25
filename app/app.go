@@ -61,20 +61,25 @@ func Key(name string) (string, error) {
 //
 //	app.Check()
 func Check() {
-	//id format like m-tw-api
-	id := os.Getenv("PIYUO_APP")
-	if id == "" {
-		panic("need set env like PIYUO_APP=piyuo-t-us")
+	//app format like piyuo-beta-sample-jp
+	app := os.Getenv("PIYUO_APP")
+	if app == "" {
+		panic("need env PIYUO_APP like piyuo-beta-sample-jp")
+	}
+	//region format like piyuo-beta-sample-jp
+	region := os.Getenv("PIYUO_REGION")
+	if region == "" {
+		panic("need env PIYUO_APP like us")
 	}
 	//slow warning, usually 12 seconds
 	slow := os.Getenv("PIYUO_SLOW")
 	if slow == "" {
-		panic("need set env like PIYUO_SLOW=10")
+		panic("need env PIYUO_SLOW like 12000")
 	}
-	//time to meet context deadline, this will stop all service, usually 16 seconds
+	//time to meet context deadline, this will stop all service, usually 20 seconds
 	deadline := os.Getenv("PIYUO_DEADLINE")
 	if deadline == "" {
-		panic("need set env like PIYUO_DEADLINE=16")
+		panic("need env PIYUO_DEADLINE like 20000")
 	}
 }
 
