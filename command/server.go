@@ -89,7 +89,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(bytes) == 0 {
-		logBadRequest(ctx, w, "bad request, need command")
+		logBadRequest(ctx, w, "bad request")
 		return
 	}
 
