@@ -27,7 +27,7 @@ func JoinCurrentDir(dir string) string {
 
 //KeyPath get key path from name
 //
-//	keyPath, err := EnvKeyPath("log")
+//	keyPath, err := KeyPath("log")
 func KeyPath(name string) (string, error) {
 	keyPath := ""
 	keyDir := "keys/"
@@ -41,9 +41,16 @@ func KeyPath(name string) (string, error) {
 	return "", errors.New("failed to find " + name + ".key in keys/ or ../keys/")
 }
 
+//RegionKeyPath get region key path from name
+//
+//	keyPath, err := RegionKeyPath("log")
+func RegionKeyPath(name string) (string, error) {
+	return KeyPath("/regions/" + name)
+}
+
 //Key get key file content from name
 //
-//	keyPath, err := EnvKeyPath("log")
+//	key, err := Key("log")
 func Key(name string) (string, error) {
 	keyPath, err := KeyPath(name)
 	if err != nil {
@@ -55,6 +62,13 @@ func Key(name string) (string, error) {
 	}
 	defer f.Close()
 	return f.Text(), nil
+}
+
+//RegionKey get region key file content from name
+//
+//	regionKey, err := RegionKey("log")
+func RegionKey(name string) (string, error) {
+	return Key("/regions/" + name)
 }
 
 //Check only trigger in local debug environment

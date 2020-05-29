@@ -55,8 +55,18 @@ func TestBasicFunction(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(strings.HasSuffix(path, "/gcloud.key"), ShouldBeTrue)
 	})
+	Convey("should get region key path'", t, func() {
+		path, err := RegionKeyPath("us")
+		So(err, ShouldBeNil)
+		So(strings.HasSuffix(path, "/regions/us.key"), ShouldBeTrue)
+	})
 	Convey("should get key content'", t, func() {
 		text, err := Key("gcloud")
+		So(err, ShouldBeNil)
+		So(text, ShouldNotBeEmpty)
+	})
+	Convey("should get region key content'", t, func() {
+		text, err := RegionKey("us")
 		So(err, ShouldBeNil)
 		So(text, ShouldNotBeEmpty)
 	})
