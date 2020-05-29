@@ -51,10 +51,18 @@ func BenchmarkSmallAction(b *testing.B) {
 	}
 }
 
-/* archive no longer support
+func newBigDataAction() []byte {
+	dispatch := &Dispatch{
+		Map: &mock.MapXXX{},
+	}
+	act := &mock.BigDataAction{}
+	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
+	return actBytes
+}
+
 func TestArchive(t *testing.T) {
 	handler := newTestServerHandler()
-	actBytes := newTestAction(textLong)
+	actBytes := newBigDataAction()
 	actBytesLen := len(actBytes)
 	req1, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
 	req1.Header.Set("Accept-Encoding", "gzip")
@@ -71,7 +79,33 @@ func TestArchive(t *testing.T) {
 		So(res1.Header.Get("Content-Type"), ShouldEqual, "application/octet-stream")
 	})
 }
-*/
+
+func customHTTPHandler(w http.ResponseWriter, r *http.Request) (bool, error) {
+	w.WriteHeader(http.StatusOK)
+	writeText(w, "hello")
+	return true, nil
+}
+
+func TestHTTPHandler(t *testing.T) {
+	server := &Server{
+		Map:         &mock.MapXXX{},
+		HTTPHandler: customHTTPHandler,
+	}
+	handler := server.newHandler()
+
+	req1, _ := http.NewRequest("GET", "/", nil)
+	req1.Header.Set("Accept-Encoding", "gzip")
+	resp1 := httptest.NewRecorder()
+	handler.ServeHTTP(resp1, req1)
+	res1 := resp1.Result()
+	returnBytes := resp1.Body.Bytes()
+	bodyString := string(returnBytes)
+	Convey("should use custom http handler", t, func() {
+		So(res1.StatusCode, ShouldEqual, 200)
+		So(bodyString, ShouldEqual, "hello")
+	})
+}
+
 func TestServe(t *testing.T) {
 	handler := newTestServerHandler()
 	actBytes := newTestAction("Hi")

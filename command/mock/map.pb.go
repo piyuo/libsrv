@@ -12,6 +12,7 @@ func (r *MapXXX) NewObjectByID(id uint16) (interface{}) {
 	case 1002: return new(NoRespondAction)
 	case 1003: return new(RespondAction)
 	case 1004: return new(SlowAction)
+	case 1005: return new(BigDataAction)
 	}
 	return nil
 }

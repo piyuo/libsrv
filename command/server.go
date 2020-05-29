@@ -16,14 +16,18 @@ import (
 
 const here = "command"
 
+//CustomHTTPHandler let you handle http request directly, return true if request is handled, return false let command pattern do the job
+type CustomHTTPHandler func(w http.ResponseWriter, r *http.Request) (bool, error)
+
 // Server handle http request and call dispatch
 //
 //      server := &Server{
 //		    Map: &TestMap{},
 //	    }
 type Server struct {
-	dispatch *Dispatch
-	Map      IMap
+	dispatch    *Dispatch
+	Map         IMap
+	HTTPHandler CustomHTTPHandler
 }
 
 // Start http server to listen request and serve content, defult port is 8080, you can change use export PORT="8080"
@@ -78,6 +82,17 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer cancel()
+
+	if s.HTTPHandler != nil {
+		result, err := s.HTTPHandler(w, r)
+		if err != nil {
+			handleRouteException(ctx, w, r, err)
+			return
+		}
+		if result == true {
+			return
+		}
+	}
 
 	if r.Body == nil {
 		logBadRequest(ctx, w, "bad request, request empty")
