@@ -62,8 +62,8 @@ func (s *Server) Start() {
 //  return server.newHandler()
 func (s *Server) newHandler() http.Handler {
 	withoutArchive := http.HandlerFunc(s.Serve)
-	// support local server gzip compress
-	// withArchive := ArchiveHandler(withoutArchive)
+	// support gzip compress
+	//withArchive := ArchiveHandler(withoutArchive)
 	return withoutArchive
 }
 

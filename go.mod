@@ -12,6 +12,7 @@ require (
 	github.com/sendgrid/rest v2.4.1+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/stretchr/testify v1.4.0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools/gopls v0.4.1 // indirect
 	google.golang.org/api v0.25.0
