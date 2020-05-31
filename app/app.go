@@ -4,7 +4,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
 	file "github.com/piyuo/libsrv/file"
@@ -97,7 +96,8 @@ func Check() {
 	}
 }
 
-//IsDebug return true in local debug mode
+//stop support IsDebug
+/*
 func IsDebug() bool {
 	if production == -1 {
 		id := PiyuoID()
@@ -109,6 +109,7 @@ func IsDebug() bool {
 	}
 	return production == 0
 }
+*/
 
 //PiyuoID return environment variable PIYUO_APP
 //

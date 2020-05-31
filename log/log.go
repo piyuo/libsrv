@@ -32,11 +32,7 @@ const (
 func Debug(ctx context.Context, where, message string) {
 	application, identity := aiFromContext(ctx)
 	h := head(application, identity, where)
-	if app.IsDebug() {
-		fmt.Printf("\u001b[34m%v\u001b[0m%v\n", h, message)
-	} else {
-		fmt.Printf("%v%v\n", h, message)
-	}
+	fmt.Printf("%v%v\n", h, message)
 }
 
 //Info as Normal but significant events, such as start up, shut down, or a configuration change.
@@ -134,20 +130,7 @@ func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, messa
 		return
 	}
 	h := head(application, identity, where)
-	fontColor := "\u001b[0m" // reset
-	switch level {
-	case LevelInfo:
-		fontColor = "\u001b[36m" // Cyan
-	case LevelWarning:
-		fontColor = "\u001b[33m" // yellow
-	case LevelAlert:
-		fontColor = "\u001b[31m" // red
-	}
-	if app.IsDebug() {
-		fmt.Printf("\u001b[34m%v%v%v \u001b[35m(logged)\n", h, fontColor, message)
-	} else {
-		fmt.Printf("%v%v (logged)\n", h, message)
-	}
+	fmt.Printf("%v%v (logged)\n", h, message)
 	gcpLogWrite(logger, logtime, message, application, identity, where, level)
 }
 
@@ -193,11 +176,7 @@ func ErrorWrite(ctx context.Context, client *errorreporting.Client, message, app
 		return
 	}
 	h := head(application, identity, where)
-	if app.IsDebug() {
-		fmt.Printf("\u001b[34m%v\u001b[31m%v \u001b[35m(%v)\n\u001b[33m%v\n", h, message, errID, stack)
-	} else {
-		fmt.Printf("%v%v (%v)\n%v\n", h, message, errID, stack)
-	}
+	fmt.Printf("%v%v (%v)\n%v\n", h, message, errID, stack)
 	gcpErrorWrite(client, message, application, identity, where, stack, errID, r)
 }
 

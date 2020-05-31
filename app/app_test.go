@@ -16,9 +16,6 @@ func TestCheck(t *testing.T) {
 		piyuoID := PiyuoID()
 		So(piyuoID, ShouldNotBeEmpty)
 	})
-	Convey("should debug true'", t, func() {
-		So(IsDebug(), ShouldBeTrue)
-	})
 }
 
 func TestDateline(t *testing.T) {
