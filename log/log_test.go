@@ -30,8 +30,8 @@ func TestAiFromContext(t *testing.T) {
 func TestLogHead(t *testing.T) {
 	Convey("should get head from application and identity'", t, func() {
 		HERE := "log_test"
-		h := head("piyuo-m-us-sys", "user-store", HERE)
-		So(h, ShouldEqual, "user-store@piyuo-m-us-sys/log_test: ")
+		h := head("sys-us-beta", "user-store", HERE)
+		So(h, ShouldEqual, "user-store@sys-us-beta/log_test: ")
 	})
 }
 
