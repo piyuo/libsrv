@@ -51,19 +51,21 @@ func BenchmarkSmallAction(b *testing.B) {
 	}
 }
 
-func newBigDataAction() []byte {
+func newBigDataAction() (*mock.BigDataAction, []byte) {
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
 	}
 	act := &mock.BigDataAction{}
 	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
-	return actBytes
+	return act, actBytes
 }
 
 func TestArchive(t *testing.T) {
 	handler := newTestServerHandler()
-	actBytes := newBigDataAction()
-	actBytesLen := len(actBytes)
+
+	act, actBytes := newBigDataAction()
+	sampleBytes := []byte(act.GetSample())
+	sampleLen := len(sampleBytes)
 	req1, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
 	req1.Header.Set("Accept-Encoding", "gzip")
 	resp1 := httptest.NewRecorder()
@@ -74,7 +76,7 @@ func TestArchive(t *testing.T) {
 	Convey("test any file request", t, func() {
 		So(res1.StatusCode, ShouldEqual, 200)
 		So(returnLen, ShouldBeGreaterThan, 10)
-		So(actBytesLen, ShouldBeGreaterThan, returnLen)
+		So(sampleLen, ShouldBeGreaterThan, returnLen)
 		So(res1.Header.Get("Content-Encoding"), ShouldEqual, "gzip")
 		So(res1.Header.Get("Content-Type"), ShouldEqual, "application/octet-stream")
 	})
