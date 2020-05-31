@@ -67,8 +67,8 @@ func (s *Server) Start() {
 func (s *Server) newHandler() http.Handler {
 	withoutArchive := http.HandlerFunc(s.Serve)
 	// support gzip compress
-	//withArchive := ArchiveHandler(withoutArchive)
-	return withoutArchive
+	withArchive := ArchiveHandler(withoutArchive)
+	return withArchive
 }
 
 // Serve entry for http request, filter empty and bad request and send correct one to dispatch
