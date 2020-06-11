@@ -9,7 +9,7 @@ import (
 )
 
 type DataObjectChild struct {
-	object
+	DBObject
 }
 
 //NewDataObjectChild create DataObjectChild instance

@@ -8,27 +8,27 @@ type Object interface {
 	New() interface{}
 }
 
-// Object is basic data type
-type object struct {
+// DBObject is basic data type
+type DBObject struct {
 	id string
 }
 
 //ID can get object unique id
-func (o *object) ID() string {
+func (o *DBObject) ID() string {
 	return o.id
 }
 
 //SetID can set object unique id
-func (o *object) SetID(newID string) {
+func (o *DBObject) SetID(newID string) {
 	o.id = newID
 }
 
 //Class get object db represent name
-func (o *object) Class() string {
+func (o *DBObject) Class() string {
 	panic("not implement New()")
 }
 
 //New create new object instance
-func (o *object) New() interface{} {
+func (o *DBObject) New() interface{} {
 	panic("not implement New()")
 }

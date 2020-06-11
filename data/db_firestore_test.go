@@ -10,7 +10,7 @@ import (
 )
 
 type Greet struct {
-	object
+	DBObject
 	From        string
 	Description string
 }
