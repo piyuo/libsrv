@@ -3,48 +3,46 @@ package data
 import (
 	"context"
 
-
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
 
 // QueryFirestore implement google firestore
 type QueryFirestore struct {
-	Query
-	query     firestore.Query
-	ctx       context.Context
-	newObject func() Object
-	limit     int
+	AbstractQuery
+	query firestore.Query
 }
 
 // NewQueryFirestore provide query for google firestore
 func NewQueryFirestore(ctx context.Context, q firestore.Query, f func() Object) *QueryFirestore {
-	return &QueryFirestore{ctx: ctx, query: q, newObject: f}
+	return &QueryFirestore{
+		AbstractQuery: AbstractQuery{ctx: ctx, newObject: f},
+		query:         q}
 }
 
 //Where implement where on firestore
-func (q *QueryFirestore) Where(path, op string, value interface{}) Query {
-	q.query = q.query.Where(path, op, value)
-	return q
+func (class *QueryFirestore) Where(path, op string, value interface{}) Query {
+	class.query = class.query.Where(path, op, value)
+	return class
 }
 
 //OrderBy implement orderby on firestore
-func (q *QueryFirestore) OrderBy(path string) Query {
-	q.query = q.query.OrderBy(path, firestore.Asc)
-	return q
+func (class *QueryFirestore) OrderBy(path string) Query {
+	class.query = class.query.OrderBy(path, firestore.Asc)
+	return class
 }
 
 //OrderByDesc implement orderby desc on firestore
-func (q *QueryFirestore) OrderByDesc(path string) Query {
-	q.query = q.query.OrderBy(path, firestore.Desc)
-	return q
+func (class *QueryFirestore) OrderByDesc(path string) Query {
+	class.query = class.query.OrderBy(path, firestore.Desc)
+	return class
 }
 
 //Limit implement limit on firestore
-func (q *QueryFirestore) Limit(n int) Query {
-	q.limit = n
-	q.query = q.query.Limit(n)
-	return q
+func (class *QueryFirestore) Limit(n int) Query {
+	class.limit = n
+	class.query = class.query.Limit(n)
+	return class
 }
 
 //Offset implement start at on firestore, often use by paginate data
@@ -55,13 +53,13 @@ func (q *QueryFirestore) Limit(n int) Query {
 //}
 
 //Run query with default limit 100 object, use Limit() to override default limit
-func (q *QueryFirestore) Run(callback func(o Object)) error {
+func (class *QueryFirestore) Run(callback func(o Object)) error {
 
-	if q.limit == 0 {
-		q.Limit(100)
+	if class.limit == 0 {
+		class.Limit(100)
 	}
 
-	iter := q.query.Documents(q.ctx)
+	iter := class.query.Documents(class.ctx)
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
@@ -70,7 +68,7 @@ func (q *QueryFirestore) Run(callback func(o Object)) error {
 		if err != nil {
 			return err
 		}
-		obj := q.newObject()
+		obj := class.newObject()
 		err = doc.DataTo(obj)
 		if err != nil {
 			return err

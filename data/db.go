@@ -24,8 +24,9 @@ type DB interface {
 	//Counter(className string) (int, error)
 }
 
-// DB simplify datastore create
-type db struct {
+// AbstractDB is parent class for all DB child
+type AbstractDB struct {
+	DB
 }
 
 // Shard use by Counter()

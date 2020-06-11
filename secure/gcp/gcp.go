@@ -22,7 +22,7 @@ func LogCredential(ctx context.Context) (*google.Credentials, error) {
 	if logCredGlobal == nil {
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create  google log credential, "+key+".key")
+			return nil, errors.Wrap(err, "failed to create google log credential, check /keys/"+key+".key exist")
 		}
 		logCredGlobal = cred
 	}
@@ -42,7 +42,7 @@ func DataCredential(ctx context.Context) (*google.Credentials, error) {
 	if dataCredGlobal == nil {
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create google data  credential, "+key+".key")
+			return nil, errors.Wrap(err, "failed to create google data credential, check /keys/"+key+".key exist")
 		}
 		dataCredGlobal = cred
 	}

@@ -8,3 +8,8 @@ type Transaction interface {
 	Put(ctx context.Context, obj Object) error
 	Delete(ctx context.Context, obj Object) error
 }
+
+// AbstractTransaction is parent class for all DB child
+type AbstractTransaction struct {
+	Transaction
+}

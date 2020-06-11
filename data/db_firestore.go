@@ -11,7 +11,7 @@ import (
 
 // DBFirestore implement db on firestore
 type DBFirestore struct {
-	DB
+	AbstractDB
 	client *firestore.Client
 }
 

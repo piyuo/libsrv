@@ -9,7 +9,7 @@ import (
 
 // TransactionFirestore implement google firestore
 type TransactionFirestore struct {
-	Transaction
+	AbstractTransaction
 	client *firestore.Client
 	tx     *firestore.Transaction
 	ctx    context.Context
