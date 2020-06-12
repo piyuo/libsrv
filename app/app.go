@@ -77,22 +77,22 @@ func Check() {
 	//app format like piyuo-beta-sample-jp
 	app := os.Getenv("PIYUO_APP")
 	if app == "" {
-		panic("need env PIYUO_APP like piyuo-beta-sample-jp")
+		panic("need env PIYUO_APP=\"sample-jp\"")
 	}
 	//region format like piyuo-beta-sample-jp
 	region := os.Getenv("PIYUO_REGION")
 	if region == "" {
-		panic("need env PIYUO_APP like us")
+		panic("need env PIYUO_APP=\"us\"")
 	}
 	//slow warning, usually 12 seconds
 	slow := os.Getenv("PIYUO_SLOW")
 	if slow == "" {
-		panic("need env PIYUO_SLOW like 12000")
+		panic("need env PIYUO_SLOW=\"12000\"")
 	}
 	//time to meet context deadline, this will stop all service, usually 20 seconds
 	deadline := os.Getenv("PIYUO_DEADLINE")
 	if deadline == "" {
-		panic("need env PIYUO_DEADLINE like 20000")
+		panic("need env PIYUO_DEADLINE=\"20000\"")
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 
 //firestoreNewDB create db instance
 func firestoreNewDB(ctx context.Context) (DB, error) {
-	cred, err := gcp.DataCredential(ctx)
+	cred, err := gcp.GlobalDataCredential(ctx)
 	if err != nil {
 		log.Alert(ctx, here, "failed to get firestore credential")
 		return nil, err
