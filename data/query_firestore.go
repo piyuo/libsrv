@@ -21,28 +21,28 @@ func NewQueryFirestore(ctx context.Context, q firestore.Query, f func() Object) 
 }
 
 //Where implement where on firestore
-func (class *QueryFirestore) Where(path, op string, value interface{}) Query {
-	class.query = class.query.Where(path, op, value)
-	return class
+func (qf *QueryFirestore) Where(path, op string, value interface{}) Query {
+	qf.query = qf.query.Where(path, op, value)
+	return qf
 }
 
 //OrderBy implement orderby on firestore
-func (class *QueryFirestore) OrderBy(path string) Query {
-	class.query = class.query.OrderBy(path, firestore.Asc)
-	return class
+func (qf *QueryFirestore) OrderBy(path string) Query {
+	qf.query = qf.query.OrderBy(path, firestore.Asc)
+	return qf
 }
 
 //OrderByDesc implement orderby desc on firestore
-func (class *QueryFirestore) OrderByDesc(path string) Query {
-	class.query = class.query.OrderBy(path, firestore.Desc)
-	return class
+func (qf *QueryFirestore) OrderByDesc(path string) Query {
+	qf.query = qf.query.OrderBy(path, firestore.Desc)
+	return qf
 }
 
 //Limit implement limit on firestore
-func (class *QueryFirestore) Limit(n int) Query {
-	class.limit = n
-	class.query = class.query.Limit(n)
-	return class
+func (qf *QueryFirestore) Limit(n int) Query {
+	qf.limit = n
+	qf.query = qf.query.Limit(n)
+	return qf
 }
 
 //Offset implement start at on firestore, often use by paginate data
@@ -53,13 +53,13 @@ func (class *QueryFirestore) Limit(n int) Query {
 //}
 
 //Run query with default limit 100 object, use Limit() to override default limit
-func (class *QueryFirestore) Run(callback func(o Object)) error {
+func (qf *QueryFirestore) Run(callback func(o Object)) error {
 
-	if class.limit == 0 {
-		class.Limit(100)
+	if qf.limit == 0 {
+		qf.Limit(100)
 	}
 
-	iter := class.query.Documents(class.ctx)
+	iter := qf.query.Documents(qf.ctx)
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
@@ -68,7 +68,7 @@ func (class *QueryFirestore) Run(callback func(o Object)) error {
 		if err != nil {
 			return err
 		}
-		obj := class.newObject()
+		obj := qf.newObject()
 		err = doc.DataTo(obj)
 		if err != nil {
 			return err

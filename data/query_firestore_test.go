@@ -38,7 +38,7 @@ func TestSelectQuery(t *testing.T) {
 		So(i, ShouldBeGreaterThanOrEqualTo, 1)
 	})
 
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 }
 
 func TestOrder(t *testing.T) {
@@ -84,7 +84,7 @@ func TestOrder(t *testing.T) {
 		So(len(list), ShouldEqual, 1)
 	})
 
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 }
 
 /*

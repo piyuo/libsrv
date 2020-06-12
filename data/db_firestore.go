@@ -15,7 +15,7 @@ type DBFirestore struct {
 	client *firestore.Client
 }
 
-//Close db connection
+// Close db connection
 //
 //	db.Close()
 func (db *DBFirestore) Close() {
@@ -25,20 +25,20 @@ func (db *DBFirestore) Close() {
 	}
 }
 
-//Get data object from data store, return ErrNotFound if object not exist
+// Get data object from data store, return ErrNotFound if object not exist
 //
 //	err = db.Get(ctx, &greet)
 func (db *DBFirestore) Get(ctx context.Context, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.GetByClass(ctx, obj.Class(), obj)
+	return db.GetByModelName(ctx, obj.ModelName(), obj)
 }
 
-//GetByClass get object from data store,use class instead of obj class
+//GetByModelName get object from data store,use class instead of obj class
 //
 //	err = db.GetByClass(ctx, "Greet", &greet)
-func (db *DBFirestore) GetByClass(ctx context.Context, class string, obj Object) error {
+func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -46,7 +46,7 @@ func (db *DBFirestore) GetByClass(ctx context.Context, class string, obj Object)
 	if id == "" {
 		return errors.New("get object need object  have ID")
 	}
-	snapshot, err := db.client.Collection(class).Doc(id).Get(ctx)
+	snapshot, err := db.client.Collection(modelName).Doc(id).Get(ctx)
 	if snapshot != nil && !snapshot.Exists() {
 		return ErrObjectNotFound
 	}
@@ -69,7 +69,7 @@ func (db *DBFirestore) GetAll(ctx context.Context, factory func() Object, callba
 		panic("GetAll() limit need under 100")
 	}
 	obj := factory()
-	ref := db.client.Collection(obj.Class())
+	ref := db.client.Collection(obj.ModelName())
 	iter := ref.Limit(limit).Documents(ctx)
 
 	for {
@@ -90,12 +90,21 @@ func (db *DBFirestore) GetAll(ctx context.Context, factory func() Object, callba
 	return nil
 }
 
-//Put data object into data store
+// Put data object into data store
+//
+//	greet := Greet{
+//			From:        "1",
+//				Description: "1",
+//	}
+//	ctx := context.Background()
+//	db, _ := firestoreNewDB(ctx)
+//	defer db.Close()
+//	db.Put(ctx, &greet)
 func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	Class := obj.Class()
+	Class := obj.ModelName()
 	if obj.ID() == "" {
 		ref := db.client.Collection(Class).NewDoc()
 		obj.SetID(ref.ID)
@@ -128,7 +137,7 @@ func (db *DBFirestore) ListAll(ctx context.Context, factory func() Object, limit
 		panic("ListAll() limit need under 100")
 	}
 	obj := factory()
-	ref := db.client.Collection(obj.Class())
+	ref := db.client.Collection(obj.ModelName())
 	iter := ref.Limit(limit).Documents(ctx)
 	list := []Object{}
 	for {
@@ -155,7 +164,7 @@ func (db *DBFirestore) Delete(ctx context.Context, obj Object) error {
 		return ctx.Err()
 	}
 	id := obj.ID()
-	class := obj.Class()
+	class := obj.ModelName()
 	ref := db.client.Collection(class).Doc(id)
 	if _, err := ref.Delete(ctx); err != nil {
 		return err
@@ -163,7 +172,10 @@ func (db *DBFirestore) Delete(ctx context.Context, obj Object) error {
 	return nil
 }
 
-//DeleteAll only run in time, return ErrTimeout when time is up
+// DeleteAll only run in time, return ErrTimeout when time is up
+//
+//	db.DeleteAll(ctx, GreetModelName, 9)
+//
 func (db *DBFirestore) DeleteAll(ctx context.Context, className string, timeout int) (int, error) {
 	if ctx.Err() != nil {
 		return 0, ctx.Err()
@@ -206,17 +218,17 @@ func (db *DBFirestore) DeleteAll(ctx context.Context, className string, timeout 
 	}
 }
 
-//Select data object from firestore
+// Select data object from firestore
 func (db *DBFirestore) Select(ctx context.Context, f func() Object) Query {
 	if f == nil {
 		panic("Select must have new function like func(){new(object)}")
 	}
 	obj := f()
-	query := db.client.Collection(obj.Class()).Query
+	query := db.client.Collection(obj.ModelName()).Query
 	return NewQueryFirestore(ctx, query, f)
 }
 
-//RunTransaction implement firestore run transaction
+// RunTransaction implement firestore run transaction
 func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Context, tx Transaction) error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -225,4 +237,42 @@ func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Co
 		tf := NewTransactionFirestore(ctx, db.client, tx)
 		return f(ctx, tf)
 	})
+}
+
+// Exist return true if query result return a least one object
+//
+//	exist, err := db.Exist(ctx, GreetModelName, "From", "==", "1")
+//
+func (db *DBFirestore) Exist(ctx context.Context, class, path, op string, value interface{}) (bool, error) {
+	docIterator := db.client.Collection(class).Query.Where(path, op, value).Limit(1).Documents(ctx)
+	defer docIterator.Stop()
+
+	_, err := docIterator.Next()
+	if err == iterator.Done {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// Count10 return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible
+//
+//	count, err := db.Count10(ctx, GreetModelName, "From", "==", "1")
+//
+func (db *DBFirestore) Count10(ctx context.Context, class, path, op string, value interface{}) (int, error) {
+	docIterator := db.client.Collection(class).Query.Where(path, op, value).Limit(10).Documents(ctx)
+	defer docIterator.Stop()
+	count := 0
+	for {
+		_, err := docIterator.Next()
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return 0, err
+		}
+		count++
+	}
+	return count, nil
 }

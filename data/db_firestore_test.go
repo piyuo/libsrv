@@ -9,6 +9,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const GreetModelName = "Greet"
+
 type Greet struct {
 	StoredObject
 	From        string
@@ -20,8 +22,8 @@ var GreetFactory = func() Object {
 	return new(Greet)
 }
 
-func (g *Greet) Class() string {
-	return "Greet"
+func (g *Greet) ModelName() string {
+	return GreetModelName
 }
 
 func TestGetWithNoID(t *testing.T) {
@@ -106,7 +108,7 @@ func TestGetPutDeleteWhenContextCanceled(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		err = db.Get(ctx, &greet)
 		So(err, ShouldNotBeNil)
-		err = db.GetByClass(ctx, "Greet", &greet)
+		err = db.GetByModelName(ctx, "Greet", &greet)
 		So(err, ShouldNotBeNil)
 		err = db.GetAll(ctx, GreetFactory, func(o Object) {}, 100)
 		So(err, ShouldNotBeNil)
@@ -129,7 +131,7 @@ func TestUpdate(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
-	err = db.Update(ctx, greet.Class(), greet.ID(), map[string]interface{}{
+	err = db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
 		"Description": "helloworld",
 	})
 	Convey("update sample description", t, func() {
@@ -196,7 +198,7 @@ func TestDeleteAll(t *testing.T) {
 	db.Put(ctx, &greet1)
 	db.Put(ctx, &greet2)
 
-	numDeleted, err := db.DeleteAll(ctx, greet1.Class(), 10)
+	numDeleted, err := db.DeleteAll(ctx, greet1.ModelName(), 10)
 
 	Convey("DeleteAll should not have error '", t, func() {
 		So(err, ShouldBeNil)
@@ -219,7 +221,7 @@ func TestGetAll(t *testing.T) {
 	ctx := context.Background()
 	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 	db.Put(ctx, &greet1)
 	db.Put(ctx, &greet2)
 
@@ -233,7 +235,7 @@ func TestGetAll(t *testing.T) {
 	Convey("list should hold all object", t, func() {
 		So(len(list), ShouldEqual, 2)
 	})
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 }
 
 func TestListAll(t *testing.T) {
@@ -248,7 +250,7 @@ func TestListAll(t *testing.T) {
 	ctx := context.Background()
 	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 	db.Put(ctx, &greet1)
 	db.Put(ctx, &greet2)
 
@@ -259,7 +261,62 @@ func TestListAll(t *testing.T) {
 	Convey("list should hold all object", t, func() {
 		So(len(list), ShouldEqual, 2)
 	})
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
+}
+
+func TestExist(t *testing.T) {
+	Convey("Should check object exist", t, func() {
+		greet := Greet{
+			From:        "1",
+			Description: "1",
+		}
+		ctx := context.Background()
+		db, _ := firestoreNewDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, GreetModelName, 9)
+
+		exist, err := db.Exist(ctx, GreetModelName, "From", "==", "1")
+		So(exist, ShouldBeFalse)
+		So(err, ShouldBeNil)
+
+		db.Put(ctx, &greet)
+
+		exist, err = db.Exist(ctx, GreetModelName, "From", "==", "1")
+		So(exist, ShouldBeTrue)
+		So(err, ShouldBeNil)
+
+		db.DeleteAll(ctx, GreetModelName, 9)
+	})
+}
+
+func TestCount(t *testing.T) {
+	Convey("Should Count object", t, func() {
+		greet := Greet{
+			From:        "1",
+			Description: "1",
+		}
+		ctx := context.Background()
+		db, _ := firestoreNewDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, GreetModelName, 9)
+
+		count, err := db.Count10(ctx, GreetModelName, "From", "==", "1")
+		So(count, ShouldEqual, 0)
+		So(err, ShouldBeNil)
+
+		db.Put(ctx, &greet)
+
+		count, err = db.Count10(ctx, GreetModelName, "From", "==", "1")
+		So(count, ShouldEqual, 1)
+		So(err, ShouldBeNil)
+
+		db.DeleteAll(ctx, GreetModelName, 9)
+
+		count, err = db.Count10(ctx, GreetModelName, "From", "==", "1")
+		So(count, ShouldEqual, 0)
+		So(err, ShouldBeNil)
+
+	})
 }
 
 func BenchmarkPutSpeed(b *testing.B) {
@@ -299,7 +356,7 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		db.Update(ctx, greet.Class(), greet.ID(), map[string]interface{}{
+		db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
 			"Description": "hello" + strconv.Itoa(i),
 		})
 	}

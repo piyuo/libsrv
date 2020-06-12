@@ -27,8 +27,8 @@ func (trans *TransactionFirestore) Get(ctx context.Context, obj Object) error {
 		return errors.New("get object need object  have ID")
 	}
 
-	class := obj.Class()
-	ref := trans.client.Collection(class).Doc(id)
+	modelName := obj.ModelName()
+	ref := trans.client.Collection(modelName).Doc(id)
 	snapshot, err := trans.tx.Get(ref)
 	if snapshot != nil && !snapshot.Exists() {
 		return ErrObjectNotFound
@@ -45,12 +45,12 @@ func (trans *TransactionFirestore) Get(ctx context.Context, obj Object) error {
 
 //Put data object into data store
 func (trans *TransactionFirestore) Put(ctx context.Context, obj Object) error {
-	class := obj.Class()
+	modelName := obj.ModelName()
 	if obj.ID() == "" {
-		ref := trans.client.Collection(class).NewDoc()
+		ref := trans.client.Collection(modelName).NewDoc()
 		obj.SetID(ref.ID)
 	}
-	ref := trans.client.Collection(class).Doc(obj.ID())
+	ref := trans.client.Collection(modelName).Doc(obj.ID())
 	err := trans.tx.Set(ref, obj)
 	if err != nil {
 		return errors.Wrap(err, "put object failed")
@@ -61,8 +61,8 @@ func (trans *TransactionFirestore) Put(ctx context.Context, obj Object) error {
 //Delete data object from firestore
 func (trans *TransactionFirestore) Delete(ctx context.Context, obj Object) error {
 	id := obj.ID()
-	class := obj.Class()
-	ref := trans.client.Collection(class).Doc(id)
+	modelName := obj.ModelName()
+	ref := trans.client.Collection(modelName).Doc(id)
 	err := trans.tx.Delete(ref)
 	if err != nil {
 		return errors.Wrap(err, "delete object failed")

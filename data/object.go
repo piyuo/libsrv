@@ -2,7 +2,7 @@ package data
 
 // Object is base data interface
 type Object interface {
-	Class() string
+	ModelName() string
 	ID() string
 	SetID(id string)
 	New() interface{}
@@ -23,9 +23,12 @@ func (o *StoredObject) SetID(newID string) {
 	o.id = newID
 }
 
-//Class get object db represent name
-func (o *StoredObject) Class() string {
-	panic("not implement New()")
+// ModelName get object db represent name
+//
+//	greet.ModelName() // return "greet"
+//
+func (o *StoredObject) ModelName() string {
+	panic("not implement ModelName()")
 }
 
 //New create new object instance

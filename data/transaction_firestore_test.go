@@ -21,7 +21,7 @@ func TestTransaction(t *testing.T) {
 	db, _ := firestoreNewDB(ctx)
 	defer db.Close()
 
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 	err := db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
 		tx.Put(ctx, &greet1)
 		tx.Put(ctx, &greet2)
@@ -35,7 +35,7 @@ func TestTransaction(t *testing.T) {
 		So(len(list), ShouldEqual, 2)
 	})
 
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 	err = db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
 		tx.Put(ctx, &greet1)
 		return errors.New("some thing wrong")
@@ -48,5 +48,5 @@ func TestTransaction(t *testing.T) {
 		So(len(list), ShouldEqual, 0)
 	})
 
-	db.DeleteAll(ctx, greet1.Class(), 9)
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 }

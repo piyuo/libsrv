@@ -12,14 +12,15 @@ type DB interface {
 	Put(ctx context.Context, obj Object) error
 	Update(ctx context.Context, objClass string, objID string, fields map[string]interface{}) error
 	Get(ctx context.Context, obj Object) error
-	GetByClass(ctx context.Context, class string, obj Object) error
+	GetByModelName(ctx context.Context, modelName string, obj Object) error
 	GetAll(ctx context.Context, factory func() Object, callback func(o Object), limit int) error
 	ListAll(ctx context.Context, factory func() Object, limit int) ([]Object, error)
 	Delete(ctx context.Context, obj Object) error
 	DeleteAll(ctx context.Context, class string, timeout int) (int, error)
 	Select(ctx context.Context, factory func() Object) Query
 	RunTransaction(ctx context.Context, callback func(ctx context.Context, tx Transaction) error) error
-
+	Exist(ctx context.Context, path, field, op string, value interface{}) (bool, error)
+	Count10(ctx context.Context, path, field, op string, value interface{}) (int, error)
 	//AddCount(className string) (int, int, error)
 	//Counter(className string) (int, error)
 }
