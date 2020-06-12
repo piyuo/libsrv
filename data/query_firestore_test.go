@@ -18,7 +18,7 @@ func TestSelectQuery(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	db.Put(ctx, &greet1)
@@ -51,7 +51,7 @@ func TestOrder(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	db.Put(ctx, &greet1)

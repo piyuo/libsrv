@@ -29,7 +29,7 @@ func (g *Greet) ModelName() string {
 func TestGetWithNoID(t *testing.T) {
 	Convey("get object with no id", t, func() {
 		ctx := context.Background()
-		db, err := firestoreNewDB(ctx)
+		db, err := NewGlobalDB(ctx)
 		So(err, ShouldBeNil)
 		defer db.Close()
 
@@ -41,7 +41,7 @@ func TestGetWithNoID(t *testing.T) {
 func TestGetWithNotExistID(t *testing.T) {
 	Convey("get object with id not exist", t, func() {
 		ctx := context.Background()
-		db, err := firestoreNewDB(ctx)
+		db, err := NewGlobalDB(ctx)
 		So(err, ShouldBeNil)
 		defer db.Close()
 
@@ -58,7 +58,7 @@ func TestPutGetDelete(t *testing.T) {
 		Description: "hi",
 	}
 	ctx := context.Background()
-	db, err := firestoreNewDB(ctx)
+	db, err := NewGlobalDB(ctx)
 	Convey("should get db without error", t, func() {
 		So(err, ShouldBeNil)
 	})
@@ -96,7 +96,7 @@ func TestGetPutDeleteWhenContextCanceled(t *testing.T) {
 			From:        "me",
 			Description: "hi",
 		}
-		db, err := firestoreNewDB(context.Background())
+		db, err := NewGlobalDB(context.Background())
 		So(err, ShouldBeNil)
 
 		dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
@@ -123,7 +123,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	err := db.Put(ctx, &greet)
@@ -159,7 +159,7 @@ func TestSelectDelete(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	db.Put(ctx, &greet1)
@@ -193,7 +193,7 @@ func TestDeleteAll(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 	db.Put(ctx, &greet1)
 	db.Put(ctx, &greet2)
@@ -219,7 +219,7 @@ func TestGetAll(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 	db.DeleteAll(ctx, greet1.ModelName(), 9)
 	db.Put(ctx, &greet1)
@@ -248,7 +248,7 @@ func TestListAll(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 	db.DeleteAll(ctx, greet1.ModelName(), 9)
 	db.Put(ctx, &greet1)
@@ -271,7 +271,7 @@ func TestExist(t *testing.T) {
 			Description: "1",
 		}
 		ctx := context.Background()
-		db, _ := firestoreNewDB(ctx)
+		db, _ := NewGlobalDB(ctx)
 		defer db.Close()
 		db.DeleteAll(ctx, GreetModelName, 9)
 
@@ -296,7 +296,7 @@ func TestCount(t *testing.T) {
 			Description: "1",
 		}
 		ctx := context.Background()
-		db, _ := firestoreNewDB(ctx)
+		db, _ := NewGlobalDB(ctx)
 		defer db.Close()
 		db.DeleteAll(ctx, GreetModelName, 9)
 
@@ -325,7 +325,7 @@ func BenchmarkPutSpeed(b *testing.B) {
 		Description: "hello",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	err := db.Put(ctx, &greet)
@@ -346,7 +346,7 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 		Description: "hello",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	err := db.Put(ctx, &greet)

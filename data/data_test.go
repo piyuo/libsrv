@@ -10,7 +10,7 @@ import (
 
 func TestNewDB(t *testing.T) {
 	Convey("should return db", t, func() {
-		db, err := NewDB(context.Background())
+		db, err := NewGlobalDB(context.Background())
 		So(err, ShouldBeNil)
 		So(db, ShouldNotBeNil)
 	})
@@ -22,7 +22,7 @@ func TestNewDBWhenContextCanceled(t *testing.T) {
 		ctx, cancel := context.WithDeadline(context.Background(), dateline)
 		defer cancel()
 		time.Sleep(time.Duration(2) * time.Millisecond)
-		db, err := NewDB(ctx)
+		db, err := NewGlobalDB(ctx)
 		So(err, ShouldNotBeNil)
 		So(db, ShouldBeNil)
 	})

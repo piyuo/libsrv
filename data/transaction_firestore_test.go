@@ -18,7 +18,7 @@ func TestTransaction(t *testing.T) {
 		Description: "2",
 	}
 	ctx := context.Background()
-	db, _ := firestoreNewDB(ctx)
+	db, _ := NewGlobalDB(ctx)
 	defer db.Close()
 
 	db.DeleteAll(ctx, greet1.ModelName(), 9)
