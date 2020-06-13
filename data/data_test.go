@@ -8,9 +8,14 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewDB(t *testing.T) {
-	Convey("should return db", t, func() {
+func TestDB(t *testing.T) {
+	Convey("should return global db", t, func() {
 		db, err := NewGlobalDB(context.Background())
+		So(err, ShouldBeNil)
+		So(db, ShouldNotBeNil)
+	})
+	Convey("should return regional db", t, func() {
+		db, err := NewRegionalDB(context.Background())
 		So(err, ShouldBeNil)
 		So(db, ShouldNotBeNil)
 	})
