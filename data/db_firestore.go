@@ -47,7 +47,7 @@ func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj
 	}
 	id := obj.ID()
 	if id == "" {
-		return errors.New("get object need object  have ID")
+		return errors.New("get() need object have ID")
 	}
 	snapshot, err := db.client.Collection(modelName).Doc(id).Get(ctx)
 	if snapshot != nil && !snapshot.Exists() {
@@ -110,12 +110,12 @@ func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	Class := obj.ModelName()
+	modelName := obj.ModelName()
 	if obj.ID() == "" {
-		ref := db.client.Collection(Class).NewDoc()
+		ref := db.client.Collection(modelName).NewDoc()
 		obj.SetID(ref.ID)
 	}
-	_, err := db.client.Collection(Class).Doc(obj.ID()).Set(ctx, obj)
+	_, err := db.client.Collection(modelName).Doc(obj.ID()).Set(ctx, obj)
 	if err != nil {
 		return errors.Wrap(err, "failed to put object")
 	}
@@ -128,11 +128,11 @@ func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 //		"Description": "helloworld",
 //	})
 //
-func (db *DBFirestore) Update(ctx context.Context, objClass string, objID string, fields map[string]interface{}) error {
+func (db *DBFirestore) Update(ctx context.Context, modelName string, objectID string, fields map[string]interface{}) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	_, err := db.client.Collection(objClass).Doc(objID).Set(ctx, fields, firestore.MergeAll)
+	_, err := db.client.Collection(modelName).Doc(objectID).Set(ctx, fields, firestore.MergeAll)
 	if err != nil {
 		return errors.Wrap(err, "failed to update field")
 	}
@@ -272,8 +272,11 @@ func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Co
 //
 //	exist, err := db.Exist(ctx, GreetModelName, "From", "==", "1")
 //
-func (db *DBFirestore) Exist(ctx context.Context, class, path, op string, value interface{}) (bool, error) {
-	docIterator := db.client.Collection(class).Query.Where(path, op, value).Limit(1).Documents(ctx)
+func (db *DBFirestore) Exist(ctx context.Context, modelName, path, op string, value interface{}) (bool, error) {
+	if ctx.Err() != nil {
+		return false, ctx.Err()
+	}
+	docIterator := db.client.Collection(modelName).Query.Where(path, op, value).Limit(1).Documents(ctx)
 	defer docIterator.Stop()
 
 	_, err := docIterator.Next()
@@ -290,8 +293,11 @@ func (db *DBFirestore) Exist(ctx context.Context, class, path, op string, value 
 //
 //	count, err := db.Count10(ctx, GreetModelName, "From", "==", "1")
 //
-func (db *DBFirestore) Count10(ctx context.Context, class, path, op string, value interface{}) (int, error) {
-	docIterator := db.client.Collection(class).Query.Where(path, op, value).Limit(10).Documents(ctx)
+func (db *DBFirestore) Count10(ctx context.Context, modelName, path, op string, value interface{}) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+	docIterator := db.client.Collection(modelName).Query.Where(path, op, value).Limit(10).Documents(ctx)
 	defer docIterator.Stop()
 	count := 0
 	for {
@@ -304,4 +310,24 @@ func (db *DBFirestore) Count10(ctx context.Context, class, path, op string, valu
 		count++
 	}
 	return count, nil
+}
+
+// Increment value on object field
+//
+//	err := db.Increment(ctx, GreetModelName, "Value", greet.ID(), 2)
+//
+func (db *DBFirestore) Increment(ctx context.Context, modelName, modelField, objectID string, value int) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	doc := db.client.Collection(modelName).Doc(objectID)
+
+	//Update() return writeResult, we don't need
+	_, err := doc.Update(ctx, []firestore.Update{
+		{Path: modelField, Value: firestore.Increment(value)},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

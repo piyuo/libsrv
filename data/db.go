@@ -21,6 +21,7 @@ type DB interface {
 	RunTransaction(ctx context.Context, callback func(ctx context.Context, tx Transaction) error) error
 	Exist(ctx context.Context, path, field, op string, value interface{}) (bool, error)
 	Count10(ctx context.Context, path, field, op string, value interface{}) (int, error)
+	Increment(ctx context.Context, modelName, modelField, objectID string, value int) error
 	//AddCount(className string) (int, int, error)
 	//Counter(className string) (int, error)
 }

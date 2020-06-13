@@ -15,6 +15,7 @@ type Greet struct {
 	StoredObject
 	From        string
 	Description string
+	Value       int
 }
 
 //GreetFactory provide function to create instance
@@ -316,6 +317,29 @@ func TestCount(t *testing.T) {
 		So(count, ShouldEqual, 0)
 		So(err, ShouldBeNil)
 
+	})
+}
+
+func TestIncrement(t *testing.T) {
+	Convey("Should increment object field", t, func() {
+		greet := Greet{
+			Value: 0,
+		}
+		ctx := context.Background()
+		db, _ := firestoreGlobalDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, GreetModelName, 9)
+		db.Put(ctx, &greet)
+
+		err := db.Get(ctx, &greet)
+		So(greet.Value, ShouldEqual, 0)
+		So(err, ShouldBeNil)
+
+		err = db.Increment(ctx, GreetModelName, "Value", greet.ID(), 2)
+
+		err = db.Get(ctx, &greet)
+		So(greet.Value, ShouldEqual, 2)
+		So(err, ShouldBeNil)
 	})
 }
 
