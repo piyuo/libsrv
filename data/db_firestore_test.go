@@ -111,7 +111,7 @@ func TestGetPutDeleteWhenContextCanceled(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		err = db.GetByModelName(ctx, GreetModelName, &greet)
 		So(err, ShouldNotBeNil)
-		err = db.GetAll(ctx, GreetFactory, func(o Object) {}, 100)
+		err = db.GetAll(ctx, GreetFactory, 100, func(o Object) {})
 		So(err, ShouldNotBeNil)
 
 	})
@@ -132,9 +132,9 @@ func TestUpdate(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
-	err = db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
+	err = db.Update(ctx, greet.ModelName(), map[string]interface{}{
 		"Description": "helloworld",
-	})
+	}, greet.ID())
 	Convey("update sample description", t, func() {
 		So(err, ShouldBeNil)
 	})
@@ -227,9 +227,9 @@ func TestGetAll(t *testing.T) {
 	db.Put(ctx, &greet2)
 
 	list := []*Greet{}
-	err := db.GetAll(ctx, GreetFactory, func(o Object) {
+	err := db.GetAll(ctx, GreetFactory, 100, func(o Object) {
 		list = append(list, o.(*Greet))
-	}, 100)
+	})
 	Convey("GetAll should not have error '", t, func() {
 		So(err, ShouldBeNil)
 	})
@@ -380,8 +380,8 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
+		db.Update(ctx, greet.ModelName(), map[string]interface{}{
 			"Description": "hello" + strconv.Itoa(i),
-		})
+		}, greet.ID())
 	}
 }

@@ -26,7 +26,7 @@ func (db *DBFirestore) Close() {
 	}
 }
 
-// Get data object from data store, return ErrNotFound if object not exist
+// Get data object from data store, return ErrObjectNotFound if object not exist
 //
 //	err = db.Get(ctx, &greet)
 //
@@ -37,9 +37,9 @@ func (db *DBFirestore) Get(ctx context.Context, obj Object) error {
 	return db.GetByModelName(ctx, obj.ModelName(), obj)
 }
 
-//GetByModelName get object from data store,use class instead of obj class
+// GetByModelName get object use modelName
 //
-//	err = db.GetByClass(ctx, "Greet", &greet)
+//	err = db.GetByModelName(ctx, "Greet", &greet)
 //
 func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj Object) error {
 	if ctx.Err() != nil {
@@ -67,7 +67,7 @@ func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj
 //
 //	err = db.GetAll(ctx, GreetFactory, func(o Object) {}, 100)
 //
-func (db *DBFirestore) GetAll(ctx context.Context, factory func() Object, callback func(o Object), limit int) error {
+func (db *DBFirestore) GetAll(ctx context.Context, factory func() Object, limit int, callback func(o Object)) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -122,24 +122,24 @@ func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 	return nil
 }
 
-//Update partial object field  in firestore,  this function is not significant fast than put
+// Update partial object field,  this function is significant slow than put
 //
 //	err = db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
 //		"Description": "helloworld",
 //	})
 //
-func (db *DBFirestore) Update(ctx context.Context, modelName string, objectID string, fields map[string]interface{}) error {
+func (db *DBFirestore) Update(ctx context.Context, modelName string, modelFields map[string]interface{}, objectID string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	_, err := db.client.Collection(modelName).Doc(objectID).Set(ctx, fields, firestore.MergeAll)
+	_, err := db.client.Collection(modelName).Doc(objectID).Set(ctx, modelFields, firestore.MergeAll)
 	if err != nil {
 		return errors.Wrap(err, "failed to update field")
 	}
 	return nil
 }
 
-//ListAll get object lit from data store, return error
+//ListAll get object list from data store, return error
 //
 //	list, err := db.ListAll(ctx, GreetFactory, 100)
 //
@@ -172,7 +172,7 @@ func (db *DBFirestore) ListAll(ctx context.Context, factory func() Object, limit
 	return list, nil
 }
 
-// Delete data object from data store
+// Delete object from data store
 //
 //	_ = db.Delete(ctx, &greet)
 //
@@ -181,24 +181,24 @@ func (db *DBFirestore) Delete(ctx context.Context, obj Object) error {
 		return ctx.Err()
 	}
 	id := obj.ID()
-	class := obj.ModelName()
-	ref := db.client.Collection(class).Doc(id)
+	modelName := obj.ModelName()
+	ref := db.client.Collection(modelName).Doc(id)
 	if _, err := ref.Delete(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-// DeleteAll only run in time, return ErrTimeout when time is up
+// DeleteAll delete all object in specific time, return ErrOperationTimeout when timed out
 //
 //	db.DeleteAll(ctx, GreetModelName, 9)
 //
-func (db *DBFirestore) DeleteAll(ctx context.Context, className string, timeout int) (int, error) {
+func (db *DBFirestore) DeleteAll(ctx context.Context, modelName string, timeout int) (int, error) {
 	if ctx.Err() != nil {
 		return 0, ctx.Err()
 	}
 	beginTime := time.Now()
-	ref := db.client.Collection(className)
+	ref := db.client.Collection(modelName)
 	totalDeleted := 0
 	for {
 		iter := ref.Limit(100).Documents(ctx)
@@ -235,22 +235,22 @@ func (db *DBFirestore) DeleteAll(ctx context.Context, className string, timeout 
 	}
 }
 
-// Select data object from firestore
+// Select create query
 //
-//	qry := db.Select(ctx, func() Object {
+//	query := db.Select(ctx, func() Object {
 //		return new(Greet)
 //	})
 //
-func (db *DBFirestore) Select(ctx context.Context, f func() Object) Query {
-	if f == nil {
-		panic("Select must have new function like func(){new(object)}")
+func (db *DBFirestore) Select(ctx context.Context, factory func() Object) Query {
+	if factory == nil {
+		panic("Select must have factory function like func(){new(object)}")
 	}
-	obj := f()
+	obj := factory()
 	query := db.client.Collection(obj.ModelName()).Query
-	return NewQueryFirestore(ctx, query, f)
+	return NewQueryFirestore(ctx, query, factory)
 }
 
-// RunTransaction implement firestore run transaction
+// RunTransaction run transaction
 //
 //	err := db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
 //		tx.Put(ctx, &greet1)
@@ -272,11 +272,11 @@ func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Co
 //
 //	exist, err := db.Exist(ctx, GreetModelName, "From", "==", "1")
 //
-func (db *DBFirestore) Exist(ctx context.Context, modelName, path, op string, value interface{}) (bool, error) {
+func (db *DBFirestore) Exist(ctx context.Context, modelName, modelField, operator string, value interface{}) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	docIterator := db.client.Collection(modelName).Query.Where(path, op, value).Limit(1).Documents(ctx)
+	docIterator := db.client.Collection(modelName).Query.Where(modelField, operator, value).Limit(1).Documents(ctx)
 	defer docIterator.Stop()
 
 	_, err := docIterator.Next()
@@ -293,11 +293,11 @@ func (db *DBFirestore) Exist(ctx context.Context, modelName, path, op string, va
 //
 //	count, err := db.Count10(ctx, GreetModelName, "From", "==", "1")
 //
-func (db *DBFirestore) Count10(ctx context.Context, modelName, path, op string, value interface{}) (int, error) {
+func (db *DBFirestore) Count10(ctx context.Context, modelName, modelField, operator string, value interface{}) (int, error) {
 	if ctx.Err() != nil {
 		return 0, ctx.Err()
 	}
-	docIterator := db.client.Collection(modelName).Query.Where(path, op, value).Limit(10).Documents(ctx)
+	docIterator := db.client.Collection(modelName).Query.Where(modelField, operator, value).Limit(10).Documents(ctx)
 	defer docIterator.Stop()
 	count := 0
 	for {
