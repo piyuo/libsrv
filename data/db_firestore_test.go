@@ -108,7 +108,7 @@ func TestGetPutDeleteWhenContextCanceled(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		err = db.Get(ctx, &greet)
 		So(err, ShouldNotBeNil)
-		err = db.GetByModelName(ctx, "Greet", &greet)
+		err = db.GetByModelName(ctx, GreetModelName, &greet)
 		So(err, ShouldNotBeNil)
 		err = db.GetAll(ctx, GreetFactory, func(o Object) {}, 100)
 		So(err, ShouldNotBeNil)

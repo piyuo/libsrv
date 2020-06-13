@@ -18,6 +18,7 @@ type DBFirestore struct {
 // Close db connection
 //
 //	db.Close()
+//
 func (db *DBFirestore) Close() {
 	if db.client != nil {
 		db.client.Close()
@@ -28,6 +29,7 @@ func (db *DBFirestore) Close() {
 // Get data object from data store, return ErrNotFound if object not exist
 //
 //	err = db.Get(ctx, &greet)
+//
 func (db *DBFirestore) Get(ctx context.Context, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -38,6 +40,7 @@ func (db *DBFirestore) Get(ctx context.Context, obj Object) error {
 //GetByModelName get object from data store,use class instead of obj class
 //
 //	err = db.GetByClass(ctx, "Greet", &greet)
+//
 func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -61,6 +64,9 @@ func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj
 }
 
 //GetAll object from data store, return error
+//
+//	err = db.GetAll(ctx, GreetFactory, func(o Object) {}, 100)
+//
 func (db *DBFirestore) GetAll(ctx context.Context, factory func() Object, callback func(o Object), limit int) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -117,6 +123,11 @@ func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 }
 
 //Update partial object field  in firestore,  this function is not significant fast than put
+//
+//	err = db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
+//		"Description": "helloworld",
+//	})
+//
 func (db *DBFirestore) Update(ctx context.Context, objClass string, objID string, fields map[string]interface{}) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -129,6 +140,9 @@ func (db *DBFirestore) Update(ctx context.Context, objClass string, objID string
 }
 
 //ListAll get object lit from data store, return error
+//
+//	list, err := db.ListAll(ctx, GreetFactory, 100)
+//
 func (db *DBFirestore) ListAll(ctx context.Context, factory func() Object, limit int) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
@@ -158,7 +172,10 @@ func (db *DBFirestore) ListAll(ctx context.Context, factory func() Object, limit
 	return list, nil
 }
 
-//Delete data object from data store
+// Delete data object from data store
+//
+//	_ = db.Delete(ctx, &greet)
+//
 func (db *DBFirestore) Delete(ctx context.Context, obj Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -219,6 +236,11 @@ func (db *DBFirestore) DeleteAll(ctx context.Context, className string, timeout 
 }
 
 // Select data object from firestore
+//
+//	qry := db.Select(ctx, func() Object {
+//		return new(Greet)
+//	})
+//
 func (db *DBFirestore) Select(ctx context.Context, f func() Object) Query {
 	if f == nil {
 		panic("Select must have new function like func(){new(object)}")
@@ -229,6 +251,13 @@ func (db *DBFirestore) Select(ctx context.Context, f func() Object) Query {
 }
 
 // RunTransaction implement firestore run transaction
+//
+//	err := db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
+//		tx.Put(ctx, &greet1)
+//		tx.Put(ctx, &greet2)
+//		return nil
+//	})
+//
 func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Context, tx Transaction) error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
