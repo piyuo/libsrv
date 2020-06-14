@@ -8,50 +8,50 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type DataObjectChild struct {
+type Sample struct {
 	StoredObject
 }
 
-//NewDataObjectChild create DataObjectChild instance
-func NewDataObjectChild() interface{} {
-	return new(DataObjectChild)
+//NewSample create Sample instance
+func NewSample() interface{} {
+	return new(Sample)
 }
 
 //New create new object instance
-func (do *DataObjectChild) New() interface{} {
-	return new(DataObjectChild)
+func (do *Sample) New() interface{} {
+	return new(Sample)
 }
 
 //Class represent name in database
-func (do *DataObjectChild) Class() string {
-	return "DataObjectChild"
+func (do *Sample) ModelName() string {
+	return "Sample"
 }
 
-func TestClass(t *testing.T) {
-	d := &DataObjectChild{}
-	name := d.Class()
+func TestModelName(t *testing.T) {
 	Convey("check object db name correct", t, func() {
-		So(name, ShouldEqual, "DataObjectChild")
+		d := &Sample{}
+		name := d.ModelName()
+		So(name, ShouldEqual, "Sample")
 	})
 }
 
 func TestNew(t *testing.T) {
-	newObj := NewDataObjectChild().(*DataObjectChild)
+	newObj := NewSample().(*Sample)
 	newObj.SetID("1")
 	Convey("new object should work", t, func() {
 		So(newObj.ID(), ShouldEqual, "1")
 	})
 
-	newObj2 := newObj.New().(*DataObjectChild)
+	newObj2 := newObj.New().(*Sample)
 	Convey("create empty new object", t, func() {
 		So(newObj2.ID(), ShouldEqual, "")
 	})
 }
 
 func TestID(t *testing.T) {
-	d := &DataObjectChild{}
-	id := d.ID()
 	Convey("id should be empty", t, func() {
+		d := &Sample{}
+		id := d.ID()
 		So(id, ShouldBeEmpty)
 	})
 }
@@ -86,39 +86,39 @@ func TestCustomError(t *testing.T) {
 var result string
 
 func BenchmarkReflectTypeSpeed(b *testing.B) {
-	d := DataObjectChild{}
+	d := Sample{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		name := reflect.TypeOf(d).String()
 		result = name
 		//obj := reflect.New(reflect.TypeOf(d))
-		//result = obj.Interface().(*DataObjectChild).Class()
+		//result = obj.Interface().(*Sample).Class()
 	}
 }
 
 func BenchmarkNativeTypeSpeed(b *testing.B) {
-	d := DataObjectChild{}
+	d := Sample{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		name := d.Class()
+		name := d.ModelName()
 		result = name
 	}
 }
 
 func BenchmarkReflectNewSpeed(b *testing.B) {
-	d := DataObjectChild{}
+	d := Sample{}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		obj := reflect.New(reflect.TypeOf(d)).Interface().(*DataObjectChild)
-		result = obj.Class()
+		obj := reflect.New(reflect.TypeOf(d)).Interface().(*Sample)
+		result = obj.ModelName()
 	}
 }
 
 func BenchmarkNativeNewSpeed(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		obj := new(DataObjectChild)
-		result = obj.Class()
+		obj := new(Sample)
+		result = obj.ModelName()
 	}
 }

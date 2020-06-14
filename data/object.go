@@ -2,36 +2,72 @@ package data
 
 // Object is base data interface
 type Object interface {
-	ModelName() string
+	//ID is object unique id
+	//
+	//	d := &Sample{}
+	//	id := d.ID()
+	//
 	ID() string
+
+	// SetID set object unique id
+	//
+	//	d := &Sample{}
+	//	id := d.SetID("uniqueID")
+	//
 	SetID(id string)
-	New() interface{}
+
+	// ModelName return object name in data store
+	//
+	//	type Sample struct {
+	//	StoredObject
+	//	}
+	//	func (do *Sample) ModelName() string {
+	//		return "Sample"
+	//	}
+	//
+	ModelName() string
 }
 
-// StoredObject is basic data type
+// StoredObject mean object will be saved to data store
+//
+//	type Sample struct {
+//	StoredObject
+//	}
+//	func (do *Sample) ModelName() string {
+//		return "Sample"
+//	}
+//
 type StoredObject struct {
 	id string
 }
 
-//ID can get object unique id
+//ID is object unique id
+//
+//	d := &Sample{}
+//	id := d.ID()
+//
 func (o *StoredObject) ID() string {
 	return o.id
 }
 
-//SetID can set object unique id
+// SetID set object unique id
+//
+//	d := &Sample{}
+//	id := d.SetID("uniqueID")
+//
 func (o *StoredObject) SetID(newID string) {
 	o.id = newID
 }
 
-// ModelName get object db represent name
+// ModelName return object name in data store
 //
-//	greet.ModelName() // return "greet"
+//	type Sample struct {
+//	StoredObject
+//	}
+//	func (do *Sample) ModelName() string {
+//		return "Sample"
+//	}
 //
 func (o *StoredObject) ModelName() string {
 	panic("not implement ModelName()")
-}
-
-//New create new object instance
-func (o *StoredObject) New() interface{} {
-	panic("not implement New()")
 }

@@ -16,18 +16,21 @@ type DB interface {
 
 	// Put data object into data store
 	//
-	//	greet := Greet{
-	//			From:        "1",
-	//				Description: "1",
+	//	greet := &Greet{
+	//		From:        "1",
+	//		Description: "1",
 	//	}
 	//	ctx := context.Background()
 	//	db, _ := firestoreNewDB(ctx)
 	//	defer db.Close()
-	//	db.Put(ctx, &greet)
+	//	db.Put(ctx, greet)
 	Put(ctx context.Context, obj Object) error
 
 	// Update partial object field,  this function is significant slow than put
 	//
+	//	ctx := context.Background()
+	//	db, _ := firestoreNewDB(ctx)
+	//	defer db.Close()
 	//	err = db.Update(ctx, greet.ModelName(), greet.ID(), map[string]interface{}{
 	//		"Description": "helloworld",
 	//	})
@@ -36,15 +39,14 @@ type DB interface {
 
 	// Get data object from data store, return ErrObjectNotFound if object not exist
 	//
+	//	ctx := context.Background()
+	//	db, _ := firestoreNewDB(ctx)
+	//	defer db.Close()
+	//	greet := &Greet{}
+	//	greet.SetID("myID")
 	//	err = db.Get(ctx, &greet)
 	//
 	Get(ctx context.Context, obj Object) error
-
-	// GetByModelName get object use modelName
-	//
-	//	err = db.GetByModelName(ctx, "Greet", &greet)
-	//
-	GetByModelName(ctx context.Context, modelName string, obj Object) error
 
 	//GetAll object from data store, return error
 	//
@@ -60,13 +62,26 @@ type DB interface {
 
 	// Delete object from data store
 	//
-	//	_ = db.Delete(ctx, &greet)
+	//	ctx := context.Background()
+	//	db, _ := firestoreNewDB(ctx)
+	//	defer db.Close()
+	//	greet := &Greet{}
+	//	db.Put(ctx, &greet)
+	//	_ = db.Delete(ctx, greet)
 	//
 	Delete(ctx context.Context, obj Object) error
 
 	// Delete object from data store using model name and id
 	//
-	//	_ = db.Delete(ctx, "greet", "greet1")
+	//	greet := Greet{
+	//		From:        "me",
+	//		Description: "hi",
+	//	}
+	//	ctx := context.Background()
+	//	db, err := firestoreGlobalDB(ctx)
+	//	defer db.Close()
+	//	db.Put(ctx, &greet)
+	//	err = db.DeleteByID(ctx, GreetModelName, greet.ID())
 	//
 	DeleteByID(ctx context.Context, modelName, id string) error
 
@@ -88,7 +103,6 @@ type DB interface {
 	//
 	//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
 	//		tx.Put(ctx, &greet1)
-	//		tx.Put(ctx, &greet2)
 	//		return nil
 	//	})
 	//

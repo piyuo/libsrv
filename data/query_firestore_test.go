@@ -8,11 +8,11 @@ import (
 )
 
 func TestSelectQuery(t *testing.T) {
-	greet1 := Greet{
+	greet1 := &Greet{
 		From:        "1",
 		Description: "1",
 	}
-	greet2 := Greet{
+	greet2 := &Greet{
 		From:        "2",
 		Description: "2",
 	}
@@ -21,8 +21,8 @@ func TestSelectQuery(t *testing.T) {
 	db, _ := firestoreGlobalDB(ctx)
 	defer db.Close()
 
-	db.Put(ctx, &greet1)
-	db.Put(ctx, &greet2)
+	db.Put(ctx, greet1)
+	db.Put(ctx, greet2)
 
 	//test select
 	var i int
@@ -42,11 +42,11 @@ func TestSelectQuery(t *testing.T) {
 }
 
 func TestOrder(t *testing.T) {
-	greet1 := Greet{
+	greet1 := &Greet{
 		From:        "1",
 		Description: "1",
 	}
-	greet2 := Greet{
+	greet2 := &Greet{
 		From:        "2",
 		Description: "2",
 	}
@@ -54,33 +54,42 @@ func TestOrder(t *testing.T) {
 	db, _ := firestoreGlobalDB(ctx)
 	defer db.Close()
 
-	db.Put(ctx, &greet1)
-	db.Put(ctx, &greet2)
+	db.Put(ctx, greet1)
+	db.Put(ctx, greet2)
 
-	list := []*Greet{}
-	db.Select(ctx, GreetFactory).OrderByDesc("From").Run(func(o Object) {
-		greet := o.(*Greet)
-		list = append(list, greet)
-	})
-	Convey("OrderByDesc should return 2 first ", t, func() {
+	Convey("should run", t, func() {
+		list := []*Greet{}
+		db.Select(ctx, GreetFactory).Run(func(o Object) {
+			greet := o.(*Greet)
+			list = append(list, greet)
+		})
 		So(list[0].From, ShouldEqual, "2")
 	})
 
-	list = []*Greet{}
-	db.Select(ctx, GreetFactory).OrderBy("From").Run(func(o Object) {
-		greet := o.(*Greet)
-		list = append(list, greet)
+	Convey("OrderByDesc should return 2 first", t, func() {
+		list := []*Greet{}
+		db.Select(ctx, GreetFactory).OrderByDesc("From").Run(func(o Object) {
+			greet := o.(*Greet)
+			list = append(list, greet)
+		})
+		So(list[0].From, ShouldEqual, "2")
 	})
-	Convey("OrderByDesc should return 1 first ", t, func() {
+
+	Convey("OrderByDesc should return 1 first", t, func() {
+		list := []*Greet{}
+		db.Select(ctx, GreetFactory).OrderBy("From").Run(func(o Object) {
+			greet := o.(*Greet)
+			list = append(list, greet)
+		})
 		So(list[0].From, ShouldEqual, "1")
 	})
 
-	list = []*Greet{}
-	db.Select(ctx, GreetFactory).Limit(1).Run(func(o Object) {
-		greet := o.(*Greet)
-		list = append(list, greet)
-	})
-	Convey("Limit should return only 1 object ", t, func() {
+	Convey("Limit should return only 1 object", t, func() {
+		list := []*Greet{}
+		db.Select(ctx, GreetFactory).Limit(1).Run(func(o Object) {
+			greet := o.(*Greet)
+			list = append(list, greet)
+		})
 		So(len(list), ShouldEqual, 1)
 	})
 
