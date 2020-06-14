@@ -112,8 +112,8 @@ func (db *DBFirestore) Put(ctx context.Context, obj Object) error {
 	}
 	modelName := obj.ModelName()
 	if obj.ID() == "" {
-		ref := db.client.Collection(modelName).NewDoc()
-		obj.SetID(ref.ID)
+		docRef := db.client.Collection(modelName).NewDoc()
+		obj.SetID(docRef.ID)
 	}
 	_, err := db.client.Collection(modelName).Doc(obj.ID()).Set(ctx, obj)
 	if err != nil {
@@ -329,5 +329,81 @@ func (db *DBFirestore) Increment(ctx context.Context, modelName, modelField, obj
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// Counter get counter from data store, create one if not exist
+//
+//	counter,err = db.GetCounter(ctx, "myCounter")
+//
+func (db *DBFirestore) Counter(ctx context.Context, name string, numShards int) (*Counter, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	if numShards <= 0 {
+		numShards = 10
+	}
+	counter := &Counter{
+		NumShards: numShards,
+	}
+	counter.docRef = db.client.Collection("Counter").Doc(name)
+	snapshot, err := counter.docRef.Get(ctx)
+	if snapshot != nil && !snapshot.Exists() {
+		_, err := counter.docRef.Set(ctx, counter)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to put counter")
+		}
+		err = counter.init(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to init counter")
+		}
+		return counter, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get counter")
+	}
+
+	if err := snapshot.DataTo(counter); err != nil {
+		return nil, errors.Wrap(err, "failed convert to counter")
+	}
+	return counter, nil
+}
+
+// DeleteCounter remove counter and all shards
+//
+//	counter,err = db.GetCounter(ctx, "myCounter")
+//
+func (db *DBFirestore) DeleteCounter(ctx context.Context, name string) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	shardsBatch := db.client.Batch()
+	docRef := db.client.Collection("Counter").Doc(name)
+	shards := docRef.Collection("shards").Documents(ctx)
+	numDeleted := 0
+	for {
+		doc, err := shards.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return errors.Wrap(err, "failed to delete shards")
+		}
+		shardsBatch.Delete(doc.Ref)
+		numDeleted++
+	}
+
+	if numDeleted > 0 {
+		_, err := shardsBatch.Commit(ctx)
+		if err != nil {
+			return errors.Wrap(err, "failed to commit delete shards")
+		}
+
+	}
+
+	if _, err := docRef.Delete(ctx); err != nil {
+		return errors.Wrap(err, "failed to delete counter:"+name)
+	}
+
 	return nil
 }

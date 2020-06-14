@@ -343,6 +343,42 @@ func TestIncrement(t *testing.T) {
 	})
 }
 
+func TestCounter(t *testing.T) {
+	Convey("Should init, increment, count on counter", t, func() {
+		ctx := context.Background()
+		db, _ := firestoreGlobalDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, "Counter", 9)
+
+		counter, err := db.Counter(ctx, "mockCounter", 10)
+		So(counter, ShouldNotBeNil)
+		So(err, ShouldBeNil)
+
+		count, err := counter.Count(ctx)
+		So(count, ShouldEqual, 0)
+		So(err, ShouldBeNil)
+
+		err = counter.Increment(ctx, 2)
+		So(err, ShouldBeNil)
+
+		count, err = counter.Count(ctx)
+		So(count, ShouldEqual, 2)
+		So(err, ShouldBeNil)
+
+		err = db.DeleteCounter(ctx, "mockCounter")
+		So(err, ShouldBeNil)
+	})
+	Convey("Should delete not exist counter", t, func() {
+		ctx := context.Background()
+		db, _ := firestoreGlobalDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, "Counter", 9)
+
+		err := db.DeleteCounter(ctx, "notExistCounter")
+		So(err, ShouldBeNil)
+	})
+}
+
 func BenchmarkPutSpeed(b *testing.B) {
 	greet := Greet{
 		From:        "me",

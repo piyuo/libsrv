@@ -105,8 +105,18 @@ type DB interface {
 	//	err := db.Increment(ctx, GreetModelName, "Value", greet.ID(), 2)
 	//
 	Increment(ctx context.Context, modelName, modelField, objectID string, value int) error
-	//AddCount(className string) (int, int, error)
-	//Counter(className string) (int, error)
+
+	// Get counter from data store, create one if not exist
+	//
+	//	counter,err = db.GetCounter(ctx, "myCounter")
+	//
+	Counter(ctx context.Context, name string, numShards int) (*Counter, error)
+
+	// DeleteCounter delete remove counter and all shards
+	//
+	//	err = db.DeleteCounter(ctx, "myCounter")
+	//
+	DeleteCounter(ctx context.Context, name string) error
 }
 
 // AbstractDB is parent class for all DB child
@@ -114,40 +124,8 @@ type AbstractDB struct {
 	DB
 }
 
-// Shard use by Counter()
-type Shard struct {
-	Object
-	c int // counter
-}
-
 // ErrOperationTimeout is returned by DeleteAll method when the method is run too long
 var ErrOperationTimeout = errors.New("db operation timeout")
 
 // ErrObjectNotFound is returned by Get method object not exist
 var ErrObjectNotFound = errors.New("object not found")
-
-//AddCount implement sharding counter, shards limit usually 20
-//return shard number, shard count, error
-/*
-func (d *db) AddCount(className string, shards int) (int, int, error) {
-	rand.Seed(time.Now().UTC().UnixNano())
-	shardNumber := rand.Intn(shards)
-	shard := Shard{}
-	shard.SetID(strconv.Itoa(shardNumber))
-
-	err := d.Get(&shard)
-	if err != nil {
-		if err == ErrObjectNotFound {
-		} else {
-			return shardNumber, -1, err
-		}
-	}
-
-	shard.c++
-
-	if err := d.Put(&shard); err != nil {
-		return shardNumber, -1, err
-	}
-	return shardNumber, shard.c, nil
-}
-*/
