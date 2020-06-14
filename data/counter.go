@@ -24,8 +24,10 @@ type Shard struct {
 	Count int
 }
 
-// initCounter creates a given number of shards as
-// subcollection of specified document.
+// initCounter creates a given number of shards as subcollection of specified document.
+//
+//	err = counter.init(ctx)
+//
 func (c *Counter) init(ctx context.Context) error {
 	colRef := c.docRef.Collection("shards")
 
@@ -42,6 +44,8 @@ func (c *Counter) init(ctx context.Context) error {
 
 // Increment increments a randomly picked shard.
 //
+//	err = counter.Increment(ctx, 2)
+//
 func (c *Counter) Increment(ctx context.Context, value int) error {
 	rand.Seed(time.Now().UTC().UnixNano())
 	docID := strconv.Itoa(rand.Intn(c.NumShards))
@@ -53,6 +57,8 @@ func (c *Counter) Increment(ctx context.Context, value int) error {
 }
 
 // Count returns a total count across all shards.
+//
+//	count, err = counter.Count(ctx)
 //
 func (c *Counter) Count(ctx context.Context) (int64, error) {
 	var total int64

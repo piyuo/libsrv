@@ -86,8 +86,31 @@ func TestPutGetDelete(t *testing.T) {
 
 	//test delete
 	err = db.Delete(ctx, &greet)
-	Convey("delete greet from datastore'", t, func() {
+	Convey("delete greet from datastore", t, func() {
 		So(err, ShouldBeNil)
+	})
+}
+
+func TestDeleteByID(t *testing.T) {
+	Convey("should delete object by id", t, func() {
+		greet := Greet{
+			From:        "me",
+			Description: "hi",
+		}
+		ctx := context.Background()
+		db, err := firestoreGlobalDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, GreetModelName, 9)
+		db.Put(ctx, &greet)
+		exist, err := db.ExistByID(ctx, GreetModelName, greet.ID())
+		So(exist, ShouldBeTrue)
+		So(err, ShouldBeNil)
+		err = db.DeleteByID(ctx, GreetModelName, greet.ID())
+		So(err, ShouldBeNil)
+		exist, err = db.ExistByID(ctx, GreetModelName, greet.ID())
+		So(exist, ShouldBeFalse)
+		So(err, ShouldBeNil)
+		db.DeleteAll(ctx, GreetModelName, 9)
 	})
 }
 
@@ -108,8 +131,6 @@ func TestGetPutDeleteWhenContextCanceled(t *testing.T) {
 		err = db.Put(ctx, &greet)
 		So(err, ShouldNotBeNil)
 		err = db.Get(ctx, &greet)
-		So(err, ShouldNotBeNil)
-		err = db.GetByModelName(ctx, GreetModelName, &greet)
 		So(err, ShouldNotBeNil)
 		err = db.GetAll(ctx, GreetFactory, 100, func(o Object) {})
 		So(err, ShouldNotBeNil)
@@ -283,6 +304,30 @@ func TestExist(t *testing.T) {
 		db.Put(ctx, &greet)
 
 		exist, err = db.Exist(ctx, GreetModelName, "From", "==", "1")
+		So(exist, ShouldBeTrue)
+		So(err, ShouldBeNil)
+
+		db.DeleteAll(ctx, GreetModelName, 9)
+	})
+}
+
+func TestExistByID(t *testing.T) {
+	Convey("Should check object exist by id", t, func() {
+		greet := Greet{
+			From:        "1",
+			Description: "1",
+		}
+		ctx := context.Background()
+		db, _ := firestoreGlobalDB(ctx)
+		defer db.Close()
+		db.DeleteAll(ctx, GreetModelName, 9)
+
+		exist, err := db.ExistByID(ctx, GreetModelName, "mockID")
+		So(exist, ShouldBeFalse)
+		So(err, ShouldBeNil)
+
+		db.Put(ctx, &greet)
+		exist, err = db.ExistByID(ctx, GreetModelName, greet.ID())
 		So(exist, ShouldBeTrue)
 		So(err, ShouldBeNil)
 

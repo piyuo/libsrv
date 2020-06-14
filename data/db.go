@@ -64,6 +64,12 @@ type DB interface {
 	//
 	Delete(ctx context.Context, obj Object) error
 
+	// Delete object from data store using model name and id
+	//
+	//	_ = db.Delete(ctx, "greet", "greet1")
+	//
+	DeleteByID(ctx context.Context, modelName, id string) error
+
 	// DeleteAll delete all object in specific time, return ErrOperationTimeout when timed out
 	//
 	//	db.DeleteAll(ctx, GreetModelName, 9)
@@ -78,21 +84,27 @@ type DB interface {
 	//
 	Select(ctx context.Context, factory func() Object) Query
 
-	// RunTransaction run transaction
+	// Transaction start a transaction
 	//
-	//	err := db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
+	//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
 	//		tx.Put(ctx, &greet1)
 	//		tx.Put(ctx, &greet2)
 	//		return nil
 	//	})
 	//
-	RunTransaction(ctx context.Context, callback func(ctx context.Context, tx Transaction) error) error
+	Transaction(ctx context.Context, callback func(ctx context.Context, tx Transaction) error) error
 
 	// Exist return true if query result return a least one object
 	//
 	//	exist, err := db.Exist(ctx, GreetModelName, "From", "==", "1")
 	//
 	Exist(ctx context.Context, modelName, modelField, operator string, value interface{}) (bool, error)
+
+	// ExistByID return true if query result return a least one object
+	//
+	//	exist, err := db.ExistByID(ctx, GreetModelName, "greet1")
+	//
+	ExistByID(ctx context.Context, modelName, id string) (bool, error)
 
 	// Count10 return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible
 	//
@@ -108,7 +120,7 @@ type DB interface {
 
 	// Get counter from data store, create one if not exist
 	//
-	//	counter,err = db.GetCounter(ctx, "myCounter")
+	//	counter,err = db.Counter(ctx, "myCounter",10)
 	//
 	Counter(ctx context.Context, name string, numShards int) (*Counter, error)
 

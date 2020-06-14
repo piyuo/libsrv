@@ -30,26 +30,15 @@ func (db *DBFirestore) Close() {
 //
 //	err = db.Get(ctx, &greet)
 //
-func (db *DBFirestore) Get(ctx context.Context, obj Object) error {
+func (db *DBFirestore) Get(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.GetByModelName(ctx, obj.ModelName(), obj)
-}
-
-// GetByModelName get object use modelName
-//
-//	err = db.GetByModelName(ctx, "Greet", &greet)
-//
-func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj Object) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	id := obj.ID()
+	id := object.ID()
 	if id == "" {
 		return errors.New("get() need object have ID")
 	}
-	snapshot, err := db.client.Collection(modelName).Doc(id).Get(ctx)
+	snapshot, err := db.client.Collection(object.ModelName()).Doc(id).Get(ctx)
 	if snapshot != nil && !snapshot.Exists() {
 		return ErrObjectNotFound
 	}
@@ -57,7 +46,7 @@ func (db *DBFirestore) GetByModelName(ctx context.Context, modelName string, obj
 		return err
 	}
 
-	if err := snapshot.DataTo(obj); err != nil {
+	if err := snapshot.DataTo(object); err != nil {
 		return err
 	}
 	return nil
@@ -182,9 +171,20 @@ func (db *DBFirestore) Delete(ctx context.Context, obj Object) error {
 	}
 	id := obj.ID()
 	modelName := obj.ModelName()
+	return db.DeleteByID(ctx, modelName, id)
+}
+
+// DeleteByID delete object by id
+//
+//	err = db.DeleteByID(ctx, GreetModelName, greet.ID())
+//
+func (db *DBFirestore) DeleteByID(ctx context.Context, modelName, id string) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 	ref := db.client.Collection(modelName).Doc(id)
 	if _, err := ref.Delete(ctx); err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete "+modelName+",id:"+id)
 	}
 	return nil
 }
@@ -250,21 +250,21 @@ func (db *DBFirestore) Select(ctx context.Context, factory func() Object) Query 
 	return NewQueryFirestore(ctx, query, factory)
 }
 
-// RunTransaction run transaction
+// Transaction start a transaction
 //
-//	err := db.RunTransaction(ctx, func(ctx context.Context, tx Transaction) error {
+//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
 //		tx.Put(ctx, &greet1)
 //		tx.Put(ctx, &greet2)
 //		return nil
 //	})
 //
-func (db *DBFirestore) RunTransaction(ctx context.Context, f func(ctx context.Context, tx Transaction) error) error {
+func (db *DBFirestore) Transaction(ctx context.Context, callback func(ctx context.Context, tx Transaction) error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 	return db.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		tf := NewTransactionFirestore(ctx, db.client, tx)
-		return f(ctx, tf)
+		return callback(ctx, tf)
 	})
 }
 
@@ -285,6 +285,25 @@ func (db *DBFirestore) Exist(ctx context.Context, modelName, modelField, operato
 	}
 	if err != nil {
 		return false, err
+	}
+	return true, nil
+}
+
+// ExistByID return true if query result return a least one object
+//
+//	exist, err := db.ExistByID(ctx, GreetModelName, "greet1")
+//
+func (db *DBFirestore) ExistByID(ctx context.Context, modelName, id string) (bool, error) {
+	if ctx.Err() != nil {
+		return false, ctx.Err()
+	}
+
+	snapshot, err := db.client.Collection(modelName).Doc(id).Get(ctx)
+	if snapshot != nil && !snapshot.Exists() {
+		return false, nil
+	}
+	if err != nil {
+		return false, errors.Wrap(err, "failed to find exist "+modelName+", id:"+id)
 	}
 	return true, nil
 }
@@ -334,7 +353,7 @@ func (db *DBFirestore) Increment(ctx context.Context, modelName, modelField, obj
 
 // Counter get counter from data store, create one if not exist
 //
-//	counter,err = db.GetCounter(ctx, "myCounter")
+//	counter,err = db.Counter(ctx, "myCounter",10)
 //
 func (db *DBFirestore) Counter(ctx context.Context, name string, numShards int) (*Counter, error) {
 	if ctx.Err() != nil {
@@ -348,6 +367,7 @@ func (db *DBFirestore) Counter(ctx context.Context, name string, numShards int) 
 	}
 	counter.docRef = db.client.Collection("Counter").Doc(name)
 	snapshot, err := counter.docRef.Get(ctx)
+
 	if snapshot != nil && !snapshot.Exists() {
 		_, err := counter.docRef.Set(ctx, counter)
 		if err != nil {
@@ -359,6 +379,7 @@ func (db *DBFirestore) Counter(ctx context.Context, name string, numShards int) 
 		}
 		return counter, nil
 	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get counter")
 	}
