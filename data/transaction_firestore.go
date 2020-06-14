@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TransactionFirestore implement google firestore
+// TransactionFirestore implement transaction base on google firestore
 type TransactionFirestore struct {
 	AbstractTransaction
 	client *firestore.Client
@@ -15,11 +15,22 @@ type TransactionFirestore struct {
 }
 
 // NewTransactionFirestore is google firestore transaction
+//
+//	t := NewTransactionFirestore(ctx, db.client, tx)
+//
 func NewTransactionFirestore(ctx context.Context, client *firestore.Client, tx *firestore.Transaction) *TransactionFirestore {
 	return &TransactionFirestore{client: client, tx: tx}
 }
 
-//Get data object from data store, return ErrNotFound if object not exist
+// Get data object from data store, return ErrNotFound if object not exist
+//
+//	greet := &Greet{}
+//	greet.SetID(greet1.ID())
+//	err = db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
+//		tx.Get(ctx, greet)
+//		return nil
+//	})
+//
 func (trans *TransactionFirestore) Get(ctx context.Context, obj Object) error {
 	id := obj.ID()
 	if id == "" {
@@ -43,7 +54,16 @@ func (trans *TransactionFirestore) Get(ctx context.Context, obj Object) error {
 	return nil
 }
 
-//Put data object into data store
+// Put data object into data store
+//
+//	greet1 := &Greet{
+//		From:        "1",
+//		Description: "1",
+//	}
+//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
+//		tx.Put(ctx, greet1)
+//		return nil
+//	})
 func (trans *TransactionFirestore) Put(ctx context.Context, obj Object) error {
 	modelName := obj.ModelName()
 	if obj.ID() == "" {
@@ -58,7 +78,13 @@ func (trans *TransactionFirestore) Put(ctx context.Context, obj Object) error {
 	return nil
 }
 
-//Delete data object from firestore
+// Delete data object from firestore
+//
+//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
+//		tx.Delete(ctx, greet)
+//		return nil
+//	})
+//
 func (trans *TransactionFirestore) Delete(ctx context.Context, obj Object) error {
 	id := obj.ID()
 	modelName := obj.ModelName()
