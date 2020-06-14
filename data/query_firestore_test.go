@@ -53,6 +53,7 @@ func TestOrder(t *testing.T) {
 	ctx := context.Background()
 	db, _ := firestoreGlobalDB(ctx)
 	defer db.Close()
+	db.DeleteAll(ctx, greet1.ModelName(), 9)
 
 	db.Put(ctx, greet1)
 	db.Put(ctx, greet2)
