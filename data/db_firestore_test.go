@@ -183,6 +183,7 @@ func TestSelectDelete(t *testing.T) {
 	ctx := context.Background()
 	db, _ := firestoreGlobalDB(ctx)
 	defer db.Close()
+	db.DeleteAll(ctx, GreetModelName, 9)
 
 	db.Put(ctx, &greet1)
 	db.Put(ctx, &greet2)
@@ -192,17 +193,19 @@ func TestSelectDelete(t *testing.T) {
 		return new(Greet)
 	})
 
-	var i int
-	qry.Run(func(o Object) {
-		i++
-		err := db.Delete(ctx, o)
-		Convey("delete select document ", t, func() {
-			So(err, ShouldBeNil)
-		})
+	list, err := qry.Execute()
+	Convey("test select count", t, func() {
+		So(len(list), ShouldEqual, 2)
 	})
-	Convey("test select count '", t, func() {
-		So(i, ShouldBeGreaterThanOrEqualTo, 2)
+
+	Convey("delete select document ", t, func() {
+		err = db.Delete(ctx, list[0])
+		So(err, ShouldBeNil)
+		err = db.Delete(ctx, list[1])
+		So(err, ShouldBeNil)
 	})
+
+	db.DeleteAll(ctx, GreetModelName, 9)
 }
 
 func TestDeleteAll(t *testing.T) {
@@ -222,11 +225,11 @@ func TestDeleteAll(t *testing.T) {
 
 	numDeleted, err := db.DeleteAll(ctx, greet1.ModelName(), 10)
 
-	Convey("DeleteAll should not have error '", t, func() {
+	Convey("DeleteAll should not have error", t, func() {
 		So(err, ShouldBeNil)
 	})
 
-	Convey("DeleteAll should return count '", t, func() {
+	Convey("DeleteAll should return count", t, func() {
 		So(numDeleted, ShouldBeGreaterThanOrEqualTo, 2)
 	})
 }
@@ -251,7 +254,7 @@ func TestGetAll(t *testing.T) {
 	err := db.GetAll(ctx, GreetFactory, 100, func(o Object) {
 		list = append(list, o.(*Greet))
 	})
-	Convey("GetAll should not have error '", t, func() {
+	Convey("GetAll should not have error", t, func() {
 		So(err, ShouldBeNil)
 	})
 	Convey("list should hold all object", t, func() {
@@ -277,7 +280,7 @@ func TestListAll(t *testing.T) {
 	db.Put(ctx, &greet2)
 
 	list, err := db.ListAll(ctx, GreetFactory, 100)
-	Convey("GetAll should not have error '", t, func() {
+	Convey("GetAll should not have error", t, func() {
 		So(err, ShouldBeNil)
 	})
 	Convey("list should hold all object", t, func() {

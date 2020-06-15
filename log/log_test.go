@@ -63,7 +63,7 @@ func TestLogWhenContextCanceled(t *testing.T) {
 }
 
 func TestBeautyStack(t *testing.T) {
-	Convey("should return beauty formatted stack '", t, func() {
+	Convey("should return beauty formatted stack", t, func() {
 		err := errors.New("beauty stack")
 		stack := beautyStack(err)
 		So(stack, ShouldNotBeEmpty)
@@ -71,7 +71,7 @@ func TestBeautyStack(t *testing.T) {
 }
 
 func TestExtractFilename(t *testing.T) {
-	Convey("should return filename '", t, func() {
+	Convey("should return filename", t, func() {
 		path := "/convey/doc.go:75"
 		filename := extractFilename(path)
 		So(filename, ShouldEqual, "doc.go:75")
@@ -79,14 +79,14 @@ func TestExtractFilename(t *testing.T) {
 }
 
 func TestIsLineUsable(t *testing.T) {
-	Convey("should check line usable '", t, func() {
+	Convey("should check line usable", t, func() {
 		line := "/smartystreets/convey/doc.go:75"
 		So(isLineUsable(line), ShouldBeFalse)
 	})
 }
 
 func TestIsLineDuplicate(t *testing.T) {
-	Convey("should check line duplicated '", t, func() {
+	Convey("should check line duplicated", t, func() {
 		list := []string{"/doc.go:75", "/doc.go:75"}
 		So(isLineDuplicate(list, 0), ShouldBeFalse)
 		So(isLineDuplicate(list, 1), ShouldBeTrue)

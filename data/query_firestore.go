@@ -77,26 +77,98 @@ func (qf *QueryFirestore) Limit(n int) Query {
 	return qf
 }
 
-//Offset implement start at on firestore, often use by paginate data
-//in firestore will bill extra mony on offset
-//func (q *QueryFirestore) Offset(n int) IQuery {
-//	q.query = q.query.Offset(n)
-//	return q
-//}
+// StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
+//
+//	greet1 := &Greet{
+//		From: "a city",
+//	}
+//	greet2 := &Greet{
+//		From: "b city",
+//	}
+//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAt("b city").Execute()
+//	So(err, ShouldBeNil)
+//	greet := list[0].(*Greet)
+//	So(greet.From, ShouldEqual, "b city")
+//	So(len(list), ShouldEqual, 2)
+//
+func (qf *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query {
+	qf.query = qf.query.StartAt(docSnapshotOrFieldValues...)
+	return qf
+}
 
-// Run query with default limit 100 object, use Limit() to override default limit
+// StartAfter implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
+//
+//	greet1 := &Greet{
+//		From: "a city",
+//	}
+//	greet2 := &Greet{
+//		From: "b city",
+//	}
+//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAfter("b city").Execute()
+//	So(err, ShouldBeNil)
+//	greet := list[0].(*Greet)
+//	So(greet.From, ShouldEqual, "c city")
+//	So(len(list), ShouldEqual, 1)
+//
+func (qf *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Query {
+	qf.query = qf.query.StartAfter(docSnapshotOrFieldValues...)
+	return qf
+}
+
+// EndAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
+//
+//	greet1 := &Greet{
+//		From: "a city",
+//	}
+//	greet2 := &Greet{
+//		From: "b city",
+//	}
+//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndAt("b city").Execute()
+//	So(err, ShouldBeNil)
+//	greet := list[0].(*Greet)
+//	So(greet.From, ShouldEqual, "a city")
+//	So(len(list), ShouldEqual, 2)
+//
+func (qf *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
+	qf.query = qf.query.EndAt(docSnapshotOrFieldValues...)
+	return qf
+}
+
+// EndBefore implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
+//
+//	greet1 := &Greet{
+//		From: "a city",
+//	}
+//	greet2 := &Greet{
+//		From: "b city",
+//	}
+//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndBefore("b city").Execute()
+//	So(err, ShouldBeNil)
+//	greet := list[0].(*Greet)
+//	So(greet.From, ShouldEqual, "a city")
+//	So(len(list), ShouldEqual, 1)
+//
+func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Query {
+	qf.query = qf.query.EndBefore(docSnapshotOrFieldValues...)
+	return qf
+}
+
+// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 //
 //	list = []*Greet{}
-//	db.Select(ctx, GreetFactory).Run(func(o Object) {
-//		greet := o.(*Greet)
-//		list = append(list, greet)
-//	})
+//	ctx := context.Background()
+//	db, _ := firestoreGlobalDB(ctx)
+//	defer db.Close()
+//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute()
+//	greet := list[0].(*Greet)
+//	So(greet.From, ShouldEqual, "b city")
+//	So(len(list), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) Run(callback func(o Object)) error {
+func (qf *QueryFirestore) Execute() ([]Object, error) {
 	if qf.limit == 0 {
-		qf.Limit(100)
+		qf.Limit(10)
 	}
-
+	var resultSet []Object
 	iter := qf.query.Documents(qf.ctx)
 	for {
 		doc, err := iter.Next()
@@ -104,15 +176,15 @@ func (qf *QueryFirestore) Run(callback func(o Object)) error {
 			break
 		}
 		if err != nil {
-			return err
+			return nil, err
 		}
 		obj := qf.factory()
 		err = doc.DataTo(obj)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		obj.SetID(doc.Ref.ID)
-		callback(obj)
+		resultSet = append(resultSet, obj)
 	}
-	return nil
+	return resultSet, nil
 }
