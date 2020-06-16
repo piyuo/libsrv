@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.57.0
 	cloud.google.com/go/firestore v1.1.1
 	cloud.google.com/go/logging v1.0.0
+	cloud.google.com/go/storage v1.6.0
 	github.com/golang/protobuf v1.4.2
 	github.com/lithammer/shortuuid/v3 v3.0.4
 	github.com/pkg/errors v0.9.1

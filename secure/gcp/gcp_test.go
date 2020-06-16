@@ -18,35 +18,33 @@ func TestCredential(t *testing.T) {
 		cred, err := createCredential(context.Background(), key, "https://www.googleapis.com/auth/cloud-platform")
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
-	})
 
-	Convey("should keep global log google credential", t, func() {
-		So(globalLogCredential, ShouldBeNil)
-		cred, err := LogCredential(context.Background())
+		// test multi scope
+		cred, err = createCredential(context.Background(), key, "https://www.googleapis.com/auth/cloud-platform", "https://www.googleapis.com/auth/datastore")
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
-		So(globalLogCredential, ShouldNotBeNil)
+
 	})
 
-	Convey("should keep global data google credential", t, func() {
-		So(globalDataCredential, ShouldBeNil)
-		cred, err := GlobalDataCredential(context.Background())
+	Convey("should keep global credential", t, func() {
+		So(globalCredential, ShouldBeNil)
+		cred, err := GlobalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
-		So(globalDataCredential, ShouldNotBeNil)
+		So(globalCredential, ShouldNotBeNil)
 	})
 
 }
 
 func TestDataCredentialByRegion(t *testing.T) {
 	Convey("should get data credential by region", t, func() {
-		cred, err := DataCredentialByRegion(context.Background(), "us")
+		cred, err := RegionalCredential(context.Background(), "us")
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
-		cred, err = DataCredentialByRegion(context.Background(), "jp")
+		cred, err = RegionalCredential(context.Background(), "jp")
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
-		cred, err = DataCredentialByRegion(context.Background(), "be")
+		cred, err = RegionalCredential(context.Background(), "be")
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 
@@ -55,7 +53,7 @@ func TestDataCredentialByRegion(t *testing.T) {
 
 func TestRegionalDataCredential(t *testing.T) {
 	Convey("should get data credential in current region", t, func() {
-		cred, err := RegionalDataCredential(context.Background())
+		cred, err := CurrentRegionalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 	})
@@ -67,9 +65,7 @@ func TestCredentialWhenContextCanceled(t *testing.T) {
 		ctx, cancel := context.WithDeadline(context.Background(), dateline)
 		defer cancel()
 		time.Sleep(time.Duration(2) * time.Millisecond)
-		_, err := LogCredential(ctx)
+		_, err := GlobalCredential(ctx)
 		So(err, ShouldNotBeNil)
-		_, err2 := GlobalDataCredential(ctx)
-		So(err2, ShouldNotBeNil)
 	})
 }

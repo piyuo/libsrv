@@ -11,7 +11,7 @@ import (
 func TestFirestoreNewDB(t *testing.T) {
 	Convey("should create db", t, func() {
 		ctx := context.Background()
-		cred, err := gcp.GlobalDataCredential(ctx)
+		cred, err := gcp.GlobalCredential(ctx)
 		So(err, ShouldBeNil)
 		db, err := firestoreNewDB(ctx, cred)
 		So(err, ShouldBeNil)

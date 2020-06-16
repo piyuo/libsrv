@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"cloud.google.com/go/firestore"
-	log "github.com/piyuo/libsrv/log"
 	gcp "github.com/piyuo/libsrv/secure/gcp"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -16,9 +15,8 @@ import (
 //	firestoreGlobalDB(ctx)
 //
 func firestoreGlobalDB(ctx context.Context) (DB, error) {
-	cred, err := gcp.GlobalDataCredential(ctx)
+	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
-		log.Alert(ctx, here, "failed to get firestore credential")
 		return nil, err
 	}
 	return firestoreNewDB(ctx, cred)
@@ -29,9 +27,8 @@ func firestoreGlobalDB(ctx context.Context) (DB, error) {
 //	firestoreRegionalDB(ctx)
 //
 func firestoreRegionalDB(ctx context.Context) (DB, error) {
-	cred, err := gcp.RegionalDataCredential(ctx)
+	cred, err := gcp.CurrentRegionalCredential(ctx)
 	if err != nil {
-		log.Alert(ctx, here, "failed to get firestore credential")
 		return nil, err
 	}
 	return firestoreNewDB(ctx, cred)

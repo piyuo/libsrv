@@ -23,6 +23,7 @@ type File interface {
 //		panic(err)
 //	}
 //	defer f.Close()
+//
 func Open(filename string) (File, error) {
 	f := &file{}
 	osFile, err := os.Open(filename)
@@ -48,6 +49,7 @@ type file struct {
 // JSON get json data store
 //
 //	fmt.Println(f.JSON()["users"])
+//
 func (f *file) JSON() (map[string]interface{}, error) {
 	if f.json != nil {
 		return f.json, nil
@@ -63,6 +65,7 @@ func (f *file) JSON() (map[string]interface{}, error) {
 // Text get json data store
 //
 //	f.Text()
+//
 func (f *file) Text() string {
 	if f.text != "" {
 		return f.text
@@ -74,6 +77,7 @@ func (f *file) Text() string {
 //Bytes return bytes
 //
 //	f.Bytes()
+//
 func (f *file) Bytes() []byte {
 	return f.bytes
 }
@@ -81,6 +85,7 @@ func (f *file) Bytes() []byte {
 // Close release memory
 //
 //	f.Close()
+//
 func (f *file) Close() {
 	f.bytes = nil
 	f.json = nil

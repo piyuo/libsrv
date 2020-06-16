@@ -19,8 +19,9 @@ import (
 //
 //	ctx := context.Background()
 //	logClient, _ := gcpCreateLogClient(ctx)
+//
 func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
-	cred, err := gcp.LogCredential(ctx)
+	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
 	}
@@ -36,8 +37,9 @@ func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 //
 //	ctx := context.Background()
 //	errClient, _ := gcpCreateErrorClient(ctx)
+//
 func gcpCreateErrorClient(ctx context.Context, application string) (*errorreporting.Client, error) {
-	cred, err := gcp.LogCredential(ctx)
+	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
 	}
