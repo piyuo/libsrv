@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
 
@@ -69,7 +70,7 @@ func (c *Counter) Count(ctx context.Context) (int64, error) {
 			break
 		}
 		if err != nil {
-			return 0, fmt.Errorf("Next: %v", err)
+			return 0, errors.Wrap(err, "failed iterator shards documents")
 		}
 
 		vTotal := doc.Data()["Count"]

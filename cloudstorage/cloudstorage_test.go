@@ -9,16 +9,38 @@ import (
 
 func TestNewCloudstorage(t *testing.T) {
 	Convey("should new cloudstorage", t, func() {
-		cflare, err := NewCloudstorage(context.Background())
+		storage, err := NewCloudstorage(context.Background())
 		So(err, ShouldBeNil)
-		So(cflare, ShouldNotBeNil)
+		So(storage, ShouldNotBeNil)
 	})
 }
 
-func TestAddBucket(t *testing.T) {
+func TestBucket(t *testing.T) {
 	Convey("should new cloudstorage", t, func() {
-		cflare, err := NewCloudstorage(context.Background())
+		ctx := context.Background()
+		storage, err := NewCloudstorage(ctx)
+
+		bucketName := "mock-libsrv.piyuo.com"
+
+		err = storage.RemoveBucket(ctx, bucketName)
 		So(err, ShouldBeNil)
-		So(cflare, ShouldNotBeNil)
+
+		exist, err := storage.IsBucketExist(ctx, bucketName)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeFalse)
+
+		err = storage.AddBucket(ctx, bucketName, "US")
+		So(err, ShouldBeNil)
+
+		exist, err = storage.IsBucketExist(ctx, bucketName)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeTrue)
+
+		err = storage.RemoveBucket(ctx, bucketName)
+		So(err, ShouldBeNil)
+
+		exist, err = storage.IsBucketExist(ctx, bucketName)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeFalse)
 	})
 }
