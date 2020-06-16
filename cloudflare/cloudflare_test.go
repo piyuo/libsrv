@@ -15,10 +15,29 @@ func TestNewCloudflare(t *testing.T) {
 	})
 }
 
-func TestAddSubDomain(t *testing.T) {
-	Convey("should add sub domain", t, func() {
-		cflare, err := NewCloudflare(context.Background())
+func TestSubDomain(t *testing.T) {
+	Convey("should add remove sub domain", t, func() {
+		ctx := context.Background()
+		cflare, err := NewCloudflare(ctx)
 		So(err, ShouldBeNil)
 		So(cflare, ShouldNotBeNil)
+		subDomain := "mock-libsrv"
+		domainName := subDomain + ".piyuo.com"
+
+		cflare.RemoveDomain(ctx, domainName)
+
+		exist, err := cflare.IsDomainExist(ctx, domainName)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeFalse)
+
+		err = cflare.AddDomain(ctx, domainName, false)
+		So(err, ShouldBeNil)
+
+		exist, err = cflare.IsDomainExist(ctx, domainName)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeTrue)
+
+		err = cflare.RemoveDomain(ctx, domainName)
+		So(err, ShouldBeNil)
 	})
 }
