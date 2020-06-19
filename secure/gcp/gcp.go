@@ -27,6 +27,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 			return nil, errors.Wrap(err, "failed to get keys/gcloud.key")
 		}
 		cred, err := createCredential(ctx, key,
+			"https://www.googleapis.com/auth/siteverification",        // log, error
 			"https://www.googleapis.com/auth/cloud-platform",          // log, error
 			"https://www.googleapis.com/auth/devstorage.full_control", // storage
 			"https://www.googleapis.com/auth/datastore")               // firestore
