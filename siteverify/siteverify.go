@@ -55,14 +55,14 @@ type SiteVerify interface {
 	//
 	List(ctx context.Context) ([]*VerifiedSite, error)
 
-	// UnVerify return site verify token
+	// *(this api is not stable,delete domain always error)Delete domain by siteID, you can use List() to get verified site with id
 	//
 	//	ctx := context.Background()
 	//	siteverify, err := NewSiteVerify(ctx)
 	//	domainName := "mock-site-verify.piyuo.com"
 	//	token, err := siteverify.GetToken(ctx, domainName)
 	//
-	Delete(ctx context.Context, siteID string) error
+	//Delete(ctx context.Context, siteID string) error
 }
 
 // SiteVerifyImpl is cloudflare implementation
@@ -204,7 +204,7 @@ func (impl *SiteVerifyImpl) List(ctx context.Context) ([]*VerifiedSite, error) {
 	return result, nil
 }
 
-// Delete domain by siteID, you can use List() to get verified site with id
+// *(this api is not stable,delete domain always error)Delete domain by siteID, you can use List() to get verified site with id
 //
 //	ctx := context.Background()
 //	siteverify, err := NewSiteVerify(ctx)
@@ -213,6 +213,7 @@ func (impl *SiteVerifyImpl) List(ctx context.Context) ([]*VerifiedSite, error) {
 //	So(err, ShouldBeNil)
 //	So(result, ShouldBeTrue)
 //
+/*
 func (impl *SiteVerifyImpl) Delete(ctx context.Context, siteID string) error {
 	webService := siteverification.NewWebResourceService(impl.client)
 	call := webService.Delete(siteID)
@@ -226,3 +227,4 @@ func (impl *SiteVerifyImpl) Delete(ctx context.Context, siteID string) error {
 
 	return nil
 }
+*/

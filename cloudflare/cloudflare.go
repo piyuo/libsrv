@@ -56,17 +56,17 @@ type Cloudflare interface {
 	//
 	//	ctx := context.Background()
 	//	cflare, err := NewCloudflare(ctx)
-	//	exist, err := cflare.IsDomainExist(ctx, domainName)
+	//	err = cflare.RemoveTxtRecord(ctx, domainName, txt)
 	//
-	RemoveTxtRecord(ctx context.Context, domainName, txt string) error
+	RemoveTxtRecord(ctx context.Context, domainName string) error
 
 	// IsTxtRecordExist return true if txt record exist
 	//
 	//	ctx := context.Background()
 	//	cflare, err := NewCloudflare(ctx)
-	//	exist, err := cflare.IsDomainExist(ctx, domainName)
+	//	exist, err := cflare.IsTxtRecordExist(ctx, domainName, txt)
 	//
-	IsTxtRecordExist(ctx context.Context, domainName, txt string) (bool, error)
+	IsTxtRecordExist(ctx context.Context, domainName string) (bool, error)
 }
 
 // CloudflareImpl is cloudflare implementation
@@ -113,7 +113,10 @@ func NewCloudflare(ctx context.Context) (Cloudflare, error) {
 //	id, err := impl.getDomainID(ctx, domainName)
 //
 func (impl *CloudflareImpl) getRecord(ctx context.Context, domainName, recType, content string) (string, error) {
-	url := impl.apiURL() + "?type=" + recType + "&content=" + content + "&name=" + url.QueryEscape(domainName)
+	url := impl.apiURL() + "?type=" + recType + "&name=" + url.QueryEscape(domainName)
+	if content != "" {
+		url = url + "&content=" + content
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get record:"+domainName)
@@ -250,7 +253,9 @@ func (impl *CloudflareImpl) IsDomainExist(ctx context.Context, domainName string
 
 // AddTxtRecord add TXT record to dns
 //
-//	id, err := impl.getDomainID(ctx, domainName)
+//	ctx := context.Background()
+//	cflare, err := NewCloudflare(ctx)
+//	err = cflare.AddTxtRecord(ctx, domainName, txt)
 //
 func (impl *CloudflareImpl) AddTxtRecord(ctx context.Context, domainName, txt string) error {
 	var requestJSON = []byte(`{"type":"TXT","name":"` + domainName + `","content":"` + txt + `"}`)
@@ -272,10 +277,10 @@ func (impl *CloudflareImpl) AddTxtRecord(ctx context.Context, domainName, txt st
 //
 //	ctx := context.Background()
 //	cflare, err := NewCloudflare(ctx)
-//	err = cflare.RemoveDomain(ctx, domainName)
+//	err = cflare.RemoveTxtRecord(ctx, domainName, txt)
 //
-func (impl *CloudflareImpl) RemoveTxtRecord(ctx context.Context, domainName, txt string) error {
-	id, err := impl.getRecord(ctx, domainName, "TXT", txt)
+func (impl *CloudflareImpl) RemoveTxtRecord(ctx context.Context, domainName string) error {
+	id, err := impl.getRecord(ctx, domainName, "TXT", "")
 	if err != nil {
 		return err
 	}
@@ -283,7 +288,7 @@ func (impl *CloudflareImpl) RemoveTxtRecord(ctx context.Context, domainName, txt
 		url := impl.apiURL() + "/" + id
 		req, err := http.NewRequest("DELETE", url, nil)
 		if err != nil {
-			return errors.Wrap(err, "failed to remove txt record:"+domainName+" ,contxt:"+txt)
+			return errors.Wrap(err, "failed to remove txt record:"+domainName)
 		}
 		_, err = impl.dnsRequest(ctx, req)
 		if err != nil {
@@ -297,10 +302,10 @@ func (impl *CloudflareImpl) RemoveTxtRecord(ctx context.Context, domainName, txt
 //
 //	ctx := context.Background()
 //	cflare, err := NewCloudflare(ctx)
-//	exist, err := cflare.IsDomainExist(ctx, domainName)
+//	exist, err = cflare.IsTxtRecordExist(ctx, domainName, txt)
 //
-func (impl *CloudflareImpl) IsTxtRecordExist(ctx context.Context, domainName, txt string) (bool, error) {
-	id, err := impl.getRecord(ctx, domainName, "TXT", txt)
+func (impl *CloudflareImpl) IsTxtRecordExist(ctx context.Context, domainName string) (bool, error) {
+	id, err := impl.getRecord(ctx, domainName, "TXT", "")
 	if err != nil {
 		return false, err
 	}

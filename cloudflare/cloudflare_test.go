@@ -66,16 +66,16 @@ func TestTxtRecord(t *testing.T) {
 		domainName := subDomain + ".piyuo.com"
 		txt := "hi"
 		//remove sample record
-		cflare.RemoveTxtRecord(ctx, domainName, txt)
+		cflare.RemoveTxtRecord(ctx, domainName)
 
-		exist, err := cflare.IsTxtRecordExist(ctx, domainName, txt)
+		exist, err := cflare.IsTxtRecordExist(ctx, domainName)
 		So(err, ShouldBeNil)
 		So(exist, ShouldBeFalse)
 
 		err = cflare.AddTxtRecord(ctx, domainName, txt)
 		So(err, ShouldBeNil)
 
-		exist, err = cflare.IsTxtRecordExist(ctx, domainName, txt)
+		exist, err = cflare.IsTxtRecordExist(ctx, domainName)
 		So(err, ShouldBeNil)
 		So(exist, ShouldBeTrue)
 
@@ -83,15 +83,15 @@ func TestTxtRecord(t *testing.T) {
 		err = cflare.AddTxtRecord(ctx, domainName, txt)
 		So(err, ShouldBeNil)
 
-		err = cflare.RemoveTxtRecord(ctx, domainName, txt)
+		err = cflare.RemoveTxtRecord(ctx, domainName)
 		So(err, ShouldBeNil)
 
-		exist, err = cflare.IsTxtRecordExist(ctx, domainName, txt)
+		exist, err = cflare.IsTxtRecordExist(ctx, domainName)
 		So(err, ShouldBeNil)
 		So(exist, ShouldBeFalse)
 
 		// remove txt record second time should not error
-		err = cflare.RemoveTxtRecord(ctx, domainName, txt)
+		err = cflare.RemoveTxtRecord(ctx, domainName)
 		So(err, ShouldBeNil)
 
 	})
