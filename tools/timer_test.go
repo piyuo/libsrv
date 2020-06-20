@@ -12,7 +12,9 @@ func TestTimer(t *testing.T) {
 		timer := NewTimer()
 		timer.Start()
 		time.Sleep(1 * time.Millisecond)
-		ms := timer.Stop()
+		ms := timer.TimeSpan()
+		So(ms >= 1, ShouldBeTrue)
+		ms = timer.Stop()
 		So(ms >= 1, ShouldBeTrue)
 	})
 }

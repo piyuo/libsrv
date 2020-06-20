@@ -2,11 +2,14 @@ package data
 
 import (
 	"context"
+	"io"
+	"io/ioutil"
 	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/piyuo/libsrv/log"
 	"github.com/piyuo/libsrv/secure/gcp"
+	"github.com/piyuo/libsrv/tools"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -36,6 +39,14 @@ type Cloudstorage interface {
 	//
 	RemoveBucket(ctx context.Context, bucketName string) error
 
+	// CleanBucket remove all file in bucket
+	//
+	//	ctx := context.Background()
+	//	storage, err := NewCloudstorage(ctx)
+	//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
+	//
+	CleanBucket(ctx context.Context, bucketName string) error
+
 	// IsBucketExist return true if bucket exist
 	//
 	//	bucketName := "mock-libsrv.piyuo.com"
@@ -44,6 +55,33 @@ type Cloudstorage interface {
 	//	exist, err := storage.IsBucketExist(ctx, bucketName)
 	//
 	IsBucketExist(ctx context.Context, bucketName string) (bool, error)
+
+	// WriteText file to bucket
+	//
+	//	ctx := context.Background()
+	//	storage, err := NewCloudstorage(ctx)
+	//	err = storage.AddBucket(ctx, bucketName, "US")
+	//	So(err, ShouldBeNil)
+	//
+	WriteText(ctx context.Context, bucketName, path, txt string) error
+
+	// ReadText file from bucket
+	//
+	//	ctx := context.Background()
+	//	storage, err := NewCloudstorage(ctx)
+	//	txt, err := storage.ReadText(ctx, bucketName, path)
+	//	So(err, ShouldBeNil)
+	//	So(txt, ShouldEqual, "hi")
+	//
+	ReadText(ctx context.Context, bucketName, path string) (string, error)
+
+	// Delete file from bucket
+	//
+	//	ctx := context.Background()
+	//	storage, err := NewCloudstorage(ctx)
+	//	err = storage.Delete(ctx, bucketName, path)
+	//
+	Delete(ctx context.Context, bucketName, path string) error
 }
 
 // CloudstorageImpl is cloudflare implementation
@@ -159,4 +197,117 @@ func (impl *CloudstorageImpl) IsBucketExist(ctx context.Context, bucketName stri
 		}
 	}
 	return false, nil
+}
+
+// WriteText file to bucket
+//
+//	ctx := context.Background()
+//	storage, err := NewCloudstorage(ctx)
+//	err = storage.AddBucket(ctx, bucketName, "US")
+//	So(err, ShouldBeNil)
+//
+func (impl *CloudstorageImpl) WriteText(ctx context.Context, bucketName, path, txt string) error {
+	bucket := impl.client.Bucket(bucketName)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+	defer cancel()
+
+	wc := bucket.Object(path).NewWriter(ctx)
+	_, err := io.WriteString(wc, txt)
+	if err != nil {
+		return err
+	}
+
+	if err := wc.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ReadText file from bucket
+//
+//	ctx := context.Background()
+//	storage, err := NewCloudstorage(ctx)
+//	txt, err := storage.ReadText(ctx, bucketName, path)
+//	So(err, ShouldBeNil)
+//	So(txt, ShouldEqual, "hi")
+//
+func (impl *CloudstorageImpl) ReadText(ctx context.Context, bucketName, path string) (string, error) {
+	bucket := impl.client.Bucket(bucketName)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+	defer cancel()
+
+	rc, err := bucket.Object(path).NewReader(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer rc.Close()
+
+	data, err := ioutil.ReadAll(rc)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+// Delete file from bucket
+//
+//	ctx := context.Background()
+//	storage, err := NewCloudstorage(ctx)
+//	err = storage.Delete(ctx, bucketName, path)
+//
+func (impl *CloudstorageImpl) Delete(ctx context.Context, bucketName, path string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+	defer cancel()
+
+	o := impl.client.Bucket(bucketName).Object(path)
+	if err := o.Delete(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+// CleanBucket remove all files in bucket, return true if still have file in bucket
+//
+//	ctx := context.Background()
+//	storage, err := NewCloudstorage(ctx)
+//	err = storage.Delete(ctx, bucketName, path)
+//
+func (impl *CloudstorageImpl) CleanBucket(ctx context.Context, bucketName string, timeout int) error {
+	timer := tools.NewTimer()
+	timer.Start()
+	bucket := impl.client.Bucket(bucketName)
+	errCount := 0
+	for {
+		err := impl.safeCleanBucket(ctx, bucket)
+		if err == nil {
+			break
+		}
+		errCount++
+		if errCount > 100 {
+			return errors.New("too many error")
+		}
+
+	}
+	return nil
+}
+
+func (impl *CloudstorageImpl) safeCleanBucket(ctx context.Context, bucket *storage.BucketHandle) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+	defer cancel()
+
+	it := bucket.Objects(ctx, nil)
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
