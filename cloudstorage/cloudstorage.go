@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/piyuo/libsrv/log"
 	"github.com/piyuo/libsrv/secure/gcp"
-	"github.com/piyuo/libsrv/tools"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -45,7 +45,7 @@ type Cloudstorage interface {
 	//	storage, err := NewCloudstorage(ctx)
 	//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
 	//
-	CleanBucket(ctx context.Context, bucketName string) error
+	CleanBucket(ctx context.Context, bucketName string, timeout time.Duration) error
 
 	// IsBucketExist return true if bucket exist
 	//
@@ -82,6 +82,8 @@ type Cloudstorage interface {
 	//	err = storage.Delete(ctx, bucketName, path)
 	//
 	Delete(ctx context.Context, bucketName, path string) error
+
+	//setCors
 }
 
 // CloudstorageImpl is cloudflare implementation
@@ -268,46 +270,54 @@ func (impl *CloudstorageImpl) Delete(ctx context.Context, bucketName, path strin
 }
 
 // CleanBucket remove all files in bucket, return true if still have file in bucket
+// timeout in ms
 //
 //	ctx := context.Background()
 //	storage, err := NewCloudstorage(ctx)
 //	err = storage.Delete(ctx, bucketName, path)
 //
-func (impl *CloudstorageImpl) CleanBucket(ctx context.Context, bucketName string, timeout int) error {
-	timer := tools.NewTimer()
-	timer.Start()
+func (impl *CloudstorageImpl) CleanBucket(ctx context.Context, bucketName string, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	bucket := impl.client.Bucket(bucketName)
-	errCount := 0
 	for {
-		err := impl.safeCleanBucket(ctx, bucket)
-		if err == nil {
-			break
+		result, err := impl.RemoveObjects(ctx, bucket)
+		if err != nil {
+			return err
 		}
-		errCount++
-		if errCount > 100 {
-			return errors.New("too many error")
+		if result == true {
+			return nil
 		}
-
 	}
-	return nil
 }
 
-func (impl *CloudstorageImpl) safeCleanBucket(ctx context.Context, bucket *storage.BucketHandle) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
-	defer cancel()
+// RemoveObjects remove objects max 1000, return true if object all deleted
+//
+//
+//
+func (impl *CloudstorageImpl) RemoveObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
 
-	it := bucket.Objects(ctx, nil)
+	query := &storage.Query{}
+	query.SetAttrSelection([]string{"Name"})
+
+	i := 0
+	it := bucket.Objects(ctx, query)
 	for {
 		attrs, err := it.Next()
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
-			return err
+			return false, err
 		}
+		fmt.Printf("delete object:%v\n", i)
 		if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
-			return err
+			return false, err
+		}
+		i++
+		if i >= 1000 {
+			return false, nil
 		}
 	}
-	return nil
+	return true, nil
 }
