@@ -7,139 +7,95 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSelectQuery(t *testing.T) {
-	greet1 := &Greet{
-		From:        "1",
-		Description: "1",
-	}
-	greet2 := &Greet{
-		From:        "2",
-		Description: "2",
-	}
+func TestQuery(t *testing.T) {
+	Convey("should query table", t, func() {
+		ctx := context.Background()
+		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
+		defer dbG.Close()
+		defer dbR.Close()
 
-	ctx := context.Background()
-	db, _ := firestoreGlobalDB(ctx)
-	defer db.Close()
+		queryTest(ctx, samplesG)
+		queryTest(ctx, samplesR)
 
-	db.Put(ctx, greet1)
-	db.Put(ctx, greet2)
-
-	list, err := db.Select(ctx, GreetFactory).Where("From", "==", "1").Execute()
-	err = db.Delete(ctx, list[0])
-	Convey("delete select document", t, func() {
-		So(err, ShouldBeNil)
+		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
-
-	Convey("test select count", t, func() {
-		So(len(list), ShouldBeGreaterThanOrEqualTo, 1)
-	})
-
-	db.DeleteAll(ctx, greet1.ModelName(), 9)
 }
 
-func TestOrder(t *testing.T) {
-	greet1 := &Greet{
-		From:        "1",
-		Description: "1",
+func queryTest(ctx context.Context, table Table) {
+	sample1 := &Sample{
+		Name:  "sample1",
+		Value: 1,
 	}
-	greet2 := &Greet{
-		From:        "2",
-		Description: "2",
+	sample2 := &Sample{
+		Name:  "sample2",
+		Value: 2,
 	}
-	ctx := context.Background()
-	db, _ := firestoreGlobalDB(ctx)
-	defer db.Close()
-	db.DeleteAll(ctx, greet1.ModelName(), 9)
+	err := table.Set(ctx, sample1)
+	So(err, ShouldBeNil)
+	err = table.Set(ctx, sample2)
+	So(err, ShouldBeNil)
 
-	db.Put(ctx, greet1)
-	db.Put(ctx, greet2)
+	list, err := table.Query(ctx).Where("Name", "==", "sample1").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	Convey("should Execute", t, func() {
-		list, err := db.Select(ctx, GreetFactory).Execute()
-		So(err, ShouldBeNil)
-		So(len(list), ShouldEqual, 2)
-	})
+	list, err = table.Query(ctx).Where("Name", "==", "sample2").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	Convey("OrderByDesc should return 2 first", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderByDesc("From").Execute()
-		greet := list[0].(*Greet)
-		So(err, ShouldBeNil)
-		So(greet.From, ShouldEqual, "2")
-	})
+	list, err = table.Query(ctx).Where("Value", "==", 1).Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	Convey("OrderByDesc should return 1 first", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderBy("From").Execute()
-		greet := list[0].(*Greet)
-		So(err, ShouldBeNil)
-		So(greet.From, ShouldEqual, "1")
-	})
+	list, err = table.Query(ctx).Where("Value", "==", 2).Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	Convey("Limit should return only 1 object", t, func() {
-		list, err := db.Select(ctx, GreetFactory).Limit(1).Execute()
-		So(err, ShouldBeNil)
-		So(len(list), ShouldEqual, 1)
-	})
+	//OrderBy,OrderByDesc
+	list, err = table.Query(ctx).OrderBy("Name").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 2)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	db.DeleteAll(ctx, GreetModelName, 9)
-}
+	list, err = table.Query(ctx).OrderByDesc("Name").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 2)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-func TestStartEndAt(t *testing.T) {
-	greet1 := &Greet{
-		From: "a city",
-	}
-	greet2 := &Greet{
-		From: "b city",
-	}
-	greet3 := &Greet{
-		From: "c city",
-	}
-	ctx := context.Background()
-	db, _ := firestoreGlobalDB(ctx)
-	defer db.Close()
-	db.DeleteAll(ctx, greet1.ModelName(), 9)
-	db.Put(ctx, greet1)
-	db.Put(ctx, greet2)
-	db.Put(ctx, greet3)
+	//limit
+	list, err = table.Query(ctx).OrderBy("Name").Limit(1).Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	Convey("StartAt should start at", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAt("b city").Execute()
-		So(err, ShouldBeNil)
-		greet := list[0].(*Greet)
-		So(greet.From, ShouldEqual, "b city")
-		So(len(list), ShouldEqual, 2)
-	})
+	list, err = table.Query(ctx).OrderByDesc("Name").Limit(1).Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	Convey("StartAt should start after", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAfter("b city").Execute()
-		So(err, ShouldBeNil)
-		greet := list[0].(*Greet)
-		So(greet.From, ShouldEqual, "c city")
-		So(len(list), ShouldEqual, 1)
-	})
+	//startAt,startAfter,endAt,endBefore
+	list, err = table.Query(ctx).OrderBy("Name").StartAt("sample2").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	Convey("EndAt should end at", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndAt("b city").Execute()
-		So(err, ShouldBeNil)
-		greet := list[0].(*Greet)
-		So(greet.From, ShouldEqual, "a city")
-		So(len(list), ShouldEqual, 2)
-	})
+	list, err = table.Query(ctx).OrderBy("Name").StartAfter("sample1").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	Convey("EndAt should end before", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndBefore("b city").Execute()
-		So(err, ShouldBeNil)
-		greet := list[0].(*Greet)
-		So(greet.From, ShouldEqual, "a city")
-		So(len(list), ShouldEqual, 1)
-	})
+	list, err = table.Query(ctx).OrderBy("Name").EndAt("sample2").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 2)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	Convey("StartAt should start at and limit", t, func() {
-		list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute()
-		So(err, ShouldBeNil)
-		greet := list[0].(*Greet)
-		So(greet.From, ShouldEqual, "b city")
-		So(len(list), ShouldEqual, 1)
-	})
+	list, err = table.Query(ctx).OrderBy("Name").EndBefore("sample2").Execute(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 1)
+	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	db.DeleteAll(ctx, GreetModelName, 9)
 }

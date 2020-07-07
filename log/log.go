@@ -84,7 +84,11 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 	if ctx.Err() != nil {
 		return ""
 	}
-	errID := tools.UUID()
+	errID, err := tools.UUID()
+	if err != nil {
+		errID = "no-uuid"
+	}
+
 	application, identity := aiFromContext(ctx)
 	message := err.Error()
 	stack := beautyStack(err)

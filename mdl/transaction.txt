@@ -9,13 +9,13 @@ type Transaction interface {
 	//	greet := &Greet{}
 	//	greet.SetID(greet1.ID())
 	//	err = db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
-	//		tx.Get(ctx, greet)
+	//		tx.Get(ctx,"","greet_id", &greet)
 	//		return nil
 	//	})
 	//
-	Get(ctx context.Context, obj Object) error
+	Get(ctx context.Context, namespace, tablename, id string, obj Object) (Object, error)
 
-	// Put data object into data store
+	// Set object into data store
 	//
 	//	greet1 := &Greet{
 	//		From:        "1",
@@ -25,7 +25,7 @@ type Transaction interface {
 	//		tx.Put(ctx, greet1)
 	//		return nil
 	//	})
-	Put(ctx context.Context, obj Object) error
+	Set(ctx context.Context, namespace, tablename string, obj Object) error
 
 	// Delete data object from firestore
 	//
@@ -34,13 +34,13 @@ type Transaction interface {
 	//		return nil
 	//	})
 	//
-	Delete(ctx context.Context, obj Object) error
+	Delete(ctx context.Context, namespace, tablename, id string) error
 
 	// ShortID create unique serial number, please be aware serial can only generate one number per second and use with transation to ensure unique
 	//
 	//	id,err = db.ShortID(ctx, "myID")
 	//
-	ShortID(ctx context.Context, name string) (*ShortID, error)
+	Serial(ctx context.Context, namespace, tablename, countername string) (int, error)
 }
 
 // AbstractTransaction is parent class for all DB child

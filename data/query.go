@@ -43,19 +43,6 @@ type Query interface {
 	//
 	Limit(n int) Query
 
-	// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
-	//
-	//	list = []*Greet{}
-	//	ctx := context.Background()
-	//	db, _ := firestoreGlobalDB(ctx)
-	//	defer db.Close()
-	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute()
-	//	greet := list[0].(*Greet)
-	//	So(greet.From, ShouldEqual, "b city")
-	//	So(len(list), ShouldEqual, 1)
-	//
-	Execute() ([]Object, error)
-
 	// StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
 	//	greet1 := &Greet{
@@ -119,15 +106,33 @@ type Query interface {
 	//	So(len(list), ShouldEqual, 1)
 	//
 	EndBefore(docSnapshotOrFieldValues ...interface{}) Query
+
+	// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
+	//
+	//	list = []*Greet{}
+	//	ctx := context.Background()
+	//	db, _ := firestoreGlobalDB(ctx)
+	//	defer db.Close()
+	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute()
+	//	greet := list[0].(*Greet)
+	//	So(greet.From, ShouldEqual, "b city")
+	//	So(len(list), ShouldEqual, 1)
+	//
+	Execute(ctx context.Context) ([]Object, error)
+
+	// Count execute query and return max 10 count
+	//
+	Count(ctx context.Context) (int, error)
+
+	// IsEmpty execute query and return false if object exist
+	//
+	IsEmpty(ctx context.Context) (bool, error)
 }
 
-// AbstractQuery is query object need to implement
-type AbstractQuery struct {
+// DocQuery represent a query in document database
+//
+type DocQuery struct {
 	Query
-
-	// ctx is context
-	//
-	ctx context.Context
 
 	// factor use to create object
 	//

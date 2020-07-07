@@ -2,83 +2,58 @@ package data
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
-	"strconv"
 	"time"
-
-	"cloud.google.com/go/firestore"
-	"github.com/pkg/errors"
-	"google.golang.org/api/iterator"
 )
 
 // Counter is a collection of documents (shards) to realize counter with high frequency.
 //
-type Counter struct {
-	NumShards int
-	docRef    *firestore.DocumentRef
-}
+type Counter interface {
 
-// Shard is a single counter, which is used in a group of other shards within Counter.
-//
-type Shard struct {
-	Count int
-}
+	// initCounter creates a given number of shards as subcollection of specified document.
+	//
+	//	err = counter.init(ctx)
+	//
+	Init(ctx context.Context, numShards int) error
 
-// initCounter creates a given number of shards as subcollection of specified document.
-//
-//	err = counter.init(ctx)
-//
-func (c *Counter) init(ctx context.Context) error {
-	colRef := c.docRef.Collection("shards")
+	// Increment increments a randomly picked shard.
+	//
+	//	err = counter.Increment(ctx, 2)
+	//
+	Increment(ctx context.Context, value int) error
 
-	// Initialize each shard with count=0
-	for num := 0; num < c.NumShards; num++ {
-		shard := Shard{0}
+	// Count returns a total count across all shards.
+	//
+	//	count, err = counter.Count(ctx)
+	//
+	Count(ctx context.Context) (int64, error)
 
-		if _, err := colRef.Doc(strconv.Itoa(num)).Set(ctx, shard); err != nil {
-			return fmt.Errorf("Set: %v", err)
-		}
-	}
-	return nil
-}
+	// Delete counter and all shards.
+	//
+	//	err = counter.Delete(ctx)
+	//
+	Delete(ctx context.Context) error
 
-// Increment increments a randomly picked shard.
-//
-//	err = counter.Increment(ctx, 2)
-//
-func (c *Counter) Increment(ctx context.Context, value int) error {
-	rand.Seed(time.Now().UTC().UnixNano())
-	docID := strconv.Itoa(rand.Intn(c.NumShards))
-	shardRef := c.docRef.Collection("shards").Doc(docID)
-	shardRef.Update(ctx, []firestore.Update{
-		{Path: "Count", Value: firestore.Increment(value)},
-	})
-	return nil
-}
+	// CreateTime return object create time
+	//
+	CreateTime() time.Time
 
-// Count returns a total count across all shards.
-//
-//	count, err = counter.Count(ctx)
-//
-func (c *Counter) Count(ctx context.Context) (int64, error) {
-	var total int64
-	shards := c.docRef.Collection("shards").Documents(ctx)
-	for {
-		doc, err := shards.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return 0, errors.Wrap(err, "failed iterator shards documents")
-		}
+	// SetCreateTime set object create time
+	//
+	SetCreateTime(time.Time)
 
-		vTotal := doc.Data()["Count"]
-		shardCount, ok := vTotal.(int64)
-		if !ok {
-			return 0, fmt.Errorf("firestore: invalid dataType %T, want int64", vTotal)
-		}
-		total += shardCount
-	}
-	return total, nil
+	// ReadTime return object read time
+	//
+	ReadTime() time.Time
+
+	// SetReadTime set object read time
+	//
+	SetReadTime(time.Time)
+
+	// UpdateTime return object update time
+	//
+	UpdateTime() time.Time
+
+	// SetUpdateTime set object update time
+	//
+	SetUpdateTime(time.Time)
 }

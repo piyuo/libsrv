@@ -9,20 +9,9 @@ import (
 
 // QueryFirestore implement google firestore
 type QueryFirestore struct {
-	AbstractQuery
+	DocQuery
 	query firestore.Query
-}
-
-// NewQueryFirestore implement query on google firestore
-//
-//	obj := factory()
-//	query := db.client.Collection(obj.ModelName()).Query
-//	return NewQueryFirestore(ctx, query, factory)
-//
-func NewQueryFirestore(ctx context.Context, query firestore.Query, factory func() Object) *QueryFirestore {
-	return &QueryFirestore{
-		AbstractQuery: AbstractQuery{ctx: ctx, factory: factory},
-		query:         query}
+	tx    *firestore.Transaction
 }
 
 // Where implement where on firestore
@@ -159,32 +148,99 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 //	ctx := context.Background()
 //	db, _ := firestoreGlobalDB(ctx)
 //	defer db.Close()
-//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute()
+//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute(ctx)
 //	greet := list[0].(*Greet)
 //	So(greet.From, ShouldEqual, "b city")
 //	So(len(list), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) Execute() ([]Object, error) {
+func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	if qf.limit == 0 {
 		qf.Limit(10)
 	}
 	var resultSet []Object
-	iter := qf.query.Documents(qf.ctx)
+
+	var iter *firestore.DocumentIterator
+	if qf.tx != nil {
+		iter = qf.tx.Documents(qf.query)
+	} else {
+		iter = qf.query.Documents(ctx)
+	}
+	defer iter.Stop()
+
 	for {
-		doc, err := iter.Next()
+		snapshot, err := iter.Next()
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
 			return nil, err
 		}
-		obj := qf.factory()
-		err = doc.DataTo(obj)
+		object := qf.factory()
+		err = snapshot.DataTo(object)
 		if err != nil {
 			return nil, err
 		}
-		obj.SetID(doc.Ref.ID)
-		resultSet = append(resultSet, obj)
+		object.SetID(snapshot.Ref.ID)
+		object.SetRef(snapshot.Ref)
+		object.SetCreateTime(snapshot.CreateTime)
+		object.SetUpdateTime(snapshot.UpdateTime)
+		object.SetReadTime(snapshot.ReadTime)
+		resultSet = append(resultSet, object)
 	}
 	return resultSet, nil
+}
+
+// Count execute query and return max 10 count
+//
+//
+func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
+	if qf.limit == 0 {
+		qf.Limit(10)
+	}
+	var iter *firestore.DocumentIterator
+	if qf.tx != nil {
+		iter = qf.tx.Documents(qf.query)
+	} else {
+		iter = qf.query.Documents(ctx)
+	}
+	defer iter.Stop()
+
+	count := 0
+	for {
+		_, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return 0, err
+		}
+		count++
+	}
+	return count, nil
+}
+
+// IsEmpty execute query and return true if no object exist in table
+//
+//
+func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
+	qf.Limit(10)
+	var iter *firestore.DocumentIterator
+	if qf.tx != nil {
+		iter = qf.tx.Documents(qf.query)
+	} else {
+		iter = qf.query.Documents(ctx)
+	}
+	defer iter.Stop()
+
+	for {
+		_, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
 }

@@ -6,9 +6,11 @@ import (
 	fmt "fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	app "github.com/piyuo/libsrv/app"
 	log "github.com/piyuo/libsrv/log"
@@ -39,6 +41,7 @@ type Server struct {
 //      server.Start()
 //     }
 func (s *Server) Start() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	app.Check()
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
