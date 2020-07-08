@@ -4,9 +4,9 @@ import (
 	"context"
 	"strconv"
 	"testing"
-	"time"
 
 	gcp "github.com/piyuo/libsrv/secure/gcp"
+	util "github.com/piyuo/libsrv/util"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -57,6 +57,27 @@ func TestFirestoreRegionalDB(t *testing.T) {
 	})
 }
 
+func TestNameSpace(t *testing.T) {
+	Convey("should create name space", t, func() {
+		ctx := context.Background()
+		db, err := FirestoreRegionalConnection(ctx, "sample-namespace")
+		defer db.Close()
+		So(err, ShouldBeNil)
+		So(db, ShouldNotBeNil)
+
+		err = db.CreateNamespace(ctx)
+		So(err, ShouldBeNil)
+		err = db.DeleteNamespace(ctx)
+		So(err, ShouldBeNil)
+
+		ctxCanceled := util.CanceledCtx()
+		err = db.CreateNamespace(ctxCanceled)
+		So(err, ShouldNotBeNil)
+		err = db.DeleteNamespace(ctxCanceled)
+		So(err, ShouldNotBeNil)
+	})
+}
+
 func TestConnection(t *testing.T) {
 	Convey("test genreal operation on connection", t, func() {
 		ctx := context.Background()
@@ -77,7 +98,7 @@ func testGroup(ctx context.Context, table *Table) {
 	testSelectUpdateIncrementDelete(ctx, table)
 	testListQueryAvailableCountClear(ctx, table)
 	testDelete(ctx, table)
-	testGetPutDeleteWhenContextCanceled(ctx, table)
+	testConnectionContextCanceled(table)
 	testSearchCountIsEmpty(ctx, table)
 }
 
@@ -101,6 +122,9 @@ func testID(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 	So(sample2, ShouldNotBeNil)
 	So(sample.Name, ShouldEqual, sample2.(*Sample).Name)
+	So(sample2.GetCreateTime().IsZero(), ShouldBeFalse)
+	So(sample2.GetUpdateTime().IsZero(), ShouldBeFalse)
+	So(sample2.GetReadTime().IsZero(), ShouldBeFalse)
 
 	// set sample again
 	sample.Name = "modified"
@@ -326,12 +350,9 @@ func testDelete(ctx context.Context, table *Table) {
 	So(exist, ShouldBeFalse)
 }
 
-func testGetPutDeleteWhenContextCanceled(ctx context.Context, table *Table) {
+func testConnectionContextCanceled(table *Table) {
+	ctx := util.CanceledCtx()
 	sample := &Sample{}
-	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
-	ctx, cancel := context.WithDeadline(context.Background(), dateline)
-	defer cancel()
-	time.Sleep(time.Duration(2) * time.Millisecond)
 
 	err := table.Set(ctx, sample)
 	So(err, ShouldNotBeNil)

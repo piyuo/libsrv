@@ -23,6 +23,7 @@ func TestTable(t *testing.T) {
 
 func noErrorTest(ctx context.Context, table *Table) {
 	So(table.Factory, ShouldNotBeNil)
+	So(table.NewID(), ShouldNotBeEmpty)
 
 	obj := table.NewObject()
 	So(table.TableName, ShouldEqual, "sample")
@@ -32,7 +33,7 @@ func noErrorTest(ctx context.Context, table *Table) {
 	obj2 := table.Factory
 	So(obj2, ShouldNotBeNil)
 
-	id := table.ID
+	id := table.NewID()
 	So(id, ShouldNotBeEmpty)
 
 }

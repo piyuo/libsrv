@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	util "github.com/piyuo/libsrv/util"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -18,6 +19,9 @@ func TestCounter(t *testing.T) {
 
 		testCounter(ctx, dbG, counterG)
 		testCounter(ctx, dbR, counterR)
+
+		testCounterInCanceledCtx(ctx, dbG, counterG)
+		testCounterInCanceledCtx(ctx, dbR, counterR)
 
 		testCounterInTransaction(ctx, dbG, counterG)
 		testCounterInTransaction(ctx, dbR, counterR)
@@ -105,6 +109,24 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	//delete second time should be fine
 	err = counters.DeleteSampleTotal(ctx)
 	So(err, ShouldBeNil)
+}
+
+func testCounterInCanceledCtx(ctx context.Context, db SampleDB, counters *SampleCounters) {
+	counter, err := counters.SampleTotal(ctx)
+	So(counter, ShouldNotBeNil)
+	So(err, ShouldBeNil)
+
+	ctxCanceled := util.CanceledCtx()
+	err = counter.Increment(ctxCanceled, 1)
+	So(err, ShouldNotBeNil)
+
+	count, err := counter.Count(ctxCanceled)
+	So(err, ShouldNotBeNil)
+	So(count, ShouldEqual, 0)
+
+	err = counters.DeleteSampleTotal(ctx)
+	So(err, ShouldBeNil)
+
 }
 
 func testCounterInTransaction(ctx context.Context, db SampleDB, counters *SampleCounters) {

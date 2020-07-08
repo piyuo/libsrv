@@ -84,6 +84,9 @@ func (c *CounterFirestore) errorID() string {
 //	err = counter.Increment(ctx, 2)
 //
 func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 
 	docID := strconv.Itoa(rand.Intn(c.N))
 	shardRef := c.shardsRef.Doc(docID)
@@ -109,6 +112,10 @@ func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
 //	count, err = counter.Count(ctx)
 //
 func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	var total int64
 	var shards *firestore.DocumentIterator
 	if c.tx != nil {

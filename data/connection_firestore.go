@@ -85,11 +85,18 @@ func firestoreNewConnection(ctx context.Context, cred *google.Credentials, names
 //	dbRef, err := conn.CreateNamespace(ctx)
 //
 func (conn *ConnectionFirestore) CreateNamespace(ctx context.Context) error {
-	if conn.nsRef != nil {
-		_, err := conn.nsRef.Set(ctx, &Namespace{})
-		if err != nil {
-			return errors.Wrap(err, "failed to create namespace: "+conn.nsRef.ID)
-		}
+	if conn.nsRef == nil {
+		return nil
+	}
+
+	var err error
+	if conn.tx != nil {
+		err = conn.tx.Set(conn.nsRef, &Namespace{})
+	} else {
+		_, err = conn.nsRef.Set(ctx, &Namespace{})
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed to create namespace: "+conn.nsRef.ID)
 	}
 	return nil
 }
@@ -99,11 +106,18 @@ func (conn *ConnectionFirestore) CreateNamespace(ctx context.Context) error {
 //	err := db.DeleteNamespace(ctx)
 //
 func (conn *ConnectionFirestore) DeleteNamespace(ctx context.Context) error {
-	if conn.nsRef != nil {
-		_, err := conn.nsRef.Delete(ctx)
-		if err != nil {
-			return errors.Wrap(err, "failed to delete namespace: "+conn.nsRef.ID)
-		}
+	if conn.nsRef == nil {
+		return nil
+	}
+
+	var err error
+	if conn.tx != nil {
+		err = conn.tx.Delete(conn.nsRef)
+	} else {
+		_, err = conn.nsRef.Delete(ctx)
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed to delete namespace: "+conn.nsRef.ID)
 	}
 	return nil
 }

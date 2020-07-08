@@ -217,4 +217,15 @@ func methodTest(ctx context.Context, db SampleDB, table *Table) {
 	So(err, ShouldBeNil)
 	isEmpty, err = table.IsEmpty(ctx)
 	So(isEmpty, ShouldBeTrue)
+
+	//create & delete namespace
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		err = db.CreateNamespace(ctx)
+		So(err, ShouldBeNil)
+		err = db.DeleteNamespace(ctx)
+		So(err, ShouldBeNil)
+		return nil
+	})
+	So(err, ShouldBeNil)
+
 }

@@ -22,12 +22,12 @@ func (t *Table) NewObject() ObjectRef {
 	return t.Factory()
 }
 
-// ID create new id for empty object
+// NewID create new id for empty object
 //
 //
-//	id := table.ID()
+//	id := table.NewID()
 //
-func (t *Table) ID() string {
+func (t *Table) NewID() string {
 	return util.UUID()
 }
 
