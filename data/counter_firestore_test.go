@@ -74,6 +74,21 @@ func testCounter(ctx context.Context, counters *SampleCounters) {
 	So(count2, ShouldEqual, 0)
 	So(err, ShouldBeNil)
 
+	// get exist counter
+	counter2, err = counters.SampleTotal(ctx)
+	So(counter2, ShouldNotBeNil)
+	So(err, ShouldBeNil)
+	So(counter.GetCreateTime(), ShouldNotBeNil)
+	So(counter.GetReadTime(), ShouldNotBeNil)
+	So(counter.GetUpdateTime(), ShouldNotBeNil)
+
+	err = counter.Increment(ctx, 1)
+	So(err, ShouldBeNil)
+
+	count3, err := counter.Count(ctx)
+	So(count3, ShouldEqual, 1)
+	So(err, ShouldBeNil)
+
 	//clean counter
 	err = counter2.Delete(ctx)
 	So(err, ShouldBeNil)

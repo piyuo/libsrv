@@ -88,7 +88,7 @@ func (c *CounterFirestore) create(ctx context.Context, tx *firestore.Transaction
 		return nil
 	}
 	if err != nil {
-		return errors.Wrap(err, "failed to get counter")
+		return errors.Wrap(err, "failed to get counter: "+c.errorID())
 	}
 	return nil
 }
@@ -215,11 +215,11 @@ func (c *CounterFirestore) Delete(ctx context.Context) error {
 	return nil
 }
 
-// CreateTime return object create time
+// GetCreateTime return object create time
 //
 //	id := d.CreateTime()
 //
-func (c *CounterFirestore) CreateTime() time.Time {
+func (c *CounterFirestore) GetCreateTime() time.Time {
 	return c.createTime
 }
 
@@ -231,11 +231,11 @@ func (c *CounterFirestore) SetCreateTime(t time.Time) {
 	c.createTime = t
 }
 
-// ReadTime return object create time
+// GetReadTime return object create time
 //
 //	id := d.ReadTime()
 //
-func (c *CounterFirestore) ReadTime() time.Time {
+func (c *CounterFirestore) GetReadTime() time.Time {
 	return c.readTime
 }
 
@@ -247,11 +247,11 @@ func (c *CounterFirestore) SetReadTime(t time.Time) {
 	c.readTime = t
 }
 
-// UpdateTime return object update time
+// GetUpdateTime return object update time
 //
 //	id := d.UpdateTime()
 //
-func (c *CounterFirestore) UpdateTime() time.Time {
+func (c *CounterFirestore) GetUpdateTime() time.Time {
 	return c.updateTime
 }
 

@@ -33,25 +33,25 @@ type CounterRef interface {
 	//
 	Delete(ctx context.Context) error
 
-	// CreateTime return object create time
+	// GetCreateTime return object create time
 	//
-	CreateTime() time.Time
+	GetCreateTime() time.Time
 
 	// SetCreateTime set object create time
 	//
 	SetCreateTime(time.Time)
 
-	// ReadTime return object read time
+	// GetReadTime return object read time
 	//
-	ReadTime() time.Time
+	GetReadTime() time.Time
 
 	// SetReadTime set object read time
 	//
 	SetReadTime(time.Time)
 
-	// UpdateTime return object update time
+	// GetUpdateTime return object update time
 	//
-	UpdateTime() time.Time
+	GetUpdateTime() time.Time
 
 	// SetUpdateTime set object update time
 	//
