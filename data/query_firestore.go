@@ -142,7 +142,7 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 	return qf
 }
 
-// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
+// Execute query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 //
 //	list = []*Greet{}
 //	ctx := context.Background()
@@ -155,7 +155,7 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 //
 func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	if qf.limit == 0 {
-		qf.Limit(10)
+		qf.Limit(limitQueryDefault)
 	}
 	var resultSet []Object
 
@@ -195,7 +195,7 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 //
 func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
 	if qf.limit == 0 {
-		qf.Limit(10)
+		qf.Limit(limitQueryDefault)
 	}
 	var iter *firestore.DocumentIterator
 	if qf.tx != nil {
@@ -223,7 +223,7 @@ func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
 //
 //
 func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
-	qf.Limit(10)
+	qf.Limit(1)
 	var iter *firestore.DocumentIterator
 	if qf.tx != nil {
 		iter = qf.tx.Documents(qf.query)
@@ -232,15 +232,12 @@ func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
 	}
 	defer iter.Stop()
 
-	for {
-		_, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return false, err
-		}
-		return false, nil
+	_, err := iter.Next()
+	if err == iterator.Done {
+		return true, nil
 	}
-	return true, nil
+	if err != nil {
+		return false, err
+	}
+	return false, nil
 }

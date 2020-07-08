@@ -10,37 +10,52 @@ import (
 func TestSerial(t *testing.T) {
 	Convey("should query table", t, func() {
 		ctx := context.Background()
-		connG, err := NewSampleGlobalDB(ctx)
-		defer connG.Close()
-		So(err, ShouldBeNil)
-		serialG := connG.Serial()
-		So(serialG, ShouldNotBeNil)
-
-		connR, err := NewSampleRegionalDB(ctx, "sample-database")
-		defer connR.Close()
-		So(err, ShouldBeNil)
-		serialR := connR.Serial()
-		So(serialR, ShouldNotBeNil)
-
-		err = serialG.Delete(ctx, "sample")
-		So(err, ShouldBeNil)
-		err = serialR.Delete(ctx, "sample")
-		So(err, ShouldBeNil)
+		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
+		defer dbG.Close()
+		defer dbR.Close()
+		serialG := dbG.Serial()
+		serialR := dbR.Serial()
 
 		serialTest(ctx, serialG)
 		serialTest(ctx, serialR)
 
-		err = serialG.Delete(ctx, "sample")
-		So(err, ShouldBeNil)
-		err = serialR.Delete(ctx, "sample")
-		So(err, ShouldBeNil)
+		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
 }
 
 func serialTest(ctx context.Context, serial *SampleSerial) {
+	err := serial.Delete(ctx, "sample-id")
+	So(err, ShouldBeNil)
+
+	num, err := serial.Number(ctx, "sample-id")
+	So(err, ShouldBeNil)
+	So(num, ShouldEqual, 1)
+
+	num, err = serial.Number(ctx, "sample-id")
+	So(err, ShouldBeNil)
+	So(num, ShouldEqual, 2)
+
+	num, err = serial.Number(ctx, "sample-id")
+	So(err, ShouldBeNil)
+	So(num, ShouldEqual, 3)
 
 	id, err := serial.SampleID(ctx)
 	So(err, ShouldBeNil)
 	So(id, ShouldNotBeEmpty)
 
+	err = serial.Delete(ctx, "sample-id")
+	So(err, ShouldBeNil)
+}
+
+func emptyTableName(ctx context.Context, db SampleDB) {
+	serial := db.Serial()
+	serial.SetTableName("")
+	So(serial.TableName(), ShouldBeEmpty)
+
+	number, err := serial.Number(ctx, "sample-id")
+	So(err, ShouldNotBeNil)
+	So(number, ShouldEqual, 0)
+	code, err := serial.Code(ctx, "sample-id")
+	So(err, ShouldNotBeNil)
+	So(code, ShouldBeEmpty)
 }

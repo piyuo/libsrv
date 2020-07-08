@@ -7,20 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Serial represent serial table
+// Serial is collections of serial in document database
 //
-type Serial interface {
-	SetConnection(conn Connection)
-	SetTableName(tablename string)
-	TableName()
-	Number(ctx context.Context, name string) (uint32, error)
-	Code(ctx context.Context, name string) (string, error)
-	Delete(ctx context.Context, name string)
-}
-
-// DocSerial is collections of serial in document database
-//
-type DocSerial struct {
+type Serial struct {
 	conn      Connection
 	tablename string
 }
@@ -42,32 +31,32 @@ func newNumber() Object {
 //
 //	table.SetConnection(conn)
 //
-func (ds *DocSerial) SetConnection(conn Connection) {
-	ds.conn = conn
+func (s *Serial) SetConnection(conn Connection) {
+	s.conn = conn
 }
 
 // SetTableName set table name
 //
 //	table.SetTableName("sample")
 //
-func (ds *DocSerial) SetTableName(tablename string) {
-	ds.tablename = tablename
+func (s *Serial) SetTableName(tablename string) {
+	s.tablename = tablename
 }
 
 // TableName return table name
 //
 //	table.TableName()
 //
-func (ds *DocSerial) TableName() string {
-	return ds.tablename
+func (s *Serial) TableName() string {
+	return s.tablename
 }
 
 // Code encode serial number to string, please be aware serial can only generate one number per second and use with transation to ensure unique
 //
 //	id,err = db.Serial(ctx,"", "myID")
 //
-func (ds *DocSerial) Code(ctx context.Context, name string) (string, error) {
-	number, err := ds.Number(ctx, name)
+func (s *Serial) Code(ctx context.Context, name string) (string, error) {
+	number, err := s.Number(ctx, name)
 	if err != nil {
 		return "", err
 	}
@@ -78,15 +67,15 @@ func (ds *DocSerial) Code(ctx context.Context, name string) (string, error) {
 //
 //	id,err = db.Serial(ctx,"", "myID")
 //
-func (ds *DocSerial) Number(ctx context.Context, name string) (uint32, error) {
+func (s *Serial) Number(ctx context.Context, name string) (uint32, error) {
 	if ctx.Err() != nil {
 		return 0, ctx.Err()
 	}
-	if ds.tablename == "" {
+	if s.tablename == "" {
 		return 0, errors.New("table name can not be empty: " + name)
 	}
 
-	num, err := ds.conn.Get(ctx, ds.tablename, name, newNumber)
+	num, err := s.conn.Get(ctx, s.tablename, name, newNumber)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get serial: "+name)
 	}
@@ -102,7 +91,7 @@ func (ds *DocSerial) Number(ctx context.Context, name string) (uint32, error) {
 		number.S++
 	}
 
-	err = ds.conn.Set(ctx, ds.tablename, number)
+	err = s.conn.Set(ctx, s.tablename, number)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to set serial: "+name)
 	}
@@ -113,13 +102,13 @@ func (ds *DocSerial) Number(ctx context.Context, name string) (uint32, error) {
 //
 //	counter,err = db.GetCounter(ctx, "myCounter")
 //
-func (ds *DocSerial) Delete(ctx context.Context, name string) error {
+func (s *Serial) Delete(ctx context.Context, name string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if ds.tablename == "" {
-		return errors.New("please implement TableName() on serial: " + name)
+	if s.tablename == "" {
+		return errors.New("serial table name can not be empty: " + name)
 	}
 
-	return ds.conn.Delete(ctx, ds.tablename, name)
+	return s.conn.Delete(ctx, s.tablename, name)
 }

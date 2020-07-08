@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+const limitQueryDefault = 10
+const limitTransactionClear = 10
+const limitClear = 500
+
 // Connection define how to connect and manipulate database
 //
 type Connection interface {

@@ -6,6 +6,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type SampleDB interface {
+	DB
+	SampleTable() Table
+	Counter() *SampleCounters
+	Serial() *SampleSerial
+}
+
 // global connection
 //
 type SampleGlobalDB struct {
@@ -99,7 +106,7 @@ type Sample struct {
 // SampleSerial
 //
 type SampleSerial struct {
-	DocSerial `firestore:"-"`
+	Serial `firestore:"-"`
 }
 
 func (ss *SampleSerial) SampleID(ctx context.Context) (string, error) {

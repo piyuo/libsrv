@@ -51,6 +51,7 @@ type DB interface {
 // DocDB represent document database
 //
 type DocDB struct {
+	DB
 	connection Connection
 }
 

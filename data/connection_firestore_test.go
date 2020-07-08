@@ -78,6 +78,7 @@ func testGroup(ctx context.Context, table Table) {
 	testListQueryAvailableCountClear(ctx, table)
 	testDelete(ctx, table)
 	testGetPutDeleteWhenContextCanceled(ctx, table)
+	testSearchCountIsEmpty(ctx, table)
 }
 
 func testID(ctx context.Context, table Table) {
@@ -87,8 +88,12 @@ func testID(ctx context.Context, table Table) {
 	}
 	So(sample.ID(), ShouldBeEmpty)
 
+	o, err := table.Get(ctx, "")
+	So(err, ShouldBeNil)
+	So(o, ShouldBeNil)
+
 	// auto id
-	err := table.Set(ctx, sample)
+	err = table.Set(ctx, sample)
 	So(err, ShouldBeNil)
 	So(sample.ID(), ShouldNotBeEmpty)
 
@@ -268,6 +273,30 @@ func testListQueryAvailableCountClear(ctx context.Context, table Table) {
 	obj, err = table.Find(ctx, "Value", "==", 2)
 	So(err, ShouldBeNil)
 	So(obj, ShouldBeNil)
+}
+
+func testSearchCountIsEmpty(ctx context.Context, table Table) {
+	sample := &Sample{
+		Name:  "sample",
+		Value: 0,
+	}
+	err := table.Set(ctx, sample)
+	So(err, ShouldBeNil)
+
+	objects, err := table.Search(ctx, "Name", "==", "sample")
+	So(err, ShouldBeNil)
+	So(len(objects), ShouldEqual, 1)
+
+	count, err := table.Count(ctx)
+	So(err, ShouldBeNil)
+	So(count, ShouldEqual, 1)
+
+	empty, err := table.IsEmpty(ctx)
+	So(err, ShouldBeNil)
+	So(empty, ShouldEqual, false)
+
+	err = table.DeleteObject(ctx, sample)
+	So(err, ShouldBeNil)
 }
 
 func testDelete(ctx context.Context, table Table) {
