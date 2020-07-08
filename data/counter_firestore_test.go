@@ -16,18 +16,27 @@ func TestCounter(t *testing.T) {
 		counterG := dbG.Counter()
 		counterR := dbR.Counter()
 
-		testCounter(ctx, counterG)
-		testCounter(ctx, counterR)
+		testCounter(ctx, dbG, counterG)
+		testCounter(ctx, dbR, counterR)
+
+		testCounterInTransaction(ctx, dbG, counterG)
+		testCounterInTransaction(ctx, dbR, counterR)
 
 		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
 
 }
 
-func testCounter(ctx context.Context, counters *SampleCounters) {
+func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
+	// clean counter
+	err := counters.DeleteSampleTotal(ctx)
+	So(err, ShouldBeNil)
+
+	// create counter
 	counter, err := counters.SampleTotal(ctx)
 	So(counter, ShouldNotBeNil)
 	So(err, ShouldBeNil)
+	So((counter.(*CounterFirestore)).errorID(), ShouldNotBeEmpty)
 
 	//counter minimal shards is 10
 	counter, err = counters.Counter(ctx, "minShards", 0)
@@ -35,11 +44,11 @@ func testCounter(ctx context.Context, counters *SampleCounters) {
 	So(err, ShouldBeNil)
 	firestoreCounter := counter.(*CounterFirestore)
 	So(firestoreCounter.N, ShouldEqual, 10)
-	err = firestoreCounter.Delete(ctx)
+	err = counters.Delete(ctx, "minShards")
 	So(err, ShouldBeNil)
 
 	// delete exist counter
-	err = counter.Delete(ctx)
+	err = counters.DeleteSampleTotal(ctx)
 	So(err, ShouldBeNil)
 
 	// new counter
@@ -90,11 +99,58 @@ func testCounter(ctx context.Context, counters *SampleCounters) {
 	So(err, ShouldBeNil)
 
 	//clean counter
-	err = counter2.Delete(ctx)
+	err = counters.DeleteSampleTotal(ctx)
 	So(err, ShouldBeNil)
 
 	//delete second time should be fine
-	err = counter.Delete(ctx)
+	err = counters.DeleteSampleTotal(ctx)
+	So(err, ShouldBeNil)
+}
+
+func testCounterInTransaction(ctx context.Context, db SampleDB, counters *SampleCounters) {
+	// clean counter
+	err := counters.DeleteSampleTotal(ctx)
+	So(err, ShouldBeNil)
+
+	// do not read after write
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		counters := db.Counter()
+		counter, err := counters.SampleTotal(ctx)
+		So(err, ShouldBeNil)
+		So(counter, ShouldNotBeNil)
+		So(counter.GetCreateTime(), ShouldNotBeNil)
+		So(counter.GetReadTime(), ShouldNotBeNil)
+		So(counter.GetUpdateTime(), ShouldNotBeNil)
+		return nil
+	})
+	So(err, ShouldBeNil)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		counters := db.Counter()
+		counter, err := counters.SampleTotal(ctx)
+		So(err, ShouldBeNil)
+		count, err := counter.Count(ctx)
+		So(count, ShouldEqual, 0)
+		So(err, ShouldBeNil)
+
+		err = counter.Increment(ctx, 1)
+		So(err, ShouldBeNil)
+		return nil
+	})
+	So(err, ShouldBeNil)
+
+	counter, err := counters.SampleTotal(ctx)
+	So(err, ShouldBeNil)
+	count, err := counter.Count(ctx)
+	So(count, ShouldEqual, 1)
+	So(err, ShouldBeNil)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		counters := db.Counter()
+		err = counters.DeleteSampleTotal(ctx)
+		So(err, ShouldBeNil)
+		return nil
+	})
 	So(err, ShouldBeNil)
 
 }

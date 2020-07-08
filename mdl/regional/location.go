@@ -15,13 +15,9 @@ type Location struct {
 // LocationTable return location table
 //
 func (db *DB) LocationTable() *data.Table {
-	return &data.Table{
-		Connection: db.Connection,
-		TableName:  "location",
-		Factory: func() data.ObjectRef {
-			return &Location{}
-		},
-	}
+	return db.newTable("location", func() data.ObjectRef {
+		return &Location{}
+	})
 }
 
 // LocationTotal return total location count

@@ -30,6 +30,16 @@ func NewDB(ctx context.Context, namespace string) (*DB, error) {
 	return db, nil
 }
 
+// NewTable return table
+//
+func (db *DB) newTable(name string, factory func() data.ObjectRef) *data.Table {
+	return &data.Table{
+		Connection: db.Connection,
+		TableName:  name,
+		Factory:    factory,
+	}
+}
+
 // Counters return global counters
 //
 func (db *DB) Counters() *Counters {

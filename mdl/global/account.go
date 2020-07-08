@@ -15,13 +15,9 @@ type Account struct {
 // AccountTable return account table
 //
 func (db *DB) AccountTable() *data.Table {
-	return &data.Table{
-		Connection: db.Connection,
-		TableName:  "account",
-		Factory: func() data.ObjectRef {
-			return &Account{}
-		},
-	}
+	return db.newTable("account", func() data.ObjectRef {
+		return &Account{}
+	})
 }
 
 // AccountTotal return total account count

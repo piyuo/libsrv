@@ -41,6 +41,16 @@ func (db *DB) Counters() *Counters {
 	}
 }
 
+// NewTable return table
+//
+func (db *DB) newTable(name string, factory func() data.ObjectRef) *data.Table {
+	return &data.Table{
+		Connection: db.Connection,
+		TableName:  name,
+		Factory:    factory,
+	}
+}
+
 // Serial return serial
 //
 func (db *DB) Serial() *Serial {

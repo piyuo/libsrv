@@ -16,29 +16,45 @@ import (
 type CounterFirestore struct {
 	CounterRef `firestore:"-"`
 
+	// client is firestore client
+	//
+	client *firestore.Client
+
+	// tx is transaction
+	//
+	tx *firestore.Transaction
+
+	// shardsRef point to a namespace in database
+	//
+	shardsRef *firestore.CollectionRef
+
 	// N is number of shards
 	//
 	N int
-	// nsRef point to a namespace in database
-	//
-	nsRef *firestore.DocumentRef
 
-	tablename   string
-	countername string
-	client      *firestore.Client
-	docRef      *firestore.DocumentRef
-	tx          *firestore.Transaction
-	// createTime is object create time
+	// NameSpace is counter table name
 	//
-	createTime time.Time
+	NameSpace string `firestore:"-"`
 
-	// readTime is object read time
+	// TableName is counter table name
 	//
-	readTime time.Time
+	TableName string `firestore:"-"`
 
-	// updateTime is object update time
+	// CounterName is counter name
 	//
-	updateTime time.Time `firestore:"-"`
+	CounterName string `firestore:"-"`
+
+	// CreateTime is object create time, this is readonly field
+	//
+	CreateTime time.Time `firestore:"-"`
+
+	// ReadTime is object read time, this is readonly field
+	//
+	ReadTime time.Time `firestore:"-"`
+
+	// UpdateTime is object update time, this is readonly field
+	//
+	UpdateTime time.Time `firestore:"-"`
 }
 
 // Shard is a single counter, which is used in a group of other shards within Counter
@@ -49,48 +65,18 @@ type Shard struct {
 	C int
 }
 
+// errorID return error id
+//
 func (c *CounterFirestore) errorID() string {
 	id := "{root}"
-	if c.nsRef != nil {
-		id = "{" + c.nsRef.ID + "}"
+	if c.NameSpace != "" {
+		id = "{" + c.NameSpace + "}"
 	}
-	id = c.tablename + id
-	if c.countername != "" {
-		id += "-" + c.countername
+	id = c.TableName + id
+	if c.CounterName != "" {
+		id += "-" + c.CounterName
 	}
 	return id
-}
-
-// create counter in transaction with a given number of shards as subcollection of specified document.
-//
-//	err := db.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-//		return counter.create(ctx, db.tx, docRef, counter, numShards)
-//	})
-//
-func (c *CounterFirestore) create(ctx context.Context, tx *firestore.Transaction, docRef *firestore.DocumentRef, counter *CounterFirestore, numShards int) error {
-	snapshot, err := tx.Get(docRef)
-	if snapshot != nil && !snapshot.Exists() {
-		counter.N = numShards
-		err = tx.Set(docRef, counter)
-		if err != nil {
-			return errors.Wrap(err, "failed to set counter")
-		}
-		colRef := docRef.Collection("shards")
-		// Initialize each shard with count=0
-		for num := 0; num < numShards; num++ {
-			shard := &Shard{C: 0}
-			sharedRef := colRef.Doc(strconv.Itoa(num))
-			err = tx.Set(sharedRef, shard)
-			if err != nil {
-				return errors.Wrapf(err, "failed init counter shared:%v ", num)
-			}
-		}
-		return nil
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to get counter: "+c.errorID())
-	}
-	return nil
 }
 
 // Increment increments a randomly picked shard.
@@ -98,13 +84,9 @@ func (c *CounterFirestore) create(ctx context.Context, tx *firestore.Transaction
 //	err = counter.Increment(ctx, 2)
 //
 func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
-	if c.N == 0 {
-		return errors.New("NumShards can not be empty")
-	}
 
 	docID := strconv.Itoa(rand.Intn(c.N))
-	shardRef := c.docRef.Collection("shards").Doc(docID)
-
+	shardRef := c.shardsRef.Doc(docID)
 	var err error
 	if c.tx != nil {
 		err = c.tx.Update(shardRef, []firestore.Update{
@@ -128,17 +110,16 @@ func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
 //
 func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
 	var total int64
-	collectionRef := c.docRef.Collection("shards")
 	var shards *firestore.DocumentIterator
 	if c.tx != nil {
-		shards = c.tx.Documents(collectionRef)
+		shards = c.tx.Documents(c.shardsRef)
 	} else {
-		shards = collectionRef.Documents(ctx)
+		shards = c.shardsRef.Documents(ctx)
 	}
 	defer shards.Stop()
 
 	for {
-		doc, err := shards.Next()
+		snotshot, err := shards.Next()
 		if err == iterator.Done {
 			break
 		}
@@ -146,7 +127,7 @@ func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
 			return 0, errors.Wrap(err, "failed iterator shards documents: "+c.errorID())
 		}
 
-		vTotal := doc.Data()["C"]
+		vTotal := snotshot.Data()["C"]
 		shardCount, ok := vTotal.(int64)
 		if !ok {
 			return 0, errors.Wrapf(err, "failed get count on shards, invalid dataType %T, want int64: "+c.errorID(), vTotal)
@@ -156,79 +137,12 @@ func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
 	return total, nil
 }
 
-// Delete counter and all shards.
-//
-//	err = counter.Delete(ctx)
-//
-func (c *CounterFirestore) Delete(ctx context.Context) error {
-	if c.client == nil {
-		return nil
-	}
-
-	shards := c.docRef.Collection("shards").Documents(ctx)
-	defer shards.Stop()
-
-	if c.tx != nil {
-		for {
-			doc, err := shards.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return errors.Wrap(err, "failed to iterator shards: "+c.errorID())
-			}
-
-			if err = c.tx.Delete(doc.Ref); err != nil {
-				return errors.Wrap(err, "failed to delete shards in transaction: "+c.errorID())
-			}
-
-		}
-		if err := c.tx.Delete(c.docRef); err != nil {
-			return errors.Wrap(err, "failed to delete counter in transaction: "+c.errorID())
-		}
-	} else {
-		shardsBatch := c.client.Batch()
-		for {
-			doc, err := shards.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return errors.Wrap(err, "failed to iterator shards: "+c.errorID())
-			}
-			shardsBatch.Delete(doc.Ref)
-		}
-		shardsBatch.Delete(c.docRef)
-
-		_, err := shardsBatch.Commit(ctx)
-		if err != nil {
-			return errors.Wrap(err, "failed to commit delete batch: "+c.errorID())
-		}
-	}
-
-	c.nsRef = nil
-	c.tablename = ""
-	c.countername = ""
-	c.client = nil
-	c.docRef = nil
-	c.tx = nil
-	return nil
-}
-
 // GetCreateTime return object create time
 //
 //	id := d.CreateTime()
 //
 func (c *CounterFirestore) GetCreateTime() time.Time {
-	return c.createTime
-}
-
-// SetCreateTime set object create time
-//
-//	id := d.SetCreateTime(time.Now())
-//
-func (c *CounterFirestore) SetCreateTime(t time.Time) {
-	c.createTime = t
+	return c.CreateTime
 }
 
 // GetReadTime return object create time
@@ -236,15 +150,7 @@ func (c *CounterFirestore) SetCreateTime(t time.Time) {
 //	id := d.ReadTime()
 //
 func (c *CounterFirestore) GetReadTime() time.Time {
-	return c.readTime
-}
-
-// SetReadTime set object read time
-//
-//	id := d.SetReadTime(time.Now())
-//
-func (c *CounterFirestore) SetReadTime(t time.Time) {
-	c.readTime = t
+	return c.ReadTime
 }
 
 // GetUpdateTime return object update time
@@ -252,13 +158,5 @@ func (c *CounterFirestore) SetReadTime(t time.Time) {
 //	id := d.UpdateTime()
 //
 func (c *CounterFirestore) GetUpdateTime() time.Time {
-	return c.updateTime
-}
-
-// SetUpdateTime set object update time
-//
-//	id := d.SetUpdateTime(time.Now())
-//
-func (c *CounterFirestore) SetUpdateTime(t time.Time) {
-	c.updateTime = t
+	return c.UpdateTime
 }

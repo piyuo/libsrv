@@ -4,8 +4,6 @@ import (
 	"context"
 )
 
-
-
 // ConnectionRef define how to connect and manipulate database
 //
 type ConnectionRef interface {
@@ -113,4 +111,10 @@ type ConnectionRef interface {
 	//	counter,err = conn.Counter(ctx, tablename, countername, numshards)
 	//
 	Counter(ctx context.Context, tablename, countername string, numShards int) (CounterRef, error)
+
+	// DeleteCounter delete counter
+	//
+	//	err = conn.DeleteCounter(ctx, tablename, countername)
+	//
+	DeleteCounter(ctx context.Context, tablename, countername string) error
 }

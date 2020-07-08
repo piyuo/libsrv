@@ -528,44 +528,129 @@ func (conn *ConnectionFirestore) Query(ctx context.Context, tablename string, fa
 //
 func (conn *ConnectionFirestore) Counter(ctx context.Context, tablename, countername string, numShards int) (CounterRef, error) {
 	docRef := conn.getDocRef(ctx, tablename, countername)
+	shardsRef := docRef.Collection("shards")
+	if conn.tx != nil {
+		counter, err := conn.ensureCounterInTx(ctx, tablename, countername, conn.tx, docRef, shardsRef, numShards)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to ensure counter in current transaction: "+conn.errorID(tablename, countername))
+		}
+		return counter, nil
+	}
+	var counter *CounterFirestore
+	err := conn.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		var err error
+		counter, err = conn.ensureCounterInTx(ctx, tablename, countername, tx, docRef, shardsRef, numShards)
+		if err != nil {
+			return errors.Wrap(err, "failed to ensure counter: "+conn.errorID(tablename, countername))
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to run transaction ensure counter: "+conn.errorID(tablename, countername))
+	}
+	counter.tx = nil
+	return counter, nil
+}
+
+// createCounterInTx create counter in transaction with a given number of shards as subcollection of specified document.
+//
+//	err := db.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+//		return counter.create(ctx, db.tx, docRef, counter, numShards)
+//	})
+//
+func (conn *ConnectionFirestore) ensureCounterInTx(ctx context.Context, tablename, countername string, tx *firestore.Transaction, docRef *firestore.DocumentRef, shardsRef *firestore.CollectionRef, numShards int) (*CounterFirestore, error) {
+	namespace := ""
+	if conn.nsRef != nil {
+		namespace = conn.nsRef.ID
+	}
 	counter := &CounterFirestore{
-		nsRef:       conn.nsRef,
-		tablename:   tablename,
-		countername: countername,
+		shardsRef:   shardsRef,
 		client:      conn.client,
-		docRef:      docRef,
 		tx:          conn.tx,
+		NameSpace:   namespace,
+		TableName:   tablename,
+		CounterName: countername,
 	}
 
-	snapshot, err := docRef.Get(ctx)
+	snapshot, err := tx.Get(docRef)
 	if snapshot != nil && !snapshot.Exists() {
-
-		if conn.tx != nil {
-			err := counter.create(ctx, conn.tx, docRef, counter, numShards)
+		counter.N = numShards
+		err = tx.Set(docRef, counter)
+		if err != nil {
+			return nil, err
+		}
+		// Initialize each shard with count=0
+		for num := 0; num < numShards; num++ {
+			shard := &Shard{C: 0}
+			sharedRef := shardsRef.Doc(strconv.Itoa(num))
+			err = tx.Set(sharedRef, shard)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to set counter in current transaction: "+conn.errorID(tablename, countername))
-			}
-		} else {
-			err := conn.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-				return counter.create(ctx, tx, docRef, counter, numShards)
-			})
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to set counter in new transaction: "+conn.errorID(tablename, countername))
+				return nil, errors.Wrapf(err, "failed init counter shared:%v ", num)
 			}
 		}
-		counter.SetCreateTime(time.Now())
-		counter.SetUpdateTime(time.Now())
-		counter.SetReadTime(time.Now())
+		counter.CreateTime = time.Now()
+		counter.UpdateTime = time.Now()
+		counter.ReadTime = time.Now()
 		return counter, nil
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get counter: "+conn.errorID(tablename, countername))
+		return nil, err
 	}
 	if err := snapshot.DataTo(counter); err != nil {
-		return nil, errors.Wrap(err, "failed to convert document to counter: "+conn.errorID(tablename, countername))
+		return nil, err
 	}
-	counter.SetCreateTime(snapshot.CreateTime)
-	counter.SetUpdateTime(snapshot.UpdateTime)
-	counter.SetReadTime(snapshot.ReadTime)
+	counter.CreateTime = snapshot.CreateTime
+	counter.UpdateTime = snapshot.UpdateTime
+	counter.ReadTime = snapshot.ReadTime
 	return counter, nil
+}
+
+// DeleteCounter delete counter
+//
+//	err = conn.DeleteCounter(ctx, tablename, countername)
+//
+func (conn *ConnectionFirestore) DeleteCounter(ctx context.Context, tablename, countername string) error {
+	docRef := conn.getDocRef(ctx, tablename, countername)
+	shardsRef := docRef.Collection("shards")
+	if conn.tx != nil {
+		err := conn.deleteCounterInTx(ctx, conn.tx, docRef, shardsRef)
+		if err != nil {
+			return errors.Wrap(err, "failed to set counter in current transaction: "+conn.errorID(tablename, countername))
+		}
+		return nil
+	}
+	err := conn.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		return conn.deleteCounterInTx(ctx, tx, docRef, shardsRef)
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to set counter in new transaction: "+conn.errorID(tablename, countername))
+	}
+	return nil
+}
+
+// Counter return counter from data store, create one if not exist
+//
+//	err = conn.DeleteCounter(ctx, tablename, countername)
+//
+func (conn *ConnectionFirestore) deleteCounterInTx(ctx context.Context, tx *firestore.Transaction, docRef *firestore.DocumentRef, shardsRef *firestore.CollectionRef) error {
+	shards := tx.Documents(shardsRef)
+	defer shards.Stop()
+	for {
+		shard, err := shards.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if err = tx.Delete(shard.Ref); err != nil {
+			return err
+		}
+
+	}
+	if err := tx.Delete(docRef); err != nil {
+		return err
+	}
+	return nil
 }

@@ -139,6 +139,12 @@ func (scs *SampleCounters) SampleTotal(ctx context.Context) (CounterRef, error) 
 	return scs.Counter(ctx, "sample-total", 4)
 }
 
+// DeleteSampleTotal return sample total count
+//
+func (scs *SampleCounters) DeleteSampleTotal(ctx context.Context) error {
+	return scs.Delete(ctx, "sample-total")
+}
+
 func firestoreBeginTest() (*SampleGlobalDB, *SampleRegionalDB, *Table, *Table) {
 	ctx := context.Background()
 	dbG, err := NewSampleGlobalDB(ctx)
