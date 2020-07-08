@@ -2,9 +2,9 @@ package data
 
 import "time"
 
-// Object represent single document in table
+// ObjectRef is object reference for public method
 //
-type Object interface {
+type ObjectRef interface {
 
 	// id is object unique identifier used for other object to reference
 	//
@@ -12,7 +12,7 @@ type Object interface {
 	//	err = db.Get(ctx, d)
 	//	id := d.ID()
 	//
-	ID() string
+	GetID() string
 
 	// SetID is object unique identifier used for other object to reference
 	//
@@ -26,7 +26,7 @@ type Object interface {
 	//
 	//	ref := d.Ref()
 	//
-	Ref() interface{}
+	GetRef() interface{}
 
 	// SetRef set reference which used by db implementation
 	//
@@ -36,7 +36,7 @@ type Object interface {
 
 	// CreateTime return object create time
 	//
-	CreateTime() time.Time
+	GetCreateTime() time.Time
 
 	// SetCreateTime set object create time
 	//
@@ -44,7 +44,7 @@ type Object interface {
 
 	// ReadTime return object read time
 	//
-	ReadTime() time.Time
+	GetReadTime() time.Time
 
 	// SetReadTime set object read time
 	//
@@ -52,53 +52,46 @@ type Object interface {
 
 	// UpdateTime return object update time
 	//
-	UpdateTime() time.Time
+	GetUpdateTime() time.Time
 
 	// SetUpdateTime set object update time
 	//
 	SetUpdateTime(time.Time)
 }
 
-// DocObject represent object stored in document database
+// Object represent object stored in document database
 //
-//	type Sample struct {
-//	AbstractObject
-//	}
-//	func (do *Sample) ModelName() string {
-//		return "Sample"
-//	}
-//
-type DocObject struct {
-	Object
+type Object struct {
+	ObjectRef
 
-	// id is object unique identifier used for other object to reference
+	// ID is object unique identifier used for other object to reference
 	//
-	id string
+	ID string `firestore:"-"`
 
-	// reference which used by db implementation
+	// reference used by connection implementation
 	//
-	ref interface{}
+	Ref interface{} `firestore:"-"`
 
-	// createTime is object create time
+	// CreateTime is object create time, this is readonly field
 	//
-	createTime time.Time
+	CreateTime time.Time `firestore:"-"`
 
-	// readTime is object read time
+	// ReadTime is object read time, this is readonly field
 	//
-	readTime time.Time
+	ReadTime time.Time `firestore:"-"`
 
-	// updateTime is object update time
+	// UpdateTime is object update time, this is readonly field
 	//
-	updateTime time.Time `firestore:"-"`
+	UpdateTime time.Time `firestore:"-"`
 }
 
-// ID return object unique identifier
+// GetID return object unique identifier
 //
 //	d := &Sample{}
 //	id := d.ID()
 //
-func (do *DocObject) ID() string {
-	return do.id
+func (o *Object) GetID() string {
+	return o.ID
 }
 
 // SetID set object unique identifier
@@ -106,70 +99,70 @@ func (do *DocObject) ID() string {
 //	d := &Sample{}
 //	id := d.setID("uniqueID")
 //
-func (do *DocObject) SetID(id string) {
-	do.id = id
+func (o *Object) SetID(id string) {
+	o.ID = id
 }
 
-// Ref return reference which used by db implementation
+// GetRef return reference which used by db implementation
 //
 //	ref := d.Ref()
 //
-func (do *DocObject) Ref() interface{} {
-	return do.ref
+func (o *Object) GetRef() interface{} {
+	return o.Ref
 }
 
 // SetRef set reference which used by db implementation
 //
 //	d.setRef(ref)
 //
-func (do *DocObject) SetRef(ref interface{}) {
-	do.ref = ref
+func (o *Object) SetRef(ref interface{}) {
+	o.Ref = ref
 }
 
-// CreateTime return object create time
+// GetCreateTime return object create time
 //
 //	id := d.CreateTime()
 //
-func (do *DocObject) CreateTime() time.Time {
-	return do.createTime
+func (o *Object) GetCreateTime() time.Time {
+	return o.CreateTime
 }
 
 // SetCreateTime set object create time
 //
 //	id := d.SetCreateTime(time.Now())
 //
-func (do *DocObject) SetCreateTime(t time.Time) {
-	do.createTime = t
+func (o *Object) SetCreateTime(t time.Time) {
+	o.CreateTime = t
 }
 
-// ReadTime return object create time
+// GetReadTime return object create time
 //
 //	id := d.ReadTime()
 //
-func (do *DocObject) ReadTime() time.Time {
-	return do.readTime
+func (o *Object) GetReadTime() time.Time {
+	return o.ReadTime
 }
 
 // SetReadTime set object read time
 //
 //	id := d.SetReadTime(time.Now())
 //
-func (do *DocObject) SetReadTime(t time.Time) {
-	do.readTime = t
+func (o *Object) SetReadTime(t time.Time) {
+	o.ReadTime = t
 }
 
-// UpdateTime return object update time
+// GetUpdateTime return object update time
 //
 //	id := d.UpdateTime()
 //
-func (do *DocObject) UpdateTime() time.Time {
-	return do.updateTime
+func (o *Object) GetUpdateTime() time.Time {
+	return o.UpdateTime
 }
 
 // SetUpdateTime set object update time
 //
 //	id := d.SetUpdateTime(time.Now())
 //
-func (do *DocObject) SetUpdateTime(t time.Time) {
-	do.updateTime = t
+func (o *Object) SetUpdateTime(t time.Time) {
+	o.UpdateTime = t
 }

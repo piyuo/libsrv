@@ -9,57 +9,17 @@ import (
 // Table represent a table in document database
 //
 type Table struct {
-	conn      Connection
-	factory   func() Object
-	tablename string
-}
-
-// SetConnection set connection for table
-//
-//	table.SetConnection(conn)
-//
-func (t *Table) SetConnection(conn Connection) {
-	t.conn = conn
-}
-
-// SetFactory set factory function to create object
-//
-//	table.SetFactory(f)
-//
-func (t *Table) SetFactory(factory func() Object) {
-	t.factory = factory
-}
-
-// Factory return factory function to create object
-//
-//	table.Factory()
-//
-func (t *Table) Factory() func() Object {
-	return t.factory
+	Connection ConnectionRef
+	Factory    func() ObjectRef
+	TableName  string
 }
 
 // NewObject use factory to create new Object
 //
 //	obj:=table.NewObject()
 //
-func (t *Table) NewObject() Object {
-	return t.factory()
-}
-
-// SetTableName set table name
-//
-//	table.SetTableName("sample")
-//
-func (t *Table) SetTableName(tablename string) {
-	t.tablename = tablename
-}
-
-// TableName return table name
-//
-//	table.TableName()
-//
-func (t *Table) TableName() string {
-	return t.tablename
+func (t *Table) NewObject() ObjectRef {
+	return t.Factory()
 }
 
 // ID create new id for empty object
@@ -73,12 +33,12 @@ func (t *Table) ID() string {
 
 // Get object by id, return nil if object is not exist
 //
-func (t *Table) Get(ctx context.Context, id string) (Object, error) {
+func (t *Table) Get(ctx context.Context, id string) (ObjectRef, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	object, err := t.conn.Get(ctx, t.tablename, id, t.factory)
+	object, err := t.Connection.Get(ctx, t.TableName, id, t.Factory)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +47,11 @@ func (t *Table) Get(ctx context.Context, id string) (Object, error) {
 
 // Set object to table
 //
-func (t *Table) Set(ctx context.Context, object Object) error {
+func (t *Table) Set(ctx context.Context, object ObjectRef) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if err := t.conn.Set(ctx, t.tablename, object); err != nil {
+	if err := t.Connection.Set(ctx, t.TableName, object); err != nil {
 		return err
 	}
 	return nil
@@ -103,16 +63,16 @@ func (t *Table) Exist(ctx context.Context, id string) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	return t.conn.Exist(ctx, t.tablename, id)
+	return t.Connection.Exist(ctx, t.TableName, id)
 }
 
 // List return max 10 object, if you need more! using query instead
 //
-func (t *Table) List(ctx context.Context) ([]Object, error) {
+func (t *Table) List(ctx context.Context) ([]ObjectRef, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.conn.List(ctx, t.tablename, t.factory)
+	return t.Connection.List(ctx, t.TableName, t.Factory)
 }
 
 // Select return object field from data store
@@ -122,7 +82,7 @@ func (t *Table) Select(ctx context.Context, id, field string) (interface{}, erro
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.conn.Select(ctx, t.tablename, id, field)
+	return t.Connection.Select(ctx, t.TableName, id, field)
 }
 
 // Update partial object field without overwriting the entire document
@@ -132,7 +92,7 @@ func (t *Table) Update(ctx context.Context, id string, fields map[string]interfa
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.conn.Update(ctx, t.tablename, id, fields)
+	return t.Connection.Update(ctx, t.TableName, id, fields)
 }
 
 // Delete object using id
@@ -142,17 +102,17 @@ func (t *Table) Delete(ctx context.Context, id string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.conn.Delete(ctx, t.tablename, id)
+	return t.Connection.Delete(ctx, t.TableName, id)
 }
 
 // DeleteObject delete object
 //
 //
-func (t *Table) DeleteObject(ctx context.Context, object Object) error {
+func (t *Table) DeleteObject(ctx context.Context, object ObjectRef) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.conn.DeleteObject(ctx, t.tablename, object)
+	return t.Connection.DeleteObject(ctx, t.TableName, object)
 }
 
 // Clear delete all object in specific time, 1000 documents at a time, return false if still has object need to be delete
@@ -162,7 +122,7 @@ func (t *Table) Clear(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.conn.Clear(ctx, t.tablename)
+	return t.Connection.Clear(ctx, t.TableName)
 }
 
 // Query create query
@@ -171,15 +131,15 @@ func (t *Table) Clear(ctx context.Context) error {
 //		return new(Greet)
 //	})
 //
-func (t *Table) Query(ctx context.Context) Query {
-	return t.conn.Query(ctx, t.tablename, t.factory)
+func (t *Table) Query(ctx context.Context) QueryRef {
+	return t.Connection.Query(ctx, t.TableName, t.Factory)
 }
 
 // Find return first object
 //
 //	exist, err := db.Available(ctx, "From", "==", "1")
 //
-func (t *Table) Find(ctx context.Context, field, operator string, value interface{}) (Object, error) {
+func (t *Table) Find(ctx context.Context, field, operator string, value interface{}) (ObjectRef, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -199,7 +159,7 @@ func (t *Table) Find(ctx context.Context, field, operator string, value interfac
 //
 //	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
 //
-func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]Object, error) {
+func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]ObjectRef, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -242,5 +202,5 @@ func (t *Table) Increment(ctx context.Context, id, field string, value int) erro
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.conn.Increment(ctx, t.tablename, id, field, value)
+	return t.Connection.Increment(ctx, t.TableName, id, field, value)
 }

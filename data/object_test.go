@@ -11,8 +11,7 @@ import (
 func TestID(t *testing.T) {
 	Convey("id should be empty", t, func() {
 		d := &Sample{}
-		id := d.ID()
-		So(id, ShouldBeEmpty)
+		So(d.ID, ShouldBeEmpty)
 	})
 }
 

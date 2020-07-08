@@ -25,14 +25,14 @@ func noErrorTest(ctx context.Context, table *Table) {
 	So(table.Factory, ShouldNotBeNil)
 
 	obj := table.NewObject()
-	So(table.TableName(), ShouldEqual, "sample")
+	So(table.TableName, ShouldEqual, "sample")
 	So(obj, ShouldNotBeNil)
 	So((obj.(*Sample)).Name, ShouldBeEmpty)
 
-	obj2 := table.Factory()
+	obj2 := table.Factory
 	So(obj2, ShouldNotBeNil)
 
-	id := table.ID()
+	id := table.ID
 	So(id, ShouldNotBeEmpty)
 
 }

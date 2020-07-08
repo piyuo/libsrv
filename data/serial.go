@@ -10,45 +10,21 @@ import (
 // Serial is collections of serial in document database
 //
 type Serial struct {
-	conn      Connection
-	tablename string
+	Connection ConnectionRef
+	TableName  string
 }
 
 // Number table save all serial
 //
 type Number struct {
-	DocObject `firestore:"-"`
-	S         uint32
+	Object `firestore:"-"`
+	S      uint32
 }
 
 // newNumber create number object
 //
-func newNumber() Object {
+func newNumber() ObjectRef {
 	return &Number{}
-}
-
-// SetConnection set connection for table
-//
-//	table.SetConnection(conn)
-//
-func (s *Serial) SetConnection(conn Connection) {
-	s.conn = conn
-}
-
-// SetTableName set table name
-//
-//	table.SetTableName("sample")
-//
-func (s *Serial) SetTableName(tablename string) {
-	s.tablename = tablename
-}
-
-// TableName return table name
-//
-//	table.TableName()
-//
-func (s *Serial) TableName() string {
-	return s.tablename
 }
 
 // Code encode serial number to string, please be aware serial can only generate one number per second and use with transation to ensure unique
@@ -71,11 +47,11 @@ func (s *Serial) Number(ctx context.Context, name string) (uint32, error) {
 	if ctx.Err() != nil {
 		return 0, ctx.Err()
 	}
-	if s.tablename == "" {
+	if s.TableName == "" {
 		return 0, errors.New("table name can not be empty: " + name)
 	}
 
-	num, err := s.conn.Get(ctx, s.tablename, name, newNumber)
+	num, err := s.Connection.Get(ctx, s.TableName, name, newNumber)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get serial: "+name)
 	}
@@ -85,13 +61,13 @@ func (s *Serial) Number(ctx context.Context, name string) (uint32, error) {
 		number = &Number{
 			S: 1,
 		}
-		number.SetID(name)
+		number.ID = name
 	} else {
 		number = num.(*Number)
 		number.S++
 	}
 
-	err = s.conn.Set(ctx, s.tablename, number)
+	err = s.Connection.Set(ctx, s.TableName, number)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to set serial: "+name)
 	}
@@ -106,9 +82,9 @@ func (s *Serial) Delete(ctx context.Context, name string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if s.tablename == "" {
+	if s.TableName == "" {
 		return errors.New("serial table name can not be empty: " + name)
 	}
 
-	return s.conn.Delete(ctx, s.tablename, name)
+	return s.Connection.Delete(ctx, s.TableName, name)
 }

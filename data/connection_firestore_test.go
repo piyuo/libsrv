@@ -86,7 +86,7 @@ func testID(ctx context.Context, table *Table) {
 		Name:  "sample",
 		Value: 1,
 	}
-	So(sample.ID(), ShouldBeEmpty)
+	So(sample.ID, ShouldBeEmpty)
 
 	o, err := table.Get(ctx, "")
 	So(err, ShouldBeNil)
@@ -95,9 +95,9 @@ func testID(ctx context.Context, table *Table) {
 	// auto id
 	err = table.Set(ctx, sample)
 	So(err, ShouldBeNil)
-	So(sample.ID(), ShouldNotBeEmpty)
+	So(sample.ID, ShouldNotBeEmpty)
 
-	sample2, err := table.Get(ctx, sample.ID())
+	sample2, err := table.Get(ctx, sample.ID)
 	So(err, ShouldBeNil)
 	So(sample2, ShouldNotBeNil)
 	So(sample.Name, ShouldEqual, sample2.(*Sample).Name)
@@ -107,7 +107,7 @@ func testID(ctx context.Context, table *Table) {
 	err = table.Set(ctx, sample)
 	So(err, ShouldBeNil)
 
-	m, err := table.Get(ctx, sample.ID())
+	m, err := table.Get(ctx, sample.ID)
 	sampleM := m.(*Sample)
 	So(err, ShouldBeNil)
 	So(sampleM, ShouldNotBeNil)
@@ -125,10 +125,10 @@ func testID(ctx context.Context, table *Table) {
 		Name:  "sample",
 		Value: 1,
 	}
-	sample.SetID("sample-id")
+	sample.ID = "sample-id"
 	err = table.Set(ctx, sample)
 	So(err, ShouldBeNil)
-	So(sample.ID(), ShouldEqual, "sample-id")
+	So(sample.ID, ShouldEqual, "sample-id")
 
 	sample3, err := table.Get(ctx, "sample-id")
 	So(err, ShouldBeNil)
@@ -147,7 +147,7 @@ func testSetGetExistDelete(ctx context.Context, table *Table) {
 
 	err := table.Set(ctx, sample)
 	So(err, ShouldBeNil)
-	sampleID := sample.ID()
+	sampleID := sample.ID
 	sample2, err := table.Get(ctx, sampleID)
 	So(err, ShouldBeNil)
 	So(sample2, ShouldNotBeNil)
@@ -188,7 +188,7 @@ func testSelectUpdateIncrementDelete(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 	So(value, ShouldBeNil)
 
-	value, err = table.Select(ctx, sample.ID(), "Value")
+	value, err = table.Select(ctx, sample.ID, "Value")
 	So(err, ShouldBeNil)
 	So(value, ShouldEqual, 6)
 
@@ -201,17 +201,17 @@ func testSelectUpdateIncrementDelete(ctx context.Context, table *Table) {
 	err = table.Delete(ctx, "NotExistID")
 	So(err, ShouldBeNil)
 
-	err = table.Update(ctx, sample.ID(), map[string]interface{}{
+	err = table.Update(ctx, sample.ID, map[string]interface{}{
 		"Name":  "sample2",
 		"Value": 2,
 	})
 	So(err, ShouldBeNil)
 
-	name, err := table.Select(ctx, sample.ID(), "Name")
+	name, err := table.Select(ctx, sample.ID, "Name")
 	So(err, ShouldBeNil)
 	So(name, ShouldEqual, "sample2")
 
-	value, err = table.Select(ctx, sample.ID(), "Value")
+	value, err = table.Select(ctx, sample.ID, "Value")
 	So(err, ShouldBeNil)
 	So(value, ShouldEqual, 2)
 
@@ -221,10 +221,10 @@ func testSelectUpdateIncrementDelete(ctx context.Context, table *Table) {
 	err = table.Delete(ctx, "NotExistID")
 	So(err, ShouldBeNil)
 
-	err = table.Increment(ctx, sample.ID(), "Value", 3)
+	err = table.Increment(ctx, sample.ID, "Value", 3)
 	So(err, ShouldBeNil)
 
-	value, err = table.Select(ctx, sample.ID(), "Value")
+	value, err = table.Select(ctx, sample.ID, "Value")
 	So(err, ShouldBeNil)
 	So(value, ShouldEqual, 5)
 
@@ -313,15 +313,15 @@ func testDelete(ctx context.Context, table *Table) {
 
 	err = table.Set(ctx, sample)
 	So(err, ShouldBeNil)
-	exist, err := table.Exist(ctx, sample.ID())
+	exist, err := table.Exist(ctx, sample.ID)
 	So(err, ShouldBeNil)
 	So(exist, ShouldBeTrue)
 
 	sample2 := &Sample{}
-	sample2.SetID(sample.ID())
+	sample2.ID = sample.ID
 	err = table.DeleteObject(ctx, sample2)
 	So(err, ShouldBeNil)
-	exist, err = table.Exist(ctx, sample.ID())
+	exist, err = table.Exist(ctx, sample.ID)
 	So(err, ShouldBeNil)
 	So(exist, ShouldBeFalse)
 }
@@ -420,7 +420,7 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		table.Update(ctx, sample.ID(), map[string]interface{}{
+		table.Update(ctx, sample.ID, map[string]interface{}{
 			"Name": "hello" + strconv.Itoa(i),
 		})
 	}

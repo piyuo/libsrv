@@ -4,13 +4,11 @@ import (
 	"context"
 )
 
-const limitQueryDefault = 10
-const limitTransactionClear = 10
-const limitClear = 500
 
-// Connection define how to connect and manipulate database
+
+// ConnectionRef define how to connect and manipulate database
 //
-type Connection interface {
+type ConnectionRef interface {
 	// Close database connection
 	//
 	//	conn.Close()
@@ -33,7 +31,7 @@ type Connection interface {
 	//
 	//	object, err := conn.Get(ctx, tablename, id, factory)
 	//
-	Get(ctx context.Context, tablename, id string, factory func() Object) (Object, error)
+	Get(ctx context.Context, tablename, id string, factory func() ObjectRef) (ObjectRef, error)
 
 	// Set object into data store, If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data,
 	//
@@ -43,7 +41,7 @@ type Connection interface {
 	//		return err
 	//	}
 	//
-	Set(ctx context.Context, tablename string, obj Object) error
+	Set(ctx context.Context, tablename string, object ObjectRef) error
 
 	// Exist return true if object with id exist
 	//
@@ -55,7 +53,7 @@ type Connection interface {
 	//
 	//	return conn.List(ctx, tablename, factory)
 	//
-	List(ctx context.Context, tablename string, factory func() Object) ([]Object, error)
+	List(ctx context.Context, tablename string, factory func() ObjectRef) ([]ObjectRef, error)
 
 	// Select return object field from data store, return nil if object does not exist
 	//
@@ -81,7 +79,7 @@ type Connection interface {
 	//
 	//	conn.DeleteObject(ctx, dt.tablename, object)
 	//
-	DeleteObject(ctx context.Context, tablename string, obj Object) error
+	DeleteObject(ctx context.Context, tablename string, obj ObjectRef) error
 
 	// Clear delete all object in specific time, 500 documents at a time, return false if still has object need to be delete
 	//	if in transaction , only 500 documents can be delete
@@ -94,7 +92,7 @@ type Connection interface {
 	//
 	//	conn.Query(ctx, tablename, factory)
 	//
-	Query(ctx context.Context, tablename string, factory func() Object) Query
+	Query(ctx context.Context, tablename string, factory func() ObjectRef) QueryRef
 
 	// Transaction start a transaction
 	//
@@ -114,5 +112,5 @@ type Connection interface {
 	//
 	//	counter,err = conn.Counter(ctx, tablename, countername, numshards)
 	//
-	Counter(ctx context.Context, tablename, countername string, numShards int) (Counter, error)
+	Counter(ctx context.Context, tablename, countername string, numShards int) (CounterRef, error)
 }

@@ -29,6 +29,15 @@ func testCounter(ctx context.Context, counters *SampleCounters) {
 	So(counter, ShouldNotBeNil)
 	So(err, ShouldBeNil)
 
+	//counter minimal shards is 10
+	counter, err = counters.Counter(ctx, "minShards", 0)
+	So(counter, ShouldNotBeNil)
+	So(err, ShouldBeNil)
+	firestoreCounter := counter.(*CounterFirestore)
+	So(firestoreCounter.N, ShouldEqual, 10)
+	err = firestoreCounter.Delete(ctx)
+	So(err, ShouldBeNil)
+
 	// delete exist counter
 	err = counter.Delete(ctx)
 	So(err, ShouldBeNil)

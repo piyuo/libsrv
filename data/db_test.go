@@ -7,7 +7,7 @@ import (
 )
 
 type SampleDB interface {
-	DB
+	DBRef
 	SampleTable() *Table
 	Counter() *SampleCounters
 	Serial() *SampleSerial
@@ -16,7 +16,7 @@ type SampleDB interface {
 // global connection
 //
 type SampleGlobalDB struct {
-	DocDB
+	DB
 }
 
 func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
@@ -24,40 +24,47 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db := &SampleGlobalDB{}
-	db.SetConnection(conn)
+	db := &SampleGlobalDB{
+		DB: DB{Connection: conn},
+	}
 	return db, nil
 }
 
 func (db *SampleGlobalDB) SampleTable() *Table {
-	table := &Table{}
-	table.SetConnection(db.Connection())
-	table.SetTableName("sample")
-	factory := func() Object {
-		return &Sample{}
+	table := &Table{
+		Connection: db.Connection,
+		TableName:  "sample",
+		Factory: func() ObjectRef {
+			return &Sample{}
+		},
 	}
-	table.SetFactory(factory)
 	return table
 }
 
 func (db *SampleGlobalDB) Counter() *SampleCounters {
-	counter := &SampleCounters{}
-	counter.SetConnection(db.Connection())
-	counter.SetTableName("sample-counter")
+	counter := &SampleCounters{
+		Counters: Counters{
+			Connection: db.Connection,
+			TableName:  "sample-counter",
+		},
+	}
 	return counter
 }
 
 func (db *SampleGlobalDB) Serial() *SampleSerial {
-	serial := &SampleSerial{}
-	serial.SetConnection(db.Connection())
-	serial.SetTableName("sample-serial")
+	serial := &SampleSerial{
+		Serial: Serial{
+			Connection: db.Connection,
+			TableName:  "sample-serial",
+		},
+	}
 	return serial
 }
 
 // regional connection
 //
 type SampleRegionalDB struct {
-	DocDB
+	DB
 }
 
 func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegionalDB, error) {
@@ -65,42 +72,49 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 	if err != nil {
 		return nil, err
 	}
-	db := &SampleRegionalDB{}
-	db.SetConnection(conn)
+	db := &SampleRegionalDB{
+		DB: DB{Connection: conn},
+	}
 	return db, nil
 }
 
 func (db *SampleRegionalDB) SampleTable() *Table {
-	table := &Table{}
-	table.SetConnection(db.Connection())
-	table.SetTableName("sample")
-	factory := func() Object {
-		return &Sample{}
+	table := &Table{
+		Connection: db.Connection,
+		TableName:  "sample",
+		Factory: func() ObjectRef {
+			return &Sample{}
+		},
 	}
-	table.SetFactory(factory)
 	return table
 }
 
 func (db *SampleRegionalDB) Counter() *SampleCounters {
-	counter := &SampleCounters{}
-	counter.SetConnection(db.Connection())
-	counter.SetTableName("sample-counter")
+	counter := &SampleCounters{
+		Counters: Counters{
+			Connection: db.Connection,
+			TableName:  "sample-counter",
+		},
+	}
 	return counter
 }
 
 func (db *SampleRegionalDB) Serial() *SampleSerial {
-	serial := &SampleSerial{}
-	serial.SetConnection(db.Connection())
-	serial.SetTableName("sample-serial")
+	serial := &SampleSerial{
+		Serial: Serial{
+			Connection: db.Connection,
+			TableName:  "sample-serial",
+		},
+	}
 	return serial
 }
 
 // Sample
 //
 type Sample struct {
-	DocObject `firestore:"-"`
-	Name      string
-	Value     int
+	Object `firestore:"-"`
+	Name   string
+	Value  int
 }
 
 // SampleSerial
@@ -121,7 +135,7 @@ type SampleCounters struct {
 
 // SampleTotal return sample total count
 //
-func (scs *SampleCounters) SampleTotal(ctx context.Context) (Counter, error) {
+func (scs *SampleCounters) SampleTotal(ctx context.Context) (CounterRef, error) {
 	return scs.Counter(ctx, "sample-total", 4)
 }
 

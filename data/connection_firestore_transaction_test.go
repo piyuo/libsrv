@@ -97,7 +97,7 @@ func transactionTest(ctx context.Context, db SampleDB, table *Table) {
 	So(err, ShouldBeNil)
 }
 
-func methodTest(ctx context.Context, db DB, table *Table) {
+func methodTest(ctx context.Context, db SampleDB, table *Table) {
 
 	sample1 := &Sample{
 		Name:  "sample1",
@@ -112,7 +112,7 @@ func methodTest(ctx context.Context, db DB, table *Table) {
 	err := table.Set(ctx, sample1)
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		sample, err := table.Get(ctx, sample1.ID())
+		sample, err := table.Get(ctx, sample1.ID)
 		So(err, ShouldBeNil)
 		err = table.DeleteObject(ctx, sample)
 		So(err, ShouldBeNil)
@@ -126,13 +126,13 @@ func methodTest(ctx context.Context, db DB, table *Table) {
 	err = table.Set(ctx, sample1)
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		exist, err := table.Exist(ctx, sample1.ID())
+		exist, err := table.Exist(ctx, sample1.ID)
 		So(err, ShouldBeNil)
 		So(exist, ShouldBeTrue)
 		objects, err := table.List(ctx)
 		So(err, ShouldBeNil)
 		So(len(objects), ShouldEqual, 1)
-		err = table.Delete(ctx, sample1.ID())
+		err = table.Delete(ctx, sample1.ID)
 		So(err, ShouldBeNil)
 		return nil
 	})
@@ -144,22 +144,22 @@ func methodTest(ctx context.Context, db DB, table *Table) {
 	err = table.Set(ctx, sample1)
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		name, err := table.Select(ctx, sample1.ID(), "Name")
+		name, err := table.Select(ctx, sample1.ID, "Name")
 		So(err, ShouldBeNil)
 		So(name.(string), ShouldEqual, "sample1")
-		err = table.Update(ctx, sample1.ID(), map[string]interface{}{
+		err = table.Update(ctx, sample1.ID, map[string]interface{}{
 			"Name": "sample",
 		})
 		So(err, ShouldBeNil)
-		err = table.Increment(ctx, sample1.ID(), "Value", 1)
+		err = table.Increment(ctx, sample1.ID, "Value", 1)
 		So(err, ShouldBeNil)
 		return nil
 	})
 	So(err, ShouldBeNil)
-	name, err := table.Select(ctx, sample1.ID(), "Name")
+	name, err := table.Select(ctx, sample1.ID, "Name")
 	So(err, ShouldBeNil)
 	So(name.(string), ShouldEqual, "sample")
-	value, err := table.Select(ctx, sample1.ID(), "Value")
+	value, err := table.Select(ctx, sample1.ID, "Value")
 	So(err, ShouldBeNil)
 	intValue, err := util.ToInt(value)
 	So(err, ShouldBeNil)

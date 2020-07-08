@@ -2,8 +2,8 @@ package data
 
 import "context"
 
-// Query is query interface
-type Query interface {
+// QueryRef represent query public method
+type QueryRef interface {
 	// Where set where filter
 	//
 	//	db.Select(ctx, GreetFactory).Where("From", "==", "1").Run(func(o Object) {
@@ -11,7 +11,7 @@ type Query interface {
 	//		err := db.Delete(ctx, o)
 	//	})
 	//
-	Where(path, op string, value interface{}) Query
+	Where(path, op string, value interface{}) QueryRef
 
 	// OrderBy set query order by
 	//
@@ -21,7 +21,7 @@ type Query interface {
 	//		list = append(list, greet)
 	//	})
 	//
-	OrderBy(path string) Query
+	OrderBy(path string) QueryRef
 
 	// OrderByDesc set query order by desc
 	//
@@ -31,7 +31,7 @@ type Query interface {
 	//		list = append(list, greet)
 	//	})
 	//
-	OrderByDesc(path string) Query
+	OrderByDesc(path string) QueryRef
 
 	// Limit set query limit
 	//
@@ -41,7 +41,7 @@ type Query interface {
 	//		list = append(list, greet)
 	//	})
 	//
-	Limit(n int) Query
+	Limit(n int) QueryRef
 
 	// StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
@@ -57,7 +57,7 @@ type Query interface {
 	//	So(greet.From, ShouldEqual, "b city")
 	//	So(len(list), ShouldEqual, 2)
 	//
-	StartAt(docSnapshotOrFieldValues ...interface{}) Query
+	StartAt(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// StartAfter implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
@@ -73,7 +73,7 @@ type Query interface {
 	//	So(greet.From, ShouldEqual, "c city")
 	//	So(len(list), ShouldEqual, 1)
 	//
-	StartAfter(docSnapshotOrFieldValues ...interface{}) Query
+	StartAfter(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// EndAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
@@ -89,7 +89,7 @@ type Query interface {
 	//	So(greet.From, ShouldEqual, "a city")
 	//	So(len(list), ShouldEqual, 2)
 	//
-	EndAt(docSnapshotOrFieldValues ...interface{}) Query
+	EndAt(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// EndBefore implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
@@ -105,7 +105,7 @@ type Query interface {
 	//	So(greet.From, ShouldEqual, "a city")
 	//	So(len(list), ShouldEqual, 1)
 	//
-	EndBefore(docSnapshotOrFieldValues ...interface{}) Query
+	EndBefore(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 	//
@@ -118,7 +118,7 @@ type Query interface {
 	//	So(greet.From, ShouldEqual, "b city")
 	//	So(len(list), ShouldEqual, 1)
 	//
-	Execute(ctx context.Context) ([]Object, error)
+	Execute(ctx context.Context) ([]ObjectRef, error)
 
 	// Count execute query and return max 10 count
 	//
@@ -129,14 +129,14 @@ type Query interface {
 	IsEmpty(ctx context.Context) (bool, error)
 }
 
-// DocQuery represent a query in document database
+// Query represent a query in document database
 //
-type DocQuery struct {
-	Query
+type Query struct {
+	QueryRef
 
 	// factor use to create object
 	//
-	factory func() Object
+	factory func() ObjectRef
 
 	// limit remember if query set limit, if not we will give default limit (10) to avoid return too may document
 	//

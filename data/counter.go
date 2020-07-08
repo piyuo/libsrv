@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-// Counter is a collection of documents (shards) to realize counter with high frequency.
+// CounterRef is a collection of documents (shards) to realize counter with high frequency.
 //
-type Counter interface {
+type CounterRef interface {
 
 	// initCounter creates a given number of shards as subcollection of specified document.
 	//

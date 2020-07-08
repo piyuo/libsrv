@@ -14,7 +14,7 @@ import (
 // CounterFirestore implement Counter
 //
 type CounterFirestore struct {
-	Counter `firestore:"-"`
+	CounterRef `firestore:"-"`
 
 	// N is number of shards
 	//

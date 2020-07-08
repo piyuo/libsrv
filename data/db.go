@@ -4,27 +4,19 @@ import (
 	"context"
 )
 
-// DB represent database
+const limitQueryDefault = 10
+const limitTransactionClear = 10
+const limitClear = 500
+
+// DBRef represent DB public method
 //
-type DB interface {
-	// Connection return db connection
-	//
-	//	conn.DB()
-	//
-	Connection() Connection
+type DBRef interface {
 
 	// Close connection
 	//
 	//	conn.Close()
 	//
 	Close()
-
-	// SetConnection set current db connection
-	//
-	//	db := &GlobalDB{}
-	//	db.SetConnection(conn)
-	//
-	SetConnection(connection Connection)
 
 	// CreateNamespace create namespace, create new one if not exist
 	//
@@ -48,37 +40,24 @@ type DB interface {
 	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
 }
 
-// DocDB represent document database
+// DB represent document database
 //
-type DocDB struct {
-	DB
-	connection Connection
-}
+type DB struct {
+	DBRef
 
-// Connection return database connection
-//
-//	db.Connection()
-//
-func (db *DocDB) Connection() Connection {
-	return db.connection
-}
-
-// SetConnection set database connection
-//
-//	conn.SetConnection(donn)
-//
-func (db *DocDB) SetConnection(connection Connection) {
-	db.connection = connection
+	// Connection is database connection
+	//
+	Connection ConnectionRef
 }
 
 // Close connection
 //
 //	conn.Close()
 //
-func (db *DocDB) Close() {
-	if db.connection != nil {
-		db.connection.Close()
-		db.connection = nil
+func (db *DB) Close() {
+	if db.Connection != nil {
+		db.Connection.Close()
+		db.Connection = nil
 	}
 }
 
@@ -89,31 +68,31 @@ func (db *DocDB) Close() {
 //		return nil
 //	})
 //
-func (db *DocDB) Transaction(ctx context.Context, callback func(ctx context.Context) error) error {
+func (db *DB) Transaction(ctx context.Context, callback func(ctx context.Context) error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.connection.Transaction(ctx, callback)
+	return db.Connection.Transaction(ctx, callback)
 }
 
 // CreateNamespace create namespace, create new one if not exist
 //
 //	dbRef, err := conn.CreateNamespace(ctx)
 //
-func (db *DocDB) CreateNamespace(ctx context.Context) error {
+func (db *DB) CreateNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.connection.CreateNamespace(ctx)
+	return db.Connection.CreateNamespace(ctx)
 }
 
 // DeleteNamespace delete namespace
 //
 //	err := db.DeleteNamespace(ctx)
 //
-func (db *DocDB) DeleteNamespace(ctx context.Context) error {
+func (db *DB) DeleteNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.connection.DeleteNamespace(ctx)
+	return db.Connection.DeleteNamespace(ctx)
 }

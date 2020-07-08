@@ -49,8 +49,8 @@ func serialTest(ctx context.Context, serial *SampleSerial) {
 
 func emptyTableName(ctx context.Context, db SampleDB) {
 	serial := db.Serial()
-	serial.SetTableName("")
-	So(serial.TableName(), ShouldBeEmpty)
+	serial.TableName = ""
+	So(serial.TableName, ShouldBeEmpty)
 
 	number, err := serial.Number(ctx, "sample-id")
 	So(err, ShouldNotBeNil)
