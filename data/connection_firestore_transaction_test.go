@@ -25,7 +25,7 @@ func TestTransaction(t *testing.T) {
 	})
 }
 
-func transactionTest(ctx context.Context, db SampleDB, table Table) {
+func transactionTest(ctx context.Context, db SampleDB, table *Table) {
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -97,7 +97,7 @@ func transactionTest(ctx context.Context, db SampleDB, table Table) {
 	So(err, ShouldBeNil)
 }
 
-func methodTest(ctx context.Context, db DB, table Table) {
+func methodTest(ctx context.Context, db DB, table *Table) {
 
 	sample1 := &Sample{
 		Name:  "sample1",

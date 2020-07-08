@@ -6,37 +6,9 @@ import (
 	util "github.com/piyuo/libsrv/util"
 )
 
-// Table represent database table
+// Table represent a table in document database
 //
-type Table interface {
-	SetConnection(conn Connection)
-	SetFactory(factory func() Object)
-	Factory() func() Object
-	NewObject() Object
-	SetTableName(tablename string)
-	TableName() string
-	ID() string
-	Get(ctx context.Context, id string) (Object, error)
-	Set(ctx context.Context, object Object) error
-	Exist(ctx context.Context, id string) (bool, error)
-	List(ctx context.Context) ([]Object, error)
-	Select(ctx context.Context, id, field string) (interface{}, error)
-	Update(ctx context.Context, id string, fields map[string]interface{}) error
-	Delete(ctx context.Context, id string) error
-	DeleteObject(ctx context.Context, object Object) error
-	Count(ctx context.Context) (int, error)
-	IsEmpty(ctx context.Context) (bool, error)
-	Clear(ctx context.Context) error
-	Query(ctx context.Context) Query
-	Find(ctx context.Context, field, operator string, value interface{}) (Object, error)
-	Search(ctx context.Context, field, operator string, value interface{}) ([]Object, error)
-	Increment(ctx context.Context, id, field string, value int) error
-}
-
-// DocTable represent a table in document database
-//
-type DocTable struct {
-	Table
+type Table struct {
 	conn      Connection
 	factory   func() Object
 	tablename string
@@ -46,48 +18,48 @@ type DocTable struct {
 //
 //	table.SetConnection(conn)
 //
-func (dt *DocTable) SetConnection(conn Connection) {
-	dt.conn = conn
+func (t *Table) SetConnection(conn Connection) {
+	t.conn = conn
 }
 
 // SetFactory set factory function to create object
 //
 //	table.SetFactory(f)
 //
-func (dt *DocTable) SetFactory(factory func() Object) {
-	dt.factory = factory
+func (t *Table) SetFactory(factory func() Object) {
+	t.factory = factory
 }
 
 // Factory return factory function to create object
 //
 //	table.Factory()
 //
-func (dt *DocTable) Factory() func() Object {
-	return dt.factory
+func (t *Table) Factory() func() Object {
+	return t.factory
 }
 
 // NewObject use factory to create new Object
 //
 //	obj:=table.NewObject()
 //
-func (dt *DocTable) NewObject() Object {
-	return dt.factory()
+func (t *Table) NewObject() Object {
+	return t.factory()
 }
 
 // SetTableName set table name
 //
 //	table.SetTableName("sample")
 //
-func (dt *DocTable) SetTableName(tablename string) {
-	dt.tablename = tablename
+func (t *Table) SetTableName(tablename string) {
+	t.tablename = tablename
 }
 
 // TableName return table name
 //
 //	table.TableName()
 //
-func (dt *DocTable) TableName() string {
-	return dt.tablename
+func (t *Table) TableName() string {
+	return t.tablename
 }
 
 // ID create new id for empty object
@@ -95,18 +67,18 @@ func (dt *DocTable) TableName() string {
 //
 //	id := table.ID()
 //
-func (dt *DocTable) ID() string {
+func (t *Table) ID() string {
 	return util.UUID()
 }
 
 // Get object by id, return nil if object is not exist
 //
-func (dt *DocTable) Get(ctx context.Context, id string) (Object, error) {
+func (t *Table) Get(ctx context.Context, id string) (Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	object, err := dt.conn.Get(ctx, dt.tablename, id, dt.factory)
+	object, err := t.conn.Get(ctx, t.tablename, id, t.factory)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +87,11 @@ func (dt *DocTable) Get(ctx context.Context, id string) (Object, error) {
 
 // Set object to table
 //
-func (dt *DocTable) Set(ctx context.Context, object Object) error {
+func (t *Table) Set(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if err := dt.conn.Set(ctx, dt.tablename, object); err != nil {
+	if err := t.conn.Set(ctx, t.tablename, object); err != nil {
 		return err
 	}
 	return nil
@@ -127,70 +99,70 @@ func (dt *DocTable) Set(ctx context.Context, object Object) error {
 
 // Exist return true if object with id exist
 //
-func (dt *DocTable) Exist(ctx context.Context, id string) (bool, error) {
+func (t *Table) Exist(ctx context.Context, id string) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	return dt.conn.Exist(ctx, dt.tablename, id)
+	return t.conn.Exist(ctx, t.tablename, id)
 }
 
 // List return max 10 object, if you need more! using query instead
 //
-func (dt *DocTable) List(ctx context.Context) ([]Object, error) {
+func (t *Table) List(ctx context.Context) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return dt.conn.List(ctx, dt.tablename, dt.factory)
+	return t.conn.List(ctx, t.tablename, t.factory)
 }
 
 // Select return object field from data store
 //
 //
-func (dt *DocTable) Select(ctx context.Context, id, field string) (interface{}, error) {
+func (t *Table) Select(ctx context.Context, id, field string) (interface{}, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return dt.conn.Select(ctx, dt.tablename, id, field)
+	return t.conn.Select(ctx, t.tablename, id, field)
 }
 
 // Update partial object field without overwriting the entire document
 //
 //
-func (dt *DocTable) Update(ctx context.Context, id string, fields map[string]interface{}) error {
+func (t *Table) Update(ctx context.Context, id string, fields map[string]interface{}) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return dt.conn.Update(ctx, dt.tablename, id, fields)
+	return t.conn.Update(ctx, t.tablename, id, fields)
 }
 
 // Delete object using id
 //
 //
-func (dt *DocTable) Delete(ctx context.Context, id string) error {
+func (t *Table) Delete(ctx context.Context, id string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return dt.conn.Delete(ctx, dt.tablename, id)
+	return t.conn.Delete(ctx, t.tablename, id)
 }
 
 // DeleteObject delete object
 //
 //
-func (dt *DocTable) DeleteObject(ctx context.Context, object Object) error {
+func (t *Table) DeleteObject(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return dt.conn.DeleteObject(ctx, dt.tablename, object)
+	return t.conn.DeleteObject(ctx, t.tablename, object)
 }
 
 // Clear delete all object in specific time, 1000 documents at a time, return false if still has object need to be delete
 //
 //
-func (dt *DocTable) Clear(ctx context.Context) error {
+func (t *Table) Clear(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return dt.conn.Clear(ctx, dt.tablename)
+	return t.conn.Clear(ctx, t.tablename)
 }
 
 // Query create query
@@ -199,20 +171,20 @@ func (dt *DocTable) Clear(ctx context.Context) error {
 //		return new(Greet)
 //	})
 //
-func (dt *DocTable) Query(ctx context.Context) Query {
-	return dt.conn.Query(ctx, dt.tablename, dt.factory)
+func (t *Table) Query(ctx context.Context) Query {
+	return t.conn.Query(ctx, t.tablename, t.factory)
 }
 
 // Find return first object
 //
 //	exist, err := db.Available(ctx, "From", "==", "1")
 //
-func (dt *DocTable) Find(ctx context.Context, field, operator string, value interface{}) (Object, error) {
+func (t *Table) Find(ctx context.Context, field, operator string, value interface{}) (Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	list, err := dt.Query(ctx).Where(field, operator, value).Execute(ctx)
+	list, err := t.Query(ctx).Where(field, operator, value).Execute(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -227,12 +199,12 @@ func (dt *DocTable) Find(ctx context.Context, field, operator string, value inte
 //
 //	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
 //
-func (dt *DocTable) Search(ctx context.Context, field, operator string, value interface{}) ([]Object, error) {
+func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	list, err := dt.Query(ctx).Where(field, operator, value).Execute(ctx)
+	list, err := t.Query(ctx).Where(field, operator, value).Execute(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -244,31 +216,31 @@ func (dt *DocTable) Search(ctx context.Context, field, operator string, value in
 //
 //	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
 //
-func (dt *DocTable) Count(ctx context.Context) (int, error) {
+func (t *Table) Count(ctx context.Context) (int, error) {
 	if ctx.Err() != nil {
 		return 0, ctx.Err()
 	}
-	return dt.Query(ctx).Count(ctx)
+	return t.Query(ctx).Count(ctx)
 }
 
 // IsEmpty check
 //
 //	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
 //
-func (dt *DocTable) IsEmpty(ctx context.Context) (bool, error) {
+func (t *Table) IsEmpty(ctx context.Context) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	return dt.Query(ctx).IsEmpty(ctx)
+	return t.Query(ctx).IsEmpty(ctx)
 }
 
 // Increment value on object field
 //
 //	err := db.Increment(ctx, greet.ID(), "Value", 2)
 //
-func (dt *DocTable) Increment(ctx context.Context, id, field string, value int) error {
+func (t *Table) Increment(ctx context.Context, id, field string, value int) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return dt.conn.Increment(ctx, dt.tablename, id, field, value)
+	return t.conn.Increment(ctx, t.tablename, id, field, value)
 }

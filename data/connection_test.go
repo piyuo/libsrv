@@ -8,7 +8,7 @@ import (
 
 type SampleDB interface {
 	DB
-	SampleTable() Table
+	SampleTable() *Table
 	Counter() *SampleCounters
 	Serial() *SampleSerial
 }
@@ -29,8 +29,8 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 	return db, nil
 }
 
-func (db *SampleGlobalDB) SampleTable() Table {
-	table := &DocTable{}
+func (db *SampleGlobalDB) SampleTable() *Table {
+	table := &Table{}
 	table.SetConnection(db.Connection())
 	table.SetTableName("sample")
 	factory := func() Object {
@@ -70,8 +70,8 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 	return db, nil
 }
 
-func (db *SampleRegionalDB) SampleTable() Table {
-	table := &DocTable{}
+func (db *SampleRegionalDB) SampleTable() *Table {
+	table := &Table{}
 	table.SetConnection(db.Connection())
 	table.SetTableName("sample")
 	factory := func() Object {
@@ -116,7 +116,7 @@ func (ss *SampleSerial) SampleID(ctx context.Context) (string, error) {
 // SampleCounter represent collection of counter
 //
 type SampleCounters struct {
-	DocCounters `firestore:"-"`
+	Counters `firestore:"-"`
 }
 
 // SampleTotal return sample total count
@@ -125,7 +125,7 @@ func (scs *SampleCounters) SampleTotal(ctx context.Context) (Counter, error) {
 	return scs.Counter(ctx, "sample-total", 4)
 }
 
-func firestoreBeginTest() (*SampleGlobalDB, *SampleRegionalDB, Table, Table) {
+func firestoreBeginTest() (*SampleGlobalDB, *SampleRegionalDB, *Table, *Table) {
 	ctx := context.Background()
 	dbG, err := NewSampleGlobalDB(ctx)
 	So(err, ShouldBeNil)
@@ -146,7 +146,7 @@ func firestoreBeginTest() (*SampleGlobalDB, *SampleRegionalDB, Table, Table) {
 	return dbG, dbR, samplesG, samplesR
 }
 
-func firestoreEndTest(dbG *SampleGlobalDB, dbR *SampleRegionalDB, samplesG Table, samplesR Table) {
+func firestoreEndTest(dbG *SampleGlobalDB, dbR *SampleRegionalDB, samplesG *Table, samplesR *Table) {
 	ctx := context.Background()
 	err := samplesG.Clear(ctx)
 	So(err, ShouldBeNil)

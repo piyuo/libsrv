@@ -21,7 +21,7 @@ func TestQuery(t *testing.T) {
 	})
 }
 
-func queryTest(ctx context.Context, table Table) {
+func queryTest(ctx context.Context, table *Table) {
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,

@@ -71,7 +71,7 @@ func TestConnection(t *testing.T) {
 	})
 }
 
-func testGroup(ctx context.Context, table Table) {
+func testGroup(ctx context.Context, table *Table) {
 	testID(ctx, table)
 	testSetGetExistDelete(ctx, table)
 	testSelectUpdateIncrementDelete(ctx, table)
@@ -81,7 +81,7 @@ func testGroup(ctx context.Context, table Table) {
 	testSearchCountIsEmpty(ctx, table)
 }
 
-func testID(ctx context.Context, table Table) {
+func testID(ctx context.Context, table *Table) {
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
@@ -139,7 +139,7 @@ func testID(ctx context.Context, table Table) {
 	So(err, ShouldBeNil)
 }
 
-func testSetGetExistDelete(ctx context.Context, table Table) {
+func testSetGetExistDelete(ctx context.Context, table *Table) {
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
@@ -176,7 +176,7 @@ func testSetGetExistDelete(ctx context.Context, table Table) {
 	So(err, ShouldBeNil)
 }
 
-func testSelectUpdateIncrementDelete(ctx context.Context, table Table) {
+func testSelectUpdateIncrementDelete(ctx context.Context, table *Table) {
 	sample := &Sample{
 		Name:  "sample",
 		Value: 6,
@@ -233,7 +233,7 @@ func testSelectUpdateIncrementDelete(ctx context.Context, table Table) {
 
 }
 
-func testListQueryAvailableCountClear(ctx context.Context, table Table) {
+func testListQueryAvailableCountClear(ctx context.Context, table *Table) {
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -275,7 +275,7 @@ func testListQueryAvailableCountClear(ctx context.Context, table Table) {
 	So(obj, ShouldBeNil)
 }
 
-func testSearchCountIsEmpty(ctx context.Context, table Table) {
+func testSearchCountIsEmpty(ctx context.Context, table *Table) {
 	sample := &Sample{
 		Name:  "sample",
 		Value: 0,
@@ -299,7 +299,7 @@ func testSearchCountIsEmpty(ctx context.Context, table Table) {
 	So(err, ShouldBeNil)
 }
 
-func testDelete(ctx context.Context, table Table) {
+func testDelete(ctx context.Context, table *Table) {
 	sample := &Sample{
 		Name:  "sample",
 		Value: 0,
@@ -326,7 +326,7 @@ func testDelete(ctx context.Context, table Table) {
 	So(exist, ShouldBeFalse)
 }
 
-func testGetPutDeleteWhenContextCanceled(ctx context.Context, table Table) {
+func testGetPutDeleteWhenContextCanceled(ctx context.Context, table *Table) {
 	sample := &Sample{}
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
@@ -361,6 +361,12 @@ func testGetPutDeleteWhenContextCanceled(ctx context.Context, table Table) {
 	_, err = table.Count(ctx)
 	So(err, ShouldNotBeNil)
 	err = table.Increment(ctx, "notexist", "Value", 2)
+	So(err, ShouldNotBeNil)
+	_, err = table.Search(ctx, "Name", "==", "1")
+	So(err, ShouldNotBeNil)
+	_, err = table.List(ctx)
+	So(err, ShouldNotBeNil)
+	_, err = table.IsEmpty(ctx)
 	So(err, ShouldNotBeNil)
 	err = table.Clear(ctx)
 	So(err, ShouldNotBeNil)

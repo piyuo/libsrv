@@ -68,7 +68,7 @@ func (db *Database) Serial() *Serial {
 // Counters is collection of global usage counters
 //
 type Counters struct {
-	data.DocCounters `firestore:"-"`
+	data.Counters `firestore:"-"`
 }
 
 // LocationTotal return total location count

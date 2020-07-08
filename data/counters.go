@@ -6,19 +6,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Counters represent usage table
+// Counters store all counter
 //
-type Counters interface {
-	SetConnection(conn Connection)
-	SetTableName(tablename string)
-	TableName()
-	Counter(ctx context.Context, countername string, numshards int) (Counter, error)
-}
-
-// DocCounters store all counter
-//
-type DocCounters struct {
-	Counters
+type Counters struct {
 	conn      Connection
 	tablename string
 }
@@ -27,31 +17,31 @@ type DocCounters struct {
 //
 //	table.SetConnection(conn)
 //
-func (dcs *DocCounters) SetConnection(conn Connection) {
-	dcs.conn = conn
+func (cs *Counters) SetConnection(conn Connection) {
+	cs.conn = conn
 }
 
 // SetTableName set table name
 //
 //	table.SetTableName("sample")
 //
-func (dcs *DocCounters) SetTableName(tablename string) {
-	dcs.tablename = tablename
+func (cs *Counters) SetTableName(tablename string) {
+	cs.tablename = tablename
 }
 
 // TableName return table name
 //
 //	table.TableName()
 //
-func (dcs *DocCounters) TableName() string {
-	return dcs.tablename
+func (cs *Counters) TableName() string {
+	return cs.tablename
 }
 
 // Counter return counter from data store, create one if not exist
 //
 //	counter,err = db.Counter(ctx,"", "myCounter",10)
 //
-func (dcs *DocCounters) Counter(ctx context.Context, countername string, numshards int) (Counter, error) {
+func (cs *Counters) Counter(ctx context.Context, countername string, numshards int) (Counter, error) {
 	if numshards <= 0 {
 		numshards = 10
 	}
@@ -59,7 +49,7 @@ func (dcs *DocCounters) Counter(ctx context.Context, countername string, numshar
 		numshards = 100
 	}
 
-	if dcs.tablename == "" {
+	if cs.tablename == "" {
 		return nil, errors.New("table name can not be empty")
 	}
 	if countername == "" {
@@ -69,5 +59,5 @@ func (dcs *DocCounters) Counter(ctx context.Context, countername string, numshar
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return dcs.conn.Counter(ctx, dcs.tablename, countername, numshards)
+	return cs.conn.Counter(ctx, cs.tablename, countername, numshards)
 }
