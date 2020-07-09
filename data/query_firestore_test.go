@@ -98,4 +98,12 @@ func queryTest(ctx context.Context, table *Table) {
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
+	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)
+	So(err, ShouldBeNil)
+	So(count, ShouldEqual, 1)
+
+	isEmpty, err := table.Query().Where("Name", "==", "sample1").IsEmpty(ctx)
+	So(err, ShouldBeNil)
+	So(isEmpty, ShouldBeFalse)
+
 }

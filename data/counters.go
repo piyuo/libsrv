@@ -16,9 +16,10 @@ type Counters struct {
 	TableName string
 }
 
-// Counter return counter from data store, create one if not exist
+// Counter return counter from database, create one if not exist
 //
-//	counter,err = counters.Counter(ctx,"", "myCounter",10)
+//	counters := db.Counter()
+//	counter,err = counters.Counter(ctx, "myCounter",10)
 //
 func (cs *Counters) Counter(ctx context.Context, countername string, numshards int) (CounterRef, error) {
 	if numshards <= 0 {
@@ -38,8 +39,9 @@ func (cs *Counters) Counter(ctx context.Context, countername string, numshards i
 	return cs.Connection.Counter(ctx, cs.TableName, countername, numshards)
 }
 
-// Delete counter
+// Delete counter from database
 //
+//	counters := db.Counter()
 //	err = counters.Delete(ctx, "myCounter")
 //
 func (cs *Counters) Delete(ctx context.Context, countername string) error {

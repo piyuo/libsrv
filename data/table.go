@@ -173,9 +173,10 @@ func (t *Table) Query() QueryRef {
 	return t.Connection.Query(t.TableName, t.Factory)
 }
 
-// Find return first object
+// Find return first object in table
 //
-//	exist, err := db.Available(ctx, "From", "==", "1")
+//	obj, err = table.Find(ctx, "Value", "==", 1)
+//	So((obj.(*Sample)).Name, ShouldEqual, "sample")
 //
 func (t *Table) Find(ctx context.Context, field, operator string, value interface{}) (ObjectRef, error) {
 	if ctx.Err() != nil {
@@ -193,26 +194,26 @@ func (t *Table) Find(ctx context.Context, field, operator string, value interfac
 	return nil, nil
 }
 
-// Search return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible
+// Search return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible, if you need more please use query
 //
-//	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
+//	objects, err := table.Search(ctx, "Name", "==", "sample")
+//	So(len(objects), ShouldEqual, 1)
 //
 func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]ObjectRef, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-
-	list, err := t.Query().Where(field, operator, value).Execute(ctx)
+	list, err := t.Query().Where(field, operator, value).Limit(10).Execute(ctx)
 	if err != nil {
 		return nil, err
 	}
-
 	return list, nil
 }
 
-// Count can only return max 10 count in table, because data store charge by document count, we need use counter to get real count
+// Count can only count max 10 in table, because data store charge by document count, you need use counter keep large count
 //
-//	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
+//	count, err := table.Count(ctx)
+//	So(count, ShouldEqual, 1)
 //
 func (t *Table) Count(ctx context.Context) (int, error) {
 	if ctx.Err() != nil {
@@ -221,9 +222,10 @@ func (t *Table) Count(ctx context.Context) (int, error) {
 	return t.Query().Count(ctx)
 }
 
-// IsEmpty check
+// IsEmpty return true if table is empty
 //
-//	count, err := db.Count(ctx,"", GreetModelName, "From", "==", "1")
+//	empty, err := table.IsEmpty(ctx)
+//	So(empty, ShouldEqual, false)
 //
 func (t *Table) IsEmpty(ctx context.Context) (bool, error) {
 	if ctx.Err() != nil {
@@ -234,7 +236,7 @@ func (t *Table) IsEmpty(ctx context.Context) (bool, error) {
 
 // Increment value on object field
 //
-//	err := db.Increment(ctx, greet.ID(), "Value", 2)
+//	err = table.Increment(ctx, sample.ID, "Value", 1)
 //
 func (t *Table) Increment(ctx context.Context, id, field string, value int) error {
 	if ctx.Err() != nil {

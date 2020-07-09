@@ -29,7 +29,8 @@ func newNumber() ObjectRef {
 
 // Code encode serial number to string, please be aware serial can only generate one number per second and use with transation to ensure unique
 //
-//	id,err = db.Serial(ctx,"", "myID")
+//	code, err := serial.Code(ctx, "sample-id")
+//	So(code, ShouldBeEmpty)
 //
 func (s *Serial) Code(ctx context.Context, name string) (string, error) {
 	number, err := s.Number(ctx, name)
@@ -41,7 +42,8 @@ func (s *Serial) Code(ctx context.Context, name string) (string, error) {
 
 // Number create unique serial number, please be aware serial can only generate one number per second and use with transation to ensure unique
 //
-//	id,err = db.Serial(ctx,"", "myID")
+//	num, err := serial.Number(ctx, "sample-id")
+//	So(num, ShouldEqual, 1)
 //
 func (s *Serial) Number(ctx context.Context, name string) (uint32, error) {
 	if ctx.Err() != nil {
@@ -76,7 +78,7 @@ func (s *Serial) Number(ctx context.Context, name string) (uint32, error) {
 
 // Delete serial
 //
-//	counter,err = db.GetCounter(ctx, "myCounter")
+//	err = serial.Delete(ctx, "sample-id")
 //
 func (s *Serial) Delete(ctx context.Context, name string) error {
 	if ctx.Err() != nil {

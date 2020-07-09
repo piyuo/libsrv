@@ -6,125 +6,81 @@ import "context"
 type QueryRef interface {
 	// Where set where filter
 	//
-	//	db.Select(ctx, GreetFactory).Where("From", "==", "1").Run(func(o Object) {
-	//		i++
-	//		err := db.Delete(ctx, o)
-	//	})
+	//	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 	//
 	Where(path, op string, value interface{}) QueryRef
 
-	// OrderBy set query order by
+	// OrderBy set query order by asc
 	//
-	//	list = []*Greet{}
-	// 	db.Select(ctx, GreetFactory).OrderBy("From").Run(func(o Object) {
-	//		greet := o.(*Greet)
-	//		list = append(list, greet)
-	//	})
+	//	list, err = table.Query().OrderBy("Name").Execute(ctx)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 	//
 	OrderBy(path string) QueryRef
 
 	// OrderByDesc set query order by desc
 	//
-	//	list = []*Greet{}
-	// 	db.Select(ctx, GreetFactory).OrderByDesc("From").Run(func(o Object) {
-	//		greet := o.(*Greet)
-	//		list = append(list, greet)
-	//	})
+	//	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 	//
 	OrderByDesc(path string) QueryRef
 
 	// Limit set query limit
 	//
-	//	list = []*Greet{}
-	//	db.Select(ctx, GreetFactory).Limit(1).Run(func(o Object) {
-	//		greet := o.(*Greet)
-	//		list = append(list, greet)
-	//	})
+	//	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
+	//	So(len(list), ShouldEqual, 1)
 	//
 	Limit(n int) QueryRef
 
 	// StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
-	//	greet1 := &Greet{
-	//		From: "a city",
-	//	}
-	//	greet2 := &Greet{
-	//		From: "b city",
-	//	}
-	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAt("b city").Execute()
-	//	So(err, ShouldBeNil)
-	//	greet := list[0].(*Greet)
-	//	So(greet.From, ShouldEqual, "b city")
-	//	So(len(list), ShouldEqual, 2)
+	//	list, err = table.Query().OrderBy("Name").StartAt("irvine city").Execute(ctx)
+	//	So(len(list), ShouldEqual, 1)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 	//
 	StartAt(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// StartAfter implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
-	//	greet1 := &Greet{
-	//		From: "a city",
-	//	}
-	//	greet2 := &Greet{
-	//		From: "b city",
-	//	}
-	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAfter("b city").Execute()
-	//	So(err, ShouldBeNil)
-	//	greet := list[0].(*Greet)
-	//	So(greet.From, ShouldEqual, "c city")
-	//	So(len(list), ShouldEqual, 1)
+	//	list, err = table.Query().OrderBy("Name").StartAfter("santa ana city").Execute(ctx)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 	//
 	StartAfter(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// EndAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
-	//	greet1 := &Greet{
-	//		From: "a city",
-	//	}
-	//	greet2 := &Greet{
-	//		From: "b city",
-	//	}
-	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndAt("b city").Execute()
-	//	So(err, ShouldBeNil)
-	//	greet := list[0].(*Greet)
-	//	So(greet.From, ShouldEqual, "a city")
-	//	So(len(list), ShouldEqual, 2)
+	//	list, err = table.Query().OrderBy("Name").EndAt("irvine city").Execute(ctx)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
+
 	//
 	EndAt(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// EndBefore implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
-	//	greet1 := &Greet{
-	//		From: "a city",
-	//	}
-	//	greet2 := &Greet{
-	//		From: "b city",
-	//	}
-	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndBefore("b city").Execute()
-	//	So(err, ShouldBeNil)
-	//	greet := list[0].(*Greet)
-	//	So(greet.From, ShouldEqual, "a city")
-	//	So(len(list), ShouldEqual, 1)
+	//	list, err = table.Query().OrderBy("Name").EndBefore("irvine city").Execute(ctx)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "santa ana city")
 	//
 	EndBefore(docSnapshotOrFieldValues ...interface{}) QueryRef
 
 	// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 	//
-	//	list = []*Greet{}
-	//	ctx := context.Background()
-	//	db, _ := firestoreGlobalDB(ctx)
-	//	defer db.Close()
-	//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute()
-	//	greet := list[0].(*Greet)
-	//	So(greet.From, ShouldEqual, "b city")
+	//	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
 	//	So(len(list), ShouldEqual, 1)
+	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 	//
 	Execute(ctx context.Context) ([]ObjectRef, error)
 
 	// Count execute query and return max 10 count
 	//
+	//	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)
+	//	So(count, ShouldEqual, 1)
+	//
 	Count(ctx context.Context) (int, error)
 
 	// IsEmpty execute query and return false if object exist
+	//
+	//	isEmpty, err := table.Query().Where("Name", "==", "sample1").IsEmpty(ctx)
+	//	So(isEmpty, ShouldBeFalse)
 	//
 	IsEmpty(ctx context.Context) (bool, error)
 }

@@ -96,7 +96,7 @@ func testGroup(ctx context.Context, table *Table) {
 	testID(ctx, table)
 	testSetGetExistDelete(ctx, table)
 	testSelectUpdateIncrementDelete(ctx, table)
-	testListQueryAvailableCountClear(ctx, table)
+	testListQueryFindCountClear(ctx, table)
 	testDelete(ctx, table)
 	testConnectionContextCanceled(table)
 	testSearchCountIsEmpty(ctx, table)
@@ -257,7 +257,7 @@ func testSelectUpdateIncrementDelete(ctx context.Context, table *Table) {
 
 }
 
-func testListQueryAvailableCountClear(ctx context.Context, table *Table) {
+func testListQueryFindCountClear(ctx context.Context, table *Table) {
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
