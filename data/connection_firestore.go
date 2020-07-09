@@ -196,9 +196,9 @@ func (conn *ConnectionFirestore) stopTransaction() {
 
 // getCollectionRef return collection reference in current database
 //
-//	collectionRef, err := db.getCollectionRef(ctx, tablename)
+//	collectionRef, err := db.getCollectionRef( tablename)
 //
-func (conn *ConnectionFirestore) getCollectionRef(ctx context.Context, tablename string) *firestore.CollectionRef {
+func (conn *ConnectionFirestore) getCollectionRef(tablename string) *firestore.CollectionRef {
 	if conn.nsRef != nil {
 		return conn.nsRef.Collection(tablename)
 	}
@@ -207,10 +207,10 @@ func (conn *ConnectionFirestore) getCollectionRef(ctx context.Context, tablename
 
 // getDocRef return document reference in current database
 //
-//	docRef, err := db.getDocRef(ctx, tablename, id)
+//	docRef, err := db.getDocRef( tablename, id)
 //
-func (conn *ConnectionFirestore) getDocRef(ctx context.Context, tablename, id string) *firestore.DocumentRef {
-	return conn.getCollectionRef(ctx, tablename).Doc(id)
+func (conn *ConnectionFirestore) getDocRef(tablename, id string) *firestore.DocumentRef {
+	return conn.getCollectionRef(tablename).Doc(id)
 }
 
 // Get data object from data store, return nil if object does not exist
@@ -221,7 +221,7 @@ func (conn *ConnectionFirestore) Get(ctx context.Context, tablename, id string, 
 	if id == "" {
 		return nil, nil
 	}
-	docRef := conn.getDocRef(ctx, tablename, id)
+	docRef := conn.getDocRef(tablename, id)
 	var err error
 	var docSnapshot *firestore.DocumentSnapshot
 	if conn.tx != nil {
@@ -266,7 +266,7 @@ func (conn *ConnectionFirestore) Set(ctx context.Context, tablename string, obje
 		if object.GetID() == "" {
 			object.SetID(util.UUID())
 		}
-		docRef = conn.getDocRef(ctx, tablename, object.GetID())
+		docRef = conn.getDocRef(tablename, object.GetID())
 		if err != nil {
 			return err
 		}
@@ -298,7 +298,7 @@ func (conn *ConnectionFirestore) Exist(ctx context.Context, tablename, id string
 		return false, nil
 	}
 	var err error
-	docRef := conn.getDocRef(ctx, tablename, id)
+	docRef := conn.getDocRef(tablename, id)
 	var snapshot *firestore.DocumentSnapshot
 	if conn.tx != nil {
 		snapshot, err = conn.tx.Get(docRef)
@@ -319,7 +319,7 @@ func (conn *ConnectionFirestore) Exist(ctx context.Context, tablename, id string
 //	return conn.List(ctx, tablename, factory)
 //
 func (conn *ConnectionFirestore) List(ctx context.Context, tablename string, factory func() ObjectRef) ([]ObjectRef, error) {
-	collectionRef := conn.getCollectionRef(ctx, tablename)
+	collectionRef := conn.getCollectionRef(tablename)
 	list := []ObjectRef{}
 	var iter *firestore.DocumentIterator
 	if conn.tx != nil {
@@ -352,7 +352,7 @@ func (conn *ConnectionFirestore) List(ctx context.Context, tablename string, fac
 //	return conn.Select(ctx, tablename, id, field)
 //
 func (conn *ConnectionFirestore) Select(ctx context.Context, tablename, id, field string) (interface{}, error) {
-	docRef := conn.getDocRef(ctx, tablename, id)
+	docRef := conn.getDocRef(tablename, id)
 	var err error
 	var snapshot *firestore.DocumentSnapshot
 	if conn.tx != nil {
@@ -381,7 +381,7 @@ func (conn *ConnectionFirestore) Select(ctx context.Context, tablename, id, fiel
 //	})
 //
 func (conn *ConnectionFirestore) Update(ctx context.Context, tablename, id string, fields map[string]interface{}) error {
-	docRef := conn.getDocRef(ctx, tablename, id)
+	docRef := conn.getDocRef(tablename, id)
 	if conn.tx != nil {
 		err := conn.tx.Set(docRef, fields, firestore.MergeAll)
 		if err != nil {
@@ -401,7 +401,7 @@ func (conn *ConnectionFirestore) Update(ctx context.Context, tablename, id strin
 //	err := conn.Increment(ctx,"", GreetModelName, greet.ID, "Value", 2)
 //
 func (conn *ConnectionFirestore) Increment(ctx context.Context, tablename, id, field string, value int) error {
-	docRef := conn.getDocRef(ctx, tablename, id)
+	docRef := conn.getDocRef(tablename, id)
 	if conn.tx != nil {
 		err := conn.tx.Update(docRef, []firestore.Update{
 			{Path: field, Value: firestore.Increment(value)},
@@ -425,7 +425,7 @@ func (conn *ConnectionFirestore) Increment(ctx context.Context, tablename, id, f
 //	conn.Delete(ctx, tablename, id)
 //
 func (conn *ConnectionFirestore) Delete(ctx context.Context, tablename, id string) error {
-	docRef := conn.getDocRef(ctx, tablename, id)
+	docRef := conn.getDocRef(tablename, id)
 	if conn.tx != nil {
 		err := conn.tx.Delete(docRef)
 		if err != nil {
@@ -450,7 +450,7 @@ func (conn *ConnectionFirestore) DeleteObject(ctx context.Context, tablename str
 	}
 	var docRef *firestore.DocumentRef
 	if object.GetRef() == nil {
-		docRef = conn.getDocRef(ctx, tablename, object.GetID())
+		docRef = conn.getDocRef(tablename, object.GetID())
 	} else {
 		docRef = object.GetRef().(*firestore.DocumentRef)
 	}
@@ -471,13 +471,12 @@ func (conn *ConnectionFirestore) DeleteObject(ctx context.Context, tablename str
 	return nil
 }
 
-// Clear delete all object in specific time, 500 documents at a time, return false if still has object need to be delete
-//	if in transaction , only 10 documents can be delete
+// Clear delete all object in specific time, 500 documents at a time, if in transaction , only 10 documents can be delete
 //
 //	err := conn.Clear(ctx, tablename)
 //
 func (conn *ConnectionFirestore) Clear(ctx context.Context, tablename string) error {
-	collectionRef := conn.getCollectionRef(ctx, tablename)
+	collectionRef := conn.getCollectionRef(tablename)
 	for {
 		if conn.tx != nil {
 			iter := conn.tx.Documents(collectionRef.Query.Limit(limitTransactionClear))
@@ -528,10 +527,10 @@ func (conn *ConnectionFirestore) Clear(ctx context.Context, tablename string) er
 //
 //	conn.Query(ctx, tablename, factory)
 //
-func (conn *ConnectionFirestore) Query(ctx context.Context, tablename string, factory func() ObjectRef) QueryRef {
+func (conn *ConnectionFirestore) Query(tablename string, factory func() ObjectRef) QueryRef {
 	return &QueryFirestore{
 		Query: Query{factory: factory},
-		query: conn.getCollectionRef(ctx, tablename).Query,
+		query: conn.getCollectionRef(tablename).Query,
 		tx:    conn.tx,
 	}
 }
@@ -541,7 +540,7 @@ func (conn *ConnectionFirestore) Query(ctx context.Context, tablename string, fa
 //	counter,err = conn.Counter(ctx, tablename, countername, numshards)
 //
 func (conn *ConnectionFirestore) Counter(ctx context.Context, tablename, countername string, numShards int) (CounterRef, error) {
-	docRef := conn.getDocRef(ctx, tablename, countername)
+	docRef := conn.getDocRef(tablename, countername)
 	shardsRef := docRef.Collection("shards")
 	if conn.tx != nil {
 		counter, err := conn.ensureCounterInTx(ctx, tablename, countername, conn.tx, docRef, shardsRef, numShards)
@@ -624,7 +623,7 @@ func (conn *ConnectionFirestore) ensureCounterInTx(ctx context.Context, tablenam
 //	err = conn.DeleteCounter(ctx, tablename, countername)
 //
 func (conn *ConnectionFirestore) DeleteCounter(ctx context.Context, tablename, countername string) error {
-	docRef := conn.getDocRef(ctx, tablename, countername)
+	docRef := conn.getDocRef(tablename, countername)
 	shardsRef := docRef.Collection("shards")
 	if conn.tx != nil {
 		err := conn.deleteCounterInTx(ctx, conn.tx, docRef, shardsRef)

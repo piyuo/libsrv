@@ -90,7 +90,7 @@ type ConnectionRef interface {
 	//
 	//	conn.Query(ctx, tablename, factory)
 	//
-	Query(ctx context.Context, tablename string, factory func() ObjectRef) QueryRef
+	Query(tablename string, factory func() ObjectRef) QueryRef
 
 	// Transaction start a transaction
 	//

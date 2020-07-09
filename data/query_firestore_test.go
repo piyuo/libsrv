@@ -35,65 +35,65 @@ func queryTest(ctx context.Context, table *Table) {
 	err = table.Set(ctx, sample2)
 	So(err, ShouldBeNil)
 
-	list, err := table.Query(ctx).Where("Name", "==", "sample1").Execute(ctx)
+	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	list, err = table.Query(ctx).Where("Name", "==", "sample2").Execute(ctx)
+	list, err = table.Query().Where("Name", "==", "sample2").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	list, err = table.Query(ctx).Where("Value", "==", 1).Execute(ctx)
+	list, err = table.Query().Where("Value", "==", 1).Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	list, err = table.Query(ctx).Where("Value", "==", 2).Execute(ctx)
+	list, err = table.Query().Where("Value", "==", 2).Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
 	//OrderBy,OrderByDesc
-	list, err = table.Query(ctx).OrderBy("Name").Execute(ctx)
+	list, err = table.Query().OrderBy("Name").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	list, err = table.Query(ctx).OrderByDesc("Name").Execute(ctx)
+	list, err = table.Query().OrderByDesc("Name").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
 	//limit
-	list, err = table.Query(ctx).OrderBy("Name").Limit(1).Execute(ctx)
+	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	list, err = table.Query(ctx).OrderByDesc("Name").Limit(1).Execute(ctx)
+	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
 	//startAt,startAfter,endAt,endBefore
-	list, err = table.Query(ctx).OrderBy("Name").StartAt("sample2").Execute(ctx)
+	list, err = table.Query().OrderBy("Name").StartAt("sample2").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	list, err = table.Query(ctx).OrderBy("Name").StartAfter("sample1").Execute(ctx)
+	list, err = table.Query().OrderBy("Name").StartAfter("sample1").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 
-	list, err = table.Query(ctx).OrderBy("Name").EndAt("sample2").Execute(ctx)
+	list, err = table.Query().OrderBy("Name").EndAt("sample2").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
-	list, err = table.Query(ctx).OrderBy("Name").EndBefore("sample2").Execute(ctx)
+	list, err = table.Query().OrderBy("Name").EndBefore("sample2").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")

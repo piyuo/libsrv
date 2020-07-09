@@ -45,7 +45,7 @@ func transactionTest(ctx context.Context, db SampleDB, table *Table) {
 	})
 	So(err, ShouldBeNil)
 
-	list, err := table.Query(ctx).OrderBy("Name").Execute(ctx)
+	list, err := table.Query().OrderBy("Name").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
@@ -176,7 +176,7 @@ func methodTest(ctx context.Context, db SampleDB, table *Table) {
 		So(err, ShouldBeNil)
 		So((obj.(*Sample)).Name, ShouldEqual, "sample1")
 
-		list, err := table.Query(ctx).OrderBy("Name").Execute(ctx)
+		list, err := table.Query().OrderBy("Name").Execute(ctx)
 		So(err, ShouldBeNil)
 		So(len(list), ShouldEqual, 2)
 		So(list[0].(*Sample).Name, ShouldEqual, sample1.Name)
