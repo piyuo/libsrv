@@ -40,7 +40,6 @@ type ConnectionRef interface {
 	//	}
 	//
 	Set(ctx context.Context, tablename string, object ObjectRef) error
-
 	// Exist return true if object with id exist
 	//
 	//	return conn.Exist(ctx, tablename, id)
@@ -106,11 +105,11 @@ type ConnectionRef interface {
 	//
 	Increment(ctx context.Context, tablename, id, field string, value int) error
 
-	// Counter return counter from data store, create one if not exist
+	// Counter return counter
 	//
 	//	counter,err = conn.Counter(ctx, tablename, countername, numshards)
 	//
-	Counter(ctx context.Context, tablename, countername string, numShards int) (CounterRef, error)
+	Counter(tablename, countername string, numShards int) CounterRef
 
 	// DeleteCounter delete counter
 	//

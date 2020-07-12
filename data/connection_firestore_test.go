@@ -25,16 +25,24 @@ func TestFirestoreNewDB(t *testing.T) {
 func TestFirestoreGlobalDB(t *testing.T) {
 	Convey("should create global db", t, func() {
 		ctx := context.Background()
-		db, err := FirestoreGlobalConnection(ctx, "")
-		defer db.Close()
+		conn, err := FirestoreGlobalConnection(ctx)
+		defer conn.Close()
 		So(err, ShouldBeNil)
-		So(db, ShouldNotBeNil)
+		So(conn, ShouldNotBeNil)
 
-		firestoreDB := db.(*ConnectionFirestore)
-		id := firestoreDB.errorID("tablename", "")
+		// error id should use root if not having namespace
+		firestoreConn := conn.(*ConnectionFirestore)
+		id := firestoreConn.errorID("tablename", "")
 		So(id, ShouldEqual, "tablename{root}")
-		id = firestoreDB.errorID("tablename", "id")
+		id = firestoreConn.errorID("tablename", "id")
 		So(id, ShouldEqual, "tablename{root}-id")
+
+		// global has no namespace to be create or delete
+		err = firestoreConn.CreateNamespace(ctx)
+		So(err, ShouldNotBeNil)
+		err = firestoreConn.DeleteNamespace(ctx)
+		So(err, ShouldNotBeNil)
+
 	})
 }
 
@@ -54,26 +62,30 @@ func TestFirestoreRegionalDB(t *testing.T) {
 
 		err = firestoreDB.snapshotToObject("tableName", nil, nil, nil)
 		So(err, ShouldNotBeNil)
+
+		//regional connection namespace must not be empty
+		db, err = FirestoreRegionalConnection(ctx, "")
+		So(err, ShouldNotBeNil)
 	})
 }
 
 func TestNameSpace(t *testing.T) {
 	Convey("should create name space", t, func() {
 		ctx := context.Background()
-		db, err := FirestoreRegionalConnection(ctx, "sample-namespace")
-		defer db.Close()
+		conn, err := FirestoreRegionalConnection(ctx, "sample-namespace")
+		defer conn.Close()
 		So(err, ShouldBeNil)
-		So(db, ShouldNotBeNil)
+		So(conn, ShouldNotBeNil)
 
-		err = db.CreateNamespace(ctx)
+		err = conn.CreateNamespace(ctx)
 		So(err, ShouldBeNil)
-		err = db.DeleteNamespace(ctx)
+		err = conn.DeleteNamespace(ctx)
 		So(err, ShouldBeNil)
 
 		ctxCanceled := util.CanceledCtx()
-		err = db.CreateNamespace(ctxCanceled)
+		err = conn.CreateNamespace(ctxCanceled)
 		So(err, ShouldNotBeNil)
-		err = db.DeleteNamespace(ctxCanceled)
+		err = conn.DeleteNamespace(ctxCanceled)
 		So(err, ShouldNotBeNil)
 	})
 }
@@ -126,6 +138,16 @@ func testID(ctx context.Context, table *Table) {
 	So(sample2.GetUpdateTime().IsZero(), ShouldBeFalse)
 	So(sample2.GetReadTime().IsZero(), ShouldBeFalse)
 
+	// factory has no object return must error
+	bakFactory := table.Factory
+	table.Factory = func() ObjectRef {
+		return nil
+	}
+	sampleX, err := table.Get(ctx, sample.ID)
+	So(err, ShouldNotBeNil)
+	So(sampleX, ShouldBeNil)
+	table.Factory = bakFactory
+
 	// set sample again
 	sample.Name = "modified"
 	err = table.Set(ctx, sample)
@@ -161,6 +183,7 @@ func testID(ctx context.Context, table *Table) {
 
 	err = table.DeleteObject(ctx, sample3)
 	So(err, ShouldBeNil)
+
 }
 
 func testSetGetExistDelete(ctx context.Context, table *Table) {
@@ -276,6 +299,16 @@ func testListQueryFindCountClear(ctx context.Context, table *Table) {
 	So(len(list), ShouldEqual, 2)
 	So(list[0].(*Sample).Name, ShouldStartWith, "sample")
 	So(list[1].(*Sample).Name, ShouldStartWith, "sample")
+
+	// factory has no object return must error
+	bakFactory := table.Factory
+	table.Factory = func() ObjectRef {
+		return nil
+	}
+	listX, err := table.List(ctx)
+	So(err, ShouldNotBeNil)
+	So(listX, ShouldBeNil)
+	table.Factory = bakFactory
 
 	obj, err := table.Find(ctx, "Name", "==", "sample1")
 	So(err, ShouldBeNil)

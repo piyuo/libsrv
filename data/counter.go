@@ -2,12 +2,17 @@ package data
 
 import (
 	"context"
-	"time"
 )
 
 // CounterRef is a collection of documents (shards) to realize counter with high frequency.
 //
 type CounterRef interface {
+
+	// CreateShards create counter and all shards, it is safe to create shards as many time as you want, normally we recreate shards when we need more shards
+	//
+	//	err = counter.CreateShards(ctx)
+	//
+	CreateShards(ctx context.Context) error
 
 	// Increment increments a randomly picked shard.
 	//
@@ -20,16 +25,4 @@ type CounterRef interface {
 	//	count, err = counter.Count(ctx)
 	//
 	Count(ctx context.Context) (int64, error)
-
-	// GetCreateTime return object create time
-	//
-	GetCreateTime() time.Time
-
-	// GetReadTime return object read time
-	//
-	GetReadTime() time.Time
-
-	// GetUpdateTime return object update time
-	//
-	GetUpdateTime() time.Time
 }

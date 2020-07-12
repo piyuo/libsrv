@@ -11,17 +11,15 @@ func TestCounters(t *testing.T) {
 	Convey("should check table name & counter name", t, func() {
 		ctx := context.Background()
 		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		counterG := dbG.Counter()
-		counterG.TableName = ""
-		err := counterG.DeleteSampleTotal(ctx)
-		So(err, ShouldNotBeNil)
-		_, err = counterG.SampleTotal(ctx)
+		countersG := dbG.Counters()
+		countersG.TableName = ""
+		err := countersG.DeleteSampleTotal(ctx)
 		So(err, ShouldNotBeNil)
 
-		counterR := dbR.Counter()
-		err = counterR.Delete(ctx, "")
+		countersR := dbR.Counters()
+		err = countersR.Delete(ctx, "")
 		So(err, ShouldNotBeNil)
-		err = counterR.Delete(ctx, "")
+		err = countersR.Delete(ctx, "")
 		So(err, ShouldNotBeNil)
 
 		defer dbG.Close()

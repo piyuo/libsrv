@@ -40,6 +40,16 @@ func queryTest(ctx context.Context, table *Table) {
 	So(len(list), ShouldEqual, 1)
 	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 
+	// factory has no object return must error
+	bakFactory := table.Factory
+	table.Factory = func() ObjectRef {
+		return nil
+	}
+	listX, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
+	So(err, ShouldNotBeNil)
+	So(listX, ShouldBeNil)
+	table.Factory = bakFactory
+
 	list, err = table.Query().Where("Name", "==", "sample2").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)

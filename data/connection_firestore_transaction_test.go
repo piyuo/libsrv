@@ -18,8 +18,8 @@ func TestTransaction(t *testing.T) {
 
 		transactionTest(ctx, dbG, samplesG)
 		transactionTest(ctx, dbR, samplesR)
-		methodTest(ctx, dbG, samplesG)
-		methodTest(ctx, dbR, samplesR)
+		methodTest(ctx, dbG, samplesG, true)
+		methodTest(ctx, dbR, samplesR, false)
 
 		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
@@ -97,7 +97,7 @@ func transactionTest(ctx context.Context, db SampleDB, table *Table) {
 	So(err, ShouldBeNil)
 }
 
-func methodTest(ctx context.Context, db SampleDB, table *Table) {
+func methodTest(ctx context.Context, db SampleDB, table *Table, isGlobal bool) {
 
 	sample1 := &Sample{
 		Name:  "sample1",
@@ -221,9 +221,17 @@ func methodTest(ctx context.Context, db SampleDB, table *Table) {
 	//create & delete namespace
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err = db.CreateNamespace(ctx)
-		So(err, ShouldBeNil)
+		if isGlobal {
+			So(err, ShouldNotBeNil)
+		} else {
+			So(err, ShouldBeNil)
+		}
 		err = db.DeleteNamespace(ctx)
-		So(err, ShouldBeNil)
+		if isGlobal {
+			So(err, ShouldNotBeNil)
+		} else {
+			So(err, ShouldBeNil)
+		}
 		return nil
 	})
 	So(err, ShouldBeNil)

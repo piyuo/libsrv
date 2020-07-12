@@ -9,7 +9,7 @@ import (
 type SampleDB interface {
 	DBRef
 	SampleTable() *Table
-	Counter() *SampleCounters
+	Counters() *SampleCounters
 	Serial() *SampleSerial
 }
 
@@ -20,7 +20,7 @@ type SampleGlobalDB struct {
 }
 
 func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
-	conn, err := FirestoreGlobalConnection(ctx, "")
+	conn, err := FirestoreGlobalConnection(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (db *SampleGlobalDB) SampleTable() *Table {
 	return table
 }
 
-func (db *SampleGlobalDB) Counter() *SampleCounters {
+func (db *SampleGlobalDB) Counters() *SampleCounters {
 	counter := &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
@@ -89,7 +89,7 @@ func (db *SampleRegionalDB) SampleTable() *Table {
 	return table
 }
 
-func (db *SampleRegionalDB) Counter() *SampleCounters {
+func (db *SampleRegionalDB) Counters() *SampleCounters {
 	counter := &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
@@ -135,8 +135,8 @@ type SampleCounters struct {
 
 // SampleTotal return sample total count
 //
-func (scs *SampleCounters) SampleTotal(ctx context.Context) (CounterRef, error) {
-	return scs.Counter(ctx, "sample-total", 4)
+func (scs *SampleCounters) SampleTotal(ctx context.Context) CounterRef {
+	return scs.Counter("sample-total", 4)
 }
 
 // DeleteSampleTotal return sample total count

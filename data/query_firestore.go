@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cloud.google.com/go/firestore"
+	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
 
@@ -176,6 +177,10 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]ObjectRef, error) {
 			return nil, err
 		}
 		object := qf.factory()
+		if object == nil {
+			return nil, errors.New("failed to create object from factory")
+		}
+
 		err = snapshot.DataTo(object)
 		if err != nil {
 			return nil, err

@@ -18,25 +18,14 @@ type Counters struct {
 
 // Counter return counter from database, create one if not exist
 //
-//	counters := db.Counter()
-//	counter,err = counters.Counter(ctx, "myCounter",10)
+//	counters := db.Counters()
+//	orderCountCounter,err = counters.Counter("order-count",10)
 //
-func (cs *Counters) Counter(ctx context.Context, countername string, numshards int) (CounterRef, error) {
+func (cs *Counters) Counter(countername string, numshards int) CounterRef {
 	if numshards <= 0 {
 		numshards = 10
 	}
-
-	if cs.TableName == "" {
-		return nil, errors.New("table name can not be empty")
-	}
-	if countername == "" {
-		return nil, errors.New("counter name can not be empty")
-	}
-
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-	return cs.Connection.Counter(ctx, cs.TableName, countername, numshards)
+	return cs.Connection.Counter(cs.TableName, countername, numshards)
 }
 
 // Delete counter from database
