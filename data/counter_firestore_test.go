@@ -250,7 +250,7 @@ func TestConcurrentCounter(t *testing.T) {
 		wg.Done()
 	}
 
-	//create 10 go routing to do counting
+	//create go routing to do counting
 	for i := 0; i < concurrent; i++ {
 		go counting()
 	}
@@ -263,5 +263,4 @@ func TestConcurrentCounter(t *testing.T) {
 	if count != 15 {
 		t.Errorf("count = %d; want 15", count)
 	}
-	//fmt.Printf("total count:%v\n", count)
 }

@@ -59,9 +59,6 @@ func FirestoreGlobalConnection(ctx context.Context) (ConnectionRef, error) {
 //	defer conn.Close()
 //
 func FirestoreRegionalConnection(ctx context.Context, namespace string) (ConnectionRef, error) {
-	if namespace == "" {
-		return nil, errors.New("regional connection must have namespace")
-	}
 	cred, err := gcp.CurrentRegionalCredential(ctx)
 	if err != nil {
 		return nil, err
@@ -199,6 +196,14 @@ func (conn *ConnectionFirestore) Transaction(ctx context.Context, callback func(
 		defer stopTransaction()
 		return callback(ctx)
 	})
+}
+
+// IsInTransaction return true if connection is in transaction
+//
+//	inTx := conn.IsInTransaction()
+//
+func (conn *ConnectionFirestore) IsInTransaction() bool {
+	return conn.tx != nil
 }
 
 // getCollectionRef return collection reference in table

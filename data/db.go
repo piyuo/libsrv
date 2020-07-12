@@ -38,6 +38,12 @@ type DBRef interface {
 	//	})
 	//
 	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
+
+	// IsInTransaction return true if connection is in transaction
+	//
+	//	inTx := conn.IsInTransaction()
+	//
+	IsInTransaction() bool
 }
 
 // DB represent document database
@@ -73,6 +79,14 @@ func (db *DB) Transaction(ctx context.Context, callback func(ctx context.Context
 		return ctx.Err()
 	}
 	return db.Connection.Transaction(ctx, callback)
+}
+
+// IsInTransaction return true if connection is in transaction
+//
+//	inTx := conn.IsInTransaction()
+//
+func (db *DB) IsInTransaction() bool {
+	return db.Connection.IsInTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist

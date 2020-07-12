@@ -54,8 +54,8 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 func (db *SampleGlobalDB) Serial() *SampleSerial {
 	serial := &SampleSerial{
 		Serial: Serial{
-			Connection: db.Connection,
-			TableName:  "sample-serial",
+			conn:      db.Connection,
+			TableName: "sample-serial",
 		},
 	}
 	return serial
@@ -102,8 +102,8 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 func (db *SampleRegionalDB) Serial() *SampleSerial {
 	serial := &SampleSerial{
 		Serial: Serial{
-			Connection: db.Connection,
-			TableName:  "sample-serial",
+			conn:      db.Connection,
+			TableName: "sample-serial",
 		},
 	}
 	return serial
@@ -124,7 +124,7 @@ type SampleSerial struct {
 }
 
 func (ss *SampleSerial) SampleID(ctx context.Context) (string, error) {
-	return ss.Code(ctx, "sample-id")
+	return ss.Code32(ctx, "sample-id")
 }
 
 // SampleCounter represent collection of counter

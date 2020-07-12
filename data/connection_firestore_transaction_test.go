@@ -35,8 +35,10 @@ func transactionTest(ctx context.Context, db SampleDB, table *Table) {
 		Value: 2,
 	}
 
+	So(db.IsInTransaction(), ShouldBeFalse)
 	//success transaction
 	err := db.Transaction(ctx, func(ctx context.Context) error {
+		So(db.IsInTransaction(), ShouldBeTrue)
 		err := table.Set(ctx, sample1)
 		So(err, ShouldBeNil)
 		err = table.Set(ctx, sample2)

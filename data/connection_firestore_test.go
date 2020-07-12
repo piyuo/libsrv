@@ -63,9 +63,6 @@ func TestFirestoreRegionalDB(t *testing.T) {
 		err = firestoreDB.snapshotToObject("tableName", nil, nil, nil)
 		So(err, ShouldNotBeNil)
 
-		//regional connection namespace must not be empty
-		db, err = FirestoreRegionalConnection(ctx, "")
-		So(err, ShouldNotBeNil)
 	})
 }
 

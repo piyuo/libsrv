@@ -31,7 +31,7 @@ func UUID() string {
 func SerialID16(i uint16) string {
 	i++ // avoid zero
 	bytes := make([]byte, 2)
-	binary.LittleEndian.PutUint16(bytes, uint16(i))
+	binary.LittleEndian.PutUint16(bytes, i)
 	return base58.Encode(bytes)
 }
 
@@ -42,18 +42,18 @@ func SerialID16(i uint16) string {
 func SerialID32(i uint32) string {
 	i++ // avoid zero
 	bytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(bytes, uint32(i))
+	binary.LittleEndian.PutUint32(bytes, i)
 	return base58.Encode(bytes)
 }
 
-// SerialID64 use uint64 value between 1 to 18,446,744,073,709,551,615 to base58 10~11 character long,concise, unambiguous, URL-safe string
+// SerialID64 use int64 value between 1 to 18,446,744,073,709,551,615 to base58 10~11 character long,concise, unambiguous, URL-safe string
 //
 //	id := SerialID64(uint64(42)) //8C9vbiDD9WF
 //
 func SerialID64(i uint64) string {
 	i++ // avoid zero
 	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, uint64(i))
+	binary.LittleEndian.PutUint64(bytes, i)
 	return base58.Encode(bytes)
 }
 

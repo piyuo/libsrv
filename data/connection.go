@@ -99,6 +99,12 @@ type ConnectionRef interface {
 	//
 	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
 
+	// IsInTransaction return true if connection is in transaction
+	//
+	//	inTx := conn.IsInTransaction()
+	//
+	IsInTransaction() bool
+
 	// Increment value on object field, return error if object does not exist
 	//
 	//	err := conn.Increment(ctx,"", GreetModelName, greet.ID(), "Value", 2)
