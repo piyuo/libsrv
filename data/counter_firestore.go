@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"strconv"
 
+	"github.com/piyuo/libsrv/util"
+
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
@@ -15,64 +17,43 @@ import (
 type CounterFirestore struct {
 	CounterRef `firestore:"-"`
 
-	// connection is current firestore connection
-	//
-	connection *ConnectionFirestore
-
-	// numShards is number of shards
-	//
-	numShards int
-
-	// cableName is counter table name
-	//
-	tableName string `firestore:"-"`
-
-	// counterName is counter name
-	//
-	counterName string `firestore:"-"`
+	ShardsFirestore `firestore:"-"`
 }
 
-// Shard is a single counter, which is used in a group of other shards within Counter
-//
-type Shard struct {
-	// C is shard current count
-	//
-	C int
-}
-
-func (c *CounterFirestore) errorID() string {
-	return c.connection.errorID(c.tableName, c.counterName)
-}
-
-// getRef return docRef and shardsRef to do counter database operation
-//
-func (c *CounterFirestore) getRef() (*firestore.DocumentRef, *firestore.CollectionRef) {
-	docRef := c.connection.getDocRef(c.tableName, c.counterName)
-	shardsRef := docRef.Collection("shards")
-	return docRef, shardsRef
-}
-
-// Increment increments a randomly picked shard.
+// Increment increments a randomly picked shard. this function is slow than FastIncrement() but you don't need to create all shards first.
 //
 //	err = counter.Increment(ctx, 1)
 //
-func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	if c.tableName == "" {
-		return errors.New("table name can not be empty")
-	}
-	if c.counterName == "" {
-		return errors.New("counter name can not be empty")
-	}
+func (c *CounterFirestore) Increment(ctx context.Context, value interface{}) error {
+	return c.increment(ctx, value, false)
+}
 
-	_, shardsRef := c.getRef()
+// FastIncrement increments a randomly picked shard. before use this function you must use createShard to create all necessary shard
+//
+//	err = counter.Increment(ctx, 1)
+//
+func (c *CounterFirestore) FastIncrement(ctx context.Context, value interface{}) error {
+	return c.increment(ctx, value, true)
+}
+
+// increments a randomly picked shard. if shardsCreated is false we need extra Get() to check is shard already exist?
+//
+//	err = counter.increment(ctx, 1, false)
+//
+func (c *CounterFirestore) increment(ctx context.Context, value interface{}, shardsCreated bool) error {
+	if err := c.assert(ctx); err != nil {
+		return err
+	}
+	docRef, shardsRef := c.getRef()
 	shardID := strconv.Itoa(rand.Intn(c.numShards))
 	shardRef := shardsRef.Doc(shardID)
-	var err error
-	if c.connection.tx != nil {
-		err = c.connection.tx.Update(shardRef, []firestore.Update{
+	if c.conn.tx != nil {
+
+		if err := c.ensureShardTx(c.conn.tx, docRef, shardRef); err != nil {
+			return err
+		}
+
+		err := c.conn.tx.Update(shardRef, []firestore.Update{
 			{Path: "C", Value: firestore.Increment(value)},
 		})
 
@@ -82,7 +63,11 @@ func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
 		return nil
 	}
 
-	_, err = shardRef.Update(ctx, []firestore.Update{
+	if err := c.ensureShard(ctx, docRef, shardRef); err != nil {
+		return err
+	}
+
+	_, err := shardRef.Update(ctx, []firestore.Update{
 		{Path: "C", Value: firestore.Increment(value)},
 	})
 
@@ -92,31 +77,27 @@ func (c *CounterFirestore) Increment(ctx context.Context, value int) error {
 	return nil
 }
 
-// Count returns a total count across all shards.
+// Count returns a total count across all shards. avoid use this function in transation it easily cause "Too much contention on these documents"
 //
 //	count, err = counter.Count(ctx)
 //
-func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
-	if ctx.Err() != nil {
-		return 0, ctx.Err()
+func (c *CounterFirestore) Count(ctx context.Context) (float64, error) {
+	if err := c.assert(ctx); err != nil {
+		return 0, err
 	}
-	if c.tableName == "" {
-		return 0, errors.New("table name can not be empty")
-	}
-	if c.counterName == "" {
-		return 0, errors.New("counter name can not be empty")
-	}
+
 	_, shardsRef := c.getRef()
-	var total int64
 	var shards *firestore.DocumentIterator
-	if c.connection.tx != nil {
-		shards = c.connection.tx.Documents(shardsRef)
+	if c.conn.tx != nil {
+		shards = c.conn.tx.Documents(shardsRef)
 	} else {
 		shards = shardsRef.Documents(ctx)
 	}
 	defer shards.Stop()
 
-	shardCount := 0
+	var shardCount float64
+	var total float64
+	shardCount = 0
 	for {
 		snotshot, err := shards.Next()
 		if err == iterator.Done {
@@ -127,10 +108,10 @@ func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
 		}
 
 		shardCount++
-		vTotal := snotshot.Data()["C"]
-		shardCount, ok := vTotal.(int64)
-		if !ok {
-			return 0, errors.Wrapf(err, "failed to get count on shards, invalid dataType %T, want int64: "+c.errorID(), vTotal)
+		iTotal := snotshot.Data()["N"]
+		shardCount, err := util.ToFloat64(iTotal)
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to get count on shards, invalid dataType %T, want float64: "+c.errorID(), iTotal)
 		}
 		total += shardCount
 	}
@@ -140,44 +121,10 @@ func (c *CounterFirestore) Count(ctx context.Context) (int64, error) {
 	return total, nil
 }
 
-// CreateShards create counter and all shards, it is safe to create shards as many time as you want, normally we recreate shards when we need more shards
+// CreateShards create shards document and collection, it is safe to create shards as many time as you want, normally we recreate shards when we need more shards
 //
 //	err = counter.CreateShards(ctx)
 //
 func (c *CounterFirestore) CreateShards(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	shard := &Shard{C: 0}
-	docRef, shardsRef := c.getRef()
-
-	if c.connection.tx != nil {
-		err := c.connection.tx.Set(docRef, c)
-		if err != nil {
-			return errors.Wrapf(err, "failed create counter in transaction: "+c.errorID())
-		}
-
-		for num := 0; num < c.numShards; num++ {
-			sharedRef := shardsRef.Doc(strconv.Itoa(num))
-			err := c.connection.tx.Set(sharedRef, shard)
-			if err != nil {
-				return errors.Wrapf(err, "failed create shared:%v", num)
-			}
-		}
-		return nil
-	}
-
-	_, err := docRef.Set(ctx, c)
-	if err != nil {
-		return errors.Wrapf(err, "failed create counter: "+c.errorID())
-	}
-
-	for num := 0; num < c.numShards; num++ {
-		sharedRef := shardsRef.Doc(strconv.Itoa(num))
-		_, err := sharedRef.Set(ctx, shard)
-		if err != nil {
-			return errors.Wrapf(err, "failed create shared:%v", num)
-		}
-	}
-	return nil
+	return c.createShards(ctx)
 }

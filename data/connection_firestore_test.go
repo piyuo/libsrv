@@ -90,14 +90,14 @@ func TestNameSpace(t *testing.T) {
 func TestConnection(t *testing.T) {
 	Convey("test genreal operation on connection", t, func() {
 		ctx := context.Background()
-		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		defer dbG.Close()
-		defer dbR.Close()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		samplesG, samplesR := createSampleTable(dbG, dbR)
+		defer removeSampleTable(samplesG, samplesR)
 
 		testGroup(ctx, samplesG)
 		testGroup(ctx, samplesR)
 
-		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
 }
 

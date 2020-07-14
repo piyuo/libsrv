@@ -12,11 +12,10 @@ import (
 func TestCounter(t *testing.T) {
 	Convey("Should init, increment, count on counter", t, func() {
 		ctx := context.Background()
-		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		defer dbG.Close()
-		defer dbR.Close()
-		countersG := dbG.Counters()
-		countersR := dbR.Counters()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		countersG, countersR := createSampleCounters(dbG, dbR)
+		defer removeSampleCounters(countersG, countersR)
 
 		testCounterWithoutCreateShards(ctx, dbG, countersG)
 		testCounterWithoutCreateShards(ctx, dbR, countersR)
@@ -29,18 +28,16 @@ func TestCounter(t *testing.T) {
 
 		testCounterInTransaction(ctx, dbG, countersG)
 		testCounterInTransaction(ctx, dbR, countersR)
-
-		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
 }
 
 func testCounterWithoutCreateShards(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	// clean counter
-	err := counters.DeleteSampleTotal(ctx)
+	err := counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
 	// test create all shards
-	counter := counters.SampleTotal(ctx)
+	counter := counters.SampleCounter()
 	count, err := counter.Count(ctx)
 	So(err, ShouldNotBeNil)
 	So(count, ShouldEqual, 0)
@@ -49,7 +46,7 @@ func testCounterWithoutCreateShards(ctx context.Context, db SampleDB, counters *
 
 	// test create all shards in transaction
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		counter := counters.SampleTotal(ctx)
+		counter := counters.SampleCounter()
 		count, err := counter.Count(ctx)
 		So(err, ShouldNotBeNil)
 		So(count, ShouldEqual, 0)
@@ -60,17 +57,17 @@ func testCounterWithoutCreateShards(ctx context.Context, db SampleDB, counters *
 	})
 	So(err, ShouldNotBeNil)
 
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 }
 
 func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	// clean counter
-	err := counters.DeleteSampleTotal(ctx)
+	err := counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
 	// create counter
-	counter := counters.SampleTotal(ctx)
+	counter := counters.SampleCounter()
 	So(counter, ShouldNotBeNil)
 	So((counter.(*CounterFirestore)).errorID(), ShouldNotBeEmpty)
 	err = counter.CreateShards(ctx)
@@ -85,11 +82,11 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	So(err, ShouldBeNil)
 
 	// delete exist counter
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
 	// new counter
-	counter = counters.SampleTotal(ctx)
+	counter = counters.SampleCounter()
 	So(counter, ShouldNotBeNil)
 	err = counter.CreateShards(ctx)
 	So(err, ShouldBeNil)
@@ -106,7 +103,7 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	So(err, ShouldBeNil)
 
 	// exist counter
-	counter2 := counters.SampleTotal(ctx)
+	counter2 := counters.SampleCounter()
 	So(counter2, ShouldNotBeNil)
 
 	count2, err := counter.Count(ctx)
@@ -121,7 +118,7 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	So(err, ShouldBeNil)
 
 	// get exist counter
-	counter2 = counters.SampleTotal(ctx)
+	counter2 = counters.SampleCounter()
 	So(counter2, ShouldNotBeNil)
 
 	err = counter.Increment(ctx, 1)
@@ -132,20 +129,20 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	So(err, ShouldBeNil)
 
 	//clean counter
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
 	//delete second time should be fine
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 }
 
 func testCounterInCanceledCtx(ctx context.Context, db SampleDB, counters *SampleCounters) {
 
-	counter := counters.SampleTotal(ctx)
+	counter := counters.SampleCounter()
 	So(counter, ShouldNotBeNil)
 
 	ctxCanceled := util.CanceledCtx()
@@ -159,36 +156,19 @@ func testCounterInCanceledCtx(ctx context.Context, db SampleDB, counters *Sample
 	So(err, ShouldNotBeNil)
 	So(count, ShouldEqual, 0)
 
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
-
-	//test empty table name and empty counter name
-	fCounter := counter.(*CounterFirestore)
-	fCounter.counterName = ""
-	count, err = fCounter.Count(ctx)
-	So(err, ShouldNotBeNil)
-	So(count, ShouldEqual, 0)
-	err = fCounter.Increment(ctx, 1)
-	So(err, ShouldNotBeNil)
-
-	fCounter.tableName = ""
-	count, err = fCounter.Count(ctx)
-	So(err, ShouldNotBeNil)
-	So(count, ShouldEqual, 0)
-	err = fCounter.Increment(ctx, 1)
-	So(err, ShouldNotBeNil)
-
 }
 
 func testCounterInTransaction(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	// clean counter
-	err := counters.DeleteSampleTotal(ctx)
+	err := counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
 	// do not read after write
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		counters := db.Counters()
-		counter := counters.SampleTotal(ctx)
+		counter := counters.SampleCounter()
 		So(counter, ShouldNotBeNil)
 		err := counter.CreateShards(ctx)
 		So(err, ShouldBeNil)
@@ -198,7 +178,7 @@ func testCounterInTransaction(ctx context.Context, db SampleDB, counters *Sample
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		counters := db.Counters()
-		counter := counters.SampleTotal(ctx)
+		counter := counters.SampleCounter()
 		count, err := counter.Count(ctx)
 		So(count, ShouldEqual, 0)
 		So(err, ShouldBeNil)
@@ -209,19 +189,19 @@ func testCounterInTransaction(ctx context.Context, db SampleDB, counters *Sample
 	})
 	So(err, ShouldBeNil)
 
-	counter := counters.SampleTotal(ctx)
+	counter := counters.SampleCounter()
 	count, err := counter.Count(ctx)
 	So(count, ShouldEqual, 1)
 	So(err, ShouldBeNil)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		counters := db.Counters()
-		err = counters.DeleteSampleTotal(ctx)
+		err = counters.DeleteSampleCounter(ctx)
 		So(err, ShouldBeNil)
 		return nil
 	})
 	So(err, ShouldBeNil)
-	err = counters.DeleteSampleTotal(ctx)
+	err = counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 }
 
@@ -230,15 +210,15 @@ func TestConcurrentCounter(t *testing.T) {
 	db, _ := NewSampleGlobalDB(ctx)
 	defer db.Close()
 	counters := db.Counters()
-	counters.DeleteSampleTotal(ctx)
-	counter := counters.SampleTotal(ctx)
+	counters.DeleteSampleCounter(ctx)
+	counter := counters.SampleCounter()
 	counter.CreateShards(ctx)
 
 	var concurrent = 3
 	var wg sync.WaitGroup
 	wg.Add(concurrent)
 	counting := func() {
-		counter := counters.SampleTotal(ctx)
+		counter := counters.SampleCounter()
 		for i := 0; i < 5; i++ {
 			err := counter.Increment(ctx, 1)
 			if err != nil {
@@ -261,6 +241,6 @@ func TestConcurrentCounter(t *testing.T) {
 		return
 	}
 	if count != 15 {
-		t.Errorf("count = %d; want 15", count)
+		t.Errorf("count = %v; want 15", count)
 	}
 }

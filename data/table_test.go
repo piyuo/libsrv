@@ -10,14 +10,14 @@ import (
 func TestTable(t *testing.T) {
 	Convey("should have no error", t, func() {
 		ctx := context.Background()
-		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		defer dbG.Close()
-		defer dbR.Close()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		tableG, tableR := createSampleTable(dbG, dbR)
+		defer removeSampleTable(tableG, tableR)
 
-		noErrorTest(ctx, samplesG)
-		noErrorTest(ctx, samplesR)
+		noErrorTest(ctx, tableG)
+		noErrorTest(ctx, tableR)
 
-		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
 }
 

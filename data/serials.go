@@ -4,9 +4,9 @@ import (
 	"context"
 )
 
-// Counters is collection of counter
+// Serials is collection of serial
 //
-type Counters struct {
+type Serials struct {
 	Connection ConnectionRef
 
 	//TableName is counter table name
@@ -14,28 +14,28 @@ type Counters struct {
 	TableName string
 }
 
-// Counter return counter from database, create one if not exist
+// Serial return serial from database, create one if not exist
 //
-//	counters := db.Counters()
-//	orderCountCounter,err = counters.Counter("order-count",10)
+//	serials := db.Serials()
+//	productNoe,err = serials.serial("product-no")
 //
-func (c *Counters) Counter(name string, numshards int) CounterRef {
-	return &CounterFirestore{
+func (c *Serials) Serial(name string) SerialRef {
+	return &SerialFirestore{
 		ShardsFirestore: ShardsFirestore{
 			conn:      c.Connection.(*ConnectionFirestore),
 			tableName: c.TableName,
 			id:        name,
-			numShards: numshards,
+			numShards: 0,
 		},
 	}
 }
 
-// Delete counter from database
+// Delete code from database
 //
-//	counters := db.Counters()
-//	err = counters.Delete(ctx, "myCounter")
+//	codes := db.Codes()
+//	err = codes.Delete(ctx, "myCounter")
 //
-func (c *Counters) Delete(ctx context.Context, name string) error {
+func (c *Serials) Delete(ctx context.Context, name string) error {
 	shards := ShardsFirestore{
 		conn:      c.Connection.(*ConnectionFirestore),
 		tableName: c.TableName,
@@ -45,6 +45,5 @@ func (c *Counters) Delete(ctx context.Context, name string) error {
 	if err := shards.assert(ctx); err != nil {
 		return err
 	}
-
 	return shards.deleteShards(ctx)
 }

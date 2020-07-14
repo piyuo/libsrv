@@ -9,23 +9,30 @@ import (
 
 func TestCounters(t *testing.T) {
 	Convey("should check table name & counter name", t, func() {
-		ctx := context.Background()
-		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		countersG := dbG.Counters()
-		countersG.TableName = ""
-		err := countersG.DeleteSampleTotal(ctx)
-		So(err, ShouldNotBeNil)
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		cg, cr := createSampleCounters(dbG, dbR)
+		defer removeSampleCounters(cg, cr)
 
-		countersR := dbR.Counters()
-		err = countersR.Delete(ctx, "")
-		So(err, ShouldNotBeNil)
-		err = countersR.Delete(ctx, "")
-		So(err, ShouldNotBeNil)
-
-		defer dbG.Close()
-		defer dbR.Close()
-
-		firestoreEndTest(dbG, dbR, samplesG, samplesR)
+		countersTest(t, cg)
+		countersTest(t, cr)
 	})
 
+}
+
+func countersTest(t *testing.T, counters *SampleCounters) {
+	ctx := context.Background()
+
+	counter := counters.Counter("sample-counter", 3)
+	So(counter, ShouldNotBeNil)
+
+	err := counter.CreateShards(ctx)
+	So(err, ShouldBeNil)
+
+	err = counter.Increment(ctx, 1)
+	So(err, ShouldBeNil)
+
+	count, err := counter.Count(ctx)
+	So(err, ShouldBeNil)
+	So(count, ShouldEqual, 1)
 }

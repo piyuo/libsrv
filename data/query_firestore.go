@@ -11,8 +11,14 @@ import (
 // QueryFirestore implement google firestore
 type QueryFirestore struct {
 	Query
+
+	// conn is current firestore connection
+	//
+	conn *ConnectionFirestore
+
+	// query is firestore query
+	//
 	query firestore.Query
-	tx    *firestore.Transaction
 }
 
 // Where implement where on firestore
@@ -161,8 +167,8 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]ObjectRef, error) {
 	var resultSet []ObjectRef
 
 	var iter *firestore.DocumentIterator
-	if qf.tx != nil {
-		iter = qf.tx.Documents(qf.query)
+	if qf.conn.tx != nil {
+		iter = qf.conn.tx.Documents(qf.query)
 	} else {
 		iter = qf.query.Documents(ctx)
 	}
@@ -203,8 +209,8 @@ func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
 		qf.Limit(limitQueryDefault)
 	}
 	var iter *firestore.DocumentIterator
-	if qf.tx != nil {
-		iter = qf.tx.Documents(qf.query)
+	if qf.conn.tx != nil {
+		iter = qf.conn.tx.Documents(qf.query)
 	} else {
 		iter = qf.query.Documents(ctx)
 	}
@@ -230,8 +236,8 @@ func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
 func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
 	qf.Limit(1)
 	var iter *firestore.DocumentIterator
-	if qf.tx != nil {
-		iter = qf.tx.Documents(qf.query)
+	if qf.conn.tx != nil {
+		iter = qf.conn.tx.Documents(qf.query)
 	} else {
 		iter = qf.query.Documents(ctx)
 	}

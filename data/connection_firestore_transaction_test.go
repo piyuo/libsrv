@@ -12,16 +12,15 @@ import (
 func TestTransaction(t *testing.T) {
 	Convey("should transaction work", t, func() {
 		ctx := context.Background()
-		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		defer dbG.Close()
-		defer dbR.Close()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		samplesG, samplesR := createSampleTable(dbG, dbR)
+		defer removeSampleTable(samplesG, samplesR)
 
 		transactionTest(ctx, dbG, samplesG)
 		transactionTest(ctx, dbR, samplesR)
 		methodTest(ctx, dbG, samplesG, true)
 		methodTest(ctx, dbR, samplesR, false)
-
-		firestoreEndTest(dbG, dbR, samplesG, samplesR)
 	})
 }
 

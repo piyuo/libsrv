@@ -110,16 +110,4 @@ type ConnectionRef interface {
 	//	err := conn.Increment(ctx,"", GreetModelName, greet.ID(), "Value", 2)
 	//
 	Increment(ctx context.Context, tablename, id, field string, value int) error
-
-	// Counter return counter
-	//
-	//	counter,err = conn.Counter(ctx, tablename, countername, numshards)
-	//
-	Counter(tablename, countername string, numShards int) CounterRef
-
-	// DeleteCounter delete counter
-	//
-	//	err = conn.DeleteCounter(ctx, tablename, countername)
-	//
-	DeleteCounter(ctx context.Context, tablename, countername string) error
 }

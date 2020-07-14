@@ -10,14 +10,13 @@ import (
 func TestQuery(t *testing.T) {
 	Convey("should query table", t, func() {
 		ctx := context.Background()
-		dbG, dbR, samplesG, samplesR := firestoreBeginTest()
-		defer dbG.Close()
-		defer dbR.Close()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		tableG, tableR := createSampleTable(dbG, dbR)
+		defer removeSampleTable(tableG, tableR)
 
-		queryTest(ctx, samplesG)
-		queryTest(ctx, samplesR)
-
-		firestoreEndTest(dbG, dbR, samplesG, samplesR)
+		queryTest(ctx, tableG)
+		queryTest(ctx, tableR)
 	})
 }
 
