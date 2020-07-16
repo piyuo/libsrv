@@ -3,8 +3,10 @@ package data
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/piyuo/libsrv/util"
 
@@ -19,10 +21,13 @@ func TestConcurrentDB(t *testing.T) {
 	dbG, dbR := createSampleDB()
 	defer removeSampleDB(dbG, dbR)
 	tableG, tableR := createSampleTable(dbG, dbR)
+	removeSampleTable(tableG, tableR)
 	defer removeSampleTable(tableG, tableR)
 	countersG, countersR := createSampleCounters(dbG, dbR)
+	removeSampleCounters(countersG, countersR)
 	defer removeSampleCounters(countersG, countersR)
 	codersG, codersR := createSampleCoders(dbG, dbR)
+	removeSampleCoders(codersG, codersR)
 	defer removeSampleCoders(codersG, codersR)
 
 	//init test data
@@ -42,6 +47,7 @@ func TestConcurrentDB(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(concurrent)
 	sampling := func() {
+		rand.Seed(time.Now().UnixNano())
 		sdb, err := NewSampleGlobalDB(ctx)
 		if err != nil {
 			t.Errorf("err should be nil, got %v", err)
@@ -49,9 +55,7 @@ func TestConcurrentDB(t *testing.T) {
 		defer sdb.Close()
 
 		for i := 0; i < 5; i++ {
-
 			errTx := sdb.Transaction(ctx, func(ctx context.Context) error {
-
 				stable := sdb.SampleTable()
 				sRootRef, err := stable.Find(ctx, "Name", "==", "root")
 				if err != nil {
@@ -61,41 +65,42 @@ func TestConcurrentDB(t *testing.T) {
 				sRoot := sRootRef.(*Sample)
 
 				// read count first to avoid read after write error
-				counter := sdb.Counters().SampleCounter()
-				coder := sdb.Coders().SampleCoder()
+				counter := sdb.Counters().SampleCounter100()
+				coder := sdb.Coders().SampleCoder100()
 
 				num, err2 := coder.NumberRX()
 				if err2 != nil {
-					t.Errorf("err should be nil, got %v", err)
-					return errors.New("failed to get code")
+					t.Errorf("err should be nil, got %v", err2)
+					return errors.Wrap(err, "failed to get code")
 				}
 				fmt.Printf("sampling:%v\n", num)
 
 				if err := counter.IncrementRX(1); err != nil {
 					t.Errorf("err should be nil, got %v", err)
-					return errors.New("failed to increment")
+					return errors.Wrap(err, "failed to IncrementRX")
 				}
 
+				code := util.SerialID32(uint32(num))
 				sSample := &Sample{
-					Name:  util.SerialID32(uint32(num)),
+					Name:  code,
 					Value: int(num),
 				}
-				//sSample.SetID(code)
+				sSample.SetID(code)
 
 				if err := stable.Set(ctx, sSample); err != nil {
 					t.Errorf("err should be nil, got %v", err)
-					return errors.New("failed to create sample")
+					return errors.Wrap(err, "failed to create sample")
 				}
 
 				sRoot.Value--
 				if err := stable.Set(ctx, sRoot); err != nil {
 					t.Errorf("err should be nil, got %v", err)
-					return errors.New("failed to update root sample")
+					return errors.Wrap(err, "failed to update root sample")
 				}
 
 				if err := counter.IncrementWX(); err != nil {
 					t.Errorf("err should be nil, got %v", err)
-					return errors.New("failed to increment")
+					return errors.Wrap(err, "failed to IncrementWX")
 				}
 
 				return coder.NumberWX()

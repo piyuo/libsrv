@@ -14,10 +14,10 @@ type Counters struct {
 	TableName string
 }
 
-// Counter return counter from database, create one if not exist
+// Counter return counter from database, create one if not exist, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
 //
 //	counters := db.Counters()
-//	orderCountCounter,err = counters.Counter("order-count",10)
+//	orderCountCounter,err = counters.Counter("order-count",100)
 //
 func (c *Counters) Counter(name string, numshards int) CounterRef {
 

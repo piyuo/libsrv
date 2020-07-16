@@ -1,6 +1,8 @@
 package data
 
 import (
+	"context"
+
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
 )
@@ -22,10 +24,10 @@ type SerialFirestore struct {
 // NumberRX return sequence number, number is unique and serial, please be aware serial can only generate one sequence per second, use it with high frequency will cause error and  must used it in transaction with NumberWX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		num, err:= coder.NumberRX()
+//		num, err:= serial.NumberRX()
 //		So(err, ShouldBeNil)
 //		So(num, ShouldEqual,1)
-//		err := coder.NumberWX()
+//		err := serial.NumberWX()
 //	})
 //
 func (c *SerialFirestore) NumberRX() (int64, error) {
@@ -60,10 +62,10 @@ func (c *SerialFirestore) NumberRX() (int64, error) {
 // NumberWX commit NumberRX
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		num, err:= coder.NumberRX()
+//		num, err:= serial.NumberRX()
 //		So(err, ShouldBeNil)
 //		So(num, ShouldEqual,1)
-//		err := coder.NumberWX()
+//		err := serial.NumberWX()
 //	})
 //
 func (c *SerialFirestore) NumberWX() error {
@@ -96,37 +98,15 @@ func (c *SerialFirestore) NumberWX() error {
 	return nil
 }
 
-/*
-// getTx generate code number in transaction, return number is not serial
+// Reset reset sequence number
 //
-//	num, err := s.getTx(ctx)
-//	So(num, ShouldEqual, 1)
+//	err = db.Transaction(ctx, func(ctx context.Context) error {
+//		err:= serial.Reset(ctx)
+//	})
 //
-func (c *SerialFirestore) getTx(ctx context.Context, tx *firestore.Transaction) (int64, error) {
-	docRef, _ := c.getRef()
-	snapshot, err := tx.Get(docRef)
-	if snapshot != nil && !snapshot.Exists() {
-		err := tx.Set(docRef, map[string]interface{}{"N": 1}, firestore.MergeAll)
-		if err != nil {
-			return 0, errors.Wrap(err, "failed to create serial: "+c.errorID())
-		}
-		return 1, nil
+func (c *SerialFirestore) Reset(ctx context.Context) error {
+	if err := c.assert(ctx); err != nil {
+		return err
 	}
-
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to get serial: "+c.errorID())
-	}
-	idRef, err := snapshot.DataAt("N")
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to get value from serial: "+c.errorID())
-	}
-	id := idRef.(int64)
-	err = tx.Update(docRef, []firestore.Update{
-		{Path: "N", Value: firestore.Increment(1)},
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to increment serial: "+c.errorID())
-	}
-	return id + 1, nil
+	return c.deleteDoc(ctx)
 }
-*/

@@ -24,9 +24,11 @@ func TestCounter(t *testing.T) {
 		testCounter(ctx, dbG, countersG)
 		testCounter(ctx, dbR, countersR)
 
+		testCounterReset(ctx, dbG, countersG)
+		testCounterReset(ctx, dbR, countersR)
+
 		testCounterInCanceledCtx(ctx, dbG, countersG)
 		testCounterInCanceledCtx(ctx, dbR, countersR)
-
 	})
 }
 
@@ -44,6 +46,14 @@ func incrementMustUseWithInTransacton(ctx context.Context, db SampleDB, counters
 	num, err := counter.Count(ctx)
 	So(err, ShouldBeNil)
 	So(num, ShouldEqual, 0)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		err := counter.IncrementWX() // should call Increment First error
+		So(err, ShouldNotBeNil)
+		return err
+	})
+	So(err, ShouldNotBeNil)
+
 }
 
 func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
@@ -124,8 +134,11 @@ func testCounterInCanceledCtx(ctx context.Context, db SampleDB, counters *Sample
 	So(err, ShouldNotBeNil)
 	So(count, ShouldEqual, 0)
 
-	err = counters.DeleteSampleCounter(ctx)
-	So(err, ShouldBeNil)
+	err = counter.Reset(ctxCanceled)
+	So(err, ShouldNotBeNil)
+
+	err = counters.DeleteSampleCounter(ctxCanceled)
+	So(err, ShouldNotBeNil)
 }
 
 func TestConcurrentCounter(t *testing.T) {
@@ -180,4 +193,59 @@ func TestConcurrentCounter(t *testing.T) {
 	if count != 15 {
 		t.Errorf("count = %v; want 15", count)
 	}
+}
+
+func testCounterReset(ctx context.Context, db SampleDB, counters *SampleCounters) {
+	err := counters.DeleteSampleCounter(ctx)
+	defer counters.DeleteSampleCounter(ctx)
+	So(err, ShouldBeNil)
+
+	iCounter := counters.SampleCounter()
+	ctr := iCounter.(*CounterFirestore)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		counter := counters.SampleCounter()
+		err = counter.IncrementRX(1)
+		So(err, ShouldBeNil)
+		return counter.IncrementWX()
+	})
+	So(err, ShouldBeNil)
+
+	docCount, shardsCount, err := ctr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 1)
+	So(shardsCount, ShouldEqual, 1)
+
+	// reset
+	counter := counters.SampleCounter()
+	counter.Reset(ctx)
+
+	docCount, shardsCount, err = ctr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 0)
+	So(shardsCount, ShouldEqual, 0)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		counter := counters.SampleCounter()
+		err = counter.IncrementRX(1)
+		So(err, ShouldBeNil)
+		return counter.IncrementWX()
+	})
+	So(err, ShouldBeNil)
+
+	docCount, shardsCount, err = ctr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 1)
+	So(shardsCount, ShouldEqual, 1)
+
+	// reset in transaction
+	counter = counters.SampleCounter()
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		return counter.Reset(ctx)
+	})
+
+	docCount, shardsCount, err = ctr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 0)
+	So(shardsCount, ShouldEqual, 0)
 }

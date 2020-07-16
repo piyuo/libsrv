@@ -147,61 +147,15 @@ func (c *CounterFirestore) Count(ctx context.Context) (float64, error) {
 	return total, nil
 }
 
-/*
-// CreateShardsTX create shards document and collection, this function need to be running in transaction
+// Reset reset counter
 //
-//	err = code.CreateShardsTX()
+//	err = db.Transaction(ctx, func(ctx context.Context) error {
+//		err:= counter.Reset(ctx)
+//	})
 //
-func (c *CoderFirestore) CreateShardsTX() error {
-	return c.createShardsTX(c.conn.tx)
-}
-
-// FastIncrement increments a randomly picked shard. before use this function you must use createShard to create all necessary shard
-//
-//	err = counter.Increment(ctx, 1)
-//
-func (c *CounterFirestore) FastIncrement(ctx context.Context, value interface{}) error {
-	return c.increment(ctx, value, true)
-}
-
-// increments a randomly picked shard. if shardsCreated is false we need extra Get() to check is shard already exist?
-//
-//	err = counter.increment(ctx, 1, false)
-//
-func (c *CounterFirestore) increment(ctx context.Context, value interface{}, shardsCreated bool) error {
+func (c *CounterFirestore) Reset(ctx context.Context) error {
 	if err := c.assert(ctx); err != nil {
 		return err
 	}
-	docRef, shardsRef := c.getRef()
-	shardID := strconv.Itoa(rand.Intn(c.numShards))
-	shardRef := shardsRef.Doc(shardID)
-	if c.conn.tx != nil {
-
-		if err := c.ensureShardRX(c.conn.tx, docRef, shardRef); err != nil {
-			return err
-		}
-
-		err := c.conn.tx.Update(shardRef, []firestore.Update{
-			{Path: "C", Value: firestore.Increment(value)},
-		})
-
-		if err != nil {
-			return errors.Wrap(err, "failed to update shard in transaction, you may need CreateShards() first: "+c.errorID()+"["+shardID+"]")
-		}
-		return nil
-	}
-
-	if err := c.ensureShard(ctx, docRef, shardRef); err != nil {
-		return err
-	}
-
-	_, err := shardRef.Update(ctx, []firestore.Update{
-		{Path: "C", Value: firestore.Increment(value)},
-	})
-
-	if err != nil {
-		return errors.Wrap(err, "failed to update shard, you may need CreateShards() first: "+c.errorID()+"["+shardID+"]")
-	}
-	return nil
+	return c.deleteShards(ctx)
 }
-*/

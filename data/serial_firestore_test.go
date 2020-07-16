@@ -3,10 +3,12 @@ package data
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
 	"time"
 
+	util "github.com/piyuo/libsrv/util"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -21,9 +23,23 @@ func TestSerial(t *testing.T) {
 
 		serialMustUseWithInTransacton(ctx, serialsG)
 		serialMustUseWithInTransacton(ctx, serialsR)
+
 		serialInTransactionTest(ctx, dbG, serialsG)
 		serialInTransactionTest(ctx, dbR, serialsR)
+
+		testSerialInCanceledCtx(ctx, dbG, serialsG)
+		testSerialInCanceledCtx(ctx, dbR, serialsR)
+
 	})
+}
+
+func testSerialInCanceledCtx(ctx context.Context, db SampleDB, serials *SampleSerials) {
+	serial := serials.SampleSerial()
+	So(serial, ShouldNotBeNil)
+
+	ctxCanceled := util.CanceledCtx()
+	err := serial.Reset(ctxCanceled)
+	So(err, ShouldNotBeNil)
 }
 
 func serialMustUseWithInTransacton(ctx context.Context, serials *SampleSerials) {
@@ -74,11 +90,36 @@ func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSe
 		So(num, ShouldEqual, 3)
 		return serial.NumberWX()
 	})
+
+	// reset serial
+	err = serial.Reset(ctx)
+	So(err, ShouldBeNil)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		num, err := serial.NumberRX()
+		So(err, ShouldBeNil)
+		So(num, ShouldEqual, 1)
+		return serial.NumberWX()
+	})
+
+	// reset in transaction
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		return serial.Reset(ctx)
+	})
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		num, err := serial.NumberRX()
+		So(err, ShouldBeNil)
+		So(num, ShouldEqual, 1)
+		return serial.NumberWX()
+	})
+
 	So(err, ShouldBeNil)
 }
 
 func TestConcurrentserial(t *testing.T) {
 	ctx := context.Background()
+	rand.Seed(time.Now().UnixNano())
 	dbG, dbR := createSampleDB()
 	defer removeSampleDB(dbG, dbR)
 	serialsG, serialsR := createSampleSerials(dbG, dbR)
@@ -91,6 +132,7 @@ func TestConcurrentserial(t *testing.T) {
 		db, _ := NewSampleGlobalDB(ctx)
 		defer db.Close()
 		serials := db.Serials()
+		time.Sleep(time.Duration(rand.Intn(2)) * time.Second)
 
 		for i := 0; i < 3; i++ {
 			serial := serials.SampleSerial()
@@ -107,7 +149,7 @@ func TestConcurrentserial(t *testing.T) {
 				t.Errorf("err should be nil, got %v", err)
 			}
 			// serial update need to be low frequency
-			time.Sleep(2 * time.Second)
+			time.Sleep(time.Duration(rand.Intn(2)) * time.Second)
 		}
 		wg.Done()
 	}

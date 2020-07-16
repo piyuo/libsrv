@@ -25,4 +25,12 @@ type CounterRef interface {
 	//	count, err = counter.Count(ctx)
 	//
 	Count(ctx context.Context) (float64, error)
+
+	// Reset reset counter
+	//
+	//	err = db.Transaction(ctx, func(ctx context.Context) error {
+	//		err:= counter.Reset(ctx)
+	//	})
+	//
+	Reset(ctx context.Context) error
 }

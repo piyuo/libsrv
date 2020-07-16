@@ -1,5 +1,7 @@
 package data
 
+import "context"
+
 // CoderRef is a collection of documents (shards) to realize code with high frequency.
 //
 type CoderRef interface {
@@ -91,4 +93,12 @@ type CoderRef interface {
 	//	})
 	//
 	NumberWX() error
+
+	// Reset reset code
+	//
+	//	err = db.Transaction(ctx, func(ctx context.Context) error {
+	//		err:= code.Reset(ctx)
+	//	})
+	//
+	Reset(ctx context.Context) error
 }

@@ -14,10 +14,10 @@ type Coders struct {
 	TableName string
 }
 
-// Coder return code from database, the numShards must be multiple by 10
+// Coder return code from database, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
 //
 //	coders := db.Coders()
-//	productCoder,err = coders.Coder("product-code",10)
+//	productCoder,err = coders.Coder("product-code",100)
 //
 func (c *Coders) Coder(name string, numshards int) CoderRef {
 	return &CoderFirestore{

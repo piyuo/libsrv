@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	util "github.com/piyuo/libsrv/util"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -26,7 +27,22 @@ func TestCoder(t *testing.T) {
 
 		coderInTransaction(ctx, dbG, codesG)
 		coderInTransaction(ctx, dbR, codesR)
+
+		coderReset(ctx, dbG, codesG)
+		coderReset(ctx, dbR, codesR)
+
+		testCoderInCanceledCtx(ctx, dbR, codesG)
+		testCoderInCanceledCtx(ctx, dbR, codesR)
 	})
+}
+
+func testCoderInCanceledCtx(ctx context.Context, db SampleDB, coders *SampleCoders) {
+	coder := coders.SampleCoder()
+	So(coder, ShouldNotBeNil)
+
+	ctxCanceled := util.CanceledCtx()
+	err := coder.Reset(ctxCanceled)
+	So(err, ShouldNotBeNil)
 }
 
 func coderMustUseWithInTransacton(codes *SampleCoders) {
@@ -262,4 +278,62 @@ func TestConcurrentCoder(t *testing.T) {
 	if resultLen != 9 {
 		t.Errorf("result = %d; need 9", resultLen)
 	}
+}
+
+func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
+	err := codes.DeleteSampleCode(ctx)
+	defer codes.DeleteSampleCode(ctx)
+	So(err, ShouldBeNil)
+
+	iCoder := codes.SampleCoder()
+	cdr := iCoder.(*CoderFirestore)
+
+	var num1 int64
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		coder := codes.SampleCoder()
+		num1, err = coder.NumberRX()
+		So(err, ShouldBeNil)
+		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
+		return coder.NumberWX()
+	})
+	So(err, ShouldBeNil)
+
+	docCount, shardsCount, err := cdr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 1)
+	So(shardsCount, ShouldEqual, 1)
+
+	// reset
+	coder := codes.SampleCoder()
+	coder.Reset(ctx)
+
+	docCount, shardsCount, err = cdr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 0)
+	So(shardsCount, ShouldEqual, 0)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		coder := codes.SampleCoder()
+		num1, err = coder.NumberRX()
+		So(err, ShouldBeNil)
+		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
+		return coder.NumberWX()
+	})
+	So(err, ShouldBeNil)
+
+	docCount, shardsCount, err = cdr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 1)
+	So(shardsCount, ShouldEqual, 1)
+
+	// reset in transaction
+	coder = codes.SampleCoder()
+	err = db.Transaction(ctx, func(ctx context.Context) error {
+		return coder.Reset(ctx)
+	})
+
+	docCount, shardsCount, err = cdr.shardsInfo(ctx)
+	So(err, ShouldBeNil)
+	So(docCount, ShouldEqual, 0)
+	So(shardsCount, ShouldEqual, 0)
 }

@@ -14,7 +14,7 @@ type Serials struct {
 	TableName string
 }
 
-// Serial return serial from database, create one if not exist
+// Serial return serial from database, create one if not exist, please be aware Serial can only generate 1 number per second, use serial with high frequency will cause too much retention error
 //
 //	serials := db.Serials()
 //	productNo,err = serials.Serial("product-no")
@@ -30,7 +30,7 @@ func (c *Serials) Serial(name string) SerialRef {
 	}
 }
 
-// Delete code from database
+// Delete serial from database
 //
 //	serials := db.Serials()
 //	err = serials.Delete(ctx, "product-no")

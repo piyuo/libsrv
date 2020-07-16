@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"math/rand"
 	"strconv"
 
@@ -135,9 +136,8 @@ func (c *CoderFirestore) NumberRX() (int64, error) {
 	c.numberCanIncrementShard = false
 	c.numberShardIndex = rand.Intn(c.numShards)
 	shardID := strconv.Itoa(c.numberShardIndex)
-	shardRef := shardsRef.Doc(shardID)
 
-	snapshot, err := c.conn.tx.Get(shardRef)
+	snapshot, err := c.conn.tx.Get(shardsRef.Doc(shardID))
 	if snapshot != nil && !snapshot.Exists() {
 		c.numberCanCreateShard = true
 		return int64(1*c.numShards + c.numberShardIndex), nil
@@ -152,7 +152,8 @@ func (c *CoderFirestore) NumberRX() (int64, error) {
 	}
 	id := idRef.(int64)
 	c.numberCanIncrementShard = true
-	return (id+1)*int64(c.numShards) + int64(c.numberShardIndex), nil
+	value := (id+1)*int64(c.numShards) + int64(c.numberShardIndex)
+	return value, nil
 }
 
 // NumberWX commit NumberRX()
@@ -204,130 +205,15 @@ func (c *CoderFirestore) NumberWX() error {
 	return nil
 }
 
-/*
-// NumberRead return code number, number is unique but not serial
+// Reset reset code
 //
-//	n, err := code.Number(ctx)
+//	err = db.Transaction(ctx, func(ctx context.Context) error {
+//		err:= coder.Reset(ctx)
+//	})
 //
-func (c *CoderFirestore) NumberRead(ctx context.Context) (int64, error) {
+func (c *CoderFirestore) Reset(ctx context.Context) error {
 	if err := c.assert(ctx); err != nil {
-		return 0, err
+		return err
 	}
-
-	if c.conn.tx != nil {
-		return c.getTx(ctx, c.conn.tx)
-	}
-
-	var id int64
-	var err error
-	err = c.conn.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		id, err = c.getTx(ctx, tx)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to commit transaction: "+c.errorID())
-	}
-	return id, nil
+	return c.deleteShards(ctx)
 }
-
-// Number return code number, number is unique but not serial
-//
-//	n, err := code.Number(ctx)
-//
-func (c *CoderFirestore) NumberWrite(ctx context.Context) (int64, error) {
-	if err := c.assert(ctx); err != nil {
-		return 0, err
-	}
-
-	if c.conn.tx != nil {
-		return c.getTx(ctx, c.conn.tx)
-	}
-
-	var id int64
-	var err error
-	err = c.conn.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		id, err = c.getTx(ctx, tx)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to commit transaction: "+c.errorID())
-	}
-	return id, nil
-}
-
-// Number return code number, number is unique but not serial
-//
-//	n, err := code.Number(ctx)
-//
-func (c *CoderFirestore) Number(ctx context.Context) (int64, error) {
-	if err := c.assert(ctx); err != nil {
-		return 0, err
-	}
-
-	if c.conn.tx != nil {
-		return c.getTx(ctx, c.conn.tx)
-	}
-
-	var id int64
-	var err error
-	err = c.conn.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		id, err = c.getTx(ctx, tx)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to commit transaction: "+c.errorID())
-	}
-	return id, nil
-}
-
-// getTx generate code number in transaction, return number is not serial
-//
-//	num, err := s.getTx(ctx)
-//	So(num, ShouldEqual, 1)
-//
-func (c *CoderFirestore) getTx(ctx context.Context, tx *firestore.Transaction) (int64, error) {
-	docRef, shardsRef := c.getRef()
-	shardIndex := rand.Intn(c.numShards)
-	shardID := strconv.Itoa(shardIndex)
-	shardRef := shardsRef.Doc(shardID)
-
-	snapshot, err := tx.Get(shardRef)
-	if snapshot != nil && !snapshot.Exists() {
-
-		if err := c.ensureShardsDocumentRX(tx, docRef); err != nil {
-			return 0, errors.Wrap(err, "failed to init code number: "+c.errorID())
-		}
-
-		err = tx.Set(shardRef, map[string]interface{}{"N": 1}, firestore.MergeAll)
-		if err != nil {
-			return 0, errors.Wrap(err, "failed to init code number: "+c.errorID())
-		}
-		return int64(1*c.numShards + shardIndex), nil
-	}
-
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to get code number: "+c.errorID())
-	}
-	idRef, err := snapshot.DataAt("N")
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to get value from code number: "+c.errorID())
-	}
-	id := idRef.(int64)
-	err = tx.Update(shardRef, []firestore.Update{
-		{Path: "N", Value: firestore.Increment(1)},
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to increment code number: "+c.errorID())
-	}
-	return (id+1)*int64(c.numShards) + int64(shardIndex), nil
-}
-*/

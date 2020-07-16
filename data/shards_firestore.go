@@ -2,14 +2,13 @@ package data
 
 import (
 	"context"
-	"strconv"
 
 	"cloud.google.com/go/firestore"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
 
-// ShardsFirestore is root for counter and code
+// ShardsFirestore is root for counter/coder/serial, provide basic function like deleteDoc() and deleteShards()
 //
 type ShardsFirestore struct {
 
@@ -28,14 +27,6 @@ type ShardsFirestore struct {
 	// id is document id in table
 	//
 	id string `firestore:"-"`
-
-	// ensureShardsDocumentCanCreateDoc is used in ensureShardsDocumentRead return true mean ensureShardsDocumentWrite need create new shards document file
-	//
-	ensureShardsDocumentCanCreateDoc bool
-
-	// ensureShardCanCreateShard is used in ensureShard return true mean ensureShardWrite need create new shard file
-	//
-	ensureShardCanCreateShard bool
 }
 
 func (c *ShardsFirestore) errorID() string {
@@ -64,105 +55,6 @@ func (c *ShardsFirestore) getRef() (*firestore.DocumentRef, *firestore.Collectio
 	shardsRef := docRef.Collection("shards")
 	return docRef, shardsRef
 }
-
-// createShards create shards collection and document, this function need to be running in transaction
-//
-//	err = c.createShardsTX(tx)
-//
-func (c *ShardsFirestore) createShardsTX(tx *firestore.Transaction) error {
-	if tx == nil {
-		return errors.New("CreateShardsTX() need running in transaction")
-	}
-
-	docRef, shardsRef := c.getRef()
-	err := tx.Set(docRef, &struct{}{}) //put empty struct
-	if err != nil {
-		return errors.Wrapf(err, "failed create shards doc in transaction: "+c.errorID())
-	}
-
-	for num := 0; num < c.numShards; num++ {
-		shardRef := shardsRef.Doc(strconv.Itoa(num))
-		if err := tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll); err != nil {
-			return errors.Wrapf(err, "failed create shared in transaction:%v", num)
-		}
-	}
-	return nil
-}
-
-/*
-// createShards create shards collection and document, it is safe to create shards as many time as you want, normally we re create shards when we need more shards
-//
-//	err = c.CreateShards(ctx)
-//
-func (c *ShardsFirestore) createShards(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	docRef, shardsRef := c.getRef()
-
-	if c.conn.tx != nil {
-		err := c.conn.tx.Set(docRef, &struct{}{}) //put empty struct
-		if err != nil {
-			return errors.Wrapf(err, "failed create shards doc in transaction: "+c.errorID())
-		}
-
-		for num := 0; num < c.numShards; num++ {
-			shardRef := shardsRef.Doc(strconv.Itoa(num))
-			if err := c.conn.tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll); err != nil {
-				return errors.Wrapf(err, "failed create shared in transaction:%v", num)
-			}
-		}
-		return nil
-	}
-
-	_, err := docRef.Set(ctx, c)
-	if err != nil {
-		return errors.Wrapf(err, "failed create shards doc: "+c.errorID())
-	}
-
-	for num := 0; num < c.numShards; num++ {
-		shardRef := shardsRef.Doc(strconv.Itoa(num))
-		if err := c.createShard(ctx, shardRef, num); err != nil {
-			return errors.Wrapf(err, "failed create shared:%v", num)
-		}
-	}
-	return nil
-}
-
-// createShard check and create single shard if shard is not exist
-//
-//	err = c.CreateShards(ctx)
-//
-func (c *ShardsFirestore) createShard(ctx context.Context, shardRef *firestore.DocumentRef, num int) error {
-	if c.conn.tx != nil {
-		snapshot, err := c.conn.tx.Get(shardRef)
-		if snapshot != nil && !snapshot.Exists() {
-			if err := c.conn.tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll); err != nil {
-				return errors.Wrapf(err, "failed create shared in transaction:%v", num)
-			}
-			return nil
-		}
-		if err != nil {
-			return errors.Wrapf(err, "failed get shared in transaction:%v", num)
-		}
-		// do nothing if shard already exist
-		return nil
-	}
-	snapshot, err := shardRef.Get(ctx)
-	if snapshot != nil && !snapshot.Exists() {
-		_, err := shardRef.Set(ctx, map[string]interface{}{"N": 0}, firestore.MergeAll)
-		if err != nil {
-			return errors.Wrapf(err, "failed create shared:%v", num)
-		}
-		return nil
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed get shared:%v", num)
-	}
-	// do nothing if shard already exist
-	return nil
-}
-*/
 
 // deleteDoc delete shards document
 //
@@ -261,123 +153,4 @@ func (c *ShardsFirestore) shardsInfo(ctx context.Context) (int, int, error) {
 		shardsCount++
 	}
 	return docCount, shardsCount, nil
-}
-
-// ensureShardsDocumentRX make sure shards document are created, this function perform read operation, because need avoid read after write in transaction
-//
-//	err = c.ensureShardsDocumentRX(ctx, tx)
-//
-func (c *ShardsFirestore) ensureShardsDocumentRX(tx *firestore.Transaction, docRef *firestore.DocumentRef) error {
-	// do not use conn.tx , use tx instead , cause caller may create transaction
-	c.ensureShardsDocumentCanCreateDoc = false
-	snapshot, err := tx.Get(docRef)
-	if snapshot != nil && !snapshot.Exists() {
-		c.ensureShardsDocumentCanCreateDoc = true
-		return nil
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to get shards document in transaction: "+c.errorID())
-	}
-	return nil
-}
-
-// ensureShardsDocumentWX make sure shards document are created, this function perform write operation, because need avoid read after write in transaction
-//
-//	err = c.ensureShardsDocumentTx(ctx, tx)
-//
-func (c *ShardsFirestore) ensureShardsDocumentWX(tx *firestore.Transaction, docRef *firestore.DocumentRef) error {
-	if !c.ensureShardsDocumentCanCreateDoc {
-		//shards document already exist
-		return nil
-	}
-	err := tx.Set(docRef, &struct{}{}) //put empty struct
-	if err != nil {
-		return errors.Wrap(err, "failed to create shards document in transaction: "+c.errorID())
-	}
-	return nil
-}
-
-// ensureShardsDocument make sure shards document are created
-//
-//	err = c.ensureShardsDocument(ctx, tx)
-//
-func (c *ShardsFirestore) ensureShardsDocument(ctx context.Context, docRef *firestore.DocumentRef) error {
-	snapshot, err := docRef.Get(ctx)
-	if snapshot != nil && !snapshot.Exists() {
-		_, err := docRef.Set(ctx, &struct{}{}) //put empty struct
-		if err != nil {
-			return errors.Wrap(err, "failed to create shards document: "+c.errorID())
-		}
-		return nil
-
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to get shards document: "+c.errorID())
-	}
-	return nil
-}
-
-// ensureShardRX make sure shard and document are created, this function perform read operation, because need avoid read after write in transaction
-//
-//	err := c.ensureShardRX(tx,dofRef,shardRef)
-//
-func (c *ShardsFirestore) ensureShardRX(tx *firestore.Transaction, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
-	snapshot, err := c.conn.tx.Get(shardRef)
-	c.ensureShardCanCreateShard = false
-	if snapshot != nil && !snapshot.Exists() {
-
-		if err := c.ensureShardsDocumentRX(tx, docRef); err != nil {
-			return err
-		}
-		c.ensureShardCanCreateShard = true
-		return nil
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to get shard in transaction: "+c.errorID())
-	}
-	//shard already exist
-	return nil
-}
-
-// ensureShardTx make sure shard and document are created, this function perform write operation, because need avoid read after write in transaction
-//
-//	err := c.ensureShardWX(tx,docRef,shardRef)
-//
-func (c *ShardsFirestore) ensureShardWX(tx *firestore.Transaction, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
-	if !c.ensureShardCanCreateShard {
-		//shard already exist
-		return nil
-	}
-
-	err := tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll)
-	if err != nil {
-		return errors.Wrap(err, "failed to create shard in transaction: "+c.errorID())
-	}
-	return nil
-}
-
-// ensureShard make sure shard and document are created
-//
-//	err = c.ensureShard(ctx, tx)
-//
-func (c *ShardsFirestore) ensureShard(ctx context.Context, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
-	snapshot, err := shardRef.Get(ctx)
-	if snapshot != nil && !snapshot.Exists() {
-		if err := c.ensureShardsDocument(ctx, docRef); err != nil {
-			return err
-		}
-
-		_, err = shardRef.Set(ctx, map[string]interface{}{"N": 0}, firestore.MergeAll)
-		if err != nil {
-			return errors.Wrap(err, "failed to create shard: "+c.errorID())
-		}
-		return nil
-	}
-
-	if err != nil {
-		return errors.Wrap(err, "failed to get shard: "+c.errorID())
-	}
-
-	//shard already exist
-	return nil
 }
