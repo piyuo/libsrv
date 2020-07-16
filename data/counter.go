@@ -8,25 +8,19 @@ import (
 //
 type CounterRef interface {
 
-	// CreateShards create shards document and collection, it is safe to create shards as many time as you want, normally we recreate shards when we need more shards
+	// IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
 	//
-	//	err = counter.CreateShards(ctx)
+	//	err = counter.IncrementRX(1)
 	//
-	CreateShards(ctx context.Context) error
+	IncrementRX(value interface{}) error
 
-	// Increment increments a randomly picked shard. this function is slow than FastIncrement() but you don't need to create all shards first.
+	// IncrementWX commit IncrementRX()
 	//
-	//	err = counter.Increment(ctx, 1)
+	//	err = counter.IncrementWX()
 	//
-	Increment(ctx context.Context, value interface{}) error
+	IncrementWX() error
 
-	// FastIncrement increments a randomly picked shard. before use this function you must use createShard to create all necessary shard
-	//
-	//	err = counter.Increment(ctx, 1)
-	//
-	FastIncrement(ctx context.Context, value interface{}) error
-
-	// Count returns a total count across all shards. avoid use this function in transation it easily cause "Too much contention on these documents"
+	// Count returns a total count across all shards. please be aware it easily cause "Too much contention on these documents"
 	//
 	//	count, err = counter.Count(ctx)
 	//

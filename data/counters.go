@@ -20,6 +20,11 @@ type Counters struct {
 //	orderCountCounter,err = counters.Counter("order-count",10)
 //
 func (c *Counters) Counter(name string, numshards int) CounterRef {
+
+	if numshards <= 0 {
+		numshards = 10
+	}
+
 	return &CounterFirestore{
 		ShardsFirestore: ShardsFirestore{
 			conn:      c.Connection.(*ConnectionFirestore),

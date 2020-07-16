@@ -9,7 +9,7 @@ type SampleDB interface {
 	SampleTable() *Table
 	Counters() *SampleCounters
 	Serials() *SampleSerials
-	Codes() *SampleCodes
+	Coders() *SampleCoders
 }
 
 // global connection
@@ -30,44 +30,40 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 }
 
 func (db *SampleGlobalDB) SampleTable() *Table {
-	table := &Table{
+	return &Table{
 		Connection: db.Connection,
 		TableName:  "sample",
 		Factory: func() ObjectRef {
 			return &Sample{}
 		},
 	}
-	return table
 }
 
 func (db *SampleGlobalDB) Counters() *SampleCounters {
-	counters := &SampleCounters{
+	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
-			TableName:  "sample-counter",
+			TableName:  "sample-count",
 		},
 	}
-	return counters
 }
 
 func (db *SampleGlobalDB) Serials() *SampleSerials {
-	serials := &SampleSerials{
+	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.Connection,
 			TableName:  "sample-serial",
 		},
 	}
-	return serials
 }
 
-func (db *SampleGlobalDB) Codes() *SampleCodes {
-	codes := &SampleCodes{
-		Codes: Codes{
+func (db *SampleGlobalDB) Coders() *SampleCoders {
+	return &SampleCoders{
+		Coders: Coders{
 			Connection: db.Connection,
 			TableName:  "sample-code",
 		},
 	}
-	return codes
 }
 
 // regional connection
@@ -88,44 +84,40 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 }
 
 func (db *SampleRegionalDB) SampleTable() *Table {
-	table := &Table{
+	return &Table{
 		Connection: db.Connection,
 		TableName:  "sample",
 		Factory: func() ObjectRef {
 			return &Sample{}
 		},
 	}
-	return table
 }
 
 func (db *SampleRegionalDB) Counters() *SampleCounters {
-	counters := &SampleCounters{
+	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
-			TableName:  "sample-counter",
+			TableName:  "sample-count",
 		},
 	}
-	return counters
 }
 
 func (db *SampleRegionalDB) Serials() *SampleSerials {
-	serials := &SampleSerials{
+	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.Connection,
 			TableName:  "sample-serial",
 		},
 	}
-	return serials
 }
 
-func (db *SampleRegionalDB) Codes() *SampleCodes {
-	codes := &SampleCodes{
-		Codes: Codes{
+func (db *SampleRegionalDB) Coders() *SampleCoders {
+	return &SampleCoders{
+		Coders: Coders{
 			Connection: db.Connection,
 			TableName:  "sample-code",
 		},
 	}
-	return codes
 }
 
 // Sample
@@ -136,19 +128,21 @@ type Sample struct {
 	Value  int
 }
 
-// SampleCodes  represent collection of code
+// SampleCoders  represent collection of code
 //
-type SampleCodes struct {
-	Codes `firestore:"-"`
+type SampleCoders struct {
+	Coders `firestore:"-"`
 }
 
-func (ss *SampleCodes) SampleCode() CodeRef {
-	return ss.Code("sample-code", 10)
+// SampleCoder return sample code
+//
+func (ss *SampleCoders) SampleCoder() CoderRef {
+	return ss.Coder("sample-code", 10)
 }
 
 // DeleteSampleSerial delete sample serial
 //
-func (ss *SampleCodes) DeleteSampleCode(ctx context.Context) error {
+func (ss *SampleCoders) DeleteSampleCode(ctx context.Context) error {
 	return ss.Delete(ctx, "sample-code")
 }
 
@@ -159,13 +153,13 @@ type SampleSerials struct {
 }
 
 func (ss *SampleSerials) SampleSerial() SerialRef {
-	return ss.Serial("sample-serial")
+	return ss.Serial("sample-no")
 }
 
 // DeleteSampleSerial delete sample serial
 //
 func (ss *SampleSerials) DeleteSampleSerial(ctx context.Context) error {
-	return ss.Delete(ctx, "sample-serial")
+	return ss.Delete(ctx, "sample-no")
 }
 
 // SampleCounters represent collection of counter
@@ -183,5 +177,5 @@ func (scs *SampleCounters) SampleCounter() CounterRef {
 // DeleteSampleCounter delete sample counter
 //
 func (scs *SampleCounters) DeleteSampleCounter(ctx context.Context) error {
-	return scs.Delete(ctx, "sample-total")
+	return scs.Delete(ctx, "sample-counter")
 }

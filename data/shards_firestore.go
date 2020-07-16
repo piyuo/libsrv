@@ -28,6 +28,14 @@ type ShardsFirestore struct {
 	// id is document id in table
 	//
 	id string `firestore:"-"`
+
+	// ensureShardsDocumentCanCreateDoc is used in ensureShardsDocumentRead return true mean ensureShardsDocumentWrite need create new shards document file
+	//
+	ensureShardsDocumentCanCreateDoc bool
+
+	// ensureShardCanCreateShard is used in ensureShard return true mean ensureShardWrite need create new shard file
+	//
+	ensureShardCanCreateShard bool
 }
 
 func (c *ShardsFirestore) errorID() string {
@@ -57,6 +65,31 @@ func (c *ShardsFirestore) getRef() (*firestore.DocumentRef, *firestore.Collectio
 	return docRef, shardsRef
 }
 
+// createShards create shards collection and document, this function need to be running in transaction
+//
+//	err = c.createShardsTX(tx)
+//
+func (c *ShardsFirestore) createShardsTX(tx *firestore.Transaction) error {
+	if tx == nil {
+		return errors.New("CreateShardsTX() need running in transaction")
+	}
+
+	docRef, shardsRef := c.getRef()
+	err := tx.Set(docRef, &struct{}{}) //put empty struct
+	if err != nil {
+		return errors.Wrapf(err, "failed create shards doc in transaction: "+c.errorID())
+	}
+
+	for num := 0; num < c.numShards; num++ {
+		shardRef := shardsRef.Doc(strconv.Itoa(num))
+		if err := tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll); err != nil {
+			return errors.Wrapf(err, "failed create shared in transaction:%v", num)
+		}
+	}
+	return nil
+}
+
+/*
 // createShards create shards collection and document, it is safe to create shards as many time as you want, normally we re create shards when we need more shards
 //
 //	err = c.CreateShards(ctx)
@@ -74,9 +107,8 @@ func (c *ShardsFirestore) createShards(ctx context.Context) error {
 		}
 
 		for num := 0; num < c.numShards; num++ {
-			sharedRef := shardsRef.Doc(strconv.Itoa(num))
-
-			if err := c.conn.tx.Set(sharedRef, map[string]interface{}{"N": 0}, firestore.MergeAll); err != nil {
+			shardRef := shardsRef.Doc(strconv.Itoa(num))
+			if err := c.conn.tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll); err != nil {
 				return errors.Wrapf(err, "failed create shared in transaction:%v", num)
 			}
 		}
@@ -128,6 +160,25 @@ func (c *ShardsFirestore) createShard(ctx context.Context, shardRef *firestore.D
 		return errors.Wrapf(err, "failed get shared:%v", num)
 	}
 	// do nothing if shard already exist
+	return nil
+}
+*/
+
+// deleteDoc delete shards document
+//
+//	err = c.deleteDoc(ctx)
+//
+func (c *ShardsFirestore) deleteDoc(ctx context.Context) error {
+	docRef, _ := c.getRef()
+	if c.conn.tx != nil {
+		if err := c.conn.tx.Delete(docRef); err != nil {
+			return err
+		}
+		return nil
+	}
+	if _, err := docRef.Delete(ctx); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -182,9 +233,9 @@ func (c *ShardsFirestore) deleteShardsTx(ctx context.Context, tx *firestore.Tran
 
 // count is a debug function it return shards document and collection count
 //
-//	err = c.count(ctx)
+//	docCount,shardsCount,err = c.shardsInfo(ctx)
 //
-func (c *ShardsFirestore) count(ctx context.Context) (int, int, error) {
+func (c *ShardsFirestore) shardsInfo(ctx context.Context) (int, int, error) {
 	docRef, shardsRef := c.getRef()
 
 	docCount := 0
@@ -212,23 +263,36 @@ func (c *ShardsFirestore) count(ctx context.Context) (int, int, error) {
 	return docCount, shardsCount, nil
 }
 
-// ensureShardsDocumentTx make sure shards document are created
+// ensureShardsDocumentRX make sure shards document are created, this function perform read operation, because need avoid read after write in transaction
 //
-//	err = c.ensureShardsDocumentTx(ctx, tx)
+//	err = c.ensureShardsDocumentRX(ctx, tx)
 //
-func (c *ShardsFirestore) ensureShardsDocumentTx(tx *firestore.Transaction, docRef *firestore.DocumentRef) error {
+func (c *ShardsFirestore) ensureShardsDocumentRX(tx *firestore.Transaction, docRef *firestore.DocumentRef) error {
 	// do not use conn.tx , use tx instead , cause caller may create transaction
+	c.ensureShardsDocumentCanCreateDoc = false
 	snapshot, err := tx.Get(docRef)
 	if snapshot != nil && !snapshot.Exists() {
-		err := tx.Set(docRef, &struct{}{}) //put empty struct
-		if err != nil {
-			return errors.Wrap(err, "failed to create shards document in transaction: "+c.errorID())
-		}
+		c.ensureShardsDocumentCanCreateDoc = true
 		return nil
-
 	}
 	if err != nil {
 		return errors.Wrap(err, "failed to get shards document in transaction: "+c.errorID())
+	}
+	return nil
+}
+
+// ensureShardsDocumentWX make sure shards document are created, this function perform write operation, because need avoid read after write in transaction
+//
+//	err = c.ensureShardsDocumentTx(ctx, tx)
+//
+func (c *ShardsFirestore) ensureShardsDocumentWX(tx *firestore.Transaction, docRef *firestore.DocumentRef) error {
+	if !c.ensureShardsDocumentCanCreateDoc {
+		//shards document already exist
+		return nil
+	}
+	err := tx.Set(docRef, &struct{}{}) //put empty struct
+	if err != nil {
+		return errors.Wrap(err, "failed to create shards document in transaction: "+c.errorID())
 	}
 	return nil
 }
@@ -253,30 +317,42 @@ func (c *ShardsFirestore) ensureShardsDocument(ctx context.Context, docRef *fire
 	return nil
 }
 
-// ensureShardTx make sure shard and document are created
+// ensureShardRX make sure shard and document are created, this function perform read operation, because need avoid read after write in transaction
 //
-//	err = c.ensureShardTx(ctx, tx)
+//	err := c.ensureShardRX(tx,dofRef,shardRef)
 //
-func (c *ShardsFirestore) ensureShardTx(tx *firestore.Transaction, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
+func (c *ShardsFirestore) ensureShardRX(tx *firestore.Transaction, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
 	snapshot, err := c.conn.tx.Get(shardRef)
+	c.ensureShardCanCreateShard = false
 	if snapshot != nil && !snapshot.Exists() {
 
-		if err := c.ensureShardsDocumentTx(tx, docRef); err != nil {
+		if err := c.ensureShardsDocumentRX(tx, docRef); err != nil {
 			return err
 		}
-
-		err = tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll)
-		if err != nil {
-			return errors.Wrap(err, "failed to create shard in transaction: "+c.errorID())
-		}
+		c.ensureShardCanCreateShard = true
 		return nil
 	}
-
 	if err != nil {
 		return errors.Wrap(err, "failed to get shard in transaction: "+c.errorID())
 	}
-
 	//shard already exist
+	return nil
+}
+
+// ensureShardTx make sure shard and document are created, this function perform write operation, because need avoid read after write in transaction
+//
+//	err := c.ensureShardWX(tx,docRef,shardRef)
+//
+func (c *ShardsFirestore) ensureShardWX(tx *firestore.Transaction, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
+	if !c.ensureShardCanCreateShard {
+		//shard already exist
+		return nil
+	}
+
+	err := tx.Set(shardRef, map[string]interface{}{"N": 0}, firestore.MergeAll)
+	if err != nil {
+		return errors.Wrap(err, "failed to create shard in transaction: "+c.errorID())
+	}
 	return nil
 }
 
@@ -287,7 +363,6 @@ func (c *ShardsFirestore) ensureShardTx(tx *firestore.Transaction, docRef *fires
 func (c *ShardsFirestore) ensureShard(ctx context.Context, docRef *firestore.DocumentRef, shardRef *firestore.DocumentRef) error {
 	snapshot, err := shardRef.Get(ctx)
 	if snapshot != nil && !snapshot.Exists() {
-
 		if err := c.ensureShardsDocument(ctx, docRef); err != nil {
 			return err
 		}

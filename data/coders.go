@@ -4,9 +4,9 @@ import (
 	"context"
 )
 
-// Codes is collection of code
+// Coders is collection of code
 //
-type Codes struct {
+type Coders struct {
 	Connection ConnectionRef
 
 	//TableName is code table name
@@ -14,13 +14,13 @@ type Codes struct {
 	TableName string
 }
 
-// Code return code from database, the numShards must be multiple by 10
+// Coder return code from database, the numShards must be multiple by 10
 //
-//	codes := db.Codes()
-//	productCode,err = codes.Code("product-code",10)
+//	coders := db.Coders()
+//	productCoder,err = coders.Coder("product-code",10)
 //
-func (c *Codes) Code(name string, numshards int) CodeRef {
-	return &CodeFirestore{
+func (c *Coders) Coder(name string, numshards int) CoderRef {
+	return &CoderFirestore{
 		ShardsFirestore: ShardsFirestore{
 			conn:      c.Connection.(*ConnectionFirestore),
 			tableName: c.TableName,
@@ -32,10 +32,10 @@ func (c *Codes) Code(name string, numshards int) CodeRef {
 
 // Delete code from database
 //
-//	codes := db.Codes()
-//	err = codes.Delete(ctx, "product-code")
+//	coders := db.Coders()
+//	err = coders.Delete(ctx, "product-code")
 //
-func (c *Codes) Delete(ctx context.Context, name string) error {
+func (c *Coders) Delete(ctx context.Context, name string) error {
 	shards := ShardsFirestore{
 		conn:      c.Connection.(*ConnectionFirestore),
 		tableName: c.TableName,

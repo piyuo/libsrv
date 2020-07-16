@@ -9,7 +9,7 @@ import (
 type Serials struct {
 	Connection ConnectionRef
 
-	//TableName is counter table name
+	//TableName is serial table name
 	//
 	TableName string
 }
@@ -17,7 +17,7 @@ type Serials struct {
 // Serial return serial from database, create one if not exist
 //
 //	serials := db.Serials()
-//	productNoe,err = serials.serial("product-no")
+//	productNo,err = serials.Serial("product-no")
 //
 func (c *Serials) Serial(name string) SerialRef {
 	return &SerialFirestore{
@@ -32,10 +32,11 @@ func (c *Serials) Serial(name string) SerialRef {
 
 // Delete code from database
 //
-//	codes := db.Codes()
-//	err = codes.Delete(ctx, "myCounter")
+//	serials := db.Serials()
+//	err = serials.Delete(ctx, "product-no")
 //
 func (c *Serials) Delete(ctx context.Context, name string) error {
+
 	shards := ShardsFirestore{
 		conn:      c.Connection.(*ConnectionFirestore),
 		tableName: c.TableName,
@@ -45,5 +46,5 @@ func (c *Serials) Delete(ctx context.Context, name string) error {
 	if err := shards.assert(ctx); err != nil {
 		return err
 	}
-	return shards.deleteShards(ctx)
+	return shards.deleteDoc(ctx)
 }

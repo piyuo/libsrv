@@ -1,17 +1,28 @@
 package data
 
-import (
-	"context"
-)
-
-// SerialRef can generate serial number in low frequency. 1 per second, use it with high frequency will cause error
+// SerialRef can generate serial Sequence in low frequency. 1 per second, use it with high frequency will cause error
 //
 type SerialRef interface {
 
-	// Number create unique serial number, please be aware serial can only generate one number per second, use it with high frequency will cause error
+	// NumberRX return sequence number, number is unique and serial, please be aware serial can only generate one sequence per second, use it with high frequency will cause error and  must used it in transaction with NumberWX()
 	//
-	//	num, err := serial.Number(ctx, "sample-id")
-	//	So(num, ShouldEqual, 1)
+	//	err = db.Transaction(ctx, func(ctx context.Context) error {
+	//		num, err:= coder.NumberRX()
+	//		So(err, ShouldBeNil)
+	//		So(num, ShouldEqual,1)
+	//		err := coder.NumberWX()
+	//	})
 	//
-	Number(ctx context.Context) (int64, error)
+	NumberRX() (int64, error)
+
+	// NumberWX commit NumberRX()
+	//
+	//	err = db.Transaction(ctx, func(ctx context.Context) error {
+	//		num, err:= coder.NumberRX()
+	//		So(err, ShouldBeNil)
+	//		So(num, ShouldEqual,1)
+	//		err := coder.NumberWX()
+	//	})
+	//
+	NumberWX() error
 }

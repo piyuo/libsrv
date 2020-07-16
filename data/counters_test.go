@@ -14,22 +14,23 @@ func TestCounters(t *testing.T) {
 		cg, cr := createSampleCounters(dbG, dbR)
 		defer removeSampleCounters(cg, cr)
 
-		countersTest(t, cg)
-		countersTest(t, cr)
+		countersTest(dbG, cg)
+		countersTest(dbR, cr)
 	})
 
 }
 
-func countersTest(t *testing.T, counters *SampleCounters) {
+func countersTest(db SampleDB, counters *SampleCounters) {
 	ctx := context.Background()
 
 	counter := counters.Counter("sample-counter", 3)
 	So(counter, ShouldNotBeNil)
 
-	err := counter.CreateShards(ctx)
-	So(err, ShouldBeNil)
-
-	err = counter.Increment(ctx, 1)
+	err := db.Transaction(ctx, func(ctx context.Context) error {
+		err := counter.IncrementRX(1)
+		So(err, ShouldBeNil)
+		return counter.IncrementWX()
+	})
 	So(err, ShouldBeNil)
 
 	count, err := counter.Count(ctx)

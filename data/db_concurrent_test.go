@@ -22,8 +22,8 @@ func TestConcurrentDB(t *testing.T) {
 	defer removeSampleTable(tableG, tableR)
 	countersG, countersR := createSampleCounters(dbG, dbR)
 	defer removeSampleCounters(countersG, countersR)
-	codesG, codesR := createSampleCodes(dbG, dbR)
-	defer removeSampleCodes(codesG, codesR)
+	codersG, codersR := createSampleCoders(dbG, dbR)
+	defer removeSampleCoders(codersG, codersR)
 
 	//init test data
 	table := tableG
@@ -36,18 +36,6 @@ func TestConcurrentDB(t *testing.T) {
 	if err := table.Set(ctx, root); err != nil {
 		t.Errorf("err should be nil, got %v", err)
 	}
-
-	counter := countersG.SampleCounter()
-	if err := counter.CreateShards(ctx); err != nil {
-		t.Errorf("err should be nil, got %v", err)
-		return
-	}
-
-	//code := codesG.SampleCode()
-	//if err := code.CreateShards(ctx); err != nil {
-	//	t.Errorf("err should be nil, got %v", err)
-	//	return
-	//}
 
 	//	begin concurrent run
 	var concurrent = 3
@@ -73,19 +61,17 @@ func TestConcurrentDB(t *testing.T) {
 				sRoot := sRootRef.(*Sample)
 
 				// read count first to avoid read after write error
-				counters := sdb.Counters()
-				counter := counters.SampleCounter()
-				codes := sdb.Codes()
-				code := codes.SampleCode()
+				counter := sdb.Counters().SampleCounter()
+				coder := sdb.Coders().SampleCoder()
 
-				num, err2 := code.Number(ctx)
+				num, err2 := coder.NumberRX()
 				if err2 != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.New("failed to get code")
 				}
 				fmt.Printf("sampling:%v\n", num)
 
-				if err := counter.Increment(ctx, 1); err != nil {
+				if err := counter.IncrementRX(1); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.New("failed to increment")
 				}
@@ -106,7 +92,13 @@ func TestConcurrentDB(t *testing.T) {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.New("failed to update root sample")
 				}
-				return nil
+
+				if err := counter.IncrementWX(); err != nil {
+					t.Errorf("err should be nil, got %v", err)
+					return errors.New("failed to increment")
+				}
+
+				return coder.NumberWX()
 			})
 			if errTx != nil {
 				t.Errorf("failed to commit transaction %v", errTx)

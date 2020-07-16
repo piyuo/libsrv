@@ -2,8 +2,6 @@ package data
 
 import (
 	"context"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func createSampleDB() (*SampleGlobalDB, *SampleRegionalDB) {
@@ -32,10 +30,8 @@ func createSampleTable(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*Table, *Tab
 
 func removeSampleTable(g *Table, r *Table) {
 	ctx := context.Background()
-	err := g.Clear(ctx)
-	So(err, ShouldBeNil)
-	err = r.Clear(ctx)
-	So(err, ShouldBeNil)
+	g.Clear(ctx)
+	r.Clear(ctx)
 }
 
 func createSampleCounters(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*SampleCounters, *SampleCounters) {
@@ -64,14 +60,14 @@ func removeSampleSerials(g *SampleSerials, r *SampleSerials) {
 	r.DeleteSampleSerial(ctx)
 }
 
-func createSampleCodes(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*SampleCodes, *SampleCodes) {
-	g := dbG.Codes()
-	r := dbR.Codes()
-	removeSampleCodes(g, r)
+func createSampleCoders(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*SampleCoders, *SampleCoders) {
+	g := dbG.Coders()
+	r := dbR.Coders()
+	removeSampleCoders(g, r)
 	return g, r
 }
 
-func removeSampleCodes(g *SampleCodes, r *SampleCodes) {
+func removeSampleCoders(g *SampleCoders, r *SampleCoders) {
 	ctx := context.Background()
 	g.DeleteSampleCode(ctx)
 	r.DeleteSampleCode(ctx)
