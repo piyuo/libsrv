@@ -13,7 +13,11 @@ type Store struct {
 // StoreTable return store table
 //
 func (db *DB) StoreTable() *data.Table {
-	return db.newTable("store", func() data.ObjectRef {
-		return &Store{}
-	})
+	return &data.Table{
+		Connection: db.Connection,
+		TableName:  "account",
+		Factory: func() data.ObjectRef {
+			return &Store{}
+		},
+	}
 }

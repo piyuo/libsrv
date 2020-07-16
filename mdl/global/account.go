@@ -1,8 +1,6 @@
 package gmdl
 
 import (
-	"context"
-
 	data "github.com/piyuo/libsrv/data"
 )
 
@@ -14,24 +12,30 @@ type Account struct {
 
 // AccountTable return account table
 //
+//	counter := db.AccountTable()
+//
 func (db *DB) AccountTable() *data.Table {
-	return db.newTable("account", func() data.ObjectRef {
-		return &Account{}
-	})
+	return &data.Table{
+		Connection: db.Connection,
+		TableName:  "account",
+		Factory: func() data.ObjectRef {
+			return &Account{}
+		},
+	}
 }
 
-// AccountTotal return total account count
+// AccountTotal return account total counter
 //
-//	id := d.AccountTotal(ctx)
+//	counter := d.AccountCounter()
 //
-func (c *Counters) AccountTotal(ctx context.Context) (data.CounterRef, error) {
-	return c.Counter(ctx, "accountTotal", 4)
+func (c *Counters) AccountTotal() data.CounterRef {
+	return c.Counter("AccountTotal", 100)
 }
 
-// AccountID generate new account serial id
+// AccountID return account id coder
 //
-//	id := d.TableName()
+//	coder := d.AccountID()
 //
-func (s *Serial) AccountID(ctx context.Context) (string, error) {
-	return s.Code(ctx, "accountID")
+func (c *Coders) AccountID() data.CoderRef {
+	return c.Coder("AccountID", 100)
 }

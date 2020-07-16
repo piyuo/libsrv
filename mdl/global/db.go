@@ -30,32 +30,32 @@ func NewDB(ctx context.Context) (*DB, error) {
 	return db, nil
 }
 
-// Counters return global counters
+// Counters return collection of counter
 //
 func (db *DB) Counters() *Counters {
 	return &Counters{
 		Counters: data.Counters{
 			Connection: db.Connection,
-			TableName:  "counter",
+			TableName:  "count",
 		},
 	}
 }
 
-// NewTable return table
+// Serials return collection of serial
 //
-func (db *DB) newTable(name string, factory func() data.ObjectRef) *data.Table {
-	return &data.Table{
-		Connection: db.Connection,
-		TableName:  name,
-		Factory:    factory,
-	}
+func (db *DB) Serials() *Serials {
+	return &Serials{
+		Serials: data.Serials{
+			Connection: db.Connection,
+			TableName:  "serial",
+		}}
 }
 
-// Serial return serial
+// Coders return collection of coder
 //
-func (db *DB) Serial() *Serial {
-	return &Serial{
-		Serial: data.Serial{
+func (db *DB) Coders() *Coders {
+	return &Coders{
+		Coders: data.Coders{
 			Connection: db.Connection,
 			TableName:  "serial",
 		}}
@@ -67,8 +67,14 @@ type Counters struct {
 	data.Counters `firestore:"-"`
 }
 
-// Serial keep serial numbers
+// Serials keep all serial numbers
 //
-type Serial struct {
-	data.Serial `firestore:"-"`
+type Serials struct {
+	data.Serials `firestore:"-"`
+}
+
+// Coders keep all coders
+//
+type Coders struct {
+	data.Coders `firestore:"-"`
 }

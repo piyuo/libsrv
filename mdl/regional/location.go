@@ -1,8 +1,6 @@
 package rmdl
 
 import (
-	"context"
-
 	data "github.com/piyuo/libsrv/data"
 )
 
@@ -14,24 +12,31 @@ type Location struct {
 
 // LocationTable return location table
 //
+//	counter := db.LocationTable()
+//
 func (db *DB) LocationTable() *data.Table {
-	return db.newTable("location", func() data.ObjectRef {
-		return &Location{}
-	})
+
+	return &data.Table{
+		Connection: db.Connection,
+		TableName:  "location",
+		Factory: func() data.ObjectRef {
+			return &Location{}
+		},
+	}
 }
 
 // LocationTotal return total location count
 //
 //	id := d.LocationTotal(ctx)
 //
-func (c *Counters) LocationTotal(ctx context.Context) (data.CounterRef, error) {
-	return c.Counter(ctx, "location-total", 4)
+func (c *Counters) LocationTotal() data.CounterRef {
+	return c.Counter("LocationTotal", 10)
 }
 
-// LocationID generate new location serial id
+// LocationID return location id coder
 //
-//	id := d.LocationID(ctx)
+//	coder := d.LocationID()
 //
-func (s *Serial) LocationID(ctx context.Context) (uint32, error) {
-	return s.Number(ctx, "location-id")
+func (c *Coders) LocationID() data.CoderRef {
+	return c.Coder("LocationID", 100)
 }
