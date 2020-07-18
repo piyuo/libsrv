@@ -24,7 +24,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 	if globalCredential == nil {
 		key, err := app.Key("gcloud")
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/gcloud.key")
+			return nil, errors.Wrap(err, "failed to get assets/key/gcloud.json")
 		}
 		cred, err := createCredential(ctx, key,
 			"https://www.googleapis.com/auth/siteverification",        // log, error
@@ -32,7 +32,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 			"https://www.googleapis.com/auth/devstorage.full_control", // storage
 			"https://www.googleapis.com/auth/datastore")               // firestore
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check /keys/"+key+".key format is correct")
+			return nil, errors.Wrap(err, "failed to create credential, check assets/key/"+key+".json format is correct")
 		}
 		globalCredential = cred
 	}
@@ -55,12 +55,12 @@ func RegionalCredential(ctx context.Context, region string) (*google.Credentials
 	if regionalCredentials[region] == nil {
 		key, err := app.RegionKey(region)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/regions/"+region+".key")
+			return nil, errors.Wrap(err, "failed to get assets/key/region/"+region+".json")
 		}
 		scope := "https://www.googleapis.com/auth/datastore"
 		cred, err := createCredential(ctx, key, scope)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check /keys/regions/"+key+".key format is correct")
+			return nil, errors.Wrap(err, "failed to create credential, check assets/key/region/"+key+".key format is correct")
 		}
 		regionalCredentials[region] = cred
 		return cred, nil

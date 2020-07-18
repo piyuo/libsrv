@@ -18,7 +18,7 @@ type File interface {
 
 //Open file to read JSON or Text
 //
-//	f, err := file.Open("mock/mock.key")
+//	f, err := file.Open("mock/mock.json")
 //	if( err != nil){
 //		panic(err)
 //	}

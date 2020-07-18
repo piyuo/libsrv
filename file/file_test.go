@@ -10,7 +10,7 @@ import (
 
 func TestFile(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	keyPath := path.Join(currentDir, "../../keys/gcloud.key")
+	keyPath := path.Join(currentDir, "../../assets/key/gcloud.json")
 	f, _ := Open(keyPath)
 	defer f.Close()
 

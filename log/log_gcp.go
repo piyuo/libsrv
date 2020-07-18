@@ -15,7 +15,7 @@ import (
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"
 )
 
-//gcpCreateLogClient return stackdriver log client using credential from gcloud.key
+//gcpCreateLogClient return stackdriver log client using global credential
 //
 //	ctx := context.Background()
 //	logClient, _ := gcpCreateLogClient(ctx)
@@ -23,7 +23,7 @@ import (
 func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
+		return nil, errors.Wrap(err, "failed to get global google credential, check assets/key/log.json exist")
 	}
 
 	client, err := logging.NewClient(ctx, cred.ProjectID, option.WithCredentials(cred))
@@ -33,7 +33,7 @@ func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 	return client, nil
 }
 
-//gcpCreateErrorClient return stackdriver error client using credential from gcloud.key
+//gcpCreateErrorClient return stackdriver error client using global credential
 //
 //	ctx := context.Background()
 //	errClient, _ := gcpCreateErrorClient(ctx)
@@ -41,7 +41,7 @@ func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 func gcpCreateErrorClient(ctx context.Context, application string) (*errorreporting.Client, error) {
 	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get google credential, check /keys/log.key exist")
+		return nil, errors.Wrap(err, "failed to get global google credential, check assets/key/log.json exist")
 	}
 	client, err := errorreporting.NewClient(ctx,
 		cred.ProjectID,

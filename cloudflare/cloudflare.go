@@ -86,7 +86,7 @@ func NewCloudflare(ctx context.Context) (Cloudflare, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	keyPath := "keys/cloudflare.key"
+	keyPath := "assets/key/cloudflare.json"
 	currentDir, _ := os.Getwd()
 	keyDir := path.Join(currentDir, "../../"+keyPath)
 	keyFile, err := file.Open(keyDir)
