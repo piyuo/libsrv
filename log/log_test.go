@@ -10,7 +10,7 @@ import (
 
 	"github.com/piyuo/libsrv/app"
 
-	tools "github.com/piyuo/libsrv/tools"
+	util "github.com/piyuo/libsrv/util"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -120,7 +120,7 @@ func TestCustomError(t *testing.T) {
 		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-		id := tools.UUID()
+		id := util.UUID()
 		ErrorLog(ctx, message, application, identity, here, stack, id, nil)
 		So(false, ShouldEqual, false)
 	})
@@ -132,7 +132,7 @@ func TestErrorOpenWrite(t *testing.T) {
 		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-		id := tools.UUID()
+		id := util.UUID()
 		client, close, err := ErrorOpen(ctx, app.PiyuoID())
 		So(err, ShouldBeNil)
 		defer close()

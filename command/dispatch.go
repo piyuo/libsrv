@@ -10,7 +10,7 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	shared "github.com/piyuo/libsrv/command/shared"
 	log "github.com/piyuo/libsrv/log"
-	tools "github.com/piyuo/libsrv/tools"
+	util "github.com/piyuo/libsrv/util"
 
 	"github.com/pkg/errors"
 )
@@ -88,7 +88,7 @@ func betterResponseName(id uint16, response interface{}) string {
 
 // timeExecuteAction execute action and measure time, log warning if too slow
 func (dp *Dispatch) timeExecuteAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
-	timer := tools.NewTimer()
+	timer := util.NewTimer()
 	timer.Start()
 	responseID, response, err := dp.runAction(ctx, action)
 	ms := int(timer.Stop())

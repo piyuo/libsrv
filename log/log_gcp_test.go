@@ -6,7 +6,7 @@ import (
 	"time"
 
 	app "github.com/piyuo/libsrv/app"
-	tools "github.com/piyuo/libsrv/tools"
+	util "github.com/piyuo/libsrv/util"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -35,7 +35,7 @@ func TestGcpErrorOpenWrite(t *testing.T) {
 		identity := "test"
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-		id := tools.UUID()
+		id := util.UUID()
 		client, close, err := gcpErrorOpen(ctx, app.PiyuoID())
 		So(err, ShouldBeNil)
 		defer close()
