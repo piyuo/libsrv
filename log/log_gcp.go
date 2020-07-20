@@ -23,7 +23,7 @@ import (
 func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get global google credential, check assets/key/log.json exist")
+		return nil, errors.Wrap(err, "failed to get global google credential, check keys/log.json exist")
 	}
 
 	client, err := logging.NewClient(ctx, cred.ProjectID, option.WithCredentials(cred))
@@ -41,7 +41,7 @@ func gcpCreateLogClient(ctx context.Context) (*logging.Client, error) {
 func gcpCreateErrorClient(ctx context.Context, application string) (*errorreporting.Client, error) {
 	cred, err := gcp.GlobalCredential(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get global google credential, check assets/key/log.json exist")
+		return nil, errors.Wrap(err, "failed to get global google credential, check keys/log.json exist")
 	}
 	client, err := errorreporting.NewClient(ctx,
 		cred.ProjectID,

@@ -40,7 +40,8 @@ func TestIsSlow(t *testing.T) {
 
 func TestBasicFunction(t *testing.T) {
 	Convey("should able join dir and current dir'", t, func() {
-		text := JoinCurrentDir("../../../")
+		text, err := JoinCurrentDir("../../../")
+		So(err, ShouldBeNil)
 		So(strings.HasSuffix(text, "/go"), ShouldBeTrue)
 	})
 	Convey("should set env PIYUO_APP'", t, func() {
@@ -67,14 +68,4 @@ func TestBasicFunction(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(text, ShouldNotBeEmpty)
 	})
-}
-
-func TestAppCrypto(t *testing.T) {
-	Convey("should encrypt decrypt string", t, func() {
-		crypted, _ := Encrypt("hi")
-		So(crypted, ShouldNotBeEmpty)
-		result, _ := Decrypt(crypted)
-		So(result, ShouldEqual, "hi")
-	})
-
 }

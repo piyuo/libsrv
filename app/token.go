@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	crypto "github.com/piyuo/libsrv/crypto"
+
 	"github.com/pkg/errors"
 )
 
@@ -152,7 +154,6 @@ func TokenFromString(str string) (Token, error) {
 
 func (s *token) ToCookie(w http.ResponseWriter) error {
 	everything := s.ToString()
-	crypto := NewCrypto()
 	crypted, err := crypto.Encrypt(everything)
 	if err != nil {
 		return errors.Wrap(err, "failed to encrypt token("+everything+")")
@@ -174,7 +175,6 @@ func TokenFromCookie(r *http.Request) (Token, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get crypted text from cookie[\""+string(CookieTokenName)+"\"]")
 	}
-	crypto := NewCrypto()
 	everything, err := crypto.Decrypt(cookie.Value)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decrypt text("+cookie.Value+")")

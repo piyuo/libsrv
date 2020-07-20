@@ -10,34 +10,38 @@ import (
 	"github.com/pkg/errors"
 )
 
-//production -1 mean value not set
-//0 debug
-//1 in cloud
+// production -1 mean value not set
+// 0 debug
+// 1 in cloud
+//
 var production int8 = -1
 
 //JoinCurrentDir join dir with current dir
-func JoinCurrentDir(dir string) string {
+//
+func JoinCurrentDir(dir string) (string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
-		panic("failed to call os.Getwd(), this should not happen")
+		return "", err
 	}
-	return path.Join(currentDir, dir)
+	return path.Join(currentDir, dir), nil
 }
 
-//KeyPath get key path from name
+//KeyPath get key real path from name, key path is "key/" which can be place under /src or /src/project
 //
 //	keyPath, err := KeyPath("log")
 func KeyPath(name string) (string, error) {
-	keyPath := ""
-	keyDir := "assets/key/"
+	keyDir := "keys/"
 	for i := 0; i < 5; i++ {
-		keyPath = JoinCurrentDir(keyDir + name + ".json")
-		if _, err := os.Stat(keyPath); err == nil {
+		keyPath, err := JoinCurrentDir(keyDir + name + ".json")
+		if err != nil {
+			return "", errors.Wrap(err, "failed to make KeyPath: "+name)
+		}
+		if _, err = os.Stat(keyPath); err == nil {
 			return keyPath, nil
 		}
 		keyDir = "../" + keyDir
 	}
-	return "", errors.New("failed to find " + name + ".json in assets/key/ or ../assets/key/")
+	return "", errors.New("failed to find " + name + ".json in keys/ or ../keys/")
 }
 
 //RegionKeyPath get region key path from name
@@ -55,12 +59,7 @@ func Key(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	f, err := file.Open(keyPath)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-	return f.Text(), nil
+	return file.ReadText(keyPath)
 }
 
 //RegionKey get region key file content from name
@@ -145,26 +144,4 @@ func IsSlow(executionTime int) int {
 		return ms
 	}
 	return 0
-}
-
-var cryptoInstance Crypto
-
-//Encrypt text using default crypto
-//
-//	cryped, err := app.Encrypt("hello")
-func Encrypt(text string) (string, error) {
-	if cryptoInstance == nil {
-		cryptoInstance = NewCrypto()
-	}
-	return cryptoInstance.Encrypt(text)
-}
-
-//Decrypt text using default crypto
-//
-//	text, err := app.Decrypt(cryped)
-func Decrypt(crypted string) (string, error) {
-	if cryptoInstance == nil {
-		cryptoInstance = NewCrypto()
-	}
-	return cryptoInstance.Decrypt(crypted)
 }

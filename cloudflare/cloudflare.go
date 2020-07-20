@@ -7,12 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
-	"path"
 	"strings"
 	"time"
 
-	file "github.com/piyuo/libsrv/file"
+	key "github.com/piyuo/libsrv/key"
 	"github.com/pkg/errors"
 )
 
@@ -86,20 +84,11 @@ func NewCloudflare(ctx context.Context) (Cloudflare, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	keyPath := "assets/key/cloudflare.json"
-	currentDir, _ := os.Getwd()
-	keyDir := path.Join(currentDir, "../../"+keyPath)
-	keyFile, err := file.Open(keyDir)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get "+keyPath)
-	}
-	defer keyFile.Close()
 
-	json, err := keyFile.JSON()
+	json, err := key.JSON("cloudflare.json")
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to convert "+keyPath+" to JSON")
+		return nil, err
 	}
-
 	cloudflare := &CloudflareImpl{
 		zone:    json["zone"].(string),
 		account: json["account"].(string),
