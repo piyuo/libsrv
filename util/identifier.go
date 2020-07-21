@@ -13,7 +13,7 @@ import (
 // UUID generates base58,max 22 character long,concise, unambiguous, URL-safe UUIDs string
 //	return empty if something wrong
 //
-//	id, err := UUID() //PMty86Lju4PiaUAhspHYAn
+//	id, err := UUID() // PMty86Lju4PiaUAhspHYAn
 //
 func UUID() string {
 	id := uuid.Must(uuid.NewRandom())
@@ -26,7 +26,7 @@ func UUID() string {
 
 // SerialID16 use uint16 value between 1 to 65,535 to base58 10~11 character long,concise, unambiguous, URL-safe string
 //
-//	id := SerialID16(uint16(42)) //4Go
+//	id := SerialID16(uint16(42)) // 4Go
 //
 func SerialID16(i uint16) string {
 	i++ // avoid zero
@@ -37,7 +37,7 @@ func SerialID16(i uint16) string {
 
 // SerialID32 use uint32 value between 1 to 4,294,967,295 to base58 5~6 character long,concise, unambiguous, URL-safe string
 //
-//	id := SerialID32(uint32(42)) //26kU7q
+//	id := SerialID32(uint32(42)) // 26kU7q
 //
 func SerialID32(i uint32) string {
 	i++ // avoid zero
