@@ -2,6 +2,8 @@ package mail
 
 import (
 	"context"
+	cache "github.com/piyuo/libsrv/cache"
+	file "github.com/piyuo/libsrv/file"
 )
 
 // Mail use template to generate mail content and send
@@ -23,6 +25,13 @@ func NewMail(template, language string) Mail {
 }
 
 func getJSON(template, language string) error {
+	keyname := "MAIL"+name
+	value, found := cache.Get(keyname)
+	if found {
+		return value.(string), nil
+	}
+
+
 	path:=
 }
 

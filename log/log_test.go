@@ -16,7 +16,7 @@ import (
 )
 
 func TestAiFromContext(t *testing.T) {
-	Convey("should get application from context'", t, func() {
+	Convey("should get application from context", t, func() {
 		ctx := context.Background()
 		backupPiyuoApp := os.Getenv("PIYUO_APP")
 		os.Setenv("PIYUO_APP", "dev")
@@ -28,7 +28,7 @@ func TestAiFromContext(t *testing.T) {
 }
 
 func TestLogHead(t *testing.T) {
-	Convey("should get head from application and identity'", t, func() {
+	Convey("should get head from application and identity", t, func() {
 		HERE := "log_test"
 		h := head("sys-us-beta", "user-store", HERE)
 		So(h, ShouldEqual, "user-store@sys-us-beta/log_test: ")
@@ -36,7 +36,7 @@ func TestLogHead(t *testing.T) {
 }
 
 func TestDebug(t *testing.T) {
-	Convey("should print info to debug console'", t, func() {
+	Convey("should print info to debug console", t, func() {
 		ctx := context.Background()
 		Debug(ctx, here, "debug...")
 	})
@@ -44,7 +44,7 @@ func TestDebug(t *testing.T) {
 
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
-	Convey("should log to server'", t, func() {
+	Convey("should log to server", t, func() {
 		ctx := context.Background()
 		Info(ctx, here, "my info log")
 		Warning(ctx, here, "my warning log")
@@ -94,7 +94,7 @@ func TestIsLineDuplicate(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	Convey("should print error'", t, func() {
+	Convey("should print error", t, func() {
 		ctx := context.Background()
 		err := errors.New("mock error happening in go")
 		errID := Error(ctx, here, err, nil)
@@ -104,7 +104,7 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorWithRequest(t *testing.T) {
-	Convey("should print error'", t, func() {
+	Convey("should print error", t, func() {
 		ctx := context.Background()
 		err := errors.New("mock error happening in go with request")
 		req, _ := http.NewRequest("GET", "/", bytes.NewReader([]byte("ABC")))
@@ -115,7 +115,7 @@ func TestErrorWithRequest(t *testing.T) {
 }
 
 func TestCustomError(t *testing.T) {
-	Convey("should print error from'", t, func() {
+	Convey("should print error from", t, func() {
 		ctx := context.Background()
 		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
@@ -127,7 +127,7 @@ func TestCustomError(t *testing.T) {
 }
 
 func TestErrorOpenWrite(t *testing.T) {
-	Convey("should open and write error'", t, func() {
+	Convey("should open and write error", t, func() {
 		ctx := context.Background()
 		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
@@ -141,7 +141,7 @@ func TestErrorOpenWrite(t *testing.T) {
 }
 
 func TestLogOpenWrite(t *testing.T) {
-	Convey("should open and write log'", t, func() {
+	Convey("should open and write log", t, func() {
 		ctx := context.Background()
 		application, _ := aiFromContext(ctx)
 		message := "mock error happening in flutter"

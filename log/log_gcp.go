@@ -78,7 +78,7 @@ func gcpLogOpen(ctx context.Context) (*logging.Logger, func(), error) {
 
 //gcpLogWrite message and level to google cloud platform
 //
-//	gcpLogWrite(logger,time.Now(), "my error","piyuo-t-sys",'"user-store","log_gcp",WARNING)
+//	gcpLogWrite(logger,time.Now(), "my error","piyuo-t-sys","user-store","log_gcp",WARNING)
 func gcpLogWrite(logger *logging.Logger, logtime time.Time, message, application, identity, where string, level int32) {
 	if message == "" {
 		return

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/pkg/errors"
 )
@@ -59,4 +60,27 @@ func ReadJSON(filename string) (map[string]interface{}, error) {
 		return nil, errors.Wrap(err, "failed to decode json: "+filename)
 	}
 	return content, nil
+}
+
+// FindDir find dir from current path all the way to the top, return actual path where dir locate
+//
+//	path, err := FindDir("keys")
+//
+func FindDir(dirname string) (string, bool) {
+	curdir, err := os.Getwd()
+	if err != nil {
+		return "", false
+	}
+
+	var dir string
+	for i := 0; i <= 5; i++ {
+		dir = path.Join(curdir, dirname)
+		if _, err = os.Stat(dir); err == nil {
+			//dir exist
+			return dir, true
+		}
+		//dir not exist, go up
+		curdir = path.Join(curdir, "../")
+	}
+	return "", false
 }

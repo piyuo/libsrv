@@ -14,7 +14,7 @@ import (
 
 func TestTokenContext(t *testing.T) {
 	token := NewToken("userId", "storeId", "locationId", "permission", time.Now(), time.Now())
-	Convey("should save to and load from string'", t, func() {
+	Convey("should save to and load from string", t, func() {
 
 		everything := token.ToString()
 		So(everything, ShouldNotBeEmpty)
@@ -31,7 +31,7 @@ func TestTokenContext(t *testing.T) {
 		So(strings.Contains(everythingNew, "locationId"), ShouldBeTrue)
 	})
 
-	Convey("should save to and load from context'", t, func() {
+	Convey("should save to and load from context", t, func() {
 		ctx := context.Background()
 		ctx2 := token.ToContext(ctx)
 		So(ctx, ShouldNotBeNil)
@@ -59,7 +59,7 @@ func loadCookie(w http.ResponseWriter, r *http.Request) {
 
 func TestCookie(t *testing.T) {
 	cookieValueBackup := ""
-	Convey("should save to and load from cookie'", t, func() {
+	Convey("should save to and load from cookie", t, func() {
 		request, _ := http.NewRequest("GET", "/", bytes.NewReader([]byte("")))
 		responseRecord := httptest.NewRecorder()
 		handler := http.HandlerFunc(saveCookie)
@@ -72,7 +72,7 @@ func TestCookie(t *testing.T) {
 		So(cookie.Value, ShouldNotBeEmpty)
 	})
 
-	Convey("should save to and load from cookie'", t, func() {
+	Convey("should save to and load from cookie", t, func() {
 		request, _ := http.NewRequest("GET", "/", bytes.NewReader([]byte("")))
 		request.AddCookie(&http.Cookie{Name: string(CookieTokenName), Value: cookieValueBackup})
 		responseRecord := httptest.NewRecorder()

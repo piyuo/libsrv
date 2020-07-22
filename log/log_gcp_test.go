@@ -13,7 +13,7 @@ import (
 const here = "log_gcp_test"
 
 func TestCreateLogClient(t *testing.T) {
-	Convey("should create log client'", t, func() {
+	Convey("should create log client", t, func() {
 		ctx := context.Background()
 		logClient, _ := gcpCreateLogClient(ctx)
 		So(logClient, ShouldNotBeNil)
@@ -21,7 +21,7 @@ func TestCreateLogClient(t *testing.T) {
 }
 
 func TestCreateErrorClient(t *testing.T) {
-	Convey("should create error client'", t, func() {
+	Convey("should create error client", t, func() {
 		ctx := context.Background()
 		errClient, _ := gcpCreateErrorClient(ctx, app.PiyuoID())
 		So(errClient, ShouldNotBeNil)
@@ -29,7 +29,7 @@ func TestCreateErrorClient(t *testing.T) {
 }
 
 func TestGcpErrorOpenWrite(t *testing.T) {
-	Convey("should open and write error'", t, func() {
+	Convey("should open and write error", t, func() {
 		ctx := context.Background()
 		application := "go"
 		identity := "test"
@@ -44,7 +44,7 @@ func TestGcpErrorOpenWrite(t *testing.T) {
 }
 
 func TestGcpLogOpenWrite(t *testing.T) {
-	Convey("should open and write log'", t, func() {
+	Convey("should open and write log", t, func() {
 		ctx := context.Background()
 		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
