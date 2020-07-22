@@ -3,15 +3,11 @@ package key
 import (
 	"os"
 	"path"
-	"sync"
 
+	cache "github.com/piyuo/libsrv/cache"
 	file "github.com/piyuo/libsrv/file"
 	"github.com/pkg/errors"
 )
-
-var cachedText = sync.Map{}
-var cachedJSON = sync.Map{}
-var cachedBytes = sync.Map{}
 
 // getPath get key real path from name, key path is "keys/" which can be place under /src/keys or /src/project/keys
 //
@@ -43,9 +39,10 @@ func getPath(keyname string) (string, error) {
 //	key, err := key.Text("log.json")
 //
 func Text(name string) (string, error) {
-	result, ok := cachedText.Load(name)
-	if ok {
-		return result.(string), nil
+	keyname := name + "Text"
+	value, found := cache.Get(keyname)
+	if found {
+		return value.(string), nil
 	}
 
 	keyPath, err := getPath(name)
@@ -56,7 +53,7 @@ func Text(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cachedText.Store(name, text)
+	cache.Set(keyname, text, -1) // key never expire, cause we always need it
 	return text, nil
 }
 
@@ -65,9 +62,10 @@ func Text(name string) (string, error) {
 //	key, err := keys.JSON("log.json")
 //
 func JSON(name string) (map[string]interface{}, error) {
-	result, ok := cachedJSON.Load(name)
-	if ok {
-		return result.(map[string]interface{}), nil
+	keyname := name + "JSON"
+	value, found := cache.Get(keyname)
+	if found {
+		return value.(map[string]interface{}), nil
 	}
 
 	keyPath, err := getPath(name)
@@ -78,7 +76,7 @@ func JSON(name string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachedJSON.Store(name, json)
+	cache.Set(keyname, json, -1) // key never expire, cause we always need it
 	return json, nil
 }
 
@@ -86,9 +84,10 @@ func JSON(name string) (map[string]interface{}, error) {
 //	key, err := keys.Key("log.json")
 //
 func Bytes(name string) ([]byte, error) {
-	result, ok := cachedBytes.Load(name)
-	if ok {
-		return result.([]byte), nil
+	keyname := name + "Byte"
+	value, found := cache.Get(keyname)
+	if found {
+		return value.([]byte), nil
 	}
 
 	keyPath, err := getPath(name)
@@ -99,6 +98,6 @@ func Bytes(name string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachedBytes.Store(name, bytes)
+	cache.Set(keyname, bytes, -1) // key never expire, cause we always need it
 	return bytes, nil
 }
