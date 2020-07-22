@@ -7,32 +7,77 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	convey "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCache(t *testing.T) {
 
-	Convey("should set and get'", t, func() {
-		Set("hi-1", "1", 0)
-		Set("hi-2", "2", 0)
+	convey.Convey("should set and get", t, func() {
+		Reset()
+		Set("key-1", "1", 0)
+		Set("key-2", "2", 0)
 
 		// wait for value to pass through buffers
 		time.Sleep(10 * time.Millisecond)
 
-		value, found := Get("hi-1")
-		So(found, ShouldBeTrue)
-		if found {
-			So(value, ShouldEqual, "1")
-		}
-		value, found = Get("hi-2")
-		So(found, ShouldBeTrue)
-		So(value, ShouldEqual, "2")
+		value, found := Get("key-1")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, "1")
+		value, found = Get("key-2")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, "2")
 		if found {
 		}
 
+		Delete("key-1")
+		value, found = Get("key-1")
+		convey.So(found, convey.ShouldBeFalse)
+		convey.So(value, convey.ShouldBeNil)
+
 		value, found = Get("not exist")
-		So(found, ShouldBeFalse)
-		So(value, ShouldBeNil)
+		convey.So(found, convey.ShouldBeFalse)
+		convey.So(value, convey.ShouldBeNil)
+	})
+}
+
+func TestExpireCache(t *testing.T) {
+	convey.Convey("should expire", t, func() {
+		Reset()
+		Set("key", "1", 50*time.Millisecond)
+		value, found := Get("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, "1")
+
+		// wait for value to pass through buffers
+		time.Sleep(51 * time.Millisecond)
+		value, found = Get("key")
+		convey.So(found, convey.ShouldBeFalse)
+		convey.So(value, convey.ShouldBeNil)
+
+	})
+}
+
+func TestDefaultExpire(t *testing.T) {
+	convey.Convey("should expire", t, func() {
+		configCache(100*time.Millisecond, 150*time.Millisecond)
+		Set("never-expire", "1", -1)
+		Set("default-expire", "2", 0)
+		value, found := Get("never-expire")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, "1")
+		value, found = Get("default-expire")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, "2")
+
+		// wait for value to pass through buffers
+		time.Sleep(151 * time.Millisecond)
+
+		value, found = Get("never-expire")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, "1")
+		value, found = Get("default-expire")
+		convey.So(found, convey.ShouldBeFalse)
+		convey.So(value, convey.ShouldBeNil)
 	})
 }
 
