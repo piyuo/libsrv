@@ -1,7 +1,6 @@
 package key
 
 import (
-	"strings"
 	"sync"
 	"testing"
 
@@ -9,17 +8,8 @@ import (
 )
 
 func TestKeys(t *testing.T) {
-	Convey("should get key path", t, func() {
-		path, err := getKeyPath("gcloud.json")
-		So(err, ShouldBeNil)
-		So(strings.HasSuffix(path, "/gcloud.json"), ShouldBeTrue)
-	})
-	Convey("should get region key path", t, func() {
-		path, err := getKeyPath("region/us.json")
-		So(err, ShouldBeNil)
-		So(strings.HasSuffix(path, "/region/us.json"), ShouldBeTrue)
-	})
 	Convey("should get key content", t, func() {
+
 		text, err := Text("gcloud.json")
 		So(err, ShouldBeNil)
 		So(text, ShouldNotBeEmpty)
@@ -32,17 +22,6 @@ func TestKeys(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(json["project_id"], ShouldNotBeEmpty)
 
-	})
-	Convey("should get region key content", t, func() {
-		text, err := getKeyPath("region/us.json")
-		So(err, ShouldBeNil)
-		So(text, ShouldNotBeEmpty)
-	})
-
-	Convey("should return error when key not exist", t, func() {
-		path, err := getKeyPath("not exist")
-		So(err, ShouldNotBeNil)
-		So(path, ShouldBeEmpty)
 	})
 
 	Convey("should return error when key not exist", t, func() {

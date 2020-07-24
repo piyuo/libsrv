@@ -1,26 +1,11 @@
 package key
 
 import (
-	"os"
-	"path"
+	"errors"
 
 	cache "github.com/piyuo/libsrv/cache"
 	file "github.com/piyuo/libsrv/file"
-	"github.com/pkg/errors"
 )
-
-func getKeyPath(keyname string) (string, error) {
-	keydir, found := file.FindDir("keys")
-	if found {
-		keyfile := path.Join(keydir, keyname)
-		if _, err := os.Stat(keyfile); err == nil {
-			//keyfile exist
-			return keyfile, nil
-		}
-		return "", errors.New(keyname + " not found in /keys")
-	}
-	return "", errors.New("/keys dir not found")
-}
 
 // Text return key text content, return key content wil be cache to reuse in the future
 //
@@ -33,9 +18,9 @@ func Text(name string) (string, error) {
 		return value.(string), nil
 	}
 
-	keypath, err := getKeyPath(name)
-	if err != nil {
-		return "", err
+	keypath, found := file.Find("keys/" + name)
+	if !found {
+		return "", errors.New("keys/" + name + " not found")
 	}
 
 	text, err := file.ReadText(keypath)
@@ -57,9 +42,9 @@ func JSON(name string) (map[string]interface{}, error) {
 		return value.(map[string]interface{}), nil
 	}
 
-	keypath, err := getKeyPath(name)
-	if err != nil {
-		return nil, err
+	keypath, found := file.Find("keys/" + name)
+	if !found {
+		return nil, errors.New("keys/" + name + " not found")
 	}
 
 	json, err := file.ReadJSON(keypath)
@@ -80,9 +65,9 @@ func Bytes(name string) ([]byte, error) {
 		return value.([]byte), nil
 	}
 
-	keypath, err := getKeyPath(name)
-	if err != nil {
-		return nil, err
+	keypath, found := file.Find("keys/" + name)
+	if !found {
+		return nil, errors.New("keys/" + name + " not found")
 	}
 
 	bytes, err := file.Read(keypath)

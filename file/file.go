@@ -62,11 +62,11 @@ func ReadJSON(filename string) (map[string]interface{}, error) {
 	return content, nil
 }
 
-// FindDir find dir from current path all the way to the top, return actual path where dir locate
+// Find find dir or file from current path all the way to the top, return actual path where dir or file locate
 //
-//	path, err := FindDir("keys")
+//	dir, err := Find("keys")
 //
-func FindDir(dirname string) (string, bool) {
+func Find(name string) (string, bool) {
 	curdir, err := os.Getwd()
 	if err != nil {
 		return "", false
@@ -74,7 +74,7 @@ func FindDir(dirname string) (string, bool) {
 
 	var dir string
 	for i := 0; i <= 5; i++ {
-		dir = path.Join(curdir, dirname)
+		dir = path.Join(curdir, name)
 		if _, err = os.Stat(dir); err == nil {
 			//dir exist
 			return dir, true
