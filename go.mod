@@ -8,15 +8,14 @@ require (
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/storage v1.8.0
 	github.com/btcsuite/btcutil v1.0.2
-	github.com/dgraph-io/ristretto v0.0.3
 	github.com/golang/protobuf v1.4.2
 	github.com/google/uuid v1.1.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sendgrid/rest v2.4.1+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
+	github.com/sfreiberg/gotwilio v0.0.0-20200424172909-47a95c1c632a
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools/gopls v0.4.1 // indirect

@@ -14,16 +14,16 @@ import (
 // SendgridMail using SendGrid to implement mail
 //
 type SendgridMail struct {
-	SMTPMail
+	BaseMail
 }
 
 // newSendgridMail return Mail instance
 //
-//	mail := NewSendgridMail("verify","en_US")
+//	mail := newSendgridMail(template)
 //
 func newSendgridMail(t *template) (Mail, error) {
 	mail := &SendgridMail{
-		SMTPMail: SMTPMail{
+		BaseMail: BaseMail{
 			Subject:     t.subject,
 			Text:        t.text,
 			HTML:        t.html,
@@ -46,7 +46,7 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 
 	m := mail.NewV3Mail()
 
-	from := mail.NewEmail(c.SMTPMail.FromName, c.SMTPMail.FromAddress)
+	from := mail.NewEmail(c.BaseMail.FromName, c.BaseMail.FromAddress)
 	m.SetFrom(from)
 
 	textContent := mail.NewContent("text/plain", c.Text)
@@ -69,7 +69,7 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 		return errors.Wrap(err, "failed to send mail: "+c.Subject)
 	}
 	// sendgrid status code 2XX is successful send
-	if response.StatusCode < 200 && response.StatusCode > 299 {
+	if response.StatusCode < 200 || response.StatusCode > 299 {
 		return errors.New(fmt.Sprintf("failed to send mail, response=%v, message=%v", response.StatusCode, response.Body))
 	}
 	fmt.Print(response)

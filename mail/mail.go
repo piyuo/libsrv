@@ -36,7 +36,7 @@ type Mail interface {
 	//
 	//	mail.SetSubject("subject")
 	//
-	SetSubject(subject string) *SMTPMail
+	SetSubject(subject string) *BaseMail
 
 	// GetText return mail text content
 	//
@@ -48,7 +48,7 @@ type Mail interface {
 	//
 	//	mail.SetText("text body")
 	//
-	SetText(text string) *SMTPMail
+	SetText(text string) *BaseMail
 
 	// GetHTML return mail html content
 	//
@@ -60,7 +60,7 @@ type Mail interface {
 	//
 	//	mail.SetHTML("html body")
 	//
-	SetHTML(html string) *SMTPMail
+	SetHTML(html string) *BaseMail
 
 	// GetFrom return from email address
 	//
@@ -72,25 +72,25 @@ type Mail interface {
 	//
 	//	mail.SetFrom("service","service@piyuo.com")
 	//
-	SetFrom(emailName, emailAddress string) *SMTPMail
+	SetFrom(emailName, emailAddress string) *BaseMail
 
 	// ReplaceSubject replace string in mail subject
 	//
 	//	mail.ReplaceSubject("%1","hello")
 	//
-	ReplaceSubject(replaceFrom, replaceTo string) *SMTPMail
+	ReplaceSubject(replaceFrom, replaceTo string) *BaseMail
 
 	// ReplaceText replace string in mail text content
 	//
 	//	mail.ReplaceText("%1","hello")
 	//
-	ReplaceText(replaceFrom, replaceTo string) *SMTPMail
+	ReplaceText(replaceFrom, replaceTo string) *BaseMail
 
-	// GetTo get email to
+	// ReplaceHTML replace string in html comtent
 	//
 	//	to := mail.GetTo()
 	//
-	ReplaceHTML(replaceFrom, replaceTo string) *SMTPMail
+	ReplaceHTML(replaceFrom, replaceTo string) *BaseMail
 
 	// GetTo get email to
 	//
@@ -102,21 +102,21 @@ type Mail interface {
 	//
 	//	mail.AddTo("user","user@piyuo.com")
 	//
-	AddTo(emailName, emailAddress string) *SMTPMail
+	AddTo(emailName, emailAddress string) *BaseMail
 
 	// ResetTo reset to empty
 	//
 	//	mail.ResetTo()
 	//
-	ResetTo() *SMTPMail
+	ResetTo() *BaseMail
 
 	// Send mail
 	//
-	//	mail, err := NewMail("verify", "en-US")
-	//	mail.AddTo("piyuo", "piyuo.com@gmail.com")
-	//	mail.ReplaceText("%1", "1234")
-	//	mail.ReplaceHTML("%1", "1234")
-	//	mail.Send(ctx)
+	//	m, err := mail.NewMail("verify", "en-US")
+	//	m.AddTo("piyuo", "piyuo.com@gmail.com")
+	//	m.ReplaceText("%1", "1234")
+	//	m.ReplaceHTML("%1", "1234")
+	//	m.Send(ctx)
 	//
 	Send(ctx context.Context) error
 }
@@ -134,9 +134,9 @@ type Email struct {
 	Address string
 }
 
-// SMTPMail implement basic property of mail
+// BaseMail implement basic property of mail
 //
-type SMTPMail struct {
+type BaseMail struct {
 	Mail
 
 	// Subject is mail subject
@@ -168,7 +168,7 @@ type SMTPMail struct {
 //
 //	subject := mail.GetSubject()
 //
-func (c *SMTPMail) GetSubject() string {
+func (c *BaseMail) GetSubject() string {
 	return c.Subject
 }
 
@@ -176,7 +176,7 @@ func (c *SMTPMail) GetSubject() string {
 //
 //	mail.SetSubject("subject")
 //
-func (c *SMTPMail) SetSubject(subject string) *SMTPMail {
+func (c *BaseMail) SetSubject(subject string) *BaseMail {
 	c.Subject = subject
 	return c
 }
@@ -185,7 +185,7 @@ func (c *SMTPMail) SetSubject(subject string) *SMTPMail {
 //
 //	text := mail.GetText()
 //
-func (c *SMTPMail) GetText() string {
+func (c *BaseMail) GetText() string {
 	return c.Text
 }
 
@@ -193,7 +193,7 @@ func (c *SMTPMail) GetText() string {
 //
 //	mail.SetText("text body")
 //
-func (c *SMTPMail) SetText(text string) *SMTPMail {
+func (c *BaseMail) SetText(text string) *BaseMail {
 	c.Text = text
 	return c
 }
@@ -202,7 +202,7 @@ func (c *SMTPMail) SetText(text string) *SMTPMail {
 //
 //	html := mail.GetHTML()
 //
-func (c *SMTPMail) GetHTML() string {
+func (c *BaseMail) GetHTML() string {
 	return c.HTML
 }
 
@@ -210,7 +210,7 @@ func (c *SMTPMail) GetHTML() string {
 //
 //	mail.SetHTML("html body")
 //
-func (c *SMTPMail) SetHTML(html string) *SMTPMail {
+func (c *BaseMail) SetHTML(html string) *BaseMail {
 	c.HTML = html
 	return c
 }
@@ -219,7 +219,7 @@ func (c *SMTPMail) SetHTML(html string) *SMTPMail {
 //
 //	name,address := mail.GetFrom()
 //
-func (c *SMTPMail) GetFrom() (string, string) {
+func (c *BaseMail) GetFrom() (string, string) {
 	return c.FromName, c.FromAddress
 }
 
@@ -227,7 +227,7 @@ func (c *SMTPMail) GetFrom() (string, string) {
 //
 //	mail.SetFrom("service","service@piyuo.com")
 //
-func (c *SMTPMail) SetFrom(name, address string) *SMTPMail {
+func (c *BaseMail) SetFrom(name, address string) *BaseMail {
 	c.FromName = name
 	c.FromAddress = address
 	return c
@@ -237,7 +237,7 @@ func (c *SMTPMail) SetFrom(name, address string) *SMTPMail {
 //
 //	mail.ReplaceSubject("%1","hello")
 //
-func (c *SMTPMail) ReplaceSubject(replaceFrom, replaceTo string) *SMTPMail {
+func (c *BaseMail) ReplaceSubject(replaceFrom, replaceTo string) *BaseMail {
 	c.Subject = strings.ReplaceAll(c.Subject, replaceFrom, replaceTo)
 	return c
 }
@@ -246,7 +246,7 @@ func (c *SMTPMail) ReplaceSubject(replaceFrom, replaceTo string) *SMTPMail {
 //
 //	mail.ReplaceText("%1","hello")
 //
-func (c *SMTPMail) ReplaceText(replaceFrom, replaceTo string) *SMTPMail {
+func (c *BaseMail) ReplaceText(replaceFrom, replaceTo string) *BaseMail {
 	c.Text = strings.ReplaceAll(c.Text, replaceFrom, replaceTo)
 	return c
 }
@@ -255,7 +255,7 @@ func (c *SMTPMail) ReplaceText(replaceFrom, replaceTo string) *SMTPMail {
 //
 //	mail.ReplaceHTML("%1","hello")
 //
-func (c *SMTPMail) ReplaceHTML(replaceFrom, replaceTo string) *SMTPMail {
+func (c *BaseMail) ReplaceHTML(replaceFrom, replaceTo string) *BaseMail {
 	c.HTML = strings.ReplaceAll(c.HTML, replaceFrom, replaceTo)
 	return c
 }
@@ -264,7 +264,7 @@ func (c *SMTPMail) ReplaceHTML(replaceFrom, replaceTo string) *SMTPMail {
 //
 //	to := mail.GetTo()
 //
-func (c *SMTPMail) GetTo() []*Email {
+func (c *BaseMail) GetTo() []*Email {
 	return c.To
 }
 
@@ -272,7 +272,7 @@ func (c *SMTPMail) GetTo() []*Email {
 //
 //	mail.AddTo("user","user@piyuo.com")
 //
-func (c *SMTPMail) AddTo(emailName, emailAddress string) *SMTPMail {
+func (c *BaseMail) AddTo(emailName, emailAddress string) *BaseMail {
 	if c.To == nil {
 		c.To = []*Email{}
 	}
@@ -288,18 +288,18 @@ func (c *SMTPMail) AddTo(emailName, emailAddress string) *SMTPMail {
 //
 //	mail.ResetTo()
 //
-func (c *SMTPMail) ResetTo() *SMTPMail {
+func (c *BaseMail) ResetTo() *BaseMail {
 	c.To = nil
 	return c
 }
 
 // NewMail return Mail instance
 //
-//	mail, err := NewMail("verify", "en-US")
-//	mail.AddTo("piyuo", "piyuo.com@gmail.com")
-//	mail.ReplaceText("%1", "1234")
-//	mail.ReplaceHTML("%1", "1234")
-//	mail.Send(ctx)
+//	m, err := mail.NewMail("verify", "en-US")
+//	m.AddTo("piyuo", "piyuo.com@gmail.com")
+//	m.ReplaceText("%1", "1234")
+//	m.ReplaceHTML("%1", "1234")
+//	m.Send(ctx)
 //
 func NewMail(templateName, language string) (Mail, error) {
 	template, err := getTemplate(templateName, language)
@@ -337,6 +337,6 @@ func getTemplate(templateName, language string) (*template, error) {
 		fromName:    json["fromName"].(string),
 		fromAddress: json["fromAddress"].(string),
 	}
-	cache.Set(keyname, template, 10*time.Minute) // key never expire, cause we always need it
+	cache.Set(keyname, template, 10*time.Minute) // mail template cache last for 10 min
 	return template, nil
 }

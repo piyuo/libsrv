@@ -61,7 +61,7 @@ func TestMail(t *testing.T) {
 }
 
 func TestSendMail(t *testing.T) {
-	Convey("should set/get method", t, func() {
+	Convey("should send mail", t, func() {
 		ctx := context.Background()
 		mail, err := NewMail("verify", "en-US")
 		So(err, ShouldBeNil)
