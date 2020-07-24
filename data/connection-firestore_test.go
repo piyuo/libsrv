@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	gcp "github.com/piyuo/libsrv/secure/gcp"
+	gcp "github.com/piyuo/libsrv/gcp"
 	util "github.com/piyuo/libsrv/util"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -137,7 +137,7 @@ func testID(ctx context.Context, table *Table) {
 
 	// factory has no object return must error
 	bakFactory := table.Factory
-	table.Factory = func() ObjectRef {
+	table.Factory = func() Object {
 		return nil
 	}
 	sampleX, err := table.Get(ctx, sample.ID)
@@ -299,7 +299,7 @@ func testListQueryFindCountClear(ctx context.Context, table *Table) {
 
 	// factory has no object return must error
 	bakFactory := table.Factory
-	table.Factory = func() ObjectRef {
+	table.Factory = func() Object {
 		return nil
 	}
 	listX, err := table.List(ctx)

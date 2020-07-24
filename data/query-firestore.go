@@ -10,7 +10,7 @@ import (
 
 // QueryFirestore implement google firestore
 type QueryFirestore struct {
-	Query
+	BaseQuery
 
 	// conn is current firestore connection
 	//
@@ -28,7 +28,7 @@ type QueryFirestore struct {
 //		err := db.Delete(ctx, o)
 //	})
 //
-func (qf *QueryFirestore) Where(path, op string, value interface{}) QueryRef {
+func (qf *QueryFirestore) Where(path, op string, value interface{}) Query {
 	qf.query = qf.query.Where(path, op, value)
 	return qf
 }
@@ -41,7 +41,7 @@ func (qf *QueryFirestore) Where(path, op string, value interface{}) QueryRef {
 //		list = append(list, greet)
 //	})
 //
-func (qf *QueryFirestore) OrderBy(path string) QueryRef {
+func (qf *QueryFirestore) OrderBy(path string) Query {
 	qf.query = qf.query.OrderBy(path, firestore.Asc)
 	return qf
 }
@@ -54,7 +54,7 @@ func (qf *QueryFirestore) OrderBy(path string) QueryRef {
 //		list = append(list, greet)
 //	})
 //
-func (qf *QueryFirestore) OrderByDesc(path string) QueryRef {
+func (qf *QueryFirestore) OrderByDesc(path string) Query {
 	qf.query = qf.query.OrderBy(path, firestore.Desc)
 	return qf
 }
@@ -67,7 +67,7 @@ func (qf *QueryFirestore) OrderByDesc(path string) QueryRef {
 //		list = append(list, greet)
 //	})
 //
-func (qf *QueryFirestore) Limit(n int) QueryRef {
+func (qf *QueryFirestore) Limit(n int) Query {
 	qf.limit = n
 	qf.query = qf.query.Limit(n)
 	return qf
@@ -87,7 +87,7 @@ func (qf *QueryFirestore) Limit(n int) QueryRef {
 //	So(greet.From, ShouldEqual, "b city")
 //	So(len(list), ShouldEqual, 2)
 //
-func (qf *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) QueryRef {
+func (qf *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query {
 	qf.query = qf.query.StartAt(docSnapshotOrFieldValues...)
 	return qf
 }
@@ -106,7 +106,7 @@ func (qf *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query
 //	So(greet.From, ShouldEqual, "c city")
 //	So(len(list), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) QueryRef {
+func (qf *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Query {
 	qf.query = qf.query.StartAfter(docSnapshotOrFieldValues...)
 	return qf
 }
@@ -125,7 +125,7 @@ func (qf *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Qu
 //	So(greet.From, ShouldEqual, "a city")
 //	So(len(list), ShouldEqual, 2)
 //
-func (qf *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) QueryRef {
+func (qf *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
 	qf.query = qf.query.EndAt(docSnapshotOrFieldValues...)
 	return qf
 }
@@ -144,7 +144,7 @@ func (qf *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) QueryRe
 //	So(greet.From, ShouldEqual, "a city")
 //	So(len(list), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) QueryRef {
+func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Query {
 	qf.query = qf.query.EndBefore(docSnapshotOrFieldValues...)
 	return qf
 }
@@ -160,11 +160,11 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 //	So(greet.From, ShouldEqual, "b city")
 //	So(len(list), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) Execute(ctx context.Context) ([]ObjectRef, error) {
+func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	if qf.limit == 0 {
 		qf.Limit(limitQueryDefault)
 	}
-	var resultSet []ObjectRef
+	var resultSet []Object
 
 	var iter *firestore.DocumentIterator
 	if qf.conn.tx != nil {

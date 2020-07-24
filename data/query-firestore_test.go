@@ -41,7 +41,7 @@ func queryTest(ctx context.Context, table *Table) {
 
 	// factory has no object return must error
 	bakFactory := table.Factory
-	table.Factory = func() ObjectRef {
+	table.Factory = func() Object {
 		return nil
 	}
 	listX, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)

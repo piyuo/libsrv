@@ -2,9 +2,9 @@ package data
 
 import "time"
 
-// ObjectRef is object reference for public method
+// Object represent single database object
 //
-type ObjectRef interface {
+type Object interface {
 
 	// id is object unique identifier used for other object to reference
 	//
@@ -59,10 +59,10 @@ type ObjectRef interface {
 	SetUpdateTime(time.Time)
 }
 
-// Object represent object stored in document database
+// BaseObject represent object stored in document database
 //
-type Object struct {
-	ObjectRef
+type BaseObject struct {
+	Object
 
 	// ID is object unique identifier used for other object to reference
 	//
@@ -90,7 +90,7 @@ type Object struct {
 //	d := &Sample{}
 //	id := d.ID()
 //
-func (o *Object) GetID() string {
+func (o *BaseObject) GetID() string {
 	return o.ID
 }
 
@@ -99,7 +99,7 @@ func (o *Object) GetID() string {
 //	d := &Sample{}
 //	id := d.setID("uniqueID")
 //
-func (o *Object) SetID(id string) {
+func (o *BaseObject) SetID(id string) {
 	o.ID = id
 }
 
@@ -107,7 +107,7 @@ func (o *Object) SetID(id string) {
 //
 //	ref := d.Ref()
 //
-func (o *Object) GetRef() interface{} {
+func (o *BaseObject) GetRef() interface{} {
 	return o.Ref
 }
 
@@ -115,7 +115,7 @@ func (o *Object) GetRef() interface{} {
 //
 //	d.setRef(ref)
 //
-func (o *Object) SetRef(ref interface{}) {
+func (o *BaseObject) SetRef(ref interface{}) {
 	o.Ref = ref
 }
 
@@ -123,7 +123,7 @@ func (o *Object) SetRef(ref interface{}) {
 //
 //	id := d.CreateTime()
 //
-func (o *Object) GetCreateTime() time.Time {
+func (o *BaseObject) GetCreateTime() time.Time {
 	return o.CreateTime
 }
 
@@ -131,7 +131,7 @@ func (o *Object) GetCreateTime() time.Time {
 //
 //	id := d.SetCreateTime(time.Now())
 //
-func (o *Object) SetCreateTime(t time.Time) {
+func (o *BaseObject) SetCreateTime(t time.Time) {
 	o.CreateTime = t
 }
 
@@ -139,7 +139,7 @@ func (o *Object) SetCreateTime(t time.Time) {
 //
 //	id := d.ReadTime()
 //
-func (o *Object) GetReadTime() time.Time {
+func (o *BaseObject) GetReadTime() time.Time {
 	return o.ReadTime
 }
 
@@ -147,7 +147,7 @@ func (o *Object) GetReadTime() time.Time {
 //
 //	id := d.SetReadTime(time.Now())
 //
-func (o *Object) SetReadTime(t time.Time) {
+func (o *BaseObject) SetReadTime(t time.Time) {
 	o.ReadTime = t
 }
 
@@ -155,7 +155,7 @@ func (o *Object) SetReadTime(t time.Time) {
 //
 //	id := d.UpdateTime()
 //
-func (o *Object) GetUpdateTime() time.Time {
+func (o *BaseObject) GetUpdateTime() time.Time {
 	return o.UpdateTime
 }
 
@@ -163,6 +163,6 @@ func (o *Object) GetUpdateTime() time.Time {
 //
 //	id := d.SetUpdateTime(time.Now())
 //
-func (o *Object) SetUpdateTime(t time.Time) {
+func (o *BaseObject) SetUpdateTime(t time.Time) {
 	o.UpdateTime = t
 }

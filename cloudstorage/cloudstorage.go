@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/piyuo/libsrv/gcp"
 	"github.com/piyuo/libsrv/log"
-	"github.com/piyuo/libsrv/secure/gcp"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"

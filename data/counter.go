@@ -4,9 +4,9 @@ import (
 	"context"
 )
 
-// CounterRef is a collection of documents (shards) to realize counter with high frequency.
+// Counter is a collection of documents (shards) to realize counter with high frequency.
 //
-type CounterRef interface {
+type Counter interface {
 
 	// IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
 	//

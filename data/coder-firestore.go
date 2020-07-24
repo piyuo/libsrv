@@ -13,7 +13,7 @@ import (
 // CoderFirestore generate code from firestore
 //
 type CoderFirestore struct {
-	CoderRef `firestore:"-"`
+	Coder `firestore:"-"`
 
 	ShardsFirestore `firestore:"-"`
 

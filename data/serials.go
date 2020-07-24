@@ -7,7 +7,7 @@ import (
 // Serials is collection of serial
 //
 type Serials struct {
-	Connection ConnectionRef
+	CurrentConnection Connection
 
 	//TableName is serial table name
 	//
@@ -19,10 +19,10 @@ type Serials struct {
 //	serials := db.Serials()
 //	productNo,err = serials.Serial("product-no")
 //
-func (c *Serials) Serial(name string) SerialRef {
+func (c *Serials) Serial(name string) Serial {
 	return &SerialFirestore{
 		ShardsFirestore: ShardsFirestore{
-			conn:      c.Connection.(*ConnectionFirestore),
+			conn:      c.CurrentConnection.(*ConnectionFirestore),
 			tableName: c.TableName,
 			id:        name,
 			numShards: 0,
@@ -38,7 +38,7 @@ func (c *Serials) Serial(name string) SerialRef {
 func (c *Serials) Delete(ctx context.Context, name string) error {
 
 	shards := ShardsFirestore{
-		conn:      c.Connection.(*ConnectionFirestore),
+		conn:      c.CurrentConnection.(*ConnectionFirestore),
 		tableName: c.TableName,
 		id:        name,
 		numShards: 0,

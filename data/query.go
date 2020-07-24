@@ -2,35 +2,35 @@ package data
 
 import "context"
 
-// QueryRef represent query public method
-type QueryRef interface {
+// Query represent query public method
+type Query interface {
 	// Where set where filter
 	//
 	//	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 	//
-	Where(path, op string, value interface{}) QueryRef
+	Where(path, op string, value interface{}) Query
 
 	// OrderBy set query order by asc
 	//
 	//	list, err = table.Query().OrderBy("Name").Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 	//
-	OrderBy(path string) QueryRef
+	OrderBy(path string) Query
 
 	// OrderByDesc set query order by desc
 	//
 	//	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 	//
-	OrderByDesc(path string) QueryRef
+	OrderByDesc(path string) Query
 
 	// Limit set query limit
 	//
 	//	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
 	//	So(len(list), ShouldEqual, 1)
 	//
-	Limit(n int) QueryRef
+	Limit(n int) Query
 
 	// StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
@@ -38,14 +38,14 @@ type QueryRef interface {
 	//	So(len(list), ShouldEqual, 1)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 	//
-	StartAt(docSnapshotOrFieldValues ...interface{}) QueryRef
+	StartAt(docSnapshotOrFieldValues ...interface{}) Query
 
 	// StartAfter implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
 	//	list, err = table.Query().OrderBy("Name").StartAfter("santa ana city").Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 	//
-	StartAfter(docSnapshotOrFieldValues ...interface{}) QueryRef
+	StartAfter(docSnapshotOrFieldValues ...interface{}) Query
 
 	// EndAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
@@ -53,14 +53,14 @@ type QueryRef interface {
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 
 	//
-	EndAt(docSnapshotOrFieldValues ...interface{}) QueryRef
+	EndAt(docSnapshotOrFieldValues ...interface{}) Query
 
 	// EndBefore implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 	//
 	//	list, err = table.Query().OrderBy("Name").EndBefore("irvine city").Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "santa ana city")
 	//
-	EndBefore(docSnapshotOrFieldValues ...interface{}) QueryRef
+	EndBefore(docSnapshotOrFieldValues ...interface{}) Query
 
 	// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 	//
@@ -68,7 +68,7 @@ type QueryRef interface {
 	//	So(len(list), ShouldEqual, 1)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 	//
-	Execute(ctx context.Context) ([]ObjectRef, error)
+	Execute(ctx context.Context) ([]Object, error)
 
 	// Count execute query and return max 10 count
 	//
@@ -85,14 +85,14 @@ type QueryRef interface {
 	IsEmpty(ctx context.Context) (bool, error)
 }
 
-// Query represent a query in document database
+// BaseQuery represent a query in document database
 //
-type Query struct {
-	QueryRef
+type BaseQuery struct {
+	Query
 
 	// factor use to create object
 	//
-	factory func() ObjectRef
+	factory func() Object
 
 	// limit remember if query set limit, if not we will give default limit (10) to avoid return too may document
 	//

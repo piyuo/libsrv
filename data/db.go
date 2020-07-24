@@ -8,9 +8,9 @@ const limitQueryDefault = 10
 const limitTransactionClear = 10
 const limitClear = 500
 
-// DBRef represent DB public method
+// DB represent DB public method
 //
-type DBRef interface {
+type DB interface {
 
 	// Close connection
 	//
@@ -20,7 +20,7 @@ type DBRef interface {
 
 	// CreateNamespace create namespace, create new one if not exist
 	//
-	//	dbRef, err := conn.CreateNamespace(ctx)
+	//	db, err := conn.CreateNamespace(ctx)
 	//
 	CreateNamespace(ctx context.Context) error
 
@@ -46,24 +46,24 @@ type DBRef interface {
 	IsInTransaction() bool
 }
 
-// DB represent document database
+// BaseDB represent document database
 //
-type DB struct {
-	DBRef
+type BaseDB struct {
+	DB
 
-	// Connection is database connection
+	// CurrentConnection is database connection
 	//
-	Connection ConnectionRef
+	CurrentConnection Connection
 }
 
 // Close connection
 //
 //	conn.Close()
 //
-func (db *DB) Close() {
-	if db.Connection != nil {
-		db.Connection.Close()
-		db.Connection = nil
+func (db *BaseDB) Close() {
+	if db.CurrentConnection != nil {
+		db.CurrentConnection.Close()
+		db.CurrentConnection = nil
 	}
 }
 
@@ -74,39 +74,39 @@ func (db *DB) Close() {
 //		return nil
 //	})
 //
-func (db *DB) Transaction(ctx context.Context, callback func(ctx context.Context) error) error {
+func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Context) error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.Transaction(ctx, callback)
+	return db.CurrentConnection.Transaction(ctx, callback)
 }
 
 // IsInTransaction return true if connection is in transaction
 //
 //	inTx := conn.IsInTransaction()
 //
-func (db *DB) IsInTransaction() bool {
-	return db.Connection.IsInTransaction()
+func (db *BaseDB) IsInTransaction() bool {
+	return db.CurrentConnection.IsInTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist
 //
-//	dbRef, err := conn.CreateNamespace(ctx)
+//	db, err := conn.CreateNamespace(ctx)
 //
-func (db *DB) CreateNamespace(ctx context.Context) error {
+func (db *BaseDB) CreateNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.CreateNamespace(ctx)
+	return db.CurrentConnection.CreateNamespace(ctx)
 }
 
 // DeleteNamespace delete namespace
 //
 //	err := db.DeleteNamespace(ctx)
 //
-func (db *DB) DeleteNamespace(ctx context.Context) error {
+func (db *BaseDB) DeleteNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.DeleteNamespace(ctx)
+	return db.CurrentConnection.DeleteNamespace(ctx)
 }

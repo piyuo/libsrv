@@ -9,7 +9,7 @@ import (
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
 	app "github.com/piyuo/libsrv/app"
-	gcp "github.com/piyuo/libsrv/secure/gcp"
+	gcp "github.com/piyuo/libsrv/gcp"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"

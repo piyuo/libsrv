@@ -10,7 +10,7 @@ import (
 // SerialFirestore generial serial from firestore
 //
 type SerialFirestore struct {
-	SerialRef `firestore:"-"`
+	Serial `firestore:"-"`
 
 	ShardsFirestore `firestore:"-"`
 

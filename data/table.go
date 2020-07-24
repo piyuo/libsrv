@@ -11,15 +11,15 @@ import (
 //	return &data.Table{
 //		Connection: db.Connection,
 //		TableName:  "account",
-//		Factory:    func() data.ObjectRef {
+//		Factory:    func() data.Object {
 //			return &Account{}
 //		},
 //	}
 //
 type Table struct {
-	Connection ConnectionRef
-	Factory    func() ObjectRef
-	TableName  string
+	CurrentConnection Connection
+	Factory           func() Object
+	TableName         string
 }
 
 // NewObject use factory to create new Object
@@ -27,7 +27,7 @@ type Table struct {
 //	obj:=table.NewObject()
 //	account:=obj.(*Account)
 //
-func (t *Table) NewObject() ObjectRef {
+func (t *Table) NewObject() Object {
 	return t.Factory()
 }
 
@@ -46,11 +46,11 @@ func (t *Table) UUID() string {
 //		sample := object.(*Sample)
 //	}
 //
-func (t *Table) Get(ctx context.Context, id string) (ObjectRef, error) {
+func (t *Table) Get(ctx context.Context, id string) (Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	object, err := t.Connection.Get(ctx, t.TableName, id, t.Factory)
+	object, err := t.CurrentConnection.Get(ctx, t.TableName, id, t.Factory)
 	if err != nil {
 		return nil, err
 	}
@@ -65,11 +65,11 @@ func (t *Table) Get(ctx context.Context, id string) (ObjectRef, error) {
 //	}
 //	err = table.Set(ctx, sample)
 //
-func (t *Table) Set(ctx context.Context, object ObjectRef) error {
+func (t *Table) Set(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if err := t.Connection.Set(ctx, t.TableName, object); err != nil {
+	if err := t.CurrentConnection.Set(ctx, t.TableName, object); err != nil {
 		return err
 	}
 	return nil
@@ -86,7 +86,7 @@ func (t *Table) Exist(ctx context.Context, id string) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	return t.Connection.Exist(ctx, t.TableName, id)
+	return t.CurrentConnection.Exist(ctx, t.TableName, id)
 }
 
 // List return objects in table, max 10 object, if you need more! using query instead
@@ -96,11 +96,11 @@ func (t *Table) Exist(ctx context.Context, id string) (bool, error) {
 //	So(list[0].(*Sample).Name, ShouldStartWith, "sample")
 //	So(list[1].(*Sample).Name, ShouldStartWith, "sample")
 //
-func (t *Table) List(ctx context.Context) ([]ObjectRef, error) {
+func (t *Table) List(ctx context.Context) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.Connection.List(ctx, t.TableName, t.Factory)
+	return t.CurrentConnection.List(ctx, t.TableName, t.Factory)
 }
 
 // Select return object specific field from database
@@ -112,7 +112,7 @@ func (t *Table) Select(ctx context.Context, id, field string) (interface{}, erro
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.Connection.Select(ctx, t.TableName, id, field)
+	return t.CurrentConnection.Select(ctx, t.TableName, id, field)
 }
 
 // Update partial object field without overwriting the entire document
@@ -126,7 +126,7 @@ func (t *Table) Update(ctx context.Context, id string, fields map[string]interfa
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.Connection.Update(ctx, t.TableName, id, fields)
+	return t.CurrentConnection.Update(ctx, t.TableName, id, fields)
 }
 
 // Delete object using id
@@ -137,18 +137,18 @@ func (t *Table) Delete(ctx context.Context, id string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.Connection.Delete(ctx, t.TableName, id)
+	return t.CurrentConnection.Delete(ctx, t.TableName, id)
 }
 
 // DeleteObject delete object
 //
 //	err = table.DeleteObject(ctx, sample)
 //
-func (t *Table) DeleteObject(ctx context.Context, object ObjectRef) error {
+func (t *Table) DeleteObject(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.Connection.DeleteObject(ctx, t.TableName, object)
+	return t.CurrentConnection.DeleteObject(ctx, t.TableName, object)
 }
 
 // Clear delete all object in specific time, 500 documents at a time, if in transaction , only 10 documents can be delete
@@ -159,7 +159,7 @@ func (t *Table) Clear(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.Connection.Clear(ctx, t.TableName)
+	return t.CurrentConnection.Clear(ctx, t.TableName)
 }
 
 // Query create a query
@@ -169,8 +169,8 @@ func (t *Table) Clear(ctx context.Context) error {
 //	So(list[0].(*Sample).Name, ShouldEqual, sample1.Name)
 //	So(list[1].(*Sample).Name, ShouldEqual, sample2.Name)
 //
-func (t *Table) Query() QueryRef {
-	return t.Connection.Query(t.TableName, t.Factory)
+func (t *Table) Query() Query {
+	return t.CurrentConnection.Query(t.TableName, t.Factory)
 }
 
 // Find return first object in table
@@ -178,7 +178,7 @@ func (t *Table) Query() QueryRef {
 //	obj, err = table.Find(ctx, "Value", "==", 1)
 //	So((obj.(*Sample)).Name, ShouldEqual, "sample")
 //
-func (t *Table) Find(ctx context.Context, field, operator string, value interface{}) (ObjectRef, error) {
+func (t *Table) Find(ctx context.Context, field, operator string, value interface{}) (Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -199,7 +199,7 @@ func (t *Table) Find(ctx context.Context, field, operator string, value interfac
 //	objects, err := table.Search(ctx, "Name", "==", "sample")
 //	So(len(objects), ShouldEqual, 1)
 //
-func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]ObjectRef, error) {
+func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -242,5 +242,5 @@ func (t *Table) Increment(ctx context.Context, id, field string, value int) erro
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.Connection.Increment(ctx, t.TableName, id, field, value)
+	return t.CurrentConnection.Increment(ctx, t.TableName, id, field, value)
 }

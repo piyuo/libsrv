@@ -5,7 +5,7 @@ import (
 )
 
 type SampleDB interface {
-	DBRef
+	DB
 	SampleTable() *Table
 	Counters() *SampleCounters
 	Serials() *SampleSerials
@@ -15,7 +15,7 @@ type SampleDB interface {
 // global connection
 //
 type SampleGlobalDB struct {
-	DB
+	BaseDB
 }
 
 func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
@@ -24,16 +24,16 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 		return nil, err
 	}
 	db := &SampleGlobalDB{
-		DB: DB{Connection: conn},
+		BaseDB: BaseDB{CurrentConnection: conn},
 	}
 	return db, nil
 }
 
 func (db *SampleGlobalDB) SampleTable() *Table {
 	return &Table{
-		Connection: db.Connection,
-		TableName:  "sample",
-		Factory: func() ObjectRef {
+		CurrentConnection: db.CurrentConnection,
+		TableName:         "sample",
+		Factory: func() Object {
 			return &Sample{}
 		},
 	}
@@ -42,8 +42,8 @@ func (db *SampleGlobalDB) SampleTable() *Table {
 func (db *SampleGlobalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
-			Connection: db.Connection,
-			TableName:  "sample-count",
+			CurrentConnection: db.CurrentConnection,
+			TableName:         "sample-count",
 		},
 	}
 }
@@ -51,8 +51,8 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 func (db *SampleGlobalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
-			Connection: db.Connection,
-			TableName:  "sample-serial",
+			CurrentConnection: db.CurrentConnection,
+			TableName:         "sample-serial",
 		},
 	}
 }
@@ -60,8 +60,8 @@ func (db *SampleGlobalDB) Serials() *SampleSerials {
 func (db *SampleGlobalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
-			Connection: db.Connection,
-			TableName:  "sample-code",
+			CurrentConnection: db.CurrentConnection,
+			TableName:         "sample-code",
 		},
 	}
 }
@@ -69,7 +69,7 @@ func (db *SampleGlobalDB) Coders() *SampleCoders {
 // regional connection
 //
 type SampleRegionalDB struct {
-	DB
+	BaseDB
 }
 
 func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegionalDB, error) {
@@ -78,16 +78,16 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 		return nil, err
 	}
 	db := &SampleRegionalDB{
-		DB: DB{Connection: conn},
+		BaseDB: BaseDB{CurrentConnection: conn},
 	}
 	return db, nil
 }
 
 func (db *SampleRegionalDB) SampleTable() *Table {
 	return &Table{
-		Connection: db.Connection,
-		TableName:  "sample",
-		Factory: func() ObjectRef {
+		CurrentConnection: db.CurrentConnection,
+		TableName:         "sample",
+		Factory: func() Object {
 			return &Sample{}
 		},
 	}
@@ -96,8 +96,8 @@ func (db *SampleRegionalDB) SampleTable() *Table {
 func (db *SampleRegionalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
-			Connection: db.Connection,
-			TableName:  "sample-count",
+			CurrentConnection: db.CurrentConnection,
+			TableName:         "sample-count",
 		},
 	}
 }
@@ -105,8 +105,8 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 func (db *SampleRegionalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
-			Connection: db.Connection,
-			TableName:  "sample-serial",
+			CurrentConnection: db.CurrentConnection,
+			TableName:         "sample-serial",
 		},
 	}
 }
@@ -114,8 +114,8 @@ func (db *SampleRegionalDB) Serials() *SampleSerials {
 func (db *SampleRegionalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
-			Connection: db.Connection,
-			TableName:  "sample-code",
+			CurrentConnection: db.CurrentConnection,
+			TableName:         "sample-code",
 		},
 	}
 }
@@ -123,9 +123,9 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 // Sample
 //
 type Sample struct {
-	Object `firestore:"-"`
-	Name   string
-	Value  int
+	BaseObject `firestore:"-"`
+	Name       string
+	Value      int
 }
 
 // SampleCoders  represent collection of code
@@ -136,14 +136,14 @@ type SampleCoders struct {
 
 // SampleCoder return sample code
 //
-func (ss *SampleCoders) SampleCoder() CoderRef {
+func (ss *SampleCoders) SampleCoder() Coder {
 	return ss.Coder("sample-code", 10)
 }
 
 // SampleCoder100 return sample code with 100 shards
 //
-func (ss *SampleCoders) SampleCoder100() CoderRef {
-	return ss.Coder("sample-code", 100)
+func (ss *SampleCoders) SampleCoder300() Coder {
+	return ss.Coder("sample-code", 300)
 }
 
 // DeleteSampleSerial delete sample serial
@@ -158,7 +158,7 @@ type SampleSerials struct {
 	Serials `firestore:"-"`
 }
 
-func (ss *SampleSerials) SampleSerial() SerialRef {
+func (ss *SampleSerials) SampleSerial() Serial {
 	return ss.Serial("sample-no")
 }
 
@@ -176,14 +176,14 @@ type SampleCounters struct {
 
 // SampleCounter return sample counter
 //
-func (scs *SampleCounters) SampleCounter() CounterRef {
+func (scs *SampleCounters) SampleCounter() Counter {
 	return scs.Counter("sample-counter", 3)
 }
 
 // SampleCounter100 return sample counter with 100 shards
 //
-func (scs *SampleCounters) SampleCounter100() CounterRef {
-	return scs.Counter("sample-counter", 100)
+func (scs *SampleCounters) SampleCounter300() Counter {
+	return scs.Counter("sample-counter", 300)
 }
 
 // DeleteSampleCounter delete sample counter

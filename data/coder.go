@@ -2,9 +2,9 @@ package data
 
 import "context"
 
-// CoderRef is a collection of documents (shards) to realize code with high frequency.
+// Coder is a collection of documents (shards) to realize code with high frequency.
 //
-type CoderRef interface {
+type Coder interface {
 
 	// CodeRX encode uint32 number into string, must used it in transaction with CodeWX()
 	//

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/piyuo/libsrv/gcp"
 	"github.com/piyuo/libsrv/log"
-	"github.com/piyuo/libsrv/secure/gcp"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	"google.golang.org/api/siteverification/v1"

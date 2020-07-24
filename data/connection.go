@@ -4,9 +4,9 @@ import (
 	"context"
 )
 
-// ConnectionRef define how to connect and manipulate database
+// Connection define how to connect and manipulate database
 //
-type ConnectionRef interface {
+type Connection interface {
 	// Close database connection
 	//
 	//	conn.Close()
@@ -15,7 +15,7 @@ type ConnectionRef interface {
 
 	// CreateNamespace create namespace, create new one if not exist
 	//
-	//	dbRef, err := conn.CreateNamespace(ctx)
+	//	db, err := conn.CreateNamespace(ctx)
 	//
 	CreateNamespace(ctx context.Context) error
 
@@ -29,7 +29,7 @@ type ConnectionRef interface {
 	//
 	//	object, err := conn.Get(ctx, tablename, id, factory)
 	//
-	Get(ctx context.Context, tablename, id string, factory func() ObjectRef) (ObjectRef, error)
+	Get(ctx context.Context, tablename, id string, factory func() Object) (Object, error)
 
 	// Set object into data store, If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data,
 	//
@@ -39,7 +39,7 @@ type ConnectionRef interface {
 	//		return err
 	//	}
 	//
-	Set(ctx context.Context, tablename string, object ObjectRef) error
+	Set(ctx context.Context, tablename string, object Object) error
 	// Exist return true if object with id exist
 	//
 	//	return conn.Exist(ctx, tablename, id)
@@ -50,7 +50,7 @@ type ConnectionRef interface {
 	//
 	//	return conn.List(ctx, tablename, factory)
 	//
-	List(ctx context.Context, tablename string, factory func() ObjectRef) ([]ObjectRef, error)
+	List(ctx context.Context, tablename string, factory func() Object) ([]Object, error)
 
 	// Select return object field from data store, return nil if object does not exist
 	//
@@ -76,7 +76,7 @@ type ConnectionRef interface {
 	//
 	//	conn.DeleteObject(ctx, dt.tablename, object)
 	//
-	DeleteObject(ctx context.Context, tablename string, obj ObjectRef) error
+	DeleteObject(ctx context.Context, tablename string, obj Object) error
 
 	// Clear delete all object in specific time, 500 documents at a time, return false if still has object need to be delete
 	//	if in transaction , only 500 documents can be delete
@@ -89,7 +89,7 @@ type ConnectionRef interface {
 	//
 	//	conn.Query(ctx, tablename, factory)
 	//
-	Query(tablename string, factory func() ObjectRef) QueryRef
+	Query(tablename string, factory func() Object) Query
 
 	// Transaction start a transaction
 	//
