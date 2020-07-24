@@ -7,7 +7,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	gcp "github.com/piyuo/libsrv/gcp"
-	util "github.com/piyuo/libsrv/util"
+	identifier "github.com/piyuo/libsrv/identifier"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
@@ -277,7 +277,7 @@ func (conn *ConnectionFirestore) Set(ctx context.Context, tablename string, obje
 	var docRef *firestore.DocumentRef
 	if object.GetRef() == nil { // this is new object
 		if object.GetID() == "" {
-			object.SetID(util.UUID())
+			object.SetID(identifier.UUID())
 		}
 		docRef = conn.getDocRef(tablename, object.GetID())
 		object.SetRef(docRef)

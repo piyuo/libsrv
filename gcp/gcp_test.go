@@ -15,12 +15,12 @@ func TestCredential(t *testing.T) {
 		key, err := app.Key("gcloud")
 		So(err, ShouldBeNil)
 
-		cred, err := createCredential(context.Background(), key, "https://www.googleapis.com/auth/cloud-platform")
+		cred, err := createCredential(context.Background(), key)
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 
 		// test multi scope
-		cred, err = createCredential(context.Background(), key, "https://www.googleapis.com/auth/cloud-platform", "https://www.googleapis.com/auth/datastore")
+		cred, err = createCredential(context.Background(), key)
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 
@@ -33,7 +33,6 @@ func TestCredential(t *testing.T) {
 		So(cred, ShouldNotBeNil)
 		So(globalCredential, ShouldNotBeNil)
 	})
-
 }
 
 func TestDataCredentialByRegion(t *testing.T) {

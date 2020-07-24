@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 
-	util "github.com/piyuo/libsrv/util"
+	identifier "github.com/piyuo/libsrv/identifier"
 )
 
 // Table represent collection of document in document database, you can do operation like get/set/query on documents
@@ -36,7 +36,7 @@ func (t *Table) NewObject() Object {
 //	id := table.UUID()
 //
 func (t *Table) UUID() string {
-	return util.UUID()
+	return identifier.UUID()
 }
 
 // Get object by id, return nil if object is not exist

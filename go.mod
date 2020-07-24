@@ -16,6 +16,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
 	github.com/sfreiberg/gotwilio v0.0.0-20200424172909-47a95c1c632a
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools/gopls v0.4.1 // indirect

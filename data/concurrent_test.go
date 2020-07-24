@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/util"
+	identifier "github.com/piyuo/libsrv/identifier"
 
 	"github.com/pkg/errors"
 )
@@ -80,7 +80,7 @@ func TestConcurrentDB(t *testing.T) {
 					return errors.Wrap(err, "failed to IncrementRX")
 				}
 
-				code := util.SerialID32(uint32(num))
+				code := identifier.SerialID32(uint32(num))
 				sSample := &Sample{
 					Name:  code,
 					Value: int(num),

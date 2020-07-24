@@ -10,7 +10,8 @@ import (
 	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/logging"
 	app "github.com/piyuo/libsrv/app"
-	util "github.com/piyuo/libsrv/util"
+	identifier "github.com/piyuo/libsrv/identifier"
+	"github.com/piyuo/libsrv/util"
 )
 
 //Logger interface
@@ -87,7 +88,7 @@ func Error(ctx context.Context, where string, err error, r *http.Request) string
 	application, identity := aiFromContext(ctx)
 	message := err.Error()
 	stack := beautyStack(err)
-	errID := util.UUID()
+	errID := identifier.UUID()
 	timer := util.NewTimer()
 	timer.Start()
 	ErrorLog(ctx, message, application, identity, where, stack, errID, r)
@@ -143,7 +144,7 @@ func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, messa
 //at secondLine (b.js:3)
 //
 //	err := errors.New("my error1")
-//	errID := util.UUID()
+//	errID := identifier.UUID()
 //	here := "log_test"
 //	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",here, stack, errID)
 func ErrorLog(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {

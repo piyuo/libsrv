@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
-	util "github.com/piyuo/libsrv/util"
+	identifier "github.com/piyuo/libsrv/identifier"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +40,7 @@ func (c *CoderFirestore) CodeRX() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return util.SerialID32(uint32(number)), nil
+	return identifier.SerialID32(uint32(number)), nil
 }
 
 // CodeWX commit CodeRX()
@@ -70,7 +70,7 @@ func (c *CoderFirestore) Code16RX() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return util.SerialID16(uint16(number)), nil
+	return identifier.SerialID16(uint16(number)), nil
 }
 
 // Code16WX commit Code16RX()
@@ -100,7 +100,7 @@ func (c *CoderFirestore) Code64RX() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return util.SerialID64(uint64(number)), nil
+	return identifier.SerialID64(uint64(number)), nil
 }
 
 // Code64WX commit with Code64RX()
