@@ -42,18 +42,3 @@ func TestSerialID64(t *testing.T) {
 		//}
 	})
 }
-
-func TestOrderNumber(t *testing.T) {
-	Convey("should generate Order Number", t, func() {
-		id := OrderNumber()
-		So(id, ShouldNotBeEmpty)
-		So(len(id), ShouldEqual, 19)
-		//fmt.Printf("%v, %v\n", id, len(id))
-	})
-}
-
-func BenchmarkOrderNumber(b *testing.B) {
-	for i := 0; i < 10000; i++ {
-		OrderNumber()
-	}
-}
