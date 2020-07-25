@@ -53,3 +53,29 @@ func TestSendSMS(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 }
+
+func TestE164(t *testing.T) {
+	Convey("should check number is valid E164 format", t, func() {
+		mobile, err := E164("9493017165", "US")
+		So(err, ShouldBeNil)
+		So(mobile, ShouldEqual, "+19493017165")
+		mobile, err = E164("", "")
+		So(err, ShouldNotBeNil)
+		So(mobile, ShouldBeEmpty)
+		mobile, err = E164("94911", "US")
+		So(err, ShouldNotBeNil)
+		So(mobile, ShouldBeEmpty)
+		mobile, err = E164("0987926234", "TW")
+		So(err, ShouldBeNil)
+		So(mobile, ShouldEqual, "+886987926234")
+		mobile, err = E164("9492341654", "TW")
+		So(err, ShouldNotBeNil)
+		So(mobile, ShouldBeEmpty)
+		mobile, err = E164("13916219123", "CN")
+		So(err, ShouldBeNil)
+		So(mobile, ShouldEqual, "+8613916219123")
+		mobile, err = E164("9492341654", "CN")
+		So(err, ShouldNotBeNil)
+		So(mobile, ShouldBeEmpty)
+	})
+}

@@ -15,6 +15,7 @@ require (
 	github.com/sendgrid/rest v2.4.1+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
 	github.com/sfreiberg/gotwilio v0.0.0-20200424172909-47a95c1c632a
+	github.com/nyaruka/phonenumbers v1.0.56
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect

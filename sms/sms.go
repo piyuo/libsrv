@@ -2,10 +2,12 @@ package sms
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
+	"github.com/nyaruka/phonenumbers"
 	cache "github.com/piyuo/libsrv/cache"
 	file "github.com/piyuo/libsrv/file"
 )
@@ -116,4 +118,24 @@ func getTemplate(templateName, language string) (string, error) {
 	}
 	cache.Set(keyname, txt, 10*time.Minute) // sms template cache last for 10 min
 	return txt, nil
+}
+
+// E164 return E164 format international number
+//
+//	mobile, err := E164(9493026176, "US")
+//
+func E164(phoneNumber, countryCode string) (string, error) {
+	num, err := phonenumbers.Parse(phoneNumber, countryCode)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to parse phone number: "+phoneNumber+", country:"+countryCode)
+	}
+
+	if !phonenumbers.IsValidNumber(num) {
+		return "", errors.New("number: " + phoneNumber + ", country:" + countryCode + " is not a valid number")
+	}
+
+
+	formatted := phonenumbers.Format(num, phonenumbers.E164)
+
+	return formatted, nil
 }
