@@ -14,6 +14,13 @@ import (
 
 	app "github.com/piyuo/libsrv/app"
 	log "github.com/piyuo/libsrv/log"
+	util "github.com/piyuo/libsrv/util"
+)
+
+type key int
+
+const (
+	keyRequest key = iota
 )
 
 const here = "command"
@@ -118,7 +125,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	s.dispatch = &Dispatch{
 		Map: s.Map,
 	}
-	bytes, err = s.dispatch.Route(ctx, bytes)
+	bytes, err = s.dispatch.Route(context.WithValue(ctx, keyRequest, r), bytes)
 	if err != nil {
 		handleRouteException(ctx, w, r, err)
 		return
@@ -219,4 +226,30 @@ func writeBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusBadRequest)
 	writeText(w, msg)
 	log.Debug(ctx, here, msg)
+}
+
+// GetIP return ip from current request, return empty if anything wrong
+//
+//	ip := GetIP(ctx)
+//
+func GetIP(ctx context.Context) string {
+	value := ctx.Value(keyRequest)
+	if value == nil {
+		return ""
+	}
+	req := value.(*http.Request)
+	return util.GetIP(req)
+}
+
+// GetLocale return locale from current request, return en-us if anything else
+//
+//	lang := GetLocale(ctx)
+//
+func GetLocale(ctx context.Context) string {
+	value := ctx.Value(keyRequest)
+	if value == nil {
+		return "en-us"
+	}
+	req := value.(*http.Request)
+	return util.GetLocale(req)
 }

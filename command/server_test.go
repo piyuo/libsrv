@@ -234,3 +234,28 @@ func TestHandleRouteException(t *testing.T) {
 		handleRouteException(context.Background(), w, r, ErrAccessTokenExpired)
 	})
 }
+
+func TestGetIPAndLocale(t *testing.T) {
+	Convey("should get ip and locale", t, func() {
+		req, _ := http.NewRequest("GET", "/", nil)
+		ctx := context.Background()
+		So(GetIP(ctx), ShouldEqual, "")
+		So(GetLocale(ctx), ShouldEqual, "en-us")
+
+		req.Header.Add("Accept-Language", "zh-cn")
+		req.RemoteAddr = "[::1]:80"
+		ctx = context.WithValue(context.Background(), keyRequest, req)
+		So(GetIP(ctx), ShouldEqual, "::1")
+		So(GetLocale(ctx), ShouldEqual, "zh-cn")
+	})
+}
+
+func TestServer(t *testing.T) {
+	Convey("should start server", t, func() {
+		server := &Server{
+			Map:         &mock.MapXXX{},
+			HTTPHandler: customHTTPHandler,
+		}
+		server.Start()
+	})
+}

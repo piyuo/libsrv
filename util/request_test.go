@@ -53,21 +53,20 @@ func TestAcceptLanguage(t *testing.T) {
 		req.Header = map[string][]string{}
 
 		req.Header.Add("Accept-Language", "da, en-gb;q=0.8, en;q=0.7")
-		lang := GetLanguage(req)
-		So(lang, ShouldEqual, "da")
+		locale := GetLocale(req)
+		So(locale, ShouldEqual, "da")
 		req.Header = map[string][]string{}
 
 		//empty accept-language will result en-us
 		req.Header.Add("Accept-Language", "")
-		lang = GetLanguage(req)
-		So(lang, ShouldEqual, "en-us")
+		locale = GetLocale(req)
+		So(locale, ShouldEqual, "en-us")
 		req.Header = map[string][]string{}
 
 		//language will be lower case
 		req.Header.Add("Accept-Language", "EN-US")
-		lang = GetLanguage(req)
-		So(lang, ShouldEqual, "en-us")
+		locale = GetLocale(req)
+		So(locale, ShouldEqual, "en-us")
 		req.Header = map[string][]string{}
-
 	})
 }
