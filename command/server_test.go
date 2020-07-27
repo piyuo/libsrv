@@ -223,7 +223,7 @@ func TestWriteResponse(t *testing.T) {
 		writeText(w, "code")
 		writeError(w, errors.New("error"), 500, "error")
 		handleEnvNotReady(context.Background(), w)
-		logBadRequest(context.Background(), w, "message")
+		writeBadRequest(context.Background(), w, "message")
 	})
 }
 
