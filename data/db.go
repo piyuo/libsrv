@@ -14,13 +14,13 @@ type DB interface {
 
 	// Close connection
 	//
-	//	conn.Close()
+	//	db.Close()
 	//
 	Close()
 
 	// CreateNamespace create namespace, create new one if not exist
 	//
-	//	db, err := conn.CreateNamespace(ctx)
+	//	db, err := db.CreateNamespace(ctx)
 	//
 	CreateNamespace(ctx context.Context) error
 
@@ -32,7 +32,7 @@ type DB interface {
 
 	// Transaction start a transaction
 	//
-	//	err := conn.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
+	//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
 	//		tx.Put(ctx, &greet1)
 	//		return nil
 	//	})
@@ -41,9 +41,15 @@ type DB interface {
 
 	// IsInTransaction return true if connection is in transaction
 	//
-	//	inTx := conn.IsInTransaction()
+	//	inTx := db.IsInTransaction()
 	//
 	IsInTransaction() bool
+
+	// Connection return current connection
+	//
+	//	conn := db.Connection()
+	//
+	Connection() Connection
 }
 
 // BaseDB represent document database
@@ -51,19 +57,27 @@ type DB interface {
 type BaseDB struct {
 	DB
 
-	// CurrentConnection is database connection
+	// conn is current database connection
 	//
-	CurrentConnection Connection
+	conn Connection
+}
+
+// Connection return current connection
+//
+//	conn := db.Connection()
+//
+func (db *BaseDB) Connection() Connection {
+	return db.conn
 }
 
 // Close connection
 //
-//	conn.Close()
+//	db.Close()
 //
 func (db *BaseDB) Close() {
-	if db.CurrentConnection != nil {
-		db.CurrentConnection.Close()
-		db.CurrentConnection = nil
+	if db.conn != nil {
+		db.conn.Close()
+		db.conn = nil
 	}
 }
 
@@ -78,7 +92,7 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.CurrentConnection.Transaction(ctx, callback)
+	return db.conn.Transaction(ctx, callback)
 }
 
 // IsInTransaction return true if connection is in transaction
@@ -86,7 +100,7 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 //	inTx := conn.IsInTransaction()
 //
 func (db *BaseDB) IsInTransaction() bool {
-	return db.CurrentConnection.IsInTransaction()
+	return db.conn.IsInTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist
@@ -97,7 +111,7 @@ func (db *BaseDB) CreateNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.CurrentConnection.CreateNamespace(ctx)
+	return db.conn.CreateNamespace(ctx)
 }
 
 // DeleteNamespace delete namespace
@@ -108,5 +122,5 @@ func (db *BaseDB) DeleteNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.CurrentConnection.DeleteNamespace(ctx)
+	return db.conn.DeleteNamespace(ctx)
 }

@@ -7,7 +7,7 @@ import (
 // Counters is collection of counter
 //
 type Counters struct {
-	CurrentConnection Connection
+	Connection Connection
 
 	//TableName is counter table name
 	//
@@ -27,7 +27,7 @@ func (c *Counters) Counter(name string, numshards int) Counter {
 
 	return &CounterFirestore{
 		ShardsFirestore: ShardsFirestore{
-			conn:      c.CurrentConnection.(*ConnectionFirestore),
+			conn:      c.Connection.(*ConnectionFirestore),
 			tableName: c.TableName,
 			id:        name,
 			numShards: numshards,
@@ -42,7 +42,7 @@ func (c *Counters) Counter(name string, numshards int) Counter {
 //
 func (c *Counters) Delete(ctx context.Context, name string) error {
 	shards := ShardsFirestore{
-		conn:      c.CurrentConnection.(*ConnectionFirestore),
+		conn:      c.Connection.(*ConnectionFirestore),
 		tableName: c.TableName,
 		id:        name,
 		numShards: 0,

@@ -17,9 +17,9 @@ import (
 //	}
 //
 type Table struct {
-	CurrentConnection Connection
-	Factory           func() Object
-	TableName         string
+	Connection Connection
+	Factory    func() Object
+	TableName  string
 }
 
 // NewObject use factory to create new Object
@@ -50,7 +50,7 @@ func (t *Table) Get(ctx context.Context, id string) (Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	object, err := t.CurrentConnection.Get(ctx, t.TableName, id, t.Factory)
+	object, err := t.Connection.Get(ctx, t.TableName, id, t.Factory)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (t *Table) Set(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	if err := t.CurrentConnection.Set(ctx, t.TableName, object); err != nil {
+	if err := t.Connection.Set(ctx, t.TableName, object); err != nil {
 		return err
 	}
 	return nil
@@ -86,7 +86,7 @@ func (t *Table) Exist(ctx context.Context, id string) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	return t.CurrentConnection.Exist(ctx, t.TableName, id)
+	return t.Connection.Exist(ctx, t.TableName, id)
 }
 
 // List return objects in table, max 10 object, if you need more! using query instead
@@ -100,7 +100,7 @@ func (t *Table) List(ctx context.Context) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.CurrentConnection.List(ctx, t.TableName, t.Factory)
+	return t.Connection.List(ctx, t.TableName, t.Factory)
 }
 
 // Select return object specific field from database
@@ -112,7 +112,7 @@ func (t *Table) Select(ctx context.Context, id, field string) (interface{}, erro
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.CurrentConnection.Select(ctx, t.TableName, id, field)
+	return t.Connection.Select(ctx, t.TableName, id, field)
 }
 
 // Update partial object field without overwriting the entire document
@@ -126,7 +126,7 @@ func (t *Table) Update(ctx context.Context, id string, fields map[string]interfa
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.CurrentConnection.Update(ctx, t.TableName, id, fields)
+	return t.Connection.Update(ctx, t.TableName, id, fields)
 }
 
 // Delete object using id
@@ -137,7 +137,7 @@ func (t *Table) Delete(ctx context.Context, id string) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.CurrentConnection.Delete(ctx, t.TableName, id)
+	return t.Connection.Delete(ctx, t.TableName, id)
 }
 
 // DeleteObject delete object
@@ -148,7 +148,7 @@ func (t *Table) DeleteObject(ctx context.Context, object Object) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.CurrentConnection.DeleteObject(ctx, t.TableName, object)
+	return t.Connection.DeleteObject(ctx, t.TableName, object)
 }
 
 // Clear delete all object in specific time, 500 documents at a time, if in transaction , only 10 documents can be delete
@@ -159,7 +159,7 @@ func (t *Table) Clear(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.CurrentConnection.Clear(ctx, t.TableName)
+	return t.Connection.Clear(ctx, t.TableName)
 }
 
 // Query create a query
@@ -170,7 +170,7 @@ func (t *Table) Clear(ctx context.Context) error {
 //	So(list[1].(*Sample).Name, ShouldEqual, sample2.Name)
 //
 func (t *Table) Query() Query {
-	return t.CurrentConnection.Query(t.TableName, t.Factory)
+	return t.Connection.Query(t.TableName, t.Factory)
 }
 
 // Find return first object in table
@@ -242,5 +242,5 @@ func (t *Table) Increment(ctx context.Context, id, field string, value int) erro
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return t.CurrentConnection.Increment(ctx, t.TableName, id, field, value)
+	return t.Connection.Increment(ctx, t.TableName, id, field, value)
 }

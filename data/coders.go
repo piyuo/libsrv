@@ -7,7 +7,7 @@ import (
 // Coders is collection of code
 //
 type Coders struct {
-	CurrentConnection Connection
+	Connection Connection
 
 	//TableName is code table name
 	//
@@ -22,7 +22,7 @@ type Coders struct {
 func (c *Coders) Coder(name string, numshards int) Coder {
 	return &CoderFirestore{
 		ShardsFirestore: ShardsFirestore{
-			conn:      c.CurrentConnection.(*ConnectionFirestore),
+			conn:      c.Connection.(*ConnectionFirestore),
 			tableName: c.TableName,
 			id:        name,
 			numShards: numshards,
@@ -37,7 +37,7 @@ func (c *Coders) Coder(name string, numshards int) Coder {
 //
 func (c *Coders) Delete(ctx context.Context, name string) error {
 	shards := ShardsFirestore{
-		conn:      c.CurrentConnection.(*ConnectionFirestore),
+		conn:      c.Connection.(*ConnectionFirestore),
 		tableName: c.TableName,
 		id:        name,
 		numShards: 0,

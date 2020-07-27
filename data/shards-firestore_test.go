@@ -15,7 +15,7 @@ func TestShardsFirestore(t *testing.T) {
 		defer removeSampleDB(dbG, dbR)
 
 		shards := ShardsFirestore{
-			conn:      dbG.CurrentConnection.(*ConnectionFirestore),
+			conn:      dbG.conn.(*ConnectionFirestore),
 			tableName: "tablename",
 			id:        "id",
 			numShards: 0,
