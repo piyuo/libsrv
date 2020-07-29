@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/piyuo/libsrv/app"
-
 	proto "github.com/golang/protobuf/proto"
 	shared "github.com/piyuo/libsrv/command/shared"
 	log "github.com/piyuo/libsrv/log"
@@ -92,7 +90,7 @@ func (dp *Dispatch) timeExecuteAction(ctx context.Context, action interface{}) (
 	timer.Start()
 	responseID, response, err := dp.runAction(ctx, action)
 	ms := int(timer.Stop())
-	slow := app.IsSlow(ms)
+	slow := IsSlow(ms)
 	if slow > 0 {
 		log.Warning(ctx, here, fmt.Sprintf("%v is slow, expected finish in %v ms but it took %v ms", action.(Action).XXX_MapName(), int(slow), int(ms)))
 	}

@@ -72,6 +72,6 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 	if response.StatusCode < 200 || response.StatusCode > 299 {
 		return errors.New(fmt.Sprintf("failed to send mail, response=%v, message=%v", response.StatusCode, response.Body))
 	}
-	fmt.Print(response)
+	//fmt.Print(response)
 	return nil
 }

@@ -3,8 +3,6 @@ package app
 import (
 	"os"
 	"path"
-	"strconv"
-	"time"
 
 	file "github.com/piyuo/libsrv/file"
 	"github.com/pkg/errors"
@@ -83,16 +81,6 @@ func Check() {
 	if region == "" {
 		panic("need env PIYUO_APP=\"us\"")
 	}
-	//slow warning, usually 12 seconds
-	slow := os.Getenv("PIYUO_SLOW")
-	if slow == "" {
-		panic("need env PIYUO_SLOW=\"12000\"")
-	}
-	//time to meet context deadline, this will stop all service, usually 20 seconds
-	deadline := os.Getenv("PIYUO_DEADLINE")
-	if deadline == "" {
-		panic("need env PIYUO_DEADLINE=\"20000\"")
-	}
 }
 
 //stop support IsDebug
@@ -115,33 +103,4 @@ func IsDebug() bool {
 //	app.PiyuoID()
 func PiyuoID() string {
 	return os.Getenv("PIYUO_APP")
-}
-
-//ContextDateline get context deadline
-//
-//dateline should not greater than 10 min.
-//
-//	dateline,err := ContextDateline()
-func ContextDateline() time.Time {
-	text := os.Getenv("PIYUO_DEADLINE")
-	ms, err := strconv.Atoi(text)
-	if err != nil {
-		panic("PIYUO_DEADLINE must be int")
-	}
-	return time.Now().Add(time.Duration(ms) * time.Millisecond)
-}
-
-//IsSlow check execution time is greater than slow definition,if so return slow limit, other return 0
-//
-//	So(IsSlow(5), ShouldBeFalse)
-func IsSlow(executionTime int) int {
-	text := os.Getenv("PIYUO_SLOW")
-	ms, err := strconv.Atoi(text)
-	if err != nil {
-		panic("PIYUO_SLOW must be int")
-	}
-	if executionTime > ms {
-		return ms
-	}
-	return 0
 }

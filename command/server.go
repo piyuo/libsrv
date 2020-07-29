@@ -4,7 +4,6 @@ import (
 	"context"
 	goerrors "errors"
 	fmt "fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -12,15 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	app "github.com/piyuo/libsrv/app"
 	log "github.com/piyuo/libsrv/log"
-	util "github.com/piyuo/libsrv/util"
-)
-
-type key int
-
-const (
-	keyRequest key = iota
 )
 
 const here = "command"
@@ -42,20 +33,16 @@ type Server struct {
 
 // Start http server to listen request and serve content, defult port is 8080, you can change use export PORT="8080"
 //
-//      var server = &command.Server{
-//      Map: &commands.MapXXX{},
-//     }
-//     func main() {
+//	var server = &command.Server{
+//  	Map: &commands.MapXXX{},
+//  }
+//  func main() {
 //      server.Start()
-//     }
+//  }
 //
 func (s *Server) Start() {
 	rand.Seed(time.Now().UTC().UnixNano())
-	app.Check()
-	if s.Map == nil {
-		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
-		panic(msg)
-	}
+
 	portText := os.Getenv("PORT")
 	if portText == "" {
 		portText = "8080"
@@ -67,6 +54,14 @@ func (s *Server) Start() {
 	}
 	fmt.Printf("start listening from http://localhost:%d\n", port)
 	http.Handle("/", s.newHandler())
+	if s.Map == nil {
+		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
+		panic(msg)
+	}
+	s.dispatch = &Dispatch{
+		Map: s.Map,
+	}
+	s.Map = nil
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
@@ -90,13 +85,24 @@ func (s *Server) newHandler() http.Handler {
 //
 func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	ctx, cancel, token, err := contextWithTokenAndDeadline(r)
-	if err != nil {
-		handleEnvNotReady(ctx, w)
-		return
-	}
+
+	//add deadline to context
+	ctx, cancel := context.WithDeadline(r.Context(), getDeadline())
 	defer cancel()
 
+	//add request to context
+	ctx = context.WithValue(ctx, keyRequest, r)
+
+	//add cookie token to context
+	var err error
+	ctx, err = contextFromCookie(ctx, r)
+	if err != nil {
+		errID := log.Error(ctx, here, err, r)
+		writeError(w, err, http.StatusInternalServerError, errID)
+		return
+	}
+
+	// handle by custom http handler ?
 	if s.HTTPHandler != nil {
 		result, err := s.HTTPHandler(w, r)
 		if err != nil {
@@ -106,6 +112,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		if result == true {
 			return
 		}
+		// custom handler return false mean request still need go through command dispatch
 	}
 
 	if r.Body == nil {
@@ -122,36 +129,24 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.dispatch = &Dispatch{
-		Map: s.Map,
-	}
-	bytes, err = s.dispatch.Route(context.WithValue(ctx, keyRequest, r), bytes)
+	bytes, err = s.dispatch.Route(ctx, bytes)
 	if err != nil {
 		handleRouteException(ctx, w, r, err)
 		return
 	}
 
-	//check to see if token need revive
-	if token != nil && token.Revive() {
-		token.ToCookie(w)
+	err = contextToCookie(ctx, w)
+	if err != nil {
+		errID := log.Error(ctx, here, err, r)
+		writeError(w, err, http.StatusInternalServerError, errID)
+		return
 	}
-	writeBinary(w, bytes)
-}
 
-// handleEnvNotReady write error to response, the server environment variable is not set
-//
-//	logEnvMissing(context.Background(), w)
-//
-func handleEnvNotReady(ctx context.Context, w http.ResponseWriter) {
-	w.WriteHeader(http.StatusNotImplemented)
-	msg := "failed to set context deadline, may be missing environment variable, use app.Check() to make sure all var are set"
-	writeText(w, msg)
-	log.Debug(ctx, here, msg)
+	writeBinary(w, bytes)
 }
 
 //handleRouteException convert error to status code, so client command service know how to deal with it
 //
-//	context,cancel, token, err := contextWithTokenAndDeadline(req)
 //
 func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	log.Debug(ctx, here, "[solved] "+err.Error())
@@ -171,85 +166,4 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 	errID := log.Error(ctx, here, err, r)
 	writeError(w, err, http.StatusInternalServerError, errID)
-}
-
-//contextWithTokenAndDeadline add token to context if token exist in cookies and deadline
-//
-//	context,cancel, token, err := contextWithTokenAndDeadline(req)
-//
-func contextWithTokenAndDeadline(r *http.Request) (context.Context, context.CancelFunc, app.Token, error) {
-	dateline := app.ContextDateline()
-	ctx, cancel := context.WithDeadline(r.Context(), dateline)
-	if len(r.Cookies()) == 0 {
-		return ctx, cancel, nil, nil
-	}
-	token, err := app.TokenFromCookie(r)
-	if err != nil { // it is fine with no token, just return the context
-		return ctx, cancel, nil, nil
-	}
-	//return new context with token
-	return token.ToContext(ctx), cancel, token, nil
-}
-
-// writeBinary to response
-//
-//	writeBinary(w, bytes)
-//
-func writeBinary(w http.ResponseWriter, bytes []byte) {
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Write(bytes)
-}
-
-// writeText to response
-//
-//	writeText(w, "code")
-//
-func writeText(w http.ResponseWriter, text string) {
-	w.Header().Set("Content-Type", "text/plain")
-	io.WriteString(w, text)
-}
-
-// writeError to response
-//
-//	writeError(w, errors.New("error"), 500, "error")
-//
-func writeError(w http.ResponseWriter, err error, statusCode int, text string) {
-	w.WriteHeader(statusCode)
-	writeText(w, text)
-}
-
-// writeBadRequest to response
-//
-//	writeBadRequest(context.Background(), w, "message")
-//
-func writeBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
-	w.WriteHeader(http.StatusBadRequest)
-	writeText(w, msg)
-	log.Debug(ctx, here, msg)
-}
-
-// GetIP return ip from current request, return empty if anything wrong
-//
-//	ip := GetIP(ctx)
-//
-func GetIP(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
-	if value == nil {
-		return ""
-	}
-	req := value.(*http.Request)
-	return util.GetIP(req)
-}
-
-// GetLocale return locale from current request, return en-us if anything else
-//
-//	lang := GetLocale(ctx)
-//
-func GetLocale(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
-	if value == nil {
-		return "en-us"
-	}
-	req := value.(*http.Request)
-	return util.GetLocale(req)
 }

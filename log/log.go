@@ -14,6 +14,10 @@ import (
 	"github.com/piyuo/libsrv/util"
 )
 
+// TOKEN is context key that store token
+//
+const TOKEN = "T"
+
 //Logger interface
 // server: [piyuo-m-us-sys] store-user: hello
 // client: <piyuo-m-us-web-page> store-user: hello

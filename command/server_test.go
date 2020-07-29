@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -143,6 +144,10 @@ func newTestServerHandler() http.Handler {
 	server := &Server{
 		Map: &mock.MapXXX{},
 	}
+	server.dispatch = &Dispatch{
+		Map: server.Map,
+	}
+
 	return server.newHandler()
 }
 
@@ -164,19 +169,6 @@ func okResponse() []byte {
 	ok := OK().(*shared.Err)
 	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
 	return bytes
-}
-
-func TestContextWithTokenAndDeadline(t *testing.T) {
-	Convey("should context have deadline", t, func() {
-		req, err := http.NewRequest("GET", "/", nil)
-		So(err, ShouldBeNil)
-		ctx, cancel, token, err := contextWithTokenAndDeadline(req)
-		defer cancel()
-		So(err, ShouldBeNil)
-		So(token, ShouldBeNil)
-		So(cancel, ShouldNotBeNil)
-		So(ctx, ShouldNotBeNil)
-	})
 }
 
 func TestContextCanceled(t *testing.T) {
@@ -215,18 +207,6 @@ func TestServeWhenContextCanceled(t *testing.T) {
 	})
 }
 
-func TestWriteResponse(t *testing.T) {
-	Convey("should write binary", t, func() {
-		w := httptest.NewRecorder()
-		bytes := newTestAction(textLong)
-		writeBinary(w, bytes)
-		writeText(w, "code")
-		writeError(w, errors.New("error"), 500, "error")
-		handleEnvNotReady(context.Background(), w)
-		writeBadRequest(context.Background(), w, "message")
-	})
-}
-
 func TestHandleRouteException(t *testing.T) {
 	Convey("should write binary", t, func() {
 		r, _ := http.NewRequest("POST", "/", nil)
@@ -235,27 +215,17 @@ func TestHandleRouteException(t *testing.T) {
 	})
 }
 
-func TestGetIPAndLocale(t *testing.T) {
-	Convey("should get ip and locale", t, func() {
-		req, _ := http.NewRequest("GET", "/", nil)
-		ctx := context.Background()
-		So(GetIP(ctx), ShouldEqual, "")
-		So(GetLocale(ctx), ShouldEqual, "en-us")
-
-		req.Header.Add("Accept-Language", "zh-cn")
-		req.RemoteAddr = "[::1]:80"
-		ctx = context.WithValue(context.Background(), keyRequest, req)
-		So(GetIP(ctx), ShouldEqual, "::1")
-		So(GetLocale(ctx), ShouldEqual, "zh-cn")
-	})
-}
-
 func TestServer(t *testing.T) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()
 	Convey("should start server", t, func() {
 		server := &Server{
-			Map:         &mock.MapXXX{},
+			Map:         nil,
 			HTTPHandler: customHTTPHandler,
 		}
-		server.Start()
+		So(server.Start, ShouldPanic)
 	})
 }
