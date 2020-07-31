@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	goerrors "errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -28,11 +29,17 @@ func TestExpired(t *testing.T) {
 func TestTokens(t *testing.T) {
 	Convey("should get tokens from context", t, func() {
 		ctx := context.Background()
+		err := TokenRequired(ctx)
+		So(goerrors.Is(err, ErrTokenRequired), ShouldBeTrue)
+
 		m := Tokens(ctx)
 		So(m, ShouldNotBeNil)
 		So(m["not-exist"], ShouldBeEmpty)
 
-		ctx = context.WithValue(ctx, keyToken, map[string]string{"a": "1"})
+		ctx = context.WithValue(ctx, keyToken, map[string]string{"a": "1", "id": "user1"})
+		err = TokenRequired(ctx)
+		So(err, ShouldBeNil)
+
 		m = Tokens(ctx)
 		So(m, ShouldNotBeNil)
 		So(m["a"], ShouldEqual, "1")
@@ -89,6 +96,7 @@ func TestContextToken(t *testing.T) {
 		ctx = context.WithValue(ctx, keyToken, map[string]string{})
 
 		SetToken(ctx, "a", "1")
+		SetToken(ctx, "id", "user1")
 		err := contextToCookie(ctx, rec)
 		So(err, ShouldBeNil)
 
@@ -104,6 +112,10 @@ func TestContextToken(t *testing.T) {
 		So(err, ShouldBeNil)
 		value := GetToken(ctx, "a")
 		So(value, ShouldEqual, "1")
+		valueID := GetToken(ctx, "id")
+		So(valueID, ShouldEqual, "user1")
+		tokens := Tokens(ctx)
+		So(len(tokens), ShouldEqual, 2)
 	})
 }
 

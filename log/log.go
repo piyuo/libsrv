@@ -3,221 +3,205 @@ package log
 import (
 	"context"
 	"fmt"
-	"net/http"
+	"os"
 	"strings"
-	"time"
 
-	"cloud.google.com/go/errorreporting"
-	"cloud.google.com/go/logging"
-	app "github.com/piyuo/libsrv/app"
 	identifier "github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/util"
 )
 
 // TOKEN is context key that store token
 //
 const TOKEN = "T"
 
-//Logger interface
-// server: [piyuo-m-us-sys] store-user: hello
-// client: <piyuo-m-us-web-page> store-user: hello
+// Level define log level
+//
+type Level int
 
-//Log level
 const (
-	LevelDebug   int32 = 0 //debug info
-	LevelInfo    int32 = 1 //Normal but significant events, such as start up, shut down, or a configuration change.
-	LevelWarning int32 = 2 //Warning events might cause problems.
-	LevelAlert   int32 = 3 //A person must take an action immediately
+	// DEBUG print to console
+	//
+	DEBUG Level = iota
+
+	// INFO Normal but significant events, such as start up, shut down, or a configuration change.
+	//
+	INFO
+
+	// WARNING events might cause problems.
+	//
+	WARNING
+
+	// ALERT A person must take an action immediately
+	//
+	ALERT
 )
 
-//Debug as Routine information, such as ongoing status or performance.
+var appName = os.Getenv("NAME")
+
+// shouldPrint return false in master branch, cause we don't need print to console in production environment. all message already in log
+//
+var shouldPrint = shouldPrintToConsole()
+
+func shouldPrintToConsole() bool {
+	if os.Getenv("BRANCH") == "master" {
+		return false
+	}
+	return true
+}
+
+// getHeader return log header and user id for log
+//
+//	header,id := getHeader(ctx,"mail") // user-store@piyuo-m-us-sys/mail:,user-store
+//
+func getHeader(ctx context.Context, where string) (string, string) {
+	header := getLocation(where)
+	id := getID(ctx)
+	if id != "" {
+		header = id + "@" + header
+	}
+	return header + ": ", id
+}
+
+// getLocation return the location where log happen
+//
+//	loc := getLocation("mail") // piyuo-m-us-sys/mail
+//
+func getLocation(where string) string {
+	return appName + "/" + where
+}
+
+// Debug as Routine information, such as ongoing status or performance.
 //
 //	HERE := "log_test"
 //	Debug(ctx,HERE,"hello")
+//
 func Debug(ctx context.Context, where, message string) {
-	application, identity := aiFromContext(ctx)
-	h := head(application, identity, where)
-	fmt.Printf("%v%v\n", h, message)
+	header, _ := getHeader(ctx, where)
+	fmt.Printf("%v%v\n", header, message)
 }
 
-//Info as Normal but significant events, such as start up, shut down, or a configuration change.
+// Info as Normal but significant events, such as start up, shut down, or a configuration change.
 //
 //	HERE := "log_test"
 //	Info(ctx,HERE,"hi")
+//
 func Info(ctx context.Context, where, message string) {
-	if ctx.Err() != nil {
-		return
-	}
-	application, identity := aiFromContext(ctx)
-	Log(ctx, message, application, identity, where, LevelInfo)
+	Log(ctx, INFO, where, message)
 }
 
-//Warning as Warning events might cause problems.
+// Warning as Warning events might cause problems.
 //
 //	HERE := "log_test"
 //	Warning(ctx,HERE,"hi")
+//
 func Warning(ctx context.Context, where, message string) {
-	if ctx.Err() != nil {
-		return
-	}
-	application, identity := aiFromContext(ctx)
-	Log(ctx, message, application, identity, where, LevelWarning)
+	Log(ctx, WARNING, where, message)
 }
 
-//Alert A person must take an action immediately
+// Alert A person must take an action immediately
 //
 //	HERE := "log_test"
 //	Critical(ctx,HERE,"hi")
+//
 func Alert(ctx context.Context, where, message string) {
-	if ctx.Err() != nil {
-		return
-	}
-	application, identity := aiFromContext(ctx)
-	Log(ctx, message, application, identity, where, LevelAlert)
+	Log(ctx, ALERT, where, message)
 }
 
-//Error log error to google cloud and return error id
-//
-//	err := errors.New("my error1")
-//	LogErr(ctx, err)
-//Error log error to google cloud and return error id, return empty if error not logged
-//
-//	err := errors.New("my error1")
-//	HERE := "log_test"
-//	LogErr(ctx,HERE, err)
-func Error(ctx context.Context, where string, err error, r *http.Request) string {
-	if ctx.Err() != nil {
-		return ""
-	}
-	application, identity := aiFromContext(ctx)
-	message := err.Error()
-	stack := beautyStack(err)
-	errID := identifier.UUID()
-	timer := util.NewTimer()
-	timer.Start()
-	ErrorLog(ctx, message, application, identity, where, stack, errID, r)
-	ms := int(timer.Stop())
-	fmt.Printf("error log took %v ms\n", int(ms))
-	return errID
-}
-
-//Log message and level to server
+// Log message and level to server
 //
 //	here := "log_test"
-//	CustomLog(ctx, "hello", "piyuo-m-us-sys", "user-store",here, WARNING)
-func Log(ctx context.Context, message, application, identity, where string, level int32) {
+//	Log(ctx, "hello", here, WARNING)
+//
+func Log(ctx context.Context, level Level, where, message string) {
 	if ctx.Err() != nil {
 		return
 	}
-	logger, close, err := Open(ctx)
+	logger, err := NewLogger(ctx)
 	if err != nil {
 		return
 	}
-	defer close()
-	Write(ctx, logger, time.Now(), message, application, identity, where, level)
+	defer logger.Close()
+	logger.Write(ctx, level, where, message)
 }
 
-//Open log client to do batch log
+// NewLogger return logger
 //
-//	logger, close, err := Open(ctx)
-func Open(ctx context.Context) (*logging.Logger, func(), error) {
+//	logger, err := NewLogger(ctx)
+//	if err != nil {
+//		return
+//	}
+//	defer logger.Close()
+//
+func NewLogger(ctx context.Context) (Logger, error) {
 	if ctx.Err() != nil {
-		return nil, nil, ctx.Err()
+		return nil, ctx.Err()
 	}
-	return gcpLogOpen(ctx)
+	return NewGCPLogger(ctx)
 }
 
-//Write log through client
+// WriteError write error and stack to server
 //
-//	Write(ctx, logger,time.Now(), message, application, identity, here, info)
-func Write(ctx context.Context, logger *logging.Logger, logtime time.Time, message, application, identity, where string, level int32) {
-	if ctx.Err() != nil {
-		return
-	}
-	h := head(application, identity, where)
-	fmt.Printf("%v%v (logged)\n", h, message)
-	gcpLogWrite(logger, logtime, message, application, identity, where, level)
-}
-
-//ErrorLog log error and stack to server
+//	stack format like
 //
-//stack format like
+//	at firstLine (a.js:3)
 //
-//at firstLine (a.js:3)
-//
-//at secondLine (b.js:3)
+//	at secondLine (b.js:3)
 //
 //	err := errors.New("my error1")
 //	errID := identifier.UUID()
 //	here := "log_test"
-//	LogError(ctx, "hi error", "piyuo-m-us-sys", "user-store",here, stack, errID)
-func ErrorLog(ctx context.Context, message, application, identity, where, stack, errID string, r *http.Request) {
-	if ctx.Err() != nil {
-		return
-	}
-	client, close, err := ErrorOpen(ctx, application)
+//	LogError(ctx,here, "hi error", stack, errID)
+//
+func WriteError(ctx context.Context, where, message, stack, errID string) {
+	errorer, err := NewErrorer(ctx)
 	if err != nil {
 		return
 	}
-	defer close()
-	ErrorWrite(ctx, client, message, application, identity, where, stack, errID, r)
+	defer errorer.Close()
+	errorer.Write(ctx, where, message, stack, errID)
 }
 
-//ErrorOpen open error client to do batch log
+// Error log error to google cloud and return error id, return empty if error not logged
 //
-//	client, close, err := ErrorOpen(ctx)
-func ErrorOpen(ctx context.Context, application string) (*errorreporting.Client, func(), error) {
+//	stack format like
+//
+//	at firstLine (a.js:3)
+//
+//	at secondLine (b.js:3)
+//
+//	err := errors.New("my error1")
+//	errID := identifier.UUID()
+//	HERE := "log_test"
+//	LogErr(ctx,HERE, err)
+//
+func Error(ctx context.Context, where string, err error) string {
 	if ctx.Err() != nil {
-		return nil, nil, ctx.Err()
+		return ""
 	}
-	return gcpErrorOpen(ctx, application)
-}
-
-//ErrorWrite log error through client
-//
-//	ErrorWrite(ctx,client, message, application, identity, here, stack, id, nil)
-func ErrorWrite(ctx context.Context, client *errorreporting.Client, message, application, identity, where, stack, errID string, r *http.Request) {
-	if ctx.Err() != nil {
-		return
-	}
-	h := head(application, identity, where)
-	fmt.Printf("%v%v (%v)\n%v\n", h, message, errID, stack)
-	gcpErrorWrite(client, message, application, identity, where, stack, errID, r)
-}
-
-// aiFromContext get application, identity from context
-//
-// application: piyuo-m-us-sys
-//
-// identity: user-store
-//
-//	application,identity := aiFromContext(ctx)
-func aiFromContext(ctx context.Context) (string, string) {
-	application := app.PiyuoID()
-	identity := ""
-	token, err := app.TokenFromContext(ctx)
 	if err == nil {
-		identity = token.Identity()
+		return ""
 	}
-	return application, identity
+	message := err.Error()
+	stack := beautyStack(err)
+	errID := identifier.UUID()
+	WriteError(ctx, where, message, stack, errID)
+	return errID
 }
 
-// head get log head from  application, identity
+// NewErrorer return errorer
 //
-// user-store@piyuo-m-us-sys/where:
+//	errorer, err := NewErrorer(ctx)
 //
-//	h,identity := head("piyuo-m-us-sys","user-store","where")
-func head(application, identity, where string) string {
-	text := application + "/" + where
-	if identity != "" {
-		text = identity + "@" + text
+func NewErrorer(ctx context.Context) (Errorer, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
-	return text + ": "
+	return NewGCPErrorer(ctx)
 }
 
-//beautyStack return simple format stack trace
+// beautyStack return simple format stack trace
 //
 //	formatedStackFromError(err)
+//
 func beautyStack(err error) string {
 	//debug.PrintStack()
 	var sb strings.Builder
@@ -239,10 +223,11 @@ func beautyStack(err error) string {
 	return strings.Trim(sb.String(), "\n")
 }
 
-//isLineUsable check line to see if we need it for debug
+// isLineUsable check line to see if we need it for debug
 //
 //	line := "/convey/doc.go:75"
 //	So(isLineUsable(line), ShouldBeFalse)
+//
 func isLineUsable(line string) bool {
 	notUsableKeywords := []string{"smartystreets", "jtolds", "log.go", "log_gcp.go", "net/http", "runtime.goexit", "testing.tRunner"}
 	for _, keyword := range notUsableKeywords {
@@ -253,10 +238,11 @@ func isLineUsable(line string) bool {
 	return true
 }
 
-//isLineDuplicate check current line to see if it duplicate in list
+// isLineDuplicate check current line to see if it duplicate in list
 //
 //	list := []string{"/doc.go:75", "/doc.go:75"}
 //	So(isLineDuplicate(list, 1), ShouldBeTrue)
+//
 func isLineDuplicate(list []string, currentIndex int) bool {
 	line := list[currentIndex]
 	for index := currentIndex - 1; index >= 0; index-- {
@@ -267,11 +253,12 @@ func isLineDuplicate(list []string, currentIndex int) bool {
 	return false
 }
 
-//extractFilename extract filename from path
+// extractFilename extract filename from path
 //
 // 	path := "/goconvey@v1.6.4/convey/doc.go:75"
 //	filename := extractFileName(path)
 //	So(filename, ShouldEqual, "doc.go:75")
+//
 func extractFilename(path string) string {
 	index := strings.LastIndex(path, "/")
 	if index != -1 {

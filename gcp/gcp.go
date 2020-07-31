@@ -64,17 +64,15 @@ func RegionalCredential(ctx context.Context, region string) (*google.Credentials
 	return cred, nil
 }
 
+var gcpRegion = os.Getenv("REGION")
+
 // CurrentRegionalCredential provide google credential for current region
 //
 func CurrentRegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	region := os.Getenv("PIYUO_REGION")
-	if region == "" {
-		panic("need env PIYUO_APP=\"us\"")
-	}
-	return RegionalCredential(ctx, region)
+	return RegionalCredential(ctx, gcpRegion)
 }
 
 // createCredential base on key and scope

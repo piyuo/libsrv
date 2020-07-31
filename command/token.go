@@ -10,6 +10,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+//ErrTokenRequired mean service need access  token
+//
+var ErrTokenRequired = errors.New("TOKEN_REQUIRED")
+
 // cookieKey is token key name in cookie
 //
 const cookieKey = "T"
@@ -46,6 +50,23 @@ func isExpired(str string) bool {
 		return false
 	}
 	return true
+}
+
+// TokenRequired check is token is exist and has id, return error if token not exist
+//
+//	err := TokenRequired(ctx)
+//
+func TokenRequired(ctx context.Context) error {
+	value := ctx.Value(keyToken)
+	if value == nil {
+		return ErrTokenRequired
+	}
+
+	m := value.(map[string]string)
+	if m["id"] == "" {
+		return ErrTokenRequired
+	}
+	return nil
 }
 
 // Tokens return token map in context, if no map in context return new map instead
@@ -138,6 +159,6 @@ func contextFromCookie(ctx context.Context, r *http.Request) (context.Context, e
 	if isExpired(expired) {
 		return context.WithValue(ctx, keyToken, map[string]string{}), nil
 	}
-	tokens["expired"] = ""
+	delete(tokens, "expired")
 	return context.WithValue(ctx, keyToken, tokens), nil
 }

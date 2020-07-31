@@ -1,37 +1,35 @@
 package log
 
 import (
-	"bytes"
 	"context"
-	"net/http"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/piyuo/libsrv/app"
 
 	identifier "github.com/piyuo/libsrv/identifier"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestAiFromContext(t *testing.T) {
-	Convey("should get application from context", t, func() {
-		ctx := context.Background()
-		backupPiyuoApp := os.Getenv("PIYUO_APP")
-		os.Setenv("PIYUO_APP", "dev")
-		application, identity := aiFromContext(ctx)
-		So(application, ShouldEqual, "dev")
-		So(identity, ShouldEqual, "")
-		os.Setenv("PIYUO_APP", backupPiyuoApp)
+var here = "log_test"
+
+func TestShouldPrintToConsole(t *testing.T) {
+	Convey("should not print to console if it's master branch", t, func() {
+		os.Setenv("BRANCH", "dev")
+		So(shouldPrintToConsole(), ShouldBeTrue)
+		os.Setenv("BRANCH", "master")
+		So(shouldPrintToConsole(), ShouldBeFalse)
 	})
 }
 
-func TestLogHead(t *testing.T) {
-	Convey("should get head from application and identity", t, func() {
-		HERE := "log_test"
-		h := head("sys-us-beta", "user-store", HERE)
-		So(h, ShouldEqual, "user-store@sys-us-beta/log_test: ")
+func TestGetHeader(t *testing.T) {
+	Convey("should get header", t, func() {
+		appName = "test"
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, keyToken, map[string]string{"id": "user1"})
+		header, id := getHeader(ctx, here)
+		So(header, ShouldEqual, "user1@test/log_test: ")
+		So(id, ShouldEqual, "user1")
 	})
 }
 
@@ -58,7 +56,22 @@ func TestLogWhenContextCanceled(t *testing.T) {
 		ctx, cancel := context.WithDeadline(context.Background(), dateline)
 		defer cancel()
 		time.Sleep(time.Duration(2) * time.Millisecond)
+		logger, err := NewLogger(ctx)
+		So(err, ShouldNotBeNil)
+		So(logger, ShouldBeNil)
+
+		Log(ctx, DEBUG, here, "")
+		WriteError(ctx, here, "", "", "")
+		errID := Error(ctx, here, nil)
+		So(errID, ShouldBeEmpty)
 		Info(ctx, here, "my info log canceled")
+
+		errorer, err := NewErrorer(ctx)
+		So(err, ShouldNotBeNil)
+		So(errorer, ShouldBeNil)
+		logger, err = NewLogger(ctx)
+		So(err, ShouldNotBeNil)
+		So(logger, ShouldBeNil)
 	})
 }
 
@@ -74,6 +87,9 @@ func TestExtractFilename(t *testing.T) {
 	Convey("should return filename", t, func() {
 		path := "/convey/doc.go:75"
 		filename := extractFilename(path)
+		So(filename, ShouldEqual, "doc.go:75")
+		path = "doc.go:75"
+		filename = extractFilename(path)
 		So(filename, ShouldEqual, "doc.go:75")
 	})
 }
@@ -97,57 +113,31 @@ func TestError(t *testing.T) {
 	Convey("should print error", t, func() {
 		ctx := context.Background()
 		err := errors.New("mock error happening in go")
-		errID := Error(ctx, here, err, nil)
+		errID := Error(ctx, here, err)
 		So(errID, ShouldNotBeEmpty)
-		So(false, ShouldEqual, false)
+
+		errID = Error(ctx, here, nil)
+		So(errID, ShouldBeEmpty)
+
 	})
 }
 
 func TestErrorWithRequest(t *testing.T) {
-	Convey("should print error", t, func() {
+	Convey("should error", t, func() {
 		ctx := context.Background()
 		err := errors.New("mock error happening in go with request")
-		req, _ := http.NewRequest("GET", "/", bytes.NewReader([]byte("ABC")))
-		errID := Error(ctx, here, err, req)
+		errID := Error(ctx, here, err)
 		So(errID, ShouldNotBeEmpty)
-		So(false, ShouldEqual, false)
 	})
 }
 
 func TestCustomError(t *testing.T) {
-	Convey("should print error from", t, func() {
+	Convey("should write error", t, func() {
 		ctx := context.Background()
-		application, identity := aiFromContext(ctx)
 		message := "mock error happening in flutter"
 		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 		id := identifier.UUID()
-		ErrorLog(ctx, message, application, identity, here, stack, id, nil)
+		WriteError(ctx, here, message, stack, id)
 		So(false, ShouldEqual, false)
-	})
-}
-
-func TestErrorOpenWrite(t *testing.T) {
-	Convey("should open and write error", t, func() {
-		ctx := context.Background()
-		application, identity := aiFromContext(ctx)
-		message := "mock error happening in flutter"
-		stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-		id := identifier.UUID()
-		client, close, err := ErrorOpen(ctx, app.PiyuoID())
-		So(err, ShouldBeNil)
-		defer close()
-		ErrorWrite(ctx, client, message, application, identity, here, stack, id, nil)
-	})
-}
-
-func TestLogOpenWrite(t *testing.T) {
-	Convey("should open and write log", t, func() {
-		ctx := context.Background()
-		application, _ := aiFromContext(ctx)
-		message := "mock error happening in flutter"
-		logger, close, err := Open(ctx)
-		So(err, ShouldBeNil)
-		defer close()
-		Write(ctx, logger, time.Now(), message, application, "001-CHIENCHIH", here, LevelInfo)
 	})
 }

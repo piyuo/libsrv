@@ -52,7 +52,6 @@ func (s *Server) Start() {
 		fmt.Printf("please set http listen port like export PORT=\"8080\"")
 		return
 	}
-	fmt.Printf("start listening from http://localhost:%d\n", port)
 	http.Handle("/", s.newHandler())
 	if s.Map == nil {
 		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
@@ -62,6 +61,8 @@ func (s *Server) Start() {
 		Map: s.Map,
 	}
 	s.Map = nil
+	ctx := context.Background()
+	log.Debug(ctx, here, fmt.Sprintf("start listening from http://localhost:%d\n", port))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
@@ -150,20 +151,18 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 //
 func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	log.Debug(ctx, here, "[solved] "+err.Error())
+
 	if goerrors.Is(err, context.DeadlineExceeded) {
 		errID := log.Error(ctx, here, err, r)
 		writeError(w, err, http.StatusGatewayTimeout, errID)
 		return
-	} else if goerrors.Is(err, ErrAccessTokenRequired) {
+	}
+
+	if goerrors.Is(err, ErrTokenRequired) {
 		writeError(w, err, http.StatusNetworkAuthenticationRequired, err.Error())
 		return
-	} else if goerrors.Is(err, ErrAccessTokenExpired) {
-		writeError(w, err, http.StatusPreconditionFailed, err.Error())
-		return
-	} else if goerrors.Is(err, ErrPaymentTokenRequired) {
-		writeError(w, err, http.StatusPaymentRequired, err.Error())
-		return
 	}
+
 	errID := log.Error(ctx, here, err, r)
 	writeError(w, err, http.StatusInternalServerError, errID)
 }
