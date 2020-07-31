@@ -14,10 +14,10 @@ import (
 var here = "log_test"
 
 func TestShouldPrintToConsole(t *testing.T) {
-	Convey("should not print to console if it's master branch", t, func() {
-		os.Setenv("BRANCH", "dev")
-		So(shouldPrintToConsole(), ShouldBeTrue)
+	Convey("should not print to console if it's stable branch", t, func() {
 		os.Setenv("BRANCH", "master")
+		So(shouldPrintToConsole(), ShouldBeTrue)
+		os.Setenv("BRANCH", "stable")
 		So(shouldPrintToConsole(), ShouldBeFalse)
 	})
 }

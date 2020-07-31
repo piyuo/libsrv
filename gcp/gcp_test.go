@@ -5,25 +5,19 @@ import (
 	"testing"
 	"time"
 
-	app "github.com/piyuo/libsrv/app"
+	"github.com/piyuo/libsrv/key"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCredential(t *testing.T) {
 
-	Convey("should init google credential", t, func() {
-		key, err := app.Key("gcloud")
+	Convey("should create google credential", t, func() {
+		bytes, err := key.BytesWithoutCache("gcloud.json")
 		So(err, ShouldBeNil)
 
-		cred, err := createCredential(context.Background(), key)
-		So(err, ShouldBeNil)
-		So(cred, ShouldNotBeNil)
-
-		// test multi scope
-		cred, err = createCredential(context.Background(), key)
+		cred, err := createCredential(context.Background(), bytes)
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
-
 	})
 
 	Convey("should keep global credential", t, func() {
@@ -37,24 +31,21 @@ func TestCredential(t *testing.T) {
 
 func TestDataCredentialByRegion(t *testing.T) {
 	Convey("should get data credential by region", t, func() {
-		cred, err := RegionalCredential(context.Background(), "us")
-		So(err, ShouldBeNil)
-		So(cred, ShouldNotBeNil)
-		cred, err = RegionalCredential(context.Background(), "jp")
-		So(err, ShouldBeNil)
-		So(cred, ShouldNotBeNil)
-		cred, err = RegionalCredential(context.Background(), "be")
+		gcpRegion = "us"
+		cred, err := RegionalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 
-	})
-}
-
-func TestRegionalDataCredential(t *testing.T) {
-	Convey("should get data credential in current region", t, func() {
-		cred, err := CurrentRegionalCredential(context.Background())
+		gcpRegion = "jp"
+		cred, err = RegionalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
+
+		gcpRegion = "be"
+		cred, err = RegionalCredential(context.Background())
+		So(err, ShouldBeNil)
+		So(cred, ShouldNotBeNil)
+
 	})
 }
 
@@ -65,6 +56,8 @@ func TestCredentialWhenContextCanceled(t *testing.T) {
 		defer cancel()
 		time.Sleep(time.Duration(2) * time.Millisecond)
 		_, err := GlobalCredential(ctx)
+		So(err, ShouldNotBeNil)
+		_, err = RegionalCredential(ctx)
 		So(err, ShouldNotBeNil)
 	})
 }

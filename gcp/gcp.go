@@ -4,7 +4,8 @@ import (
 	"context"
 	"os"
 
-	app "github.com/piyuo/libsrv/app"
+	"github.com/piyuo/libsrv/key"
+
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 )
@@ -23,13 +24,13 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 
 	if globalCredential == nil {
-		key, err := app.Key("gcloud")
+		bytes, err := key.BytesWithoutCache("gcloud.json")
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get keys/gcloud.json")
 		}
-		cred, err := createCredential(ctx, key)
+		cred, err := createCredential(ctx, bytes)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check keys/"+key+".json format is correct")
+			return nil, err
 		}
 		globalCredential = cred
 	}
@@ -40,25 +41,25 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 //
 var regionalCredentials map[string]*google.Credentials = make(map[string]*google.Credentials)
 
-// RegionalCredential provide google credential for regional database
+// RegionalCredential provide google credential for regional database, region is set by os.Getenv("REGION")
 //
 //	cred, err := RegionalCredential(context.Background(), "us")
 //
-func RegionalCredential(ctx context.Context, region string) (*google.Credentials, error) {
+func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	var cred = regionalCredentials[region]
-	if regionalCredentials[region] == nil {
-		key, err := app.RegionKey(region)
+	var cred = regionalCredentials[gcpRegion]
+	if regionalCredentials[gcpRegion] == nil {
+		bytes, err := key.BytesWithoutCache("/region/" + gcpRegion + ".json")
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/region/"+region+".json")
+			return nil, errors.Wrap(err, "failed to get keys/region/"+gcpRegion+".json")
 		}
-		cred, err := createCredential(ctx, key)
+		cred, err := createCredential(ctx, bytes)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check keys/region/"+key+".key format is correct")
+			return nil, errors.Wrap(err, "failed to create credential, check keys/region/"+gcpRegion+".json format is correct")
 		}
-		regionalCredentials[region] = cred
+		regionalCredentials[gcpRegion] = cred
 		return cred, nil
 	}
 	return cred, nil
@@ -66,22 +67,13 @@ func RegionalCredential(ctx context.Context, region string) (*google.Credentials
 
 var gcpRegion = os.Getenv("REGION")
 
-// CurrentRegionalCredential provide google credential for current region
+// createCredential create google credential from json bytes
 //
-func CurrentRegionalCredential(ctx context.Context) (*google.Credentials, error) {
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-	return RegionalCredential(ctx, gcpRegion)
-}
+//	cred, err := createCredential(context.Background(),bytes)
+//
+func createCredential(ctx context.Context, bytes []byte) (*google.Credentials, error) {
 
-// createCredential base on key and scope
-//
-//	cred, err := createCredential(context.Background(), "gcloud")
-//
-func createCredential(ctx context.Context, key string) (*google.Credentials, error) {
-
-	creds, err := google.CredentialsFromJSON(ctx, []byte(key),
+	creds, err := google.CredentialsFromJSON(ctx, bytes,
 		"https://www.googleapis.com/auth/siteverification",        // log, error
 		"https://www.googleapis.com/auth/cloud-platform",          // log, error
 		"https://www.googleapis.com/auth/devstorage.full_control", // storage

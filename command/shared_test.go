@@ -1,7 +1,6 @@
 package command
 
 import (
-	"context"
 	"testing"
 
 	shared "github.com/piyuo/libsrv/command/shared"
@@ -10,12 +9,6 @@ import (
 )
 
 func TestShared(t *testing.T) {
-	Convey("should get error from empty context", t, func() {
-		ctx := context.Background()
-		token, response := Token(ctx)
-		So(token, ShouldBeNil)
-		So(response, ShouldNotBeNil)
-	})
 
 	Convey("should create text response", t, func() {
 		text := String("hi").(*shared.Text)

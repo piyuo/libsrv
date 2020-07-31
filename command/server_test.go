@@ -209,13 +209,11 @@ func TestServeWhenContextCanceled(t *testing.T) {
 
 func TestHandleRouteException(t *testing.T) {
 	Convey("should handle route exception", t, func() {
-		r, _ := http.NewRequest("POST", "/", nil)
+		//r, _ := http.NewRequest("POST", "/", nil)
 		w := httptest.NewRecorder()
-		handleRouteException(context.Background(), w, r, context.DeadlineExceeded)
-		handleRouteException(context.Background(), w, r, ErrAccessTokenRequired)
-		handleRouteException(context.Background(), w, r, ErrAccessTokenExpired)
-		handleRouteException(context.Background(), w, r, ErrPaymentTokenRequired)
-		handleRouteException(context.Background(), w, r, errors.New(""))
+		handleRouteException(context.Background(), w, context.DeadlineExceeded)
+		handleRouteException(context.Background(), w, ErrTokenRequired)
+		handleRouteException(context.Background(), w, errors.New(""))
 	})
 }
 

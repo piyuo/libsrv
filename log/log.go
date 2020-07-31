@@ -42,7 +42,7 @@ var appName = os.Getenv("NAME")
 var shouldPrint = shouldPrintToConsole()
 
 func shouldPrintToConsole() bool {
-	if os.Getenv("BRANCH") == "master" {
+	if os.Getenv("BRANCH") == "stable" {
 		return false
 	}
 	return true

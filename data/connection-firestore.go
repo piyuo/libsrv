@@ -59,7 +59,7 @@ func FirestoreGlobalConnection(ctx context.Context) (Connection, error) {
 //	defer conn.Close()
 //
 func FirestoreRegionalConnection(ctx context.Context, namespace string) (Connection, error) {
-	cred, err := gcp.CurrentRegionalCredential(ctx)
+	cred, err := gcp.RegionalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func FirestoreRegionalConnection(ctx context.Context, namespace string) (Connect
 
 // firestoreNewConnection create connection to firestore
 //
-//	cred, err := gcp.CurrentRegionalCredential(ctx)
+//	cred, err := gcp.RegionalCredential(ctx)
 //	return firestoreNewConnection(ctx, cred, namespace)
 //
 func firestoreNewConnection(ctx context.Context, cred *google.Credentials, namespace string) (Connection, error) {

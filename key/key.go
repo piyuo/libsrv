@@ -9,7 +9,7 @@ import (
 
 // Text return key text content, return key content wil be cache to reuse in the future
 //
-//	key, err := key.Text("log.json")
+//	text, err := key.Text("log.json")
 //
 func Text(name string) (string, error) {
 	cachename := "KEY" + name + "TEXT"
@@ -18,6 +18,18 @@ func Text(name string) (string, error) {
 		return value.(string), nil
 	}
 
+	text, err := TextWithoutCache(name)
+	if err != nil {
+		return "", err
+	}
+	cache.Set(cachename, text, -1) // key never expire, cause we always need it
+	return text, nil
+}
+
+// TextWithoutCache return key text content, no cache on return value
+//	text, err := key.TextWithoutCache("log.json")
+//
+func TextWithoutCache(name string) (string, error) {
 	keypath, found := file.Find("keys/" + name)
 	if !found {
 		return "", errors.New("keys/" + name + " not found")
@@ -27,13 +39,12 @@ func Text(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cache.Set(cachename, text, -1) // key never expire, cause we always need it
 	return text, nil
 }
 
 // JSON return key json object, return key content wil be cache to reuse in the future
 //
-//	key, err := keys.JSON("log.json")
+//	json, err := key.JSON("log.json")
 //
 func JSON(name string) (map[string]interface{}, error) {
 	cachename := "KEY" + name + "JSON"
@@ -41,6 +52,21 @@ func JSON(name string) (map[string]interface{}, error) {
 	if found {
 		return value.(map[string]interface{}), nil
 	}
+
+	json, err := JSONWithoutCache(name)
+	if err != nil {
+		return nil, err
+	}
+
+	cache.Set(cachename, json, -1) // key never expire, cause we always need it
+	return json, nil
+}
+
+// JSONWithoutCache return key json object, no cache on return value
+//
+//	json, err := key.JSONWithoutCache("log.json")
+//
+func JSONWithoutCache(name string) (map[string]interface{}, error) {
 
 	keypath, found := file.Find("keys/" + name)
 	if !found {
@@ -51,12 +77,12 @@ func JSON(name string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	cache.Set(cachename, json, -1) // key never expire, cause we always need it
 	return json, nil
 }
 
 // Bytes return key bytes from /keys, return key content wil be cache to reuse in the future
-//	key, err := keys.Key("log.json")
+//
+//	bytes, err := key.Bytes("log.json")
 //
 func Bytes(name string) ([]byte, error) {
 	cachename := "KEY" + name + "BYTE"
@@ -64,6 +90,21 @@ func Bytes(name string) ([]byte, error) {
 	if found {
 		return value.([]byte), nil
 	}
+
+	bytes, err := BytesWithoutCache(name)
+	if err != nil {
+		return nil, err
+	}
+
+	cache.Set(cachename, bytes, -1) // key never expire, cause we always need it
+	return bytes, nil
+}
+
+// BytesWithoutCache return key bytes from /keys, no cache on return value
+//
+//	bytes, err := key.BytesWithoutCache("log.json")
+//
+func BytesWithoutCache(name string) ([]byte, error) {
 
 	keypath, found := file.Find("keys/" + name)
 	if !found {
@@ -74,6 +115,5 @@ func Bytes(name string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	cache.Set(cachename, bytes, -1) // key never expire, cause we always need it
 	return bytes, nil
 }

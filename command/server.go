@@ -98,7 +98,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx, err = contextFromCookie(ctx, r)
 	if err != nil {
-		errID := log.Error(ctx, here, err, r)
+		errID := log.Error(ctx, here, err)
 		writeError(w, err, http.StatusInternalServerError, errID)
 		return
 	}
@@ -107,7 +107,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	if s.HTTPHandler != nil {
 		result, err := s.HTTPHandler(w, r)
 		if err != nil {
-			handleRouteException(ctx, w, r, err)
+			handleRouteException(ctx, w, err)
 			return
 		}
 		if result == true {
@@ -132,13 +132,13 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err = s.dispatch.Route(ctx, bytes)
 	if err != nil {
-		handleRouteException(ctx, w, r, err)
+		handleRouteException(ctx, w, err)
 		return
 	}
 
 	err = contextToCookie(ctx, w)
 	if err != nil {
-		errID := log.Error(ctx, here, err, r)
+		errID := log.Error(ctx, here, err)
 		writeError(w, err, http.StatusInternalServerError, errID)
 		return
 	}
@@ -149,11 +149,11 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 //handleRouteException convert error to status code, so client command service know how to deal with it
 //
 //
-func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+func handleRouteException(ctx context.Context, w http.ResponseWriter, err error) {
 	log.Debug(ctx, here, "[solved] "+err.Error())
 
 	if goerrors.Is(err, context.DeadlineExceeded) {
-		errID := log.Error(ctx, here, err, r)
+		errID := log.Error(ctx, here, err)
 		writeError(w, err, http.StatusGatewayTimeout, errID)
 		return
 	}
@@ -163,6 +163,6 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	errID := log.Error(ctx, here, err, r)
+	errID := log.Error(ctx, here, err)
 	writeError(w, err, http.StatusInternalServerError, errID)
 }
