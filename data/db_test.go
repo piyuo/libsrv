@@ -24,5 +24,7 @@ func TestDBInCanceledContext(t *testing.T) {
 			return nil
 		})
 		So(err, ShouldNotBeNil)
+		err = dbR.BatchCommit(ctxCanceled)
+		So(err, ShouldNotBeNil)
 	})
 }

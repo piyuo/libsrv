@@ -18,9 +18,7 @@ func TestTransaction(t *testing.T) {
 		defer removeSampleTable(samplesG, samplesR)
 
 		transactionTest(ctx, dbG, samplesG)
-		transactionTest(ctx, dbR, samplesR)
 		methodTest(ctx, dbG, samplesG, true)
-		methodTest(ctx, dbR, samplesR, false)
 	})
 }
 
@@ -34,10 +32,10 @@ func transactionTest(ctx context.Context, db SampleDB, table *Table) {
 		Value: 2,
 	}
 
-	So(db.IsInTransaction(), ShouldBeFalse)
+	So(db.InTransaction(), ShouldBeFalse)
 	//success transaction
 	err := db.Transaction(ctx, func(ctx context.Context) error {
-		So(db.IsInTransaction(), ShouldBeTrue)
+		So(db.InTransaction(), ShouldBeTrue)
 		err := table.Set(ctx, sample1)
 		So(err, ShouldBeNil)
 		err = table.Set(ctx, sample2)

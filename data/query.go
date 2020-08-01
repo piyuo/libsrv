@@ -84,6 +84,14 @@ type Query interface {
 	//
 	Execute(ctx context.Context) ([]Object, error)
 
+	// ExecuteID Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
+	//
+	//	idList, err = table.Query().OrderByDesc("Name").Limit(1).ExecuteID(ctx)
+	//	So(len(idList), ShouldEqual, 1)
+	//	So((idList[0], ShouldEqual, "sample2")
+	//
+	ExecuteID(ctx context.Context) ([]string, error)
+
 	// Count execute query and return max 10 count
 	//
 	//	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)

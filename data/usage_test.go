@@ -1,10 +1,8 @@
-package usage
+package data
+
+/*
 
 import (
-	"context"
-	"testing"
-	"time"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -16,3 +14,4 @@ func TestUsage(t *testing.T) {
 		So(count, ShouldEqual, 0)
 	})
 }
+*/

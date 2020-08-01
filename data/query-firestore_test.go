@@ -15,8 +15,8 @@ func TestQuery(t *testing.T) {
 		tableG, tableR := createSampleTable(dbG, dbR)
 		defer removeSampleTable(tableG, tableR)
 
+		listTest(ctx, tableG)
 		queryTest(ctx, tableG)
-		queryTest(ctx, tableR)
 	})
 }
 
@@ -34,6 +34,7 @@ func queryTest(ctx context.Context, table *Table) {
 	err = table.Set(ctx, sample2)
 	So(err, ShouldBeNil)
 
+	// get full object
 	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 1)
@@ -114,5 +115,34 @@ func queryTest(ctx context.Context, table *Table) {
 	isEmpty, err := table.Query().Where("Name", "==", "sample1").IsEmpty(ctx)
 	So(err, ShouldBeNil)
 	So(isEmpty, ShouldBeFalse)
+
+	table.DeleteObject(ctx, sample1)
+	table.DeleteObject(ctx, sample2)
+}
+
+func listTest(ctx context.Context, table *Table) {
+	sample1 := &Sample{
+		Name:  "sample",
+		Value: 1,
+	}
+	sample2 := &Sample{
+		Name:  "sample",
+		Value: 2,
+	}
+	err := table.Set(ctx, sample1)
+	So(err, ShouldBeNil)
+	err = table.Set(ctx, sample2)
+	So(err, ShouldBeNil)
+
+	// get id only
+	list, err := table.Query().Where("Name", "==", "sample").ExecuteID(ctx)
+	So(err, ShouldBeNil)
+	So(len(list), ShouldEqual, 2)
+	So(list[0], ShouldNotBeEmpty)
+	So(list[1], ShouldNotBeEmpty)
+	So(list[0], ShouldNotEqual, list[1])
+
+	table.DeleteObject(ctx, sample1)
+	table.DeleteObject(ctx, sample2)
 
 }

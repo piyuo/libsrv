@@ -30,6 +30,24 @@ type DB interface {
 	//
 	DeleteNamespace(ctx context.Context) error
 
+	// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
+	//
+	//	err := conn.BatchBegin()
+	//
+	BatchBegin()
+
+	// InBatch return true if connection is in batch mode
+	//
+	//	inBatch := conn.InBatch()
+	//
+	InBatch() bool
+
+	// BatchCommit commit batch operation
+	//
+	//	err := conn.BatchCommit(ctx)
+	//
+	BatchCommit(ctx context.Context) error
+
 	// Transaction start a transaction
 	//
 	//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
@@ -39,17 +57,23 @@ type DB interface {
 	//
 	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
 
-	// IsInTransaction return true if connection is in transaction
+	// InTransaction return true if connection is in transaction
 	//
-	//	inTx := db.IsInTransaction()
+	//	inTx := db.InTransaction()
 	//
-	IsInTransaction() bool
+	InTransaction() bool
 
 	// Connection return current connection
 	//
 	//	conn := db.Connection()
 	//
 	Connection() Connection
+
+	// Usage return usage object
+	//
+	//	usage := db.Usage()
+	//
+	//	Usage() Usage
 }
 
 // BaseDB represent document database
@@ -81,6 +105,33 @@ func (db *BaseDB) Close() {
 	}
 }
 
+// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
+//
+//	err := conn.BatchBegin(ctx)
+//
+func (db *BaseDB) BatchBegin() {
+	db.conn.BatchBegin()
+}
+
+// BatchCommit commit batch operation
+//
+//	err := conn.BatchCommit(ctx)
+//
+func (db *BaseDB) BatchCommit(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return db.conn.BatchCommit(ctx)
+}
+
+// InBatch return true if connection is in batch mode
+//
+//	inBatch := conn.InBatch()
+//
+func (db *BaseDB) InBatch() bool {
+	return db.conn.InBatch()
+}
+
 // Transaction start a transaction
 //
 //	err := conn.Transaction(ctx, func(ctx context.Context) error {
@@ -95,12 +146,12 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 	return db.conn.Transaction(ctx, callback)
 }
 
-// IsInTransaction return true if connection is in transaction
+// InTransaction return true if connection is in transaction
 //
-//	inTx := conn.IsInTransaction()
+//	inTx := conn.InTransaction()
 //
-func (db *BaseDB) IsInTransaction() bool {
-	return db.conn.IsInTransaction()
+func (db *BaseDB) InTransaction() bool {
+	return db.conn.InTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist
@@ -124,3 +175,13 @@ func (db *BaseDB) DeleteNamespace(ctx context.Context) error {
 	}
 	return db.conn.DeleteNamespace(ctx)
 }
+
+/*
+// Usage return usage object
+//
+//	usage := db.Usage()
+//
+func (db *BaseDB) Usage() Usage {
+	return NewUsage(db.conn)
+}
+*/

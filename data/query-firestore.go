@@ -152,9 +152,6 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 // Execute query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 //
 //	list = []*Greet{}
-//	ctx := context.Background()
-//	db, _ := firestoreGlobalDB(ctx)
-//	defer db.Close()
 //	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute(ctx)
 //	greet := list[0].(*Greet)
 //	So(greet.From, ShouldEqual, "b city")
@@ -199,6 +196,39 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 		resultSet = append(resultSet, object)
 	}
 	return resultSet, nil
+}
+
+// ExecuteID query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
+//
+//	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteID(ctx)
+//	So(len(idList), ShouldEqual, 1)
+//
+func (qf *QueryFirestore) ExecuteID(ctx context.Context) ([]string, error) {
+	if qf.limit == 0 {
+		qf.Limit(limitQueryDefault)
+	}
+	var result []string
+
+	var iter *firestore.DocumentIterator
+	if qf.conn.tx != nil {
+		iter = qf.conn.tx.Documents(qf.query)
+	} else {
+		iter = qf.query.Documents(ctx)
+	}
+	defer iter.Stop()
+
+	for {
+		snapshot, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, snapshot.Ref.ID)
+	}
+	return result, nil
 }
 
 // Count execute query and return max 10 count

@@ -30,6 +30,10 @@ type ConnectionFirestore struct {
 	//tx is curenet transacton, it is nil if not in transaction
 	//
 	tx *firestore.Transaction
+
+	//batch is curenet batch, it is nil if not in batch
+	//
+	batch *firestore.WriteBatch
 }
 
 // Namespace separate data into different namespace in database, a database can have multiple namespace
@@ -180,6 +184,36 @@ func (conn *ConnectionFirestore) Close() {
 	}
 }
 
+// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
+//
+//	err := conn.BatchBegin(ctx)
+//
+func (conn *ConnectionFirestore) BatchBegin() {
+	conn.batch = conn.client.Batch()
+}
+
+// BatchCommit commit batch operation
+//
+//	err := conn.BatchCommit(ctx)
+//
+func (conn *ConnectionFirestore) BatchCommit(ctx context.Context) error {
+	batch := conn.batch
+	conn.batch = nil
+	_, err := batch.Commit(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to commit batch")
+	}
+	return nil
+}
+
+// InBatch return true if connection is in batch mode
+//
+//	inBatch := conn.InBatch()
+//
+func (conn *ConnectionFirestore) InBatch() bool {
+	return conn.batch != nil
+}
+
 // Transaction start a transaction
 //
 //	err := conn.Transaction(ctx, func(ctx context.Context) error {
@@ -198,11 +232,11 @@ func (conn *ConnectionFirestore) Transaction(ctx context.Context, callback func(
 	})
 }
 
-// IsInTransaction return true if connection is in transaction
+// InTransaction return true if connection is in transaction
 //
-//	inTx := conn.IsInTransaction()
+//	inTx := conn.InTransaction()
 //
-func (conn *ConnectionFirestore) IsInTransaction() bool {
+func (conn *ConnectionFirestore) InTransaction() bool {
 	return conn.tx != nil
 }
 
@@ -288,6 +322,8 @@ func (conn *ConnectionFirestore) Set(ctx context.Context, tablename string, obje
 	var err error
 	if conn.tx != nil {
 		err = conn.tx.Set(docRef, object)
+	} else if conn.batch != nil {
+		conn.batch.Set(docRef, object)
 	} else {
 		_, err = docRef.Set(ctx, object)
 	}
@@ -404,6 +440,12 @@ func (conn *ConnectionFirestore) Update(ctx context.Context, tablename, id strin
 		}
 		return nil
 	}
+
+	if conn.batch != nil {
+		conn.batch.Set(docRef, fields, firestore.MergeAll)
+		return nil
+	}
+
 	_, err := docRef.Set(ctx, fields, firestore.MergeAll)
 	if err != nil {
 		return errors.Wrap(err, "failed to update field: "+conn.errorID(tablename, id))
@@ -426,6 +468,14 @@ func (conn *ConnectionFirestore) Increment(ctx context.Context, tablename, id, f
 		}
 		return nil
 	}
+
+	if conn.batch != nil {
+		conn.batch.Update(docRef, []firestore.Update{
+			{Path: field, Value: firestore.Increment(value)},
+		})
+		return nil
+	}
+
 	_, err := docRef.Update(ctx, []firestore.Update{
 		{Path: field, Value: firestore.Increment(value)},
 	})
@@ -448,6 +498,12 @@ func (conn *ConnectionFirestore) Delete(ctx context.Context, tablename, id strin
 		}
 		return nil
 	}
+
+	if conn.batch != nil {
+		conn.batch.Delete(docRef)
+		return nil
+	}
+
 	_, err := docRef.Delete(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete: "+conn.errorID(tablename, id))
@@ -475,6 +531,9 @@ func (conn *ConnectionFirestore) DeleteObject(ctx context.Context, tablename str
 		if err != nil {
 			return errors.Wrap(err, "failed to delete in transaction: "+conn.errorID(tablename, object.GetID()))
 		}
+	} else if conn.batch != nil {
+		conn.batch.Delete(docRef)
+
 	} else {
 		_, err := docRef.Delete(ctx)
 		if err != nil {

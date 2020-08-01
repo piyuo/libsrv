@@ -91,6 +91,24 @@ type Connection interface {
 	//
 	Query(tablename string, factory func() Object) Query
 
+	// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
+	//
+	//	err := conn.BatchBegin()
+	//
+	BatchBegin()
+
+	// InBatch return true if connection is in batch mode
+	//
+	//	inBatch := conn.InBatch()
+	//
+	InBatch() bool
+
+	// BatchCommit commit batch operation
+	//
+	//	err := conn.BatchCommit(ctx)
+	//
+	BatchCommit(ctx context.Context) error
+
 	// Transaction start a transaction
 	//
 	//	err := conn.Transaction(ctx, func(ctx context.Context) error {
@@ -99,11 +117,11 @@ type Connection interface {
 	//
 	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
 
-	// IsInTransaction return true if connection is in transaction
+	// InTransaction return true if connection is in transaction
 	//
-	//	inTx := conn.IsInTransaction()
+	//	inTx := conn.InTransaction()
 	//
-	IsInTransaction() bool
+	InTransaction() bool
 
 	// Increment value on object field, return error if object does not exist
 	//
