@@ -25,9 +25,7 @@ type CounterFirestore struct {
 
 	incrementShardIndex int
 
-	incrementCanCreateShard bool
-
-	incrementCanIncrementShard bool
+	incrementShardExist bool
 }
 
 // IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
@@ -39,28 +37,51 @@ func (c *CounterFirestore) IncrementRX(value interface{}) error {
 		return errors.New("This function must run in transaction")
 	}
 
-	_, shardsRef := c.getRef()
 	c.incrementCallRX = true
 	c.incrementValue = value
-	c.incrementCanCreateShard = false
-	c.incrementCanIncrementShard = false
-	c.incrementShardIndex = rand.Intn(c.numShards)
-	shardID := strconv.Itoa(c.incrementShardIndex)
-	shardRef := shardsRef.Doc(shardID)
+	c.incrementShardExist = false
 
-	snapshot, err := c.conn.tx.Get(shardRef)
-	if snapshot != nil && !snapshot.Exists() {
-		c.incrementCanCreateShard = true
-		return nil
-	}
-
+	pick, exist, err := c.pickShardWithRetry()
 	if err != nil {
 		return errors.Wrap(err, "failed to get shard: "+c.errorID())
 	}
 
-	c.incrementCanIncrementShard = true
+	c.incrementShardIndex = pick
+	c.incrementShardExist = exist
 	return nil
+}
 
+// pickShardWithRetry random pick a shard, return shardIndex, isShardExist, error
+//
+func (c *CounterFirestore) pickShardWithRetry() (int, bool, error) {
+	var err error
+	var pick int
+	var exist bool
+	for i := 0; i < 3; i++ {
+		pick, exist, err = c.pickShard()
+		if err == nil {
+			return pick, exist, err
+		}
+	}
+	return 0, false, err
+}
+
+// pickShard random pick a shard, return shardIndex, isShardExist, error
+//
+func (c *CounterFirestore) pickShard() (int, bool, error) {
+	pick := rand.Intn(c.numShards)
+	_, shardsRef := c.getRef()
+	shardID := strconv.Itoa(pick)
+	shardRef := shardsRef.Doc(shardID)
+	snapshot, err := c.conn.tx.Get(shardRef)
+	if snapshot != nil && !snapshot.Exists() {
+		return pick, false, nil
+	}
+
+	if err != nil {
+		return 0, false, err
+	}
+	return pick, true, nil
 }
 
 // IncrementWX commit IncrementRX()
@@ -78,7 +99,14 @@ func (c *CounterFirestore) IncrementWX() error {
 	docRef, shardsRef := c.getRef()
 	shardID := strconv.Itoa(c.incrementShardIndex)
 	shardRef := shardsRef.Doc(shardID)
-	if c.incrementCanCreateShard {
+	if c.incrementShardExist {
+		err := c.conn.tx.Update(shardRef, []firestore.Update{
+			{Path: "N", Value: firestore.Increment(c.incrementValue)},
+		})
+		if err != nil {
+			return errors.Wrap(err, "failed to increment shard: "+c.errorID())
+		}
+	} else {
 		// create shards document
 		err := c.conn.tx.Set(docRef, &struct{}{}) //put empty struct
 		if err != nil {
@@ -92,18 +120,9 @@ func (c *CounterFirestore) IncrementWX() error {
 		}
 	}
 
-	if c.incrementCanIncrementShard {
-		err := c.conn.tx.Update(shardRef, []firestore.Update{
-			{Path: "N", Value: firestore.Increment(c.incrementValue)},
-		})
-		if err != nil {
-			return errors.Wrap(err, "failed to increment shard: "+c.errorID())
-		}
-	}
 	c.incrementCallRX = false
 	c.incrementValue = 0
-	c.incrementCanCreateShard = false
-	c.incrementCanIncrementShard = false
+	c.incrementShardExist = false
 	c.incrementShardIndex = -1
 	return nil
 

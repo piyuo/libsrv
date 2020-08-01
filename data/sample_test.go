@@ -32,7 +32,7 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 func (db *SampleGlobalDB) SampleTable() *Table {
 	return &Table{
 		Connection: db.conn,
-		TableName:         "sample",
+		TableName:  "sample",
 		Factory: func() Object {
 			return &Sample{}
 		},
@@ -43,7 +43,7 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.conn,
-			TableName:         "sample-count",
+			TableName:  "sample-count",
 		},
 	}
 }
@@ -52,7 +52,7 @@ func (db *SampleGlobalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.conn,
-			TableName:         "sample-serial",
+			TableName:  "sample-serial",
 		},
 	}
 }
@@ -61,7 +61,7 @@ func (db *SampleGlobalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
 			Connection: db.conn,
-			TableName:         "sample-code",
+			TableName:  "sample-code",
 		},
 	}
 }
@@ -86,7 +86,7 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 func (db *SampleRegionalDB) SampleTable() *Table {
 	return &Table{
 		Connection: db.conn,
-		TableName:         "sample",
+		TableName:  "sample",
 		Factory: func() Object {
 			return &Sample{}
 		},
@@ -97,7 +97,7 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.conn,
-			TableName:         "sample-count",
+			TableName:  "sample-count",
 		},
 	}
 }
@@ -106,7 +106,7 @@ func (db *SampleRegionalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.conn,
-			TableName:         "sample-serial",
+			TableName:  "sample-serial",
 		},
 	}
 }
@@ -115,7 +115,7 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
 			Connection: db.conn,
-			TableName:         "sample-code",
+			TableName:  "sample-code",
 		},
 	}
 }
@@ -142,8 +142,8 @@ func (ss *SampleCoders) SampleCoder() Coder {
 
 // SampleCoder100 return sample code with 100 shards
 //
-func (ss *SampleCoders) SampleCoder300() Coder {
-	return ss.Coder("sample-code", 300)
+func (ss *SampleCoders) SampleCoder500() Coder {
+	return ss.Coder("sample-code", 500)
 }
 
 // DeleteSampleSerial delete sample serial
@@ -182,8 +182,8 @@ func (scs *SampleCounters) SampleCounter() Counter {
 
 // SampleCounter100 return sample counter with 100 shards
 //
-func (scs *SampleCounters) SampleCounter500() Counter {
-	return scs.Counter("sample-counter", 500)
+func (scs *SampleCounters) SampleCounter100() Counter {
+	return scs.Counter("sample-counter", 100)
 }
 
 // DeleteSampleCounter delete sample counter

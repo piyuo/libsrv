@@ -325,11 +325,11 @@ func (conn *ConnectionFirestore) Exist(ctx context.Context, tablename, id string
 	return true, nil
 }
 
-// List return max 10 object, if you need more! using query instead
+// All return max 10 object, if you need more! using query instead
 //
-//	return conn.List(ctx, tablename, factory)
+//	return conn.All(ctx, tablename, factory)
 //
-func (conn *ConnectionFirestore) List(ctx context.Context, tablename string, factory func() Object) ([]Object, error) {
+func (conn *ConnectionFirestore) All(ctx context.Context, tablename string, factory func() Object) ([]Object, error) {
 	collectionRef := conn.getCollectionRef(tablename)
 	list := []Object{}
 	var iter *firestore.DocumentIterator

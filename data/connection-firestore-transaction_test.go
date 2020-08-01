@@ -130,7 +130,7 @@ func methodTest(ctx context.Context, db SampleDB, table *Table, isGlobal bool) {
 		exist, err := table.Exist(ctx, sample1.ID)
 		So(err, ShouldBeNil)
 		So(exist, ShouldBeTrue)
-		objects, err := table.List(ctx)
+		objects, err := table.All(ctx)
 		So(err, ShouldBeNil)
 		So(len(objects), ShouldEqual, 1)
 		err = table.Delete(ctx, sample1.ID)
@@ -199,7 +199,7 @@ func methodTest(ctx context.Context, db SampleDB, table *Table, isGlobal bool) {
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 
-		objects, err := table.Search(ctx, "Name", "==", "sample1")
+		objects, err := table.List(ctx, "Name", "==", "sample1")
 		So(err, ShouldBeNil)
 		So(len(objects), ShouldEqual, 1)
 

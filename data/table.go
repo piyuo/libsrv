@@ -89,18 +89,18 @@ func (t *Table) Exist(ctx context.Context, id string) (bool, error) {
 	return t.Connection.Exist(ctx, t.TableName, id)
 }
 
-// List return objects in table, max 10 object, if you need more! using query instead
+// All return objects in table, max 10 object, if you need more! using query instead
 //
-//	list, err := table.List(ctx)
+//	list, err := table.All(ctx)
 //	So(len(list), ShouldEqual, 2)
 //	So(list[0].(*Sample).Name, ShouldStartWith, "sample")
 //	So(list[1].(*Sample).Name, ShouldStartWith, "sample")
 //
-func (t *Table) List(ctx context.Context) ([]Object, error) {
+func (t *Table) All(ctx context.Context) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	return t.Connection.List(ctx, t.TableName, t.Factory)
+	return t.Connection.All(ctx, t.TableName, t.Factory)
 }
 
 // Select return object specific field from database
@@ -194,16 +194,43 @@ func (t *Table) Find(ctx context.Context, field, operator string, value interfac
 	return nil, nil
 }
 
-// Search return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible, if you need more please use query
+// List return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible, if you need more please use query
 //
-//	objects, err := table.Search(ctx, "Name", "==", "sample")
-//	So(len(objects), ShouldEqual, 1)
+//	list, err := table.Search(ctx, "Name", "==", "sample")
+//	So(len(list), ShouldEqual, 1)
 //
-func (t *Table) Search(ctx context.Context, field, operator string, value interface{}) ([]Object, error) {
+func (t *Table) List(ctx context.Context, field, operator string, value interface{}) ([]Object, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	list, err := t.Query().Where(field, operator, value).Limit(10).Execute(ctx)
+
+	query := t.Query().Where(field, operator, value).Limit(10)
+	list, err := query.Execute(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+// SortList work like list but add sort function, please be aware you need create index on firestore in order to sort
+//
+//	list, err := table.SortList(ctx, "Name", "==", "sample","Value",ASC)
+//	So(len(list), ShouldEqual, 1)
+//
+func (t *Table) SortList(ctx context.Context, field, operator string, value interface{}, orderby string, order orderby) ([]Object, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	query := t.Query().Where(field, operator, value).Limit(10)
+	if orderby != "" {
+		if order == ASC {
+			query = query.OrderBy(orderby)
+		} else {
+			query = query.OrderByDesc(orderby)
+		}
+	}
+	list, err := query.Execute(ctx)
 	if err != nil {
 		return nil, err
 	}

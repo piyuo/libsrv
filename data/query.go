@@ -2,6 +2,20 @@ package data
 
 import "context"
 
+// orderby define order by asc or desc
+//
+type orderby int
+
+const (
+	// ASC mean order by asc
+	//
+	ASC orderby = iota
+
+	// DESC mean order by DESC
+	//
+	DESC
+)
+
 // Query represent query public method
 type Query interface {
 	// Where set where filter

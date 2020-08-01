@@ -291,7 +291,7 @@ func testListQueryFindCountClear(ctx context.Context, table *Table) {
 	err = table.Set(ctx, sample2)
 	So(err, ShouldBeNil)
 
-	list, err := table.List(ctx)
+	list, err := table.All(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So(list[0].(*Sample).Name, ShouldStartWith, "sample")
@@ -302,7 +302,7 @@ func testListQueryFindCountClear(ctx context.Context, table *Table) {
 	table.Factory = func() Object {
 		return nil
 	}
-	listX, err := table.List(ctx)
+	listX, err := table.All(ctx)
 	So(err, ShouldNotBeNil)
 	So(listX, ShouldBeNil)
 	table.Factory = bakFactory
@@ -337,7 +337,7 @@ func testSearchCountIsEmpty(ctx context.Context, table *Table) {
 	err := table.Set(ctx, sample)
 	So(err, ShouldBeNil)
 
-	objects, err := table.Search(ctx, "Name", "==", "sample")
+	objects, err := table.List(ctx, "Name", "==", "sample")
 	So(err, ShouldBeNil)
 	So(len(objects), ShouldEqual, 1)
 
@@ -392,7 +392,7 @@ func testConnectionContextCanceled(table *Table) {
 	So(err, ShouldNotBeNil)
 	err = table.DeleteObject(ctx, sample)
 	So(err, ShouldNotBeNil)
-	_, err = table.List(ctx)
+	_, err = table.All(ctx)
 	So(err, ShouldNotBeNil)
 	_, err = table.Exist(ctx, "notexist")
 	So(err, ShouldNotBeNil)
@@ -413,9 +413,11 @@ func testConnectionContextCanceled(table *Table) {
 	So(err, ShouldNotBeNil)
 	err = table.Increment(ctx, "notexist", "Value", 2)
 	So(err, ShouldNotBeNil)
-	_, err = table.Search(ctx, "Name", "==", "1")
+	_, err = table.List(ctx, "Name", "==", "1")
 	So(err, ShouldNotBeNil)
-	_, err = table.List(ctx)
+	_, err = table.SortList(ctx, "Name", "==", "1", "", ASC)
+	So(err, ShouldNotBeNil)
+	_, err = table.All(ctx)
 	So(err, ShouldNotBeNil)
 	_, err = table.IsEmpty(ctx)
 	So(err, ShouldNotBeNil)

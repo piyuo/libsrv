@@ -65,8 +65,8 @@ func TestConcurrentDB(t *testing.T) {
 				sRoot := sRootRef.(*Sample)
 
 				// read count first to avoid read after write error
-				counter := sdb.Counters().SampleCounter500()
-				coder := sdb.Coders().SampleCoder300()
+				counter := sdb.Counters().SampleCounter100()
+				coder := sdb.Coders().SampleCoder500()
 
 				num, err2 := coder.NumberRX()
 				if err2 != nil {

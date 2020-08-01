@@ -46,11 +46,11 @@ type Connection interface {
 	//
 	Exist(ctx context.Context, tablename, id string) (bool, error)
 
-	// List return max 10 object, if you need more! using query instead
+	// All return max 10 object, if you need more! using query instead
 	//
-	//	return conn.List(ctx, tablename, factory)
+	//	return conn.All(ctx, tablename, factory)
 	//
-	List(ctx context.Context, tablename string, factory func() Object) ([]Object, error)
+	All(ctx context.Context, tablename string, factory func() Object) ([]Object, error)
 
 	// Select return object field from data store, return nil if object does not exist
 	//
