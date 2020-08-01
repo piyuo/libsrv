@@ -21,9 +21,7 @@ type CoderFirestore struct {
 
 	numberShardIndex int
 
-	numberCanCreateShard bool
-
-	numberCanIncrementShard bool
+	numberShardExist bool
 }
 
 // CodeRX encode uint32 number into string, must used it in transaction with CodeWX()
@@ -130,30 +128,59 @@ func (c *CoderFirestore) NumberRX() (int64, error) {
 		return 0, errors.New("this function must run in transaction")
 	}
 
-	_, shardsRef := c.getRef()
 	c.numberCallRX = true
-	c.numberCanCreateShard = false
-	c.numberCanIncrementShard = false
-	c.numberShardIndex = rand.Intn(c.numShards)
-	shardID := strconv.Itoa(c.numberShardIndex)
+	c.numberShardExist = false
+	pick, exist, value, err := c.pickShardWithRetry()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get shard: "+c.errorID())
+	}
 
-	snapshot, err := c.conn.tx.Get(shardsRef.Doc(shardID))
+	c.numberShardIndex = pick
+	c.numberShardExist = exist
+	return value, nil
+}
+
+// pickShardWithRetry random pick a shard, return shardIndex, isShardExist,value, error
+//
+func (c *CoderFirestore) pickShardWithRetry() (int, bool, int64, error) {
+	var err error
+	var pick int
+	var exist bool
+	var value int64
+	for i := 0; i < 3; i++ {
+		pick, exist, value, err = c.pickShard()
+		if err == nil {
+			return pick, exist, value, err
+		}
+	}
+	return 0, false, 0, err
+}
+
+// pickShard random pick a shard, return shardIndex, isShardExist, error
+//
+func (c *CoderFirestore) pickShard() (int, bool, int64, error) {
+	pick := rand.Intn(c.numShards)
+	_, shardsRef := c.getRef()
+	shardID := strconv.Itoa(pick)
+	shardRef := shardsRef.Doc(shardID)
+	snapshot, err := c.conn.tx.Get(shardRef)
 	if snapshot != nil && !snapshot.Exists() {
-		c.numberCanCreateShard = true
-		return int64(1*c.numShards + c.numberShardIndex), nil
+		// value format is incrementValue+shardIndex, e.g. 12 , 1= increment value, 2=shard index
+		value := int64(c.numShards + pick)
+		return pick, false, value, nil
 	}
 
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get number: "+c.errorID())
+		return 0, false, 0, err
 	}
+
 	idRef, err := snapshot.DataAt("N")
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get value from number: "+c.errorID())
+		return 0, false, 0, errors.Wrap(err, "failed to get value from number: "+c.errorID())
 	}
 	id := idRef.(int64)
-	c.numberCanIncrementShard = true
-	value := (id+1)*int64(c.numShards) + int64(c.numberShardIndex)
-	return value, nil
+	value := (id+1)*int64(c.numShards) + int64(pick)
+	return pick, true, value, nil
 }
 
 // NumberWX commit NumberRX()
@@ -176,7 +203,15 @@ func (c *CoderFirestore) NumberWX() error {
 	docRef, shardsRef := c.getRef()
 	shardID := strconv.Itoa(c.numberShardIndex)
 	shardRef := shardsRef.Doc(shardID)
-	if c.numberCanCreateShard {
+	if c.numberShardExist {
+		err := c.conn.tx.Update(shardRef, []firestore.Update{
+			{Path: "N", Value: firestore.Increment(1)},
+		})
+		if err != nil {
+			return errors.Wrap(err, "failed to increment shard: "+c.errorID())
+		}
+
+	} else {
 		// create shards document
 		err := c.conn.tx.Set(docRef, &struct{}{}) //put empty struct
 		if err != nil {
@@ -190,17 +225,8 @@ func (c *CoderFirestore) NumberWX() error {
 		}
 	}
 
-	if c.numberCanIncrementShard {
-		err := c.conn.tx.Update(shardRef, []firestore.Update{
-			{Path: "N", Value: firestore.Increment(1)},
-		})
-		if err != nil {
-			return errors.Wrap(err, "failed to increment shard: "+c.errorID())
-		}
-	}
 	c.numberCallRX = false
-	c.numberCanCreateShard = false
-	c.numberCanIncrementShard = false
+	c.numberShardExist = false
 	c.numberShardIndex = -1
 	return nil
 }

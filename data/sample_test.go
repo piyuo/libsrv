@@ -182,8 +182,8 @@ func (scs *SampleCounters) SampleCounter() Counter {
 
 // SampleCounter100 return sample counter with 100 shards
 //
-func (scs *SampleCounters) SampleCounter100() Counter {
-	return scs.Counter("sample-counter", 100)
+func (scs *SampleCounters) SampleCounter500() Counter {
+	return scs.Counter("sample-counter", 500)
 }
 
 // DeleteSampleCounter delete sample counter

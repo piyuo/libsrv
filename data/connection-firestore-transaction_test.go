@@ -18,7 +18,9 @@ func TestTransaction(t *testing.T) {
 		defer removeSampleTable(samplesG, samplesR)
 
 		transactionTest(ctx, dbG, samplesG)
+		transactionTest(ctx, dbR, samplesR)
 		methodTest(ctx, dbG, samplesG, true)
+		methodTest(ctx, dbR, samplesR, false)
 	})
 }
 
