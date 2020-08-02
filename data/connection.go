@@ -78,6 +78,12 @@ type Connection interface {
 	//
 	DeleteObject(ctx context.Context, tablename string, obj Object) error
 
+	// DeleteBatch delete list of id, no error if id not exist
+	//
+	//	conn.DeleteBatch(ctx, dt.tablename, ids)
+	//
+	DeleteBatch(ctx context.Context, tablename string, ids []string) error
+
 	// Clear delete all object in specific time, 500 documents at a time, return false if still has object need to be delete
 	//	if in transaction , only 500 documents can be delete
 	//

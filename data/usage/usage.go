@@ -1,10 +1,10 @@
-package data
+package usage
 
-/*
 import (
 	"context"
 	"time"
 
+	"github.com/piyuo/libsrv/data"
 	"github.com/pkg/errors"
 )
 
@@ -15,19 +15,25 @@ type Usage interface {
 	//
 	//	err = usage.Get(ctx, "aaa@mail.com", 1 day)
 	//
-	Count(ctx context.Context, key string, duration time.Duration) (int, error)
+	Count(ctx context.Context, group, key string, duration time.Duration) (int, time.Duration, error)
 
 	// Add usage
 	//
 	//	err = usage.Add(ctx, "aaa@mail.com", 10,)
 	//
-	Add(ctx context.Context, key string) error
+	Add(ctx context.Context, group, key string) error
 
 	// Remove usage
 	//
 	//	err = usage.Add(ctx, "aaa@mail.com")
 	//
-	Remove(ctx context.Context, key string) error
+	Remove(ctx context.Context, group, key string) error
+
+	// Maintenance usage by remove old data,return true if no more data need to delete
+	//
+	//	err = usage.Maintenance(ctx)
+	//
+	Maintenance(ctx context.Context, expired time.Time) (bool, error)
 }
 
 // baseUsage implement Usage
@@ -37,11 +43,11 @@ type baseUsage struct {
 
 	// table is usage table
 	//
-	table *Table
+	table *data.Table
 }
 
 type usage struct {
-	BaseObject `firestore:"-"`
+	data.BaseObject `firestore:"-"`
 	// Group is group name, key are separate by group
 	//
 	Group string
@@ -55,11 +61,11 @@ type usage struct {
 
 // NewUsage return Usage
 //
-func NewUsage(conn Connection) Usage {
-	table := &Table{
+func NewUsage(conn data.Connection) Usage {
+	table := &data.Table{
 		Connection: conn,
-		TableName:  "usage",
-		Factory: func() Object {
+		TableName:  "Usage",
+		Factory: func() data.Object {
 			return &usage{}
 		},
 	}
@@ -68,7 +74,7 @@ func NewUsage(conn Connection) Usage {
 	}
 }
 
-// Count return usage of duration
+// Count return usage count of duration and most recent usage time
 //
 //	count,lastDuration,err = usage.Count(ctx, "aaa@mail.com", time.Duration(24)*time.Hour)
 //
@@ -124,15 +130,14 @@ func (c *baseUsage) Remove(ctx context.Context, group, key string) error {
 
 // Maintenance remove usage that is over 1 month, return true if no more usage record need to be delete
 //
-//	err = usage.Maintenance(ctx, "aaa@mail.com",time.Duration(1) * time.Second)
+//	err = usage.Maintenance(ctx)
 //
-func Maintenance(ctx context.Context) bool {
-	checkPoint := time.Now().UTC().Add(time.Duration(1) * time.Second)
+func (c *baseUsage) Maintenance(ctx context.Context, expired time.Time) (bool, error) {
 
-	q := c.table.Query().Where("Time", "<", checkPoint).Limit(1000)
-	list, err := q.Execute(ctx)
+	q := c.table.Query().Where("Time", "<", expired).Limit(1000)
+	idlist, err := q.ExecuteID(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to list usage group: "+group+",key: "+key)
+		return false, errors.Wrap(err, "failed to list usage: "+expired.Format("2006-01-02 15:04:05"))
 	}
 	for _, u := range list {
 		if err := c.table.DeleteObject(ctx, u); err != nil {
@@ -141,4 +146,3 @@ func Maintenance(ctx context.Context) bool {
 	}
 	return nil
 }
-*/

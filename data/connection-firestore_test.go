@@ -378,6 +378,21 @@ func testDelete(ctx context.Context, table *Table) {
 	exist, err = table.Exist(ctx, sample.ID)
 	So(err, ShouldBeNil)
 	So(exist, ShouldBeFalse)
+
+	//delete batch
+	err = table.Set(ctx, sample)
+	So(err, ShouldBeNil)
+	exist, err = table.Exist(ctx, sample.ID)
+	So(err, ShouldBeNil)
+	So(exist, ShouldBeTrue)
+
+	ids := []string{sample.ID}
+	err = table.DeleteBatch(ctx, ids)
+	So(err, ShouldBeNil)
+	exist, err = table.Exist(ctx, sample.ID)
+	So(err, ShouldBeNil)
+	So(exist, ShouldBeFalse)
+
 }
 
 func testConnectionContextCanceled(table *Table) {
@@ -391,6 +406,8 @@ func testConnectionContextCanceled(table *Table) {
 	err = table.Delete(ctx, "notexist")
 	So(err, ShouldNotBeNil)
 	err = table.DeleteObject(ctx, sample)
+	So(err, ShouldNotBeNil)
+	err = table.DeleteBatch(ctx, []string{})
 	So(err, ShouldNotBeNil)
 	_, err = table.All(ctx)
 	So(err, ShouldNotBeNil)

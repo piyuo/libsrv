@@ -186,7 +186,7 @@ func (conn *ConnectionFirestore) Close() {
 
 // BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
 //
-//	err := conn.BatchBegin(ctx)
+//	err := conn.BatchBegin()
 //
 func (conn *ConnectionFirestore) BatchBegin() {
 	conn.batch = conn.client.Batch()
@@ -507,6 +507,25 @@ func (conn *ConnectionFirestore) Delete(ctx context.Context, tablename, id strin
 	_, err := docRef.Delete(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete: "+conn.errorID(tablename, id))
+	}
+	return nil
+}
+
+// DeleteBatch delete list of id use batch mode, no error if id not exist
+//
+//	conn.DeleteBatch(ctx, dt.tablename, ids)
+//
+func (conn *ConnectionFirestore) DeleteBatch(ctx context.Context, tablename string, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	conn.BatchBegin()
+	for _, id := range ids {
+		conn.Delete(ctx, tablename, id)
+	}
+	if err := conn.BatchCommit(ctx); err != nil {
+		return err
 	}
 	return nil
 }

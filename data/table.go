@@ -151,6 +151,17 @@ func (t *Table) DeleteObject(ctx context.Context, object Object) error {
 	return t.Connection.DeleteObject(ctx, t.TableName, object)
 }
 
+// DeleteBatch delete list of id use batch mode, no error if id not exist
+//
+//	table.DeleteBatch(ctx, ids)
+//
+func (t *Table) DeleteBatch(ctx context.Context, ids []string) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return t.Connection.DeleteBatch(ctx, t.TableName, ids)
+}
+
 // Clear delete all object in specific time, 500 documents at a time, if in transaction , only 10 documents can be delete
 //
 //	err = table.Clear(ctx)
