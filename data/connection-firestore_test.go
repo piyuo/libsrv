@@ -380,13 +380,18 @@ func testDelete(ctx context.Context, table *Table) {
 	So(exist, ShouldBeFalse)
 
 	//delete batch
+	//delete empty batch
+	ids := []string{}
+	err = table.DeleteBatch(ctx, ids)
+	So(err, ShouldBeNil)
+
 	err = table.Set(ctx, sample)
 	So(err, ShouldBeNil)
 	exist, err = table.Exist(ctx, sample.ID)
 	So(err, ShouldBeNil)
 	So(exist, ShouldBeTrue)
 
-	ids := []string{sample.ID}
+	ids = []string{sample.ID}
 	err = table.DeleteBatch(ctx, ids)
 	So(err, ShouldBeNil)
 	exist, err = table.Exist(ctx, sample.ID)
