@@ -61,9 +61,9 @@ type usage struct {
 
 // NewUsage return Usage
 //
-func NewUsage(conn data.Connection) Usage {
+func NewUsage(db data.DB) Usage {
 	table := &data.Table{
-		Connection: conn,
+		Connection: db.Connection(),
 		TableName:  "Usage",
 		Factory: func() data.Object {
 			return &usage{}
@@ -135,14 +135,16 @@ func (c *baseUsage) Remove(ctx context.Context, group, key string) error {
 func (c *baseUsage) Maintenance(ctx context.Context, expired time.Time) (bool, error) {
 
 	q := c.table.Query().Where("Time", "<", expired).Limit(1000)
-	idlist, err := q.ExecuteID(ctx)
+	list, err := q.ExecuteID(ctx)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to list usage: "+expired.Format("2006-01-02 15:04:05"))
 	}
-	for _, u := range list {
-		if err := c.table.DeleteObject(ctx, u); err != nil {
-			return err
-		}
+	err = c.table.DeleteBatch(ctx, list)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to delete usage: "+expired.Format("2006-01-02 15:04:05"))
 	}
-	return nil
+	if len(list) < 1000 {
+		return true, nil
+	}
+	return false, nil
 }

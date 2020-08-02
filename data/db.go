@@ -81,9 +81,9 @@ type DB interface {
 type BaseDB struct {
 	DB
 
-	// conn is current database connection
+	// Conn is current database connection
 	//
-	conn Connection
+	Conn Connection
 }
 
 // Connection return current connection
@@ -91,7 +91,7 @@ type BaseDB struct {
 //	conn := db.Connection()
 //
 func (db *BaseDB) Connection() Connection {
-	return db.conn
+	return db.Conn
 }
 
 // Close connection
@@ -99,9 +99,9 @@ func (db *BaseDB) Connection() Connection {
 //	db.Close()
 //
 func (db *BaseDB) Close() {
-	if db.conn != nil {
-		db.conn.Close()
-		db.conn = nil
+	if db.Conn != nil {
+		db.Conn.Close()
+		db.Conn = nil
 	}
 }
 
@@ -110,7 +110,7 @@ func (db *BaseDB) Close() {
 //	err := conn.BatchBegin(ctx)
 //
 func (db *BaseDB) BatchBegin() {
-	db.conn.BatchBegin()
+	db.Conn.BatchBegin()
 }
 
 // BatchCommit commit batch operation
@@ -121,7 +121,7 @@ func (db *BaseDB) BatchCommit(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.conn.BatchCommit(ctx)
+	return db.Conn.BatchCommit(ctx)
 }
 
 // InBatch return true if connection is in batch mode
@@ -129,7 +129,7 @@ func (db *BaseDB) BatchCommit(ctx context.Context) error {
 //	inBatch := conn.InBatch()
 //
 func (db *BaseDB) InBatch() bool {
-	return db.conn.InBatch()
+	return db.Conn.InBatch()
 }
 
 // Transaction start a transaction
@@ -143,7 +143,7 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.conn.Transaction(ctx, callback)
+	return db.Conn.Transaction(ctx, callback)
 }
 
 // InTransaction return true if connection is in transaction
@@ -151,7 +151,7 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 //	inTx := conn.InTransaction()
 //
 func (db *BaseDB) InTransaction() bool {
-	return db.conn.InTransaction()
+	return db.Conn.InTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist
@@ -162,7 +162,7 @@ func (db *BaseDB) CreateNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.conn.CreateNamespace(ctx)
+	return db.Conn.CreateNamespace(ctx)
 }
 
 // DeleteNamespace delete namespace
@@ -173,15 +173,5 @@ func (db *BaseDB) DeleteNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.conn.DeleteNamespace(ctx)
+	return db.Conn.DeleteNamespace(ctx)
 }
-
-/*
-// Usage return usage object
-//
-//	usage := db.Usage()
-//
-func (db *BaseDB) Usage() Usage {
-	return NewUsage(db.conn)
-}
-*/

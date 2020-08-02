@@ -24,14 +24,14 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 		return nil, err
 	}
 	db := &SampleGlobalDB{
-		BaseDB: BaseDB{conn: conn},
+		BaseDB: BaseDB{Conn: conn},
 	}
 	return db, nil
 }
 
 func (db *SampleGlobalDB) SampleTable() *Table {
 	return &Table{
-		Connection: db.conn,
+		Connection: db.Conn,
 		TableName:  "sample",
 		Factory: func() Object {
 			return &Sample{}
@@ -42,7 +42,7 @@ func (db *SampleGlobalDB) SampleTable() *Table {
 func (db *SampleGlobalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
-			Connection: db.conn,
+			Connection: db.Conn,
 			TableName:  "sample-count",
 		},
 	}
@@ -51,7 +51,7 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 func (db *SampleGlobalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
-			Connection: db.conn,
+			Connection: db.Conn,
 			TableName:  "sample-serial",
 		},
 	}
@@ -60,7 +60,7 @@ func (db *SampleGlobalDB) Serials() *SampleSerials {
 func (db *SampleGlobalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
-			Connection: db.conn,
+			Connection: db.Conn,
 			TableName:  "sample-code",
 		},
 	}
@@ -78,14 +78,14 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 		return nil, err
 	}
 	db := &SampleRegionalDB{
-		BaseDB: BaseDB{conn: conn},
+		BaseDB: BaseDB{Conn: conn},
 	}
 	return db, nil
 }
 
 func (db *SampleRegionalDB) SampleTable() *Table {
 	return &Table{
-		Connection: db.conn,
+		Connection: db.Conn,
 		TableName:  "sample",
 		Factory: func() Object {
 			return &Sample{}
@@ -96,7 +96,7 @@ func (db *SampleRegionalDB) SampleTable() *Table {
 func (db *SampleRegionalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
-			Connection: db.conn,
+			Connection: db.Conn,
 			TableName:  "sample-count",
 		},
 	}
@@ -105,7 +105,7 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 func (db *SampleRegionalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
-			Connection: db.conn,
+			Connection: db.Conn,
 			TableName:  "sample-serial",
 		},
 	}
@@ -114,7 +114,7 @@ func (db *SampleRegionalDB) Serials() *SampleSerials {
 func (db *SampleRegionalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
-			Connection: db.conn,
+			Connection: db.Conn,
 			TableName:  "sample-code",
 		},
 	}
