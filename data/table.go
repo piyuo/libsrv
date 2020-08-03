@@ -184,7 +184,7 @@ func (t *Table) Query() Query {
 	return t.Connection.Query(t.TableName, t.Factory)
 }
 
-// Find return first object in table
+// Find return first object in table, return nil if not found
 //
 //	obj, err = table.Find(ctx, "Value", "==", 1)
 //	So((obj.(*Sample)).Name, ShouldEqual, "sample")

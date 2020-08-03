@@ -48,7 +48,7 @@ func GetIP(r *http.Request) string {
 
 // GetLocale parse http header Accept-Language field and return first one as default language
 //
-//	defaultLanguage := GetLanguage(request)
+//	defaultLocale := GetLocale(request)
 //
 func GetLocale(r *http.Request) string {
 	languages := parseAcceptLanguage(r.Header.Get("Accept-Language"))

@@ -2,6 +2,9 @@ package util
 
 import (
 	"encoding/binary"
+	"math/rand"
+	"strings"
+	"time"
 
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/google/uuid"
@@ -52,4 +55,42 @@ func SerialID64(i uint64) string {
 	bytes := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bytes, i)
 	return base58.Encode(bytes)
+}
+
+var randSrc rand.Source
+
+const letterBytes = "1234567890"
+const (
+	letterIdxBits = 4                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+// RandomNumber return number string by given digit
+//
+//	id := RandomNumber(6) //062448
+//
+func RandomNumber(digit int) string {
+	if randSrc == nil {
+		randSrc = rand.NewSource(time.Now().UnixNano())
+	}
+	sb := strings.Builder{}
+	sb.Grow(digit)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := digit-1, randSrc.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = randSrc.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			sb.WriteByte(letterBytes[idx])
+			i--
+		}
+		l := sb.Len()
+		if l == 9 || l == 14 {
+			sb.WriteString("-")
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+	return sb.String()
 }

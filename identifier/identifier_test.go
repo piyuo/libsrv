@@ -42,3 +42,18 @@ func TestSerialID64(t *testing.T) {
 		//}
 	})
 }
+
+func TestRandomNumber(t *testing.T) {
+	Convey("should generate 6 digit random number string", t, func() {
+		id := RandomNumber(6)
+		So(id, ShouldNotBeEmpty)
+		So(len(id), ShouldEqual, 6)
+		fmt.Printf("%v, %v\n", id, len(id))
+	})
+}
+
+func BenchmarkRandomNumber(b *testing.B) {
+	for i := 0; i < 10000; i++ {
+		RandomNumber(6)
+	}
+}

@@ -133,16 +133,16 @@ type Email struct {
 	Address string
 }
 
-// NewMail return Mail instance
+// NewMail return Mail instance, require template name and locale to find template
 //
-//	m, err := mail.NewMail("verify", "en-US")
+//	m, err := mail.NewMail("verify", "en-us")
 //	m.AddTo("piyuo", "piyuo.com@gmail.com")
 //	m.ReplaceText("%1", "1234")
 //	m.ReplaceHTML("%1", "1234")
 //	m.Send(ctx)
 //
-func NewMail(templateName, language string) (Mail, error) {
-	template, err := getTemplate(templateName, language)
+func NewMail(templateName, locale string) (Mail, error) {
+	template, err := getTemplate(templateName, locale)
 	if err != nil {
 		return nil, err
 	}
@@ -151,10 +151,10 @@ func NewMail(templateName, language string) (Mail, error) {
 
 // getTemplate get mail template
 //
-//	template, err := getTemplate(templateName, language)
+//	template, err := getTemplate("verify", "en-us")
 //
-func getTemplate(templateName, language string) (*template, error) {
-	filename := templateName + "_" + language + ".json"
+func getTemplate(templateName, locale string) (*template, error) {
+	filename := templateName + "_" + locale + ".json"
 	keyname := "MAIL" + filename
 	value, found := cache.Get(keyname)
 	if found {
