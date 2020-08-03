@@ -14,7 +14,7 @@ func TestDBInCanceledContext(t *testing.T) {
 		ctxCanceled := util.CanceledCtx()
 
 		dbR, _ := NewSampleRegionalDB(ctx, "sample-namespace")
-		So(dbR.Connection(), ShouldNotBeNil)
+		So(dbR.GetConnection(), ShouldNotBeNil)
 
 		err := dbR.DeleteNamespace(ctxCanceled)
 		So(err, ShouldNotBeNil)

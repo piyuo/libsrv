@@ -63,11 +63,11 @@ type DB interface {
 	//
 	InTransaction() bool
 
-	// Connection return current connection
+	// GetConnection return current connection
 	//
-	//	conn := db.Connection()
+	//	conn := db.GetConnection()
 	//
-	Connection() Connection
+	GetConnection() Connection
 
 	// Usage return usage object
 	//
@@ -83,15 +83,15 @@ type BaseDB struct {
 
 	// Conn is current database connection
 	//
-	Conn Connection
+	Connection Connection
 }
 
-// Connection return current connection
+// GetConnection return current connection
 //
-//	conn := db.Connection()
+//	conn := db.GetConnection()
 //
-func (db *BaseDB) Connection() Connection {
-	return db.Conn
+func (db *BaseDB) GetConnection() Connection {
+	return db.Connection
 }
 
 // Close connection
@@ -99,9 +99,9 @@ func (db *BaseDB) Connection() Connection {
 //	db.Close()
 //
 func (db *BaseDB) Close() {
-	if db.Conn != nil {
-		db.Conn.Close()
-		db.Conn = nil
+	if db.Connection != nil {
+		db.Connection.Close()
+		db.Connection = nil
 	}
 }
 
@@ -110,7 +110,7 @@ func (db *BaseDB) Close() {
 //	err := conn.BatchBegin(ctx)
 //
 func (db *BaseDB) BatchBegin() {
-	db.Conn.BatchBegin()
+	db.Connection.BatchBegin()
 }
 
 // BatchCommit commit batch operation
@@ -121,7 +121,7 @@ func (db *BaseDB) BatchCommit(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Conn.BatchCommit(ctx)
+	return db.Connection.BatchCommit(ctx)
 }
 
 // InBatch return true if connection is in batch mode
@@ -129,7 +129,7 @@ func (db *BaseDB) BatchCommit(ctx context.Context) error {
 //	inBatch := conn.InBatch()
 //
 func (db *BaseDB) InBatch() bool {
-	return db.Conn.InBatch()
+	return db.Connection.InBatch()
 }
 
 // Transaction start a transaction
@@ -143,7 +143,7 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Conn.Transaction(ctx, callback)
+	return db.Connection.Transaction(ctx, callback)
 }
 
 // InTransaction return true if connection is in transaction
@@ -151,7 +151,7 @@ func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Con
 //	inTx := conn.InTransaction()
 //
 func (db *BaseDB) InTransaction() bool {
-	return db.Conn.InTransaction()
+	return db.Connection.InTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist
@@ -162,7 +162,7 @@ func (db *BaseDB) CreateNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Conn.CreateNamespace(ctx)
+	return db.Connection.CreateNamespace(ctx)
 }
 
 // DeleteNamespace delete namespace
@@ -173,5 +173,5 @@ func (db *BaseDB) DeleteNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Conn.DeleteNamespace(ctx)
+	return db.Connection.DeleteNamespace(ctx)
 }
