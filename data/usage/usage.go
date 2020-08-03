@@ -11,21 +11,25 @@ import (
 // Usage can track usage in certain duration
 //
 type Usage interface {
+
 	// Count return usage of duration
 	//
-	//	err = usage.Get(ctx, "aaa@mail.com", 1 day)
+	//	count, recent, err := usage.Count(ctx, group, key, time.Duration(1)*time.Second)
+	//	So(err, ShouldBeNil)
 	//
-	Count(ctx context.Context, group, key string, duration time.Duration) (int, time.Duration, error)
+	Count(ctx context.Context, group, key string, expired time.Time) (int, time.Time, error)
 
 	// Add usage
 	//
-	//	err = usage.Add(ctx, "aaa@mail.com", 10,)
+	//	err = usage.Add(ctx, group, key)
+	//	So(err, ShouldBeNil)
 	//
 	Add(ctx context.Context, group, key string) error
 
 	// Remove usage
 	//
-	//	err = usage.Add(ctx, "aaa@mail.com")
+	//	err = usage.Remove(ctx, group, key)
+	//	So(err, ShouldBeNil)
 	//
 	Remove(ctx context.Context, group, key string) error
 
@@ -74,28 +78,29 @@ func NewUsage(db data.DB) Usage {
 	}
 }
 
-// Count return usage count of duration and most recent usage time
+// Count return usage of duration
 //
-//	count,lastDuration,err = usage.Count(ctx, "aaa@mail.com", time.Duration(24)*time.Hour)
+//	count, recent, err := usage.Count(ctx, group, key, time.Duration(1)*time.Second)
+//	So(err, ShouldBeNil)
 //
-func (c *baseUsage) Count(ctx context.Context, group, key string, duration time.Duration) (int, time.Duration, error) {
-	q := c.table.Query().Where("Group", "==", group).Where("Key", "==", key).Limit(10).OrderByDesc("Time")
+func (c *baseUsage) Count(ctx context.Context, group, key string, expired time.Time) (int, time.Time, error) {
+	q := c.table.Query().Where("Group", "==", group).Where("Key", "==", key).Where("Time", ">=", expired).Limit(10).OrderByDesc("Time")
 	list, err := q.Execute(ctx)
 	if err != nil {
-		return 0, 0, errors.Wrap(err, "failed to count usage group: "+group+",key: "+key)
+		return 0, time.Time{}, errors.Wrap(err, "failed to count usage group: "+group+",key: "+key)
 	}
 	count := len(list)
 	if count > 0 {
 		u := list[0].(*usage)
-		diff := time.Now().UTC().Sub(u.Time)
-		return count, diff, nil
+		return count, u.Time, nil
 	}
-	return 0, 0, nil
+	return 0, time.Time{}, nil
 }
 
 // Add usage
 //
-//	err = usage.Add(ctx,"email", "aaa@mail.com")
+//	err = usage.Add(ctx, group, key)
+//	So(err, ShouldBeNil)
 //
 func (c *baseUsage) Add(ctx context.Context, group, key string) error {
 	u := &usage{
@@ -112,7 +117,8 @@ func (c *baseUsage) Add(ctx context.Context, group, key string) error {
 
 // Remove usage
 //
-//	err = usage.Add(ctx,"email", "aaa@mail.com")
+//	err = usage.Remove(ctx, group, key)
+//	So(err, ShouldBeNil)
 //
 func (c *baseUsage) Remove(ctx context.Context, group, key string) error {
 	q := c.table.Query().Where("Group", "==", group).Where("Key", "==", key).Limit(10)
@@ -128,7 +134,7 @@ func (c *baseUsage) Remove(ctx context.Context, group, key string) error {
 	return nil
 }
 
-// Maintenance remove usage that is over 1 month, return true if no more usage record need to be delete
+// Maintenance usage by remove old data,return true if no more data need to delete
 //
 //	err = usage.Maintenance(ctx)
 //

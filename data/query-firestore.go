@@ -161,8 +161,7 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	if qf.limit == 0 {
 		qf.Limit(limitQueryDefault)
 	}
-	var resultSet []Object
-
+	result := []Object{}
 	var iter *firestore.DocumentIterator
 	if qf.conn.tx != nil {
 		iter = qf.conn.tx.Documents(qf.query)
@@ -193,9 +192,9 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 		object.SetCreateTime(snapshot.CreateTime)
 		object.SetUpdateTime(snapshot.UpdateTime)
 		object.SetReadTime(snapshot.ReadTime)
-		resultSet = append(resultSet, object)
+		result = append(result, object)
 	}
-	return resultSet, nil
+	return result, nil
 }
 
 // ExecuteID query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
