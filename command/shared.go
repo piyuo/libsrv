@@ -26,6 +26,14 @@ func Error(errCode string) interface{} {
 	}
 }
 
+// IsOK return true if object is shared.Err and code is Empty
+//
+//	is := command.IsOK(response)
+//
+func IsOK(x interface{}) bool {
+	return IsError(x, "")
+}
+
 // IsError return true if object is shared.Err and code is the same
 //
 //	is := command.IsError(response,"INVALID_EMAIL")

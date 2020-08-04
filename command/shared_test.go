@@ -23,6 +23,11 @@ func TestShared(t *testing.T) {
 		So(err.Code, ShouldEqual, "errCode")
 	})
 
+	Convey("should be OK", t, func() {
+		err := Error("")
+		So(IsOK(err), ShouldBeTrue)
+	})
+
 	Convey("should be INVALID_MAIL error", t, func() {
 		err := Error("INVALID_MAIL")
 		So(IsError(err, "INVALID_MAIL"), ShouldBeTrue)
