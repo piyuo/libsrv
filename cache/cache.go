@@ -6,16 +6,59 @@ import (
 	goCache "github.com/patrickmn/go-cache"
 )
 
-// Create a cache with a default expiration time of 5 minutes, and which
-// purges expired items every 10 minutes
+// Frequency define cache item use frequency
 //
-var cache = goCache.New(5*time.Minute, 10*time.Minute)
+type Frequency int
 
-// Set Add an item to the cache, replacing any existing item. If the duration is 0
-// (DefaultExpiration), the cache's default expiration time is used. If it is -1
-// (NoExpiration), the item never expires.
+const (
+	// LOW frequency only keep item in 3 min and cached item total count must less than 1,000
+	//
+	LOW Frequency = iota
+
+	// MEDIUM frequency Frequency keep item in 10 min and cached item total count must less than 5,000
+	//
+	MEDIUM
+
+	// HIGH frequency Frequency will keep in cache 24 hour and total count must less than 10,000
+	//
+	HIGH
+)
+
+// cache a cache with a default expiration time of 5 minutes, and which purges expired items every 4 minutes
 //
-func Set(key string, value interface{}, duration time.Duration) {
+var cache = goCache.New(10*time.Minute, 3*time.Minute)
+
+// Set Add an item to the cache, replacing any existing item. you need specify frequency this item will be use,
+//
+// Low Frequency = cache 3 min, total limit 1,000
+//
+// Medium Frequency = cache 10 min, total limit 5,000
+//
+// High Frequency = cache 24 hour , total limit 10,000
+//
+func Set(freq Frequency, key string, value interface{}) {
+	var d time.Duration
+	switch freq {
+	case LOW:
+		d = 180 * time.Second
+		if Count() >= 1000 {
+			return
+		}
+	case MEDIUM:
+		d = 600 * time.Second
+		if Count() >= 5000 {
+			return
+		}
+	default:
+		d = 24 * time.Hour
+		if Count() >= 10000 {
+			return
+		}
+	}
+	cache.Set(key, value, d)
+}
+
+func set(key string, value interface{}, duration time.Duration) {
 	cache.Set(key, value, duration)
 }
 
@@ -41,4 +84,10 @@ func Delete(key string) {
 //
 func configCache(defaultExpiration, cleanupInterval time.Duration) {
 	cache = goCache.New(defaultExpiration, cleanupInterval)
+}
+
+// Count return cache item total count
+//
+func Count() int {
+	return cache.ItemCount()
 }
