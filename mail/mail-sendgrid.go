@@ -66,7 +66,7 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 	client := sendgrid.NewSendClient(sendgridKey)
 	response, err := client.Send(m)
 	if err != nil {
-		return errors.Wrap(err, "failed to send mail: "+c.Subject)
+		return errors.Wrap(err, "failed to send sendgrid mail: "+c.Subject)
 	}
 	// sendgrid status code 2XX is successful send
 	if response.StatusCode < 200 || response.StatusCode > 299 {

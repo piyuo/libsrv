@@ -115,7 +115,7 @@ type Mail interface {
 	//	m.AddTo("piyuo", "piyuo.com@gmail.com")
 	//	m.ReplaceText("%1", "1234")
 	//	m.ReplaceHTML("%1", "1234")
-	//	m.Send(ctx)
+	//	err := m.Send(ctx)
 	//
 	Send(ctx context.Context) error
 }
