@@ -84,13 +84,13 @@ type Query interface {
 	//
 	Execute(ctx context.Context) ([]Object, error)
 
-	// ExecuteID Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
+	// ExecuteListID Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 	//
-	//	idList, err = table.Query().OrderByDesc("Name").Limit(1).ExecuteID(ctx)
+	//	idList, err = table.Query().OrderByDesc("Name").Limit(1).ExecuteListID(ctx)
 	//	So(len(idList), ShouldEqual, 1)
 	//	So((idList[0], ShouldEqual, "sample2")
 	//
-	ExecuteID(ctx context.Context) ([]string, error)
+	ExecuteListID(ctx context.Context) ([]string, error)
 
 	// ExecuteTopOne execute query return first object in result
 	//
@@ -99,6 +99,13 @@ type Query interface {
 	//	So(greet.From, ShouldEqual, "b city")
 	//
 	ExecuteTopOne(ctx context.Context) (Object, error)
+
+	// ExecuteTopID execute query return first object id in result
+	//
+	//	id, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteTopID(ctx)
+	//	So(id, ShouldEqual, "city1")
+	//
+	ExecuteTopID(ctx context.Context) (string, error)
 
 	// Count execute query and return max 10 count
 	//

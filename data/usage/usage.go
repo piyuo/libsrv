@@ -141,7 +141,7 @@ func (c *baseUsage) Remove(ctx context.Context, group, key string) error {
 func (c *baseUsage) Maintenance(ctx context.Context, expired time.Time) (bool, error) {
 
 	q := c.table.Query().Where("Time", "<", expired).Limit(1000)
-	list, err := q.ExecuteID(ctx)
+	list, err := q.ExecuteListID(ctx)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to list usage: "+expired.Format("2006-01-02 15:04:05"))
 	}

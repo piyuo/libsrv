@@ -151,7 +151,7 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 
 // ExecuteTopOne execute query return first object in result
 //
-//	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute(ctx)
+//	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteTopOne(ctx)
 //	greet := obj.(*Greet)
 //	So(greet.From, ShouldEqual, "b city")
 //
@@ -164,6 +164,22 @@ func (qf *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
 		return nil, nil
 	}
 	return list[0], nil
+}
+
+// ExecuteTopID execute query return first object id in result
+//
+//	id, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteTopID(ctx)
+//	So(id, ShouldEqual, "city1")
+//
+func (qf *QueryFirestore) ExecuteTopID(ctx context.Context) (string, error) {
+	list, err := qf.Limit(1).Execute(ctx)
+	if err != nil {
+		return "", err
+	}
+	if len(list) == 0 {
+		return "", nil
+	}
+	return list[0].GetID(), nil
 }
 
 // Execute query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
@@ -214,12 +230,12 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	return result, nil
 }
 
-// ExecuteID query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
+// ExecuteListID query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 //
-//	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteID(ctx)
+//	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteListID(ctx)
 //	So(len(idList), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) ExecuteID(ctx context.Context) ([]string, error) {
+func (qf *QueryFirestore) ExecuteListID(ctx context.Context) ([]string, error) {
 	if qf.limit == 0 {
 		qf.Limit(limitQueryDefault)
 	}

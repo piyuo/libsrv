@@ -140,7 +140,7 @@ func listTest(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 
 	// get id only
-	list, err := table.Query().Where("Name", "==", "sample").ExecuteID(ctx)
+	list, err := table.Query().Where("Name", "==", "sample").ExecuteListID(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So(list[0], ShouldNotBeEmpty)
@@ -157,6 +157,10 @@ func executeTopOneTest(ctx context.Context, table *Table) {
 	obj, err := table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldBeNil)
+
+	id, err := table.Query().Where("Name", "==", "sample").ExecuteTopID(ctx)
+	So(err, ShouldBeNil)
+	So(id, ShouldBeEmpty)
 
 	sample1 := &Sample{
 		Name:  "sample",
@@ -175,6 +179,10 @@ func executeTopOneTest(ctx context.Context, table *Table) {
 	obj, err = table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldNotBeNil)
+
+	id, err = table.Query().Where("Name", "==", "sample").ExecuteTopID(ctx)
+	So(err, ShouldBeNil)
+	So(id, ShouldNotBeEmpty)
 
 	// set limit 2 still get 1 object
 	obj, err = table.Query().Where("Name", "==", "sample").Limit(2).ExecuteTopOne(ctx)
