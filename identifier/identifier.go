@@ -1,4 +1,4 @@
-package util
+package identifier
 
 import (
 	"encoding/binary"
