@@ -4,18 +4,22 @@ import (
 	shared "github.com/piyuo/libsrv/command/shared"
 )
 
+var ok = &shared.Err{
+	Code: "",
+}
+
 // OK return empty string
 //
-//	return shared.OK(),nil
+//	return command.OK(),nil
+//
 func OK() interface{} {
-	return &shared.Err{
-		Code: "",
-	}
+	return ok
 }
 
 // Error return  error response with code
 //
-//	return shared.Error(shared.ErrorUnknown),nil
+//	return command.Error("INVALID_EMAIL")
+//
 func Error(errCode string) interface{} {
 	return &shared.Err{
 		Code: errCode,
@@ -24,7 +28,8 @@ func Error(errCode string) interface{} {
 
 // String return string response
 //
-//	return shared.Text("hi"),nil
+//	return command.Text("hi")
+//
 func String(text string) interface{} {
 	return &shared.Text{
 		Value: text,
@@ -33,7 +38,8 @@ func String(text string) interface{} {
 
 // Number return number response
 //
-//	return shared.Number(101),nil
+//	return command.Number(101)
+//
 func Number(num int64) interface{} {
 	return &shared.Num{
 		Value: num,
