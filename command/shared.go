@@ -26,6 +26,24 @@ func Error(errCode string) interface{} {
 	}
 }
 
+// IsError return true if object is shared.Err and code is the same
+//
+//	is := command.IsError(response,"INVALID_EMAIL")
+//
+func IsError(x interface{}, errCode string) bool {
+	if x == nil {
+		return false
+	}
+	switch x.(type) {
+	case *shared.Err:
+		e := x.(*shared.Err)
+		if e.Code == errCode {
+			return true
+		}
+	}
+	return false
+}
+
 // String return string response
 //
 //	return command.Text("hi")
