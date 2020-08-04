@@ -3,13 +3,11 @@ package command
 import (
 	"testing"
 
-	shared "github.com/piyuo/libsrv/command/shared"
-
+	"github.com/piyuo/libsrv/command/shared"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestShared(t *testing.T) {
-
 	Convey("should create text response", t, func() {
 		text := String("hi").(*shared.Text)
 		So(text.Value, ShouldEqual, "hi")
@@ -35,5 +33,4 @@ func TestShared(t *testing.T) {
 		err := 3
 		So(IsError(err, "INVALID_MAIL"), ShouldBeFalse)
 	})
-
 }
