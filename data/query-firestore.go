@@ -19,134 +19,98 @@ type QueryFirestore struct {
 	// query is firestore query
 	//
 	query firestore.Query
+
+	// table name is  query target table name
+	//
+	tablename string
 }
 
-// Where implement where on firestore
+// Where set filter, if path == "ID" mean using document id in as filter
 //
-//	db.Select(ctx, GreetFactory).Where("From", "==", "1").Run(func(o Object) {
-//		i++
-//		err := db.Delete(ctx, o)
-//	})
+//	list, err := table.Query().Where("ID", "==", "sample1").Execute(ctx)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 //
-func (qf *QueryFirestore) Where(path, op string, value interface{}) Query {
-	qf.query = qf.query.Where(path, op, value)
-	return qf
+func (c *QueryFirestore) Where(path, op string, value interface{}) Query {
+
+	if path == "ID" {
+		path = firestore.DocumentID
+		value = c.conn.client.Collection(c.tablename).Doc(value.(string))
+	}
+
+	c.query = c.query.Where(path, op, value)
+	return c
 }
 
-// OrderBy implement orderby on firestore
+// OrderBy set query order by asc
 //
-//	list = []*Greet{}
-// 	db.Select(ctx, GreetFactory).OrderBy("From").Run(func(o Object) {
-//		greet := o.(*Greet)
-//		list = append(list, greet)
-//	})
+//	list, err = table.Query().OrderBy("Name").Execute(ctx)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 //
-func (qf *QueryFirestore) OrderBy(path string) Query {
-	qf.query = qf.query.OrderBy(path, firestore.Asc)
-	return qf
+func (c *QueryFirestore) OrderBy(path string) Query {
+	c.query = c.query.OrderBy(path, firestore.Asc)
+	return c
 }
 
-// OrderByDesc implement orderby desc on firestore
+// OrderByDesc set query order by desc
 //
-//	list = []*Greet{}
-// 	db.Select(ctx, GreetFactory).OrderByDesc("From").Run(func(o Object) {
-//		greet := o.(*Greet)
-//		list = append(list, greet)
-//	})
+//	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 //
-func (qf *QueryFirestore) OrderByDesc(path string) Query {
-	qf.query = qf.query.OrderBy(path, firestore.Desc)
-	return qf
+func (c *QueryFirestore) OrderByDesc(path string) Query {
+	c.query = c.query.OrderBy(path, firestore.Desc)
+	return c
 }
 
-// Limit implement limit on firestore
+// Limit set query limit
 //
-//	list = []*Greet{}
-//	db.Select(ctx, GreetFactory).Limit(1).Run(func(o Object) {
-//		greet := o.(*Greet)
-//		list = append(list, greet)
-//	})
+//	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
+//	So(len(list), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) Limit(n int) Query {
-	qf.limit = n
-	qf.query = qf.query.Limit(n)
-	return qf
+func (c *QueryFirestore) Limit(n int) Query {
+	c.limit = n
+	c.query = c.query.Limit(n)
+	return c
 }
 
 // StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
-//	greet1 := &Greet{
-//		From: "a city",
-//	}
-//	greet2 := &Greet{
-//		From: "b city",
-//	}
-//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAt("b city").Execute()
-//	So(err, ShouldBeNil)
-//	greet := list[0].(*Greet)
-//	So(greet.From, ShouldEqual, "b city")
-//	So(len(list), ShouldEqual, 2)
+//	list, err = table.Query().OrderBy("Name").StartAt("irvine city").Execute(ctx)
+//	So(len(list), ShouldEqual, 1)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 //
-func (qf *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query {
-	qf.query = qf.query.StartAt(docSnapshotOrFieldValues...)
-	return qf
+func (c *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query {
+	c.query = c.query.StartAt(docSnapshotOrFieldValues...)
+	return c
 }
 
 // StartAfter implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
-//	greet1 := &Greet{
-//		From: "a city",
-//	}
-//	greet2 := &Greet{
-//		From: "b city",
-//	}
-//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").StartAfter("b city").Execute()
-//	So(err, ShouldBeNil)
-//	greet := list[0].(*Greet)
-//	So(greet.From, ShouldEqual, "c city")
-//	So(len(list), ShouldEqual, 1)
+//	list, err = table.Query().OrderBy("Name").StartAfter("santa ana city").Execute(ctx)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 //
-func (qf *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Query {
-	qf.query = qf.query.StartAfter(docSnapshotOrFieldValues...)
-	return qf
+func (c *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Query {
+	c.query = c.query.StartAfter(docSnapshotOrFieldValues...)
+	return c
 }
 
 // EndAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
-//	greet1 := &Greet{
-//		From: "a city",
-//	}
-//	greet2 := &Greet{
-//		From: "b city",
-//	}
-//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndAt("b city").Execute()
-//	So(err, ShouldBeNil)
-//	greet := list[0].(*Greet)
-//	So(greet.From, ShouldEqual, "a city")
-//	So(len(list), ShouldEqual, 2)
+//	list, err = table.Query().OrderBy("Name").EndAt("irvine city").Execute(ctx)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 //
-func (qf *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
-	qf.query = qf.query.EndAt(docSnapshotOrFieldValues...)
-	return qf
+func (c *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
+	c.query = c.query.EndAt(docSnapshotOrFieldValues...)
+	return c
 }
 
 // EndBefore implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
-//	greet1 := &Greet{
-//		From: "a city",
-//	}
-//	greet2 := &Greet{
-//		From: "b city",
-//	}
-//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").EndBefore("b city").Execute()
-//	So(err, ShouldBeNil)
-//	greet := list[0].(*Greet)
-//	So(greet.From, ShouldEqual, "a city")
-//	So(len(list), ShouldEqual, 1)
+//	list, err = table.Query().OrderBy("Name").EndBefore("irvine city").Execute(ctx)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "santa ana city")
 //
-func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Query {
-	qf.query = qf.query.EndBefore(docSnapshotOrFieldValues...)
-	return qf
+func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Query {
+	c.query = c.query.EndBefore(docSnapshotOrFieldValues...)
+	return c
 }
 
 // ExecuteTopOne execute query return first object in result
@@ -155,8 +119,8 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 //	greet := obj.(*Greet)
 //	So(greet.From, ShouldEqual, "b city")
 //
-func (qf *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
-	list, err := qf.Limit(1).Execute(ctx)
+func (c *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
+	list, err := c.Limit(1).Execute(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -171,8 +135,8 @@ func (qf *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
 //	id, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteTopID(ctx)
 //	So(id, ShouldEqual, "city1")
 //
-func (qf *QueryFirestore) ExecuteTopID(ctx context.Context) (string, error) {
-	list, err := qf.Limit(1).Execute(ctx)
+func (c *QueryFirestore) ExecuteTopID(ctx context.Context) (string, error) {
+	list, err := c.Limit(1).Execute(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -182,24 +146,22 @@ func (qf *QueryFirestore) ExecuteTopID(ctx context.Context) (string, error) {
 	return list[0].GetID(), nil
 }
 
-// Execute query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
+// Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 //
-//	list = []*Greet{}
-//	list, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute(ctx)
-//	greet := list[0].(*Greet)
-//	So(greet.From, ShouldEqual, "b city")
+//	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
 //	So(len(list), ShouldEqual, 1)
+//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 //
-func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
-	if qf.limit == 0 {
-		qf.Limit(limitQueryDefault)
+func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
+	if c.limit == 0 {
+		c.Limit(limitQueryDefault)
 	}
 	result := []Object{}
 	var iter *firestore.DocumentIterator
-	if qf.conn.tx != nil {
-		iter = qf.conn.tx.Documents(qf.query)
+	if c.conn.tx != nil {
+		iter = c.conn.tx.Documents(c.query)
 	} else {
-		iter = qf.query.Documents(ctx)
+		iter = c.query.Documents(ctx)
 	}
 	defer iter.Stop()
 
@@ -211,7 +173,7 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 		if err != nil {
 			return nil, err
 		}
-		object := qf.factory()
+		object := c.factory()
 		if object == nil {
 			return nil, errors.New("failed to create object from factory")
 		}
@@ -235,17 +197,17 @@ func (qf *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 //	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteListID(ctx)
 //	So(len(idList), ShouldEqual, 1)
 //
-func (qf *QueryFirestore) ExecuteListID(ctx context.Context) ([]string, error) {
-	if qf.limit == 0 {
-		qf.Limit(limitQueryDefault)
+func (c *QueryFirestore) ExecuteListID(ctx context.Context) ([]string, error) {
+	if c.limit == 0 {
+		c.Limit(limitQueryDefault)
 	}
 	var result []string
 
 	var iter *firestore.DocumentIterator
-	if qf.conn.tx != nil {
-		iter = qf.conn.tx.Documents(qf.query)
+	if c.conn.tx != nil {
+		iter = c.conn.tx.Documents(c.query)
 	} else {
-		iter = qf.query.Documents(ctx)
+		iter = c.query.Documents(ctx)
 	}
 	defer iter.Stop()
 
@@ -265,16 +227,18 @@ func (qf *QueryFirestore) ExecuteListID(ctx context.Context) ([]string, error) {
 
 // Count execute query and return max 10 count
 //
+//	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)
+//	So(count, ShouldEqual, 1)
 //
-func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
-	if qf.limit == 0 {
-		qf.Limit(limitQueryDefault)
+func (c *QueryFirestore) Count(ctx context.Context) (int, error) {
+	if c.limit == 0 {
+		c.Limit(limitQueryDefault)
 	}
 	var iter *firestore.DocumentIterator
-	if qf.conn.tx != nil {
-		iter = qf.conn.tx.Documents(qf.query)
+	if c.conn.tx != nil {
+		iter = c.conn.tx.Documents(c.query)
 	} else {
-		iter = qf.query.Documents(ctx)
+		iter = c.query.Documents(ctx)
 	}
 	defer iter.Stop()
 
@@ -292,16 +256,18 @@ func (qf *QueryFirestore) Count(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-// IsEmpty execute query and return true if no object exist in table
+// IsEmpty execute query and return false if object exist
 //
+//	isEmpty, err := table.Query().Where("Name", "==", "sample1").IsEmpty(ctx)
+//	So(isEmpty, ShouldBeFalse)
 //
-func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
-	qf.Limit(1)
+func (c *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
+	c.Limit(1)
 	var iter *firestore.DocumentIterator
-	if qf.conn.tx != nil {
-		iter = qf.conn.tx.Documents(qf.query)
+	if c.conn.tx != nil {
+		iter = c.conn.tx.Documents(c.query)
 	} else {
-		iter = qf.query.Documents(ctx)
+		iter = c.query.Documents(ctx)
 	}
 	defer iter.Stop()
 
@@ -320,7 +286,7 @@ func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
 //	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
 //	So(isExist, ShouldBeFalse)
 //
-func (qf *QueryFirestore) IsExist(ctx context.Context) (bool, error) {
-	empty, err := qf.IsEmpty(ctx)
+func (c *QueryFirestore) IsExist(ctx context.Context) (bool, error) {
+	empty, err := c.IsEmpty(ctx)
 	return !empty, err
 }

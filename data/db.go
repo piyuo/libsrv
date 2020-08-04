@@ -14,19 +14,19 @@ type DB interface {
 
 	// Close connection
 	//
-	//	db.Close()
+	//	c.Close()
 	//
 	Close()
 
 	// CreateNamespace create namespace, create new one if not exist
 	//
-	//	db, err := db.CreateNamespace(ctx)
+	//	db, err := c.CreateNamespace(ctx)
 	//
 	CreateNamespace(ctx context.Context) error
 
 	// DeleteNamespace delete namespace
 	//
-	//	err := db.DeleteNamespace(ctx)
+	//	err := c.DeleteNamespace(ctx)
 	//
 	DeleteNamespace(ctx context.Context) error
 
@@ -50,7 +50,7 @@ type DB interface {
 
 	// Transaction start a transaction
 	//
-	//	err := db.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
+	//	err := c.Transaction(ctx, func(ctx context.Context, tx Transaction) error {
 	//		tx.Put(ctx, &greet1)
 	//		return nil
 	//	})
@@ -59,19 +59,19 @@ type DB interface {
 
 	// InTransaction return true if connection is in transaction
 	//
-	//	inTx := db.InTransaction()
+	//	inTx := c.InTransaction()
 	//
 	InTransaction() bool
 
 	// GetConnection return current connection
 	//
-	//	conn := db.GetConnection()
+	//	conn := c.GetConnection()
 	//
 	GetConnection() Connection
 
 	// Usage return usage object
 	//
-	//	usage := db.Usage()
+	//	usage := c.Usage()
 	//
 	//	Usage() Usage
 }
@@ -88,20 +88,20 @@ type BaseDB struct {
 
 // GetConnection return current connection
 //
-//	conn := db.GetConnection()
+//	conn := c.GetConnection()
 //
-func (db *BaseDB) GetConnection() Connection {
-	return db.Connection
+func (c *BaseDB) GetConnection() Connection {
+	return c.Connection
 }
 
 // Close connection
 //
-//	db.Close()
+//	c.Close()
 //
-func (db *BaseDB) Close() {
-	if db.Connection != nil {
-		db.Connection.Close()
-		db.Connection = nil
+func (c *BaseDB) Close() {
+	if c.Connection != nil {
+		c.Connection.Close()
+		c.Connection = nil
 	}
 }
 
@@ -109,27 +109,27 @@ func (db *BaseDB) Close() {
 //
 //	err := conn.BatchBegin(ctx)
 //
-func (db *BaseDB) BatchBegin() {
-	db.Connection.BatchBegin()
+func (c *BaseDB) BatchBegin() {
+	c.Connection.BatchBegin()
 }
 
 // BatchCommit commit batch operation
 //
 //	err := conn.BatchCommit(ctx)
 //
-func (db *BaseDB) BatchCommit(ctx context.Context) error {
+func (c *BaseDB) BatchCommit(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.BatchCommit(ctx)
+	return c.Connection.BatchCommit(ctx)
 }
 
 // InBatch return true if connection is in batch mode
 //
 //	inBatch := conn.InBatch()
 //
-func (db *BaseDB) InBatch() bool {
-	return db.Connection.InBatch()
+func (c *BaseDB) InBatch() bool {
+	return c.Connection.InBatch()
 }
 
 // Transaction start a transaction
@@ -139,39 +139,39 @@ func (db *BaseDB) InBatch() bool {
 //		return nil
 //	})
 //
-func (db *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Context) error) error {
+func (c *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Context) error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.Transaction(ctx, callback)
+	return c.Connection.Transaction(ctx, callback)
 }
 
 // InTransaction return true if connection is in transaction
 //
 //	inTx := conn.InTransaction()
 //
-func (db *BaseDB) InTransaction() bool {
-	return db.Connection.InTransaction()
+func (c *BaseDB) InTransaction() bool {
+	return c.Connection.InTransaction()
 }
 
 // CreateNamespace create namespace, create new one if not exist
 //
 //	db, err := conn.CreateNamespace(ctx)
 //
-func (db *BaseDB) CreateNamespace(ctx context.Context) error {
+func (c *BaseDB) CreateNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.CreateNamespace(ctx)
+	return c.Connection.CreateNamespace(ctx)
 }
 
 // DeleteNamespace delete namespace
 //
-//	err := db.DeleteNamespace(ctx)
+//	err := c.DeleteNamespace(ctx)
 //
-func (db *BaseDB) DeleteNamespace(ctx context.Context) error {
+func (c *BaseDB) DeleteNamespace(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	return db.Connection.DeleteNamespace(ctx)
+	return c.Connection.DeleteNamespace(ctx)
 }

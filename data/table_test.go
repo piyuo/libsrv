@@ -27,7 +27,7 @@ func noErrorTest(ctx context.Context, table *Table) {
 	So(table.UUID(), ShouldNotBeEmpty)
 
 	obj := table.NewObject()
-	So(table.TableName, ShouldEqual, "sample")
+	So(table.TableName, ShouldEqual, "Sample")
 	So(obj, ShouldNotBeNil)
 	So((obj.(*Sample)).Name, ShouldBeEmpty)
 

@@ -18,9 +18,9 @@ const (
 
 // Query represent query public method
 type Query interface {
-	// Where set where filter
+	// Where set filter, if path == "ID" mean using document id in as filter
 	//
-	//	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
+	//	list, err := table.Query().Where("ID", "==", "sample1").Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 	//
 	Where(path, op string, value interface{}) Query
@@ -65,7 +65,6 @@ type Query interface {
 	//
 	//	list, err = table.Query().OrderBy("Name").EndAt("irvine city").Execute(ctx)
 	//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
-
 	//
 	EndAt(docSnapshotOrFieldValues ...interface{}) Query
 

@@ -177,6 +177,10 @@ func methodTest(ctx context.Context, db SampleDB, table *Table, isGlobal bool) {
 		So(err, ShouldBeNil)
 		So((obj.(*Sample)).Name, ShouldEqual, "sample1")
 
+		idList, err := table.Query().OrderBy("Name").ExecuteListID(ctx)
+		So(err, ShouldBeNil)
+		So(len(idList), ShouldEqual, 2)
+
 		list, err := table.Query().OrderBy("Name").Execute(ctx)
 		So(err, ShouldBeNil)
 		So(len(list), ShouldEqual, 2)

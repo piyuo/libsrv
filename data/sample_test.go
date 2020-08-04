@@ -32,7 +32,7 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 func (db *SampleGlobalDB) SampleTable() *Table {
 	return &Table{
 		Connection: db.Connection,
-		TableName:  "sample",
+		TableName:  "Sample",
 		Factory: func() Object {
 			return &Sample{}
 		},
@@ -43,7 +43,7 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
-			TableName:  "sample-count",
+			TableName:  "SampleCount",
 		},
 	}
 }
@@ -52,7 +52,7 @@ func (db *SampleGlobalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.Connection,
-			TableName:  "sample-serial",
+			TableName:  "SampleSerial",
 		},
 	}
 }
@@ -61,7 +61,7 @@ func (db *SampleGlobalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
 			Connection: db.Connection,
-			TableName:  "sample-code",
+			TableName:  "SampleCode",
 		},
 	}
 }
@@ -86,7 +86,7 @@ func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegio
 func (db *SampleRegionalDB) SampleTable() *Table {
 	return &Table{
 		Connection: db.Connection,
-		TableName:  "sample",
+		TableName:  "Sample",
 		Factory: func() Object {
 			return &Sample{}
 		},
@@ -97,7 +97,7 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
-			TableName:  "sample-count",
+			TableName:  "SampleCount",
 		},
 	}
 }
@@ -106,7 +106,7 @@ func (db *SampleRegionalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.Connection,
-			TableName:  "sample-serial",
+			TableName:  "SampleSerial",
 		},
 	}
 }
@@ -115,7 +115,7 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
 			Connection: db.Connection,
-			TableName:  "sample-code",
+			TableName:  "SampleCode",
 		},
 	}
 }
