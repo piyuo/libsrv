@@ -132,7 +132,7 @@ func (c *CoderFirestore) NumberRX() (int64, error) {
 	c.numberShardExist = false
 	pick, exist, value, err := c.pickShardWithRetry()
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get shard: "+c.errorID())
+		return 0, nil
 	}
 
 	c.numberShardIndex = pick
@@ -153,7 +153,7 @@ func (c *CoderFirestore) pickShardWithRetry() (int, bool, int64, error) {
 			return pick, exist, value, err
 		}
 	}
-	return 0, false, 0, err
+	return 0, false, 0, errors.Wrap(err, "failed to get shard with 3 retry: "+c.errorID())
 }
 
 // pickShard random pick a shard, return shardIndex, isShardExist, error

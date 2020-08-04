@@ -43,7 +43,7 @@ func (c *CounterFirestore) IncrementRX(value interface{}) error {
 
 	pick, exist, err := c.pickShardWithRetry()
 	if err != nil {
-		return errors.Wrap(err, "failed to get shard: "+c.errorID())
+		return err
 	}
 
 	c.incrementShardIndex = pick
@@ -63,7 +63,7 @@ func (c *CounterFirestore) pickShardWithRetry() (int, bool, error) {
 			return pick, exist, err
 		}
 	}
-	return 0, false, err
+	return 0, false, errors.Wrap(err, "failed to get shard with 3 retry: "+c.errorID())
 }
 
 // pickShard random pick a shard, return shardIndex, isShardExist, error

@@ -142,8 +142,8 @@ func (ss *SampleCoders) SampleCoder() Coder {
 
 // SampleCoder100 return sample code with 100 shards
 //
-func (ss *SampleCoders) SampleCoder500() Coder {
-	return ss.Coder("sample-code", 500)
+func (ss *SampleCoders) SampleCoder800() Coder {
+	return ss.Coder("sample-code", 800)
 }
 
 // DeleteSampleSerial delete sample serial

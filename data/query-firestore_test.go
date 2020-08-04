@@ -116,6 +116,10 @@ func queryTest(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 	So(isEmpty, ShouldBeFalse)
 
+	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
+	So(err, ShouldBeNil)
+	So(isExist, ShouldBeTrue)
+
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)
 }

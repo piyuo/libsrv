@@ -281,3 +281,13 @@ func (qf *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
 	}
 	return false, nil
 }
+
+// IsExist execute query and return true if object exist
+//
+//	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
+//	So(isExist, ShouldBeFalse)
+//
+func (qf *QueryFirestore) IsExist(ctx context.Context) (bool, error) {
+	empty, err := qf.IsEmpty(ctx)
+	return !empty, err
+}

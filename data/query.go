@@ -105,6 +105,13 @@ type Query interface {
 	//	So(isEmpty, ShouldBeFalse)
 	//
 	IsEmpty(ctx context.Context) (bool, error)
+
+	// IsExist execute query and return true if object exist
+	//
+	//	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
+	//	So(isExist, ShouldBeFalse)
+	//
+	IsExist(ctx context.Context) (bool, error)
 }
 
 // BaseQuery represent a query in document database
