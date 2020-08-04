@@ -92,6 +92,14 @@ type Query interface {
 	//
 	ExecuteID(ctx context.Context) ([]string, error)
 
+	// ExecuteTopOne execute query return first object in result
+	//
+	//	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute(ctx)
+	//	greet := obj.(*Greet)
+	//	So(greet.From, ShouldEqual, "b city")
+	//
+	ExecuteTopOne(ctx context.Context) (Object, error)
+
 	// Count execute query and return max 10 count
 	//
 	//	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)

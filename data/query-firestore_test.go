@@ -15,6 +15,7 @@ func TestQuery(t *testing.T) {
 		tableG, tableR := createSampleTable(dbG, dbR)
 		defer removeSampleTable(tableG, tableR)
 
+		executeTopOneTest(ctx, tableG)
 		listTest(ctx, tableG)
 		queryTest(ctx, tableG)
 	})
@@ -145,6 +146,40 @@ func listTest(ctx context.Context, table *Table) {
 	So(list[0], ShouldNotBeEmpty)
 	So(list[1], ShouldNotBeEmpty)
 	So(list[0], ShouldNotEqual, list[1])
+
+	table.DeleteObject(ctx, sample1)
+	table.DeleteObject(ctx, sample2)
+
+}
+
+func executeTopOneTest(ctx context.Context, table *Table) {
+
+	obj, err := table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
+	So(err, ShouldBeNil)
+	So(obj, ShouldBeNil)
+
+	sample1 := &Sample{
+		Name:  "sample",
+		Value: 1,
+	}
+	sample2 := &Sample{
+		Name:  "sample",
+		Value: 2,
+	}
+	err = table.Set(ctx, sample1)
+	So(err, ShouldBeNil)
+	err = table.Set(ctx, sample2)
+	So(err, ShouldBeNil)
+
+	// get top one object only
+	obj, err = table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
+	So(err, ShouldBeNil)
+	So(obj, ShouldNotBeNil)
+
+	// set limit 2 still get 1 object
+	obj, err = table.Query().Where("Name", "==", "sample").Limit(2).ExecuteTopOne(ctx)
+	So(err, ShouldBeNil)
+	So(obj, ShouldNotBeNil)
 
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)

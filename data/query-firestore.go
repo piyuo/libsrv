@@ -149,6 +149,23 @@ func (qf *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Que
 	return qf
 }
 
+// ExecuteTopOne execute query return first object in result
+//
+//	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").Execute(ctx)
+//	greet := obj.(*Greet)
+//	So(greet.From, ShouldEqual, "b city")
+//
+func (qf *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
+	list, err := qf.Limit(1).Execute(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, nil
+	}
+	return list[0], nil
+}
+
 // Execute query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 //
 //	list = []*Greet{}
