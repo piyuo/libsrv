@@ -66,6 +66,36 @@ func TestConcurrentCache(t *testing.T) {
 	wg.Wait()
 }
 
+func TestGetMethod(t *testing.T) {
+	convey.Convey("should set and get", t, func() {
+		Reset()
+		Set(HIGH, "key", 1)
+		valueInt, found := GetInt("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueInt, convey.ShouldEqual, 1)
+
+		Set(HIGH, "key", int64(2))
+		valueInt64, found := GetInt64("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueInt64, convey.ShouldEqual, 2)
+
+		Set(HIGH, "key", true)
+		valueBool, found := GetBool("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueBool, convey.ShouldEqual, true)
+
+		Set(HIGH, "key", "hi")
+		valueString, found := GetString("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueString, convey.ShouldEqual, "hi")
+
+		Set(HIGH, "key", []byte("hi"))
+		valueBytes, found := GetBytes("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueBytes, convey.ShouldNotBeNil)
+	})
+}
+
 func TestCache(t *testing.T) {
 	convey.Convey("should set and get", t, func() {
 		Reset()

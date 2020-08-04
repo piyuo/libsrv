@@ -68,6 +68,41 @@ func Get(key string) (interface{}, bool) {
 	return cache.Get(key)
 }
 
+// GetBool returns the bool or nil, and a bool indicating whether the key was found.
+//
+func GetBool(key string) (bool, bool) {
+	item, found := cache.Get(key)
+	return item.(bool), found
+}
+
+// GetInt returns the int or nil, and a bool indicating whether the key was found.
+//
+func GetInt(key string) (int, bool) {
+	item, found := cache.Get(key)
+	return item.(int), found
+}
+
+// GetInt64 returns the int or nil, and a bool indicating whether the key was found.
+//
+func GetInt64(key string) (int64, bool) {
+	item, found := cache.Get(key)
+	return item.(int64), found
+}
+
+// GetString returns the string or nil, and a bool indicating whether the key was found.
+//
+func GetString(key string) (string, bool) {
+	item, found := cache.Get(key)
+	return item.(string), found
+}
+
+// GetBytes returns the bytes or nil, and a bool indicating whether the key was found.
+//
+func GetBytes(key string) ([]byte, bool) {
+	item, found := cache.Get(key)
+	return item.([]byte), found
+}
+
 // Reset clear entire cache
 //
 func Reset() {
