@@ -1,4 +1,4 @@
-package data
+package cloudflare
 
 import (
 	"bytes"
