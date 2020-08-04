@@ -3,7 +3,6 @@ package mail
 import (
 	"context"
 	"errors"
-	"time"
 
 	cache "github.com/piyuo/libsrv/cache"
 	file "github.com/piyuo/libsrv/file"
@@ -177,6 +176,6 @@ func getTemplate(templateName, locale string) (*template, error) {
 		fromName:    json["fromName"].(string),
 		fromAddress: json["fromAddress"].(string),
 	}
-	cache.Set(keyname, template, 10*time.Minute) // mail template cache last for 10 min
+	cache.Set(cache.MEDIUM, keyname, template)
 	return template, nil
 }

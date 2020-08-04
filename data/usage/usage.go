@@ -67,7 +67,7 @@ type usage struct {
 //
 func NewUsage(db data.DB) Usage {
 	table := &data.Table{
-		Connection: db.Connection(),
+		Connection: db.GetConnection(),
 		TableName:  "Usage",
 		Factory: func() data.Object {
 			return &usage{}

@@ -1,12 +1,70 @@
 package file
 
 import (
+	"fmt"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
-	convey "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 )
+
+func TestCacheLimit(t *testing.T) {
+	convey.Convey("should only cache 1000 low frequency item", t, func() {
+		Reset()
+		for i := 0; i <= 1002; i++ {
+			Set(LOW, "l"+strconv.Itoa(i), "1")
+		}
+		convey.So(Count(), convey.ShouldEqual, 1000)
+		Reset()
+	})
+	convey.Convey("should only cache 2000 medium frequency item", t, func() {
+		Reset()
+		for i := 0; i <= 2002; i++ {
+			Set(MEDIUM, "m"+strconv.Itoa(i), "1")
+		}
+		convey.So(Count(), convey.ShouldEqual, 2000)
+		Reset()
+	})
+	convey.Convey("should only cache 2500 high frequency item", t, func() {
+		Reset()
+		for i := 0; i <= 2530; i++ {
+			Set(HIGH, "m"+strconv.Itoa(i), "1")
+		}
+		convey.So(Count(), convey.ShouldEqual, 2500)
+		Reset()
+	})
+}
+
+func TestConcurrentCache(t *testing.T) {
+	var concurrent = 5
+	var wg sync.WaitGroup
+	wg.Add(concurrent)
+	runCache := func() {
+		for i := 0; i < 20; i++ {
+			Set(HIGH, "key"+strconv.Itoa(i), i)
+			value, found := Get("key" + strconv.Itoa(i))
+			if !found {
+				t.Fatal("key" + strconv.Itoa(i) + " already set to cache, but not found in cache")
+				return
+			}
+			if value != i {
+				t.Fatal("key" + strconv.Itoa(i) + " get value is not equal to set value")
+				return
+			}
+			fmt.Print(strconv.Itoa(i) + "\n")
+
+		}
+		wg.Done()
+	}
+
+	//create go routing to do counting
+	for i := 0; i < concurrent; i++ {
+		go runCache()
+	}
+	wg.Wait()
+}
 
 func TestCache(t *testing.T) {
 	convey.Convey("should set and get", t, func() {
@@ -54,30 +112,6 @@ func TestExpireCache(t *testing.T) {
 	})
 }
 
-func TestCacheLimit(t *testing.T) {
-	convey.Convey("should only cache 1000 low frequency item", t, func() {
-		Reset()
-		for i := 0; i <= 1002; i++ {
-			Set(LOW, "l"+strconv.Itoa(i), "1")
-		}
-		convey.So(Count(), convey.ShouldEqual, 1000)
-	})
-	convey.Convey("should only cache 5000 medium frequency item", t, func() {
-		Reset()
-		for i := 0; i <= 5002; i++ {
-			Set(MEDIUM, "m"+strconv.Itoa(i), "1")
-		}
-		convey.So(Count(), convey.ShouldEqual, 5000)
-	})
-	convey.Convey("should only cache 10000 high frequency item", t, func() {
-		Reset()
-		for i := 0; i <= 10002; i++ {
-			Set(HIGH, "m"+strconv.Itoa(i), "1")
-		}
-		convey.So(Count(), convey.ShouldEqual, 10000)
-	})
-}
-
 func TestCachePurges(t *testing.T) {
 	convey.Convey("should purge expired item", t, func() {
 		configCache(50*time.Millisecond, 50*time.Millisecond)
@@ -106,39 +140,6 @@ func TestCachePurges(t *testing.T) {
 
 	})
 }
-
-/*
-this will failed in package test
-func TestConcurrentCache(t *testing.T) {
-	var concurrent = 1
-	var wg sync.WaitGroup
-	wg.Add(concurrent)
-	runCache := func() {
-		for i := 0; i < 10; i++ {
-			Set(HIGH, "key"+strconv.Itoa(i), i)
-			value, found := Get("key" + strconv.Itoa(i))
-			if !found {
-				t.Fatal("key" + strconv.Itoa(i) + " already set to cache, but not found in cache")
-				return
-			}
-			if value != i {
-				t.Fatal("key" + strconv.Itoa(i) + " get value is not equal to set value")
-				return
-			}
-			fmt.Print(strconv.Itoa(i) + "\n")
-
-		}
-		wg.Done()
-	}
-
-	//create go routing to do counting
-	for i := 0; i < concurrent; i++ {
-		go runCache()
-	}
-	wg.Wait()
-}
-
-*/
 
 func BenchmarkGoCache(b *testing.B) {
 	b.ResetTimer()

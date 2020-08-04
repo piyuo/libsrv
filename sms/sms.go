@@ -3,7 +3,6 @@ package sms
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -116,7 +115,7 @@ func getTemplate(templateName, language string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cache.Set(keyname, txt, 10*time.Minute) // sms template cache last for 10 min
+	cache.Set(cache.MEDIUM, keyname, txt)
 	return txt, nil
 }
 
@@ -133,7 +132,6 @@ func E164(phoneNumber, countryCode string) (string, error) {
 	if !phonenumbers.IsValidNumber(num) {
 		return "", errors.New("number: " + phoneNumber + ", country:" + countryCode + " is not a valid number")
 	}
-
 
 	formatted := phonenumbers.Format(num, phonenumbers.E164)
 

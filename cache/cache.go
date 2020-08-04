@@ -11,15 +11,15 @@ import (
 type Frequency int
 
 const (
-	// LOW frequency only keep item in 3 min and cached item total count must less than 1,000
+	// LOW frequency only keep item in 3 min and cached item total count must less than 1000
 	//
 	LOW Frequency = iota
 
-	// MEDIUM frequency Frequency keep item in 10 min and cached item total count must less than 5,000
+	// MEDIUM frequency Frequency keep item in 10 min and cached item total count must less than 2,000
 	//
 	MEDIUM
 
-	// HIGH frequency Frequency will keep in cache 24 hour and total count must less than 10,000
+	// HIGH frequency Frequency will keep in cache 24 hour and total count must less than 2500
 	//
 	HIGH
 )
@@ -32,9 +32,9 @@ var cache = goCache.New(10*time.Minute, 3*time.Minute)
 //
 // Low Frequency = cache 3 min, total limit 1,000
 //
-// Medium Frequency = cache 10 min, total limit 5,000
+// Medium Frequency = cache 10 min, total limit 2,000
 //
-// High Frequency = cache 24 hour , total limit 10,000
+// High Frequency = cache 24 hour , total limit 2,500
 //
 func Set(freq Frequency, key string, value interface{}) {
 	var d time.Duration
@@ -46,12 +46,12 @@ func Set(freq Frequency, key string, value interface{}) {
 		}
 	case MEDIUM:
 		d = 600 * time.Second
-		if Count() >= 5000 {
+		if Count() >= 2000 {
 			return
 		}
 	default:
 		d = 24 * time.Hour
-		if Count() >= 10000 {
+		if Count() >= 2500 {
 			return
 		}
 	}

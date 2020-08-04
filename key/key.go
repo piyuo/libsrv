@@ -22,7 +22,7 @@ func Text(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cache.Set(cachename, text, -1) // key never expire, cause we always need it
+	cache.Set(cache.HIGH, cachename, text)
 	return text, nil
 }
 
@@ -58,7 +58,7 @@ func JSON(name string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	cache.Set(cachename, json, -1) // key never expire, cause we always need it
+	cache.Set(cache.HIGH, cachename, json)
 	return json, nil
 }
 
@@ -96,7 +96,7 @@ func Bytes(name string) ([]byte, error) {
 		return nil, err
 	}
 
-	cache.Set(cachename, bytes, -1) // key never expire, cause we always need it
+	cache.Set(cache.HIGH, cachename, bytes)
 	return bytes, nil
 }
 

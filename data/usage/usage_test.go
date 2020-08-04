@@ -16,7 +16,7 @@ func NewSample(ctx context.Context) data.DB {
 		panic(err)
 	}
 	db := &data.BaseDB{
-		Conn: conn,
+		Connection: conn,
 	}
 	removeSample(ctx, db)
 	return db
@@ -24,7 +24,7 @@ func NewSample(ctx context.Context) data.DB {
 
 func removeSample(ctx context.Context, db data.DB) {
 	table := &data.Table{
-		Connection: db.Connection(),
+		Connection: db.GetConnection(),
 		TableName:  "Usage",
 	}
 	table.Clear(ctx)
