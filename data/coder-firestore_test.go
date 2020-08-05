@@ -3,8 +3,10 @@ package data
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	util "github.com/piyuo/libsrv/util"
 	"github.com/pkg/errors"
@@ -47,42 +49,42 @@ func testCoderInCanceledCtx(ctx context.Context, db SampleDB, coders *SampleCode
 
 func coderMustUseWithInTransacton(codes *SampleCoders) {
 	coder := codes.SampleCoder()
-
-	num, err := coder.NumberRX()
+	ctx := context.Background()
+	num, err := coder.NumberRX(ctx)
 	So(err, ShouldNotBeNil)
 	So(num, ShouldEqual, 0)
-	err = coder.NumberWX()
+	err = coder.NumberWX(ctx)
 	So(err, ShouldNotBeNil)
 
-	code, err := coder.CodeRX()
+	code, err := coder.CodeRX(ctx)
 	So(err, ShouldNotBeNil)
 	So(code, ShouldBeEmpty)
-	err = coder.CodeWX()
+	err = coder.CodeWX(ctx)
 	So(err, ShouldNotBeNil)
 
-	code, err = coder.Code16RX()
+	code, err = coder.Code16RX(ctx)
 	So(err, ShouldNotBeNil)
 	So(code, ShouldBeEmpty)
-	err = coder.Code16WX()
+	err = coder.Code16WX(ctx)
 	So(err, ShouldNotBeNil)
 
-	code, err = coder.Code64RX()
+	code, err = coder.Code64RX(ctx)
 	So(err, ShouldNotBeNil)
 	So(code, ShouldBeEmpty)
-	err = coder.Code64WX()
+	err = coder.Code64WX(ctx)
 	So(err, ShouldNotBeNil)
 }
 
 func coderMustReadBeforeWrite(ctx context.Context, db *SampleGlobalDB, codes *SampleCoders) {
 	db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		err := coder.NumberWX()
+		err := coder.NumberWX(ctx)
 		So(err, ShouldNotBeNil)
-		err = coder.CodeWX()
+		err = coder.CodeWX(ctx)
 		So(err, ShouldNotBeNil)
-		err = coder.Code16WX()
+		err = coder.Code16WX(ctx)
 		So(err, ShouldNotBeNil)
-		err = coder.Code64WX()
+		err = coder.Code64WX(ctx)
 		So(err, ShouldNotBeNil)
 		return nil
 	})
@@ -102,10 +104,10 @@ func coderInFailTransaction(ctx context.Context, db SampleDB, codes *SampleCoder
 	// success
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		num, err := coder.NumberRX()
+		num, err := coder.NumberRX(ctx)
 		So(err, ShouldBeNil)
 		So(num, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX()
+		return coder.NumberWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
@@ -117,10 +119,10 @@ func coderInFailTransaction(ctx context.Context, db SampleDB, codes *SampleCoder
 	// fail
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		num, err := coder.NumberRX()
+		num, err := coder.NumberRX(ctx)
 		So(err, ShouldBeNil)
 		So(num, ShouldBeGreaterThanOrEqualTo, 10)
-		err = coder.NumberWX()
+		err = coder.NumberWX(ctx)
 		So(err, ShouldBeNil)
 		return errors.New("make transation fail")
 	})
@@ -140,20 +142,20 @@ func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	var num2 int64
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		num1, err = coder.NumberRX()
+		num1, err = coder.NumberRX(ctx)
 		So(err, ShouldBeNil)
 		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX()
+		return coder.NumberWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
 	// call second time
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		num2, err = coder.NumberRX()
+		num2, err = coder.NumberRX(ctx)
 		So(err, ShouldBeNil)
 		So(num2, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX()
+		return coder.NumberWX(ctx)
 	})
 	So(err, ShouldBeNil)
 	So(num1, ShouldNotEqual, num2)
@@ -162,18 +164,18 @@ func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	var code2 string
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		code1, err = coder.CodeRX()
+		code1, err = coder.CodeRX(ctx)
 		So(err, ShouldBeNil)
 		So(code1, ShouldNotBeEmpty)
-		return coder.CodeWX()
+		return coder.CodeWX(ctx)
 	})
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		code2, err = coder.CodeRX()
+		code2, err = coder.CodeRX(ctx)
 		So(err, ShouldBeNil)
 		So(code2, ShouldNotBeEmpty)
-		return coder.CodeWX()
+		return coder.CodeWX(ctx)
 	})
 	So(err, ShouldBeNil)
 	So(code1, ShouldNotEqual, code2)
@@ -182,18 +184,18 @@ func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	var code162 string
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		code161, err = coder.Code16RX()
+		code161, err = coder.Code16RX(ctx)
 		So(err, ShouldBeNil)
 		So(code161, ShouldNotBeEmpty)
-		return coder.Code16WX()
+		return coder.Code16WX(ctx)
 	})
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		code162, err = coder.Code16RX()
+		code162, err = coder.Code16RX(ctx)
 		So(err, ShouldBeNil)
 		So(code162, ShouldNotBeEmpty)
-		return coder.Code16WX()
+		return coder.Code16WX(ctx)
 	})
 	So(err, ShouldBeNil)
 	So(code161, ShouldNotEqual, code162)
@@ -202,18 +204,18 @@ func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	var code642 string
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		code641, err = coder.Code64RX()
+		code641, err = coder.Code64RX(ctx)
 		So(err, ShouldBeNil)
 		So(code641, ShouldNotBeEmpty)
-		return coder.Code16WX()
+		return coder.Code16WX(ctx)
 	})
 	So(err, ShouldBeNil)
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		code642, err = coder.Code64RX()
+		code642, err = coder.Code64RX(ctx)
 		So(err, ShouldBeNil)
 		So(code642, ShouldNotBeEmpty)
-		return coder.Code64WX()
+		return coder.Code64WX(ctx)
 	})
 	So(err, ShouldBeNil)
 	So(code641, ShouldNotEqual, code642)
@@ -227,6 +229,7 @@ func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
 }
 
 func TestConcurrentCoder(t *testing.T) {
+	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
 	gdb, _ := NewSampleGlobalDB(ctx)
 	defer gdb.Close()
@@ -251,8 +254,8 @@ func TestConcurrentCoder(t *testing.T) {
 			err = db.Transaction(ctx, func(ctx context.Context) error {
 				coders := db.Coders()
 				coder := coders.SampleCoder()
-				num, err := coder.NumberRX()
-				defer coder.NumberWX()
+				num, err := coder.NumberRX(ctx)
+				defer coder.NumberWX(ctx)
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)
 				}
@@ -291,10 +294,10 @@ func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	var num1 int64
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		num1, err = coder.NumberRX()
+		num1, err = coder.NumberRX(ctx)
 		So(err, ShouldBeNil)
 		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX()
+		return coder.NumberWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
@@ -314,10 +317,10 @@ func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		coder := codes.SampleCoder()
-		num1, err = coder.NumberRX()
+		num1, err = coder.NumberRX(ctx)
 		So(err, ShouldBeNil)
 		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX()
+		return coder.NumberWX(ctx)
 	})
 	So(err, ShouldBeNil)
 

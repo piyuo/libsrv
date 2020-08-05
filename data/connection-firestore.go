@@ -163,8 +163,8 @@ func (c *ConnectionFirestore) snapshotToObject(tablename string, docRef *firesto
 	}
 	object.SetRef(docRef)
 	object.SetID(docRef.ID)
-	object.SetCreateTime(snapshot.CreateTime)
-	object.SetUpdateTime(snapshot.UpdateTime)
+	object.setCreated(snapshot.CreateTime)
+	object.setUpdated(snapshot.UpdateTime)
 	return nil
 }
 
@@ -329,8 +329,9 @@ func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object 
 	if err != nil {
 		return errors.Wrap(err, "failed to set object: "+c.errorID(tablename, object.GetID()))
 	}
-	object.SetCreateTime(time.Now())
-	object.SetUpdateTime(time.Now())
+	t := time.Now().UTC()
+	object.setCreated(t)
+	object.setUpdated(t)
 	return nil
 }
 
@@ -559,8 +560,9 @@ func (c *ConnectionFirestore) DeleteObject(ctx context.Context, tablename string
 	}
 	object.SetRef(nil)
 	object.SetID("")
-	object.SetCreateTime(time.Time{})
-	object.SetUpdateTime(time.Time{})
+	t := time.Time{}
+	object.setCreated(t)
+	object.setUpdated(t)
 	return nil
 }
 

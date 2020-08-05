@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"sync"
 	"testing"
@@ -16,6 +15,7 @@ import (
 //TestConcurrentDB will turn root sample into 15 different sample and make sure every sample has different value
 //
 func TestConcurrentDB(t *testing.T) {
+	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
 
 	dbG, dbR := createSampleDB()
@@ -47,7 +47,6 @@ func TestConcurrentDB(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(concurrent)
 	sampling := func() {
-		rand.Seed(time.Now().UnixNano())
 		sdb, err := NewSampleGlobalDB(ctx)
 		if err != nil {
 			t.Errorf("err should be nil, got %v", err)
@@ -65,17 +64,16 @@ func TestConcurrentDB(t *testing.T) {
 				sRoot := sRootRef.(*Sample)
 
 				// read count first to avoid read after write error
-				counter := sdb.Counters().SampleCounter500()
-				coder := sdb.Coders().SampleCoder800()
+				counter := sdb.Counters().SampleCounter1000()
+				coder := sdb.Coders().SampleCoder1000()
 
-				num, err2 := coder.NumberRX()
+				num, err2 := coder.NumberRX(ctx)
 				if err2 != nil {
 					t.Errorf("err should be nil, got %v", err2)
 					return errors.Wrap(err, "failed to get code")
 				}
-				fmt.Printf("sampling:%v\n", num)
 
-				if err := counter.IncrementRX(1); err != nil {
+				if err := counter.IncrementRX(ctx, 1); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.Wrap(err, "failed to IncrementRX")
 				}
@@ -98,12 +96,12 @@ func TestConcurrentDB(t *testing.T) {
 					return errors.Wrap(err, "failed to update root sample")
 				}
 
-				if err := counter.IncrementWX(); err != nil {
+				if err := counter.IncrementWX(ctx); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.Wrap(err, "failed to IncrementWX")
 				}
 
-				return coder.NumberWX()
+				return coder.NumberWX(ctx)
 			})
 			if errTx != nil {
 				t.Errorf("failed to commit transaction %v", errTx)

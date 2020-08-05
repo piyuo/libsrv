@@ -12,8 +12,8 @@ func TestID(t *testing.T) {
 	Convey("id should be empty", t, func() {
 		d := &Sample{}
 		So(d.ID, ShouldBeEmpty)
-		So(d.CreateTime.IsZero(), ShouldBeTrue)
-		So(d.UpdateTime.IsZero(), ShouldBeTrue)
+		So(d.TimeCreated().IsZero(), ShouldBeTrue)
+		So(d.TimeUpdated().IsZero(), ShouldBeTrue)
 	})
 }
 

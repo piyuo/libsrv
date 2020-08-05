@@ -97,7 +97,6 @@ func TestConnection(t *testing.T) {
 
 		testGroup(ctx, samplesG)
 		testGroup(ctx, samplesR)
-
 	})
 }
 
@@ -131,8 +130,8 @@ func testID(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 	So(sample2, ShouldNotBeNil)
 	So(sample.Name, ShouldEqual, sample2.(*Sample).Name)
-	So(sample2.GetCreateTime().IsZero(), ShouldBeFalse)
-	So(sample2.GetUpdateTime().IsZero(), ShouldBeFalse)
+	So(sample2.TimeCreated().IsZero(), ShouldBeFalse)
+	So(sample2.TimeUpdated().IsZero(), ShouldBeFalse)
 
 	// factory has no object return must error
 	bakFactory := table.Factory

@@ -34,27 +34,43 @@ type Object interface {
 	//
 	SetRef(ref interface{})
 
-	// CreateTime return object create time
+	// TimeCreated return object create time
 	//
-	GetCreateTime() time.Time
+	//	t := d.TimeCreated()
+	//
+	TimeCreated() time.Time
 
-	// SetCreateTime set object create time
+	// setCreated set object create time
 	//
-	SetCreateTime(time.Time)
+	//	d.setCreated(time.Now().UTC())
+	//
+	setCreated(t time.Time)
 
-	// UpdateTime return object update time
+	// TimeUpdated return object latest update time
 	//
-	GetUpdateTime() time.Time
+	//	t := d.TimeUpdated()
+	//
+	TimeUpdated() time.Time
 
-	// SetUpdateTime set object update time
+	// setUpdated set object latest update time
 	//
-	SetUpdateTime(time.Time)
+	//	d.setUpdated(time.Now().UTC())
+	//
+	setUpdated(t time.Time)
 }
 
 // BaseObject represent object stored in document database
 //
 type BaseObject struct {
-	Object
+	Object `firestore:"-"`
+
+	// Created is object create time
+	//
+	Created time.Time
+
+	// Updated is object latest update time
+	//
+	Updated time.Time
 
 	// ID is object unique identifier used for other object to reference
 	//
@@ -63,14 +79,6 @@ type BaseObject struct {
 	// reference used by connection implementation
 	//
 	Ref interface{} `firestore:"-"`
-
-	// CreateTime is object create time, this is readonly field
-	//
-	CreateTime time.Time `firestore:"-"`
-
-	// UpdateTime is object update time, this is readonly field
-	//
-	UpdateTime time.Time `firestore:"-"`
 }
 
 // GetID return object unique identifier
@@ -107,34 +115,36 @@ func (c *BaseObject) SetRef(ref interface{}) {
 	c.Ref = ref
 }
 
-// GetCreateTime return object create time
+// TimeCreated return object create time
 //
-//	id := d.CreateTime()
+//	t := d.TimeCreated()
 //
-func (c *BaseObject) GetCreateTime() time.Time {
-	return c.CreateTime
+func (c *BaseObject) TimeCreated() time.Time {
+	return c.Created
 }
 
-// SetCreateTime set object create time
+// setCreated set object create time
 //
-//	id := d.SetCreateTime(time.Now())
+//	d.setCreated(time.Now().UTC())
 //
-func (c *BaseObject) SetCreateTime(t time.Time) {
-	c.CreateTime = t
+func (c *BaseObject) setCreated(t time.Time) {
+	if c.Created.IsZero() {
+		c.Created = t
+	}
 }
 
-// GetUpdateTime return object update time
+// TimeUpdated return object latest update time
 //
-//	id := d.UpdateTime()
+//	t := d.TimeUpdated()
 //
-func (c *BaseObject) GetUpdateTime() time.Time {
-	return c.UpdateTime
+func (c *BaseObject) TimeUpdated() time.Time {
+	return c.Updated
 }
 
-// SetUpdateTime set object update time
+// setUpdated set object latest update time
 //
-//	id := d.SetUpdateTime(time.Now())
+//	d.setCreated(time.Now().UTC())
 //
-func (c *BaseObject) SetUpdateTime(t time.Time) {
-	c.UpdateTime = t
+func (c *BaseObject) setUpdated(t time.Time) {
+	c.Updated = t
 }

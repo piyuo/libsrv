@@ -15,7 +15,7 @@ type Coder interface {
 	//		err := coder.CodeWX()
 	//	})
 	//
-	CodeRX() (string, error)
+	CodeRX(ctx context.Context) (string, error)
 
 	// CodeWX commit CodeRX()
 	//
@@ -26,7 +26,7 @@ type Coder interface {
 	//		err := coder.CodeWX()
 	//	})
 	//
-	CodeWX() error
+	CodeWX(ctx context.Context) error
 
 	// Code16RX encode uint32 number into string, must used it in transaction with Code16WX()
 	//
@@ -37,7 +37,7 @@ type Coder interface {
 	//		err := coder.Code16WX()
 	//	})
 	//
-	Code16RX() (string, error)
+	Code16RX(ctx context.Context) (string, error)
 
 	// Code16WX commit Code16RX()
 	//
@@ -48,7 +48,7 @@ type Coder interface {
 	//		err := coder.Code16WX()
 	//	})
 	//
-	Code16WX() error
+	Code16WX(ctx context.Context) error
 
 	// Code64RX encode uint32 number into string, must used it in transaction with Code64WX()
 	//
@@ -59,7 +59,7 @@ type Coder interface {
 	//		err := coder.Code64WX()
 	//	})
 	//
-	Code64RX() (string, error)
+	Code64RX(ctx context.Context) (string, error)
 
 	// Code64WX commit with Code64RX()
 	//
@@ -70,7 +70,7 @@ type Coder interface {
 	//		err := coder.Code64WX()
 	//	})
 	//
-	Code64WX() error
+	Code64WX(ctx context.Context) error
 
 	// NumberRX prepare return unique but not serial number, must used it in transaction with NumberWX()
 	//
@@ -81,7 +81,7 @@ type Coder interface {
 	//		err := coder.NumberWX()
 	//	})
 	//
-	NumberRX() (int64, error)
+	NumberRX(ctx context.Context) (int64, error)
 
 	// NumberWX commit NumberRX()
 	//
@@ -92,7 +92,7 @@ type Coder interface {
 	//		err := coder.NumberWX()
 	//	})
 	//
-	NumberWX() error
+	NumberWX(ctx context.Context) error
 
 	// Reset reset code
 	//

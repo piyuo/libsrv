@@ -182,8 +182,6 @@ func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 		}
 		object.SetRef(snapshot.Ref)
 		object.SetID(snapshot.Ref.ID)
-		object.SetCreateTime(snapshot.CreateTime)
-		object.SetUpdateTime(snapshot.UpdateTime)
 		result = append(result, object)
 	}
 	return result, nil

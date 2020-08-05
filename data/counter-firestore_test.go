@@ -38,9 +38,9 @@ func incrementMustUseWithInTransacton(ctx context.Context, db SampleDB, counters
 	err := counters.DeleteSampleCounter(ctx)
 	So(err, ShouldBeNil)
 
-	err = counter.IncrementRX(1)
+	err = counter.IncrementRX(ctx, 1)
 	So(err, ShouldNotBeNil)
-	err = counter.IncrementWX()
+	err = counter.IncrementWX(ctx)
 	So(err, ShouldNotBeNil)
 
 	num, err := counter.Count(ctx)
@@ -48,7 +48,7 @@ func incrementMustUseWithInTransacton(ctx context.Context, db SampleDB, counters
 	So(num, ShouldEqual, 0)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		err := counter.IncrementWX() // should call Increment First error
+		err := counter.IncrementWX(ctx) // should call Increment First error
 		So(err, ShouldNotBeNil)
 		return err
 	})
@@ -67,9 +67,9 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	So((counter.(*CounterFirestore)).errorID(), ShouldNotBeEmpty)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		err := counter.IncrementRX(1)
+		err := counter.IncrementRX(ctx, 1)
 		So(err, ShouldBeNil)
-		return counter.IncrementWX()
+		return counter.IncrementWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
@@ -79,9 +79,9 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 
 	//try again
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		err := counter.IncrementRX(5)
+		err := counter.IncrementRX(ctx, 5)
 		So(err, ShouldBeNil)
-		return counter.IncrementWX()
+		return counter.IncrementWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
@@ -91,9 +91,9 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 
 	//try minus
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		err := counter.IncrementRX(-3)
+		err := counter.IncrementRX(ctx, -3)
 		So(err, ShouldBeNil)
-		return counter.IncrementWX()
+		return counter.IncrementWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
@@ -157,14 +157,14 @@ func TestConcurrentCounter(t *testing.T) {
 		counter := db.Counters().SampleCounter()
 		for i := 0; i < 5; i++ {
 			err := db.Transaction(ctx, func(ctx context.Context) error {
-				err := counter.IncrementRX(1)
+				err := counter.IncrementRX(ctx, 1)
 
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return err
 				}
 				fmt.Printf("count:%v\n", i)
-				err = counter.IncrementWX()
+				err = counter.IncrementWX(ctx)
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return err
@@ -205,9 +205,9 @@ func testCounterReset(ctx context.Context, db SampleDB, counters *SampleCounters
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		counter := counters.SampleCounter()
-		err = counter.IncrementRX(1)
+		err = counter.IncrementRX(ctx, 1)
 		So(err, ShouldBeNil)
-		return counter.IncrementWX()
+		return counter.IncrementWX(ctx)
 	})
 	So(err, ShouldBeNil)
 
@@ -227,9 +227,9 @@ func testCounterReset(ctx context.Context, db SampleDB, counters *SampleCounters
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		counter := counters.SampleCounter()
-		err = counter.IncrementRX(1)
+		err = counter.IncrementRX(ctx, 1)
 		So(err, ShouldBeNil)
-		return counter.IncrementWX()
+		return counter.IncrementWX(ctx)
 	})
 	So(err, ShouldBeNil)
 

@@ -27,14 +27,14 @@ type CoderFirestore struct {
 // CodeRX encode uint32 number into string, must used it in transaction with CodeWX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		code, err:= coder.CodeRX()
+//		code, err:= coder.CodeRX(ctx)
 //		So(err, ShouldBeNil)
 //		So(code, ShouldNotBeEmpty)
-//		err := coder.CodeWX()
+//		err := coder.CodeWX(ctx)
 //	})
 //
-func (c *CoderFirestore) CodeRX() (string, error) {
-	number, err := c.NumberRX()
+func (c *CoderFirestore) CodeRX(ctx context.Context) (string, error) {
+	number, err := c.NumberRX(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -44,27 +44,27 @@ func (c *CoderFirestore) CodeRX() (string, error) {
 // CodeWX commit CodeRX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		code, err:= coder.Code16RX()
+//		code, err:= coder.Code16RX(ctx)
 //		So(err, ShouldBeNil)
 //		So(code, ShouldNotBeEmpty)
-//		err := coder.Code16WX()
+//		err := coder.Code16WX(ctx)
 //	})
 //
-func (c *CoderFirestore) CodeWX() error {
-	return c.NumberWX()
+func (c *CoderFirestore) CodeWX(ctx context.Context) error {
+	return c.NumberWX(ctx)
 }
 
 // Code16RX encode uint16 number into string, must used it in transaction with CodeWX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		code, err:= coder.Code16RX()
+//		code, err:= coder.Code16RX(ctx)
 //		So(err, ShouldBeNil)
 //		So(code, ShouldNotBeEmpty)
-//		err := coder.Code16WX()
+//		err := coder.Code16WX(ctx)
 //	})
 //
-func (c *CoderFirestore) Code16RX() (string, error) {
-	number, err := c.NumberRX()
+func (c *CoderFirestore) Code16RX(ctx context.Context) (string, error) {
+	number, err := c.NumberRX(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -74,27 +74,27 @@ func (c *CoderFirestore) Code16RX() (string, error) {
 // Code16WX commit Code16RX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		code, err:= coder.Code16RX()
+//		code, err:= coder.Code16RX(ctx)
 //		So(err, ShouldBeNil)
 //		So(code, ShouldNotBeEmpty)
-//		err := coder.Code16WX()
+//		err := coder.Code16WX(ctx)
 //	})
 //
-func (c *CoderFirestore) Code16WX() error {
-	return c.NumberWX()
+func (c *CoderFirestore) Code16WX(ctx context.Context) error {
+	return c.NumberWX(ctx)
 }
 
 // Code64RX encode uint32 number into string, must used it in transaction with Code64WX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		code, err:= coder.Code64RX()
+//		code, err:= coder.Code64RX(ctx)
 //		So(err, ShouldBeNil)
 //		So(code, ShouldNotBeEmpty)
-//		err := coder.Code64WX()
+//		err := coder.Code64WX(cts)
 //	})
 //
-func (c *CoderFirestore) Code64RX() (string, error) {
-	number, err := c.NumberRX()
+func (c *CoderFirestore) Code64RX(ctx context.Context) (string, error) {
+	number, err := c.NumberRX(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -104,33 +104,33 @@ func (c *CoderFirestore) Code64RX() (string, error) {
 // Code64WX commit with Code64RX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		code, err:= coder.Code64RX()
+//		code, err:= coder.Code64RX(ctx)
 //		So(err, ShouldBeNil)
 //		So(code, ShouldNotBeEmpty)
-//		err := coder.Code64WX()
+//		err := coder.Code64WX(ctx)
 //	})
 //
-func (c *CoderFirestore) Code64WX() error {
-	return c.NumberWX()
+func (c *CoderFirestore) Code64WX(ctx context.Context) error {
+	return c.NumberWX(ctx)
 }
 
 // NumberRX prepare return unique but not serial number, must used it in transaction with NumberWX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		num, err:= coder.NumberRX()
+//		num, err:= coder.NumberRX(ctx)
 //		So(err, ShouldBeNil)
 //		So(num > 0, ShouldBeTrue)
-//		err := code.NumberWX()
+//		err := code.NumberWX(ctx)
 //	})
 //
-func (c *CoderFirestore) NumberRX() (int64, error) {
+func (c *CoderFirestore) NumberRX(ctx context.Context) (int64, error) {
 	if c.conn.tx == nil {
 		return 0, errors.New("this function must run in transaction")
 	}
 
 	c.numberCallRX = true
 	c.numberShardExist = false
-	pick, exist, value, err := c.pickShardWithRetry()
+	pick, exist, value, err := c.pickShard(ctx)
 	if err != nil {
 		return 0, nil
 	}
@@ -140,30 +140,15 @@ func (c *CoderFirestore) NumberRX() (int64, error) {
 	return value, nil
 }
 
-// pickShardWithRetry random pick a shard, return shardIndex, isShardExist,value, error
-//
-func (c *CoderFirestore) pickShardWithRetry() (int, bool, int64, error) {
-	var err error
-	var pick int
-	var exist bool
-	var value int64
-	for i := 0; i < 3; i++ {
-		pick, exist, value, err = c.pickShard()
-		if err == nil {
-			return pick, exist, value, err
-		}
-	}
-	return 0, false, 0, errors.Wrap(err, "failed to get shard with 3 retry: "+c.errorID())
-}
-
 // pickShard random pick a shard, return shardIndex, isShardExist, error
 //
-func (c *CoderFirestore) pickShard() (int, bool, int64, error) {
+func (c *CoderFirestore) pickShard(ctx context.Context) (int, bool, int64, error) {
 	pick := rand.Intn(c.numShards)
 	_, shardsRef := c.getRef()
 	shardID := strconv.Itoa(pick)
 	shardRef := shardsRef.Doc(shardID)
 	snapshot, err := c.conn.tx.Get(shardRef)
+	//snapshot, err := shardRef.Get(ctx), must use tx to get shardRef cause it will lock
 	if snapshot != nil && !snapshot.Exists() {
 		// value format is incrementValue+shardIndex, e.g. 12 , 1= increment value, 2=shard index
 		value := int64(c.numShards + pick)
@@ -186,13 +171,13 @@ func (c *CoderFirestore) pickShard() (int, bool, int64, error) {
 // NumberWX commit NumberRX()
 //
 //	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		num, err:= coder.NumberRX()
+//		num, err:= coder.NumberRX(ctx)
 //		So(err, ShouldBeNil)
 //		So(num > 0, ShouldBeTrue)
-//		err := code.NumberWX()
+//		err := code.NumberWX(ctx)
 //	})
 //
-func (c *CoderFirestore) NumberWX() error {
+func (c *CoderFirestore) NumberWX(ctx context.Context) error {
 	if c.conn.tx == nil {
 		return errors.New("This function must run in transaction")
 	}

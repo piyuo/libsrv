@@ -12,13 +12,13 @@ type Counter interface {
 	//
 	//	err = counter.IncrementRX(1)
 	//
-	IncrementRX(value interface{}) error
+	IncrementRX(ctx context.Context, value interface{}) error
 
 	// IncrementWX commit IncrementRX()
 	//
 	//	err = counter.IncrementWX()
 	//
-	IncrementWX() error
+	IncrementWX(ctx context.Context) error
 
 	// Count returns a total count across all shards. please be aware it easily cause "Too much contention on these documents"
 	//

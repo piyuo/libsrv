@@ -27,9 +27,9 @@ func countersTest(db SampleDB, counters *SampleCounters) {
 	So(counter, ShouldNotBeNil)
 
 	err := db.Transaction(ctx, func(ctx context.Context) error {
-		err := counter.IncrementRX(1)
+		err := counter.IncrementRX(ctx, 1)
 		So(err, ShouldBeNil)
-		return counter.IncrementWX()
+		return counter.IncrementWX(ctx)
 	})
 	So(err, ShouldBeNil)
 

@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -15,6 +16,8 @@ func TestQuery(t *testing.T) {
 		tableG, tableR := createSampleTable(dbG, dbR)
 		defer removeSampleTable(tableG, tableR)
 
+		createUpdateTimeTest(ctx, tableG)
+		queryNotExistFieldWillNotCauseError(ctx, tableG)
 		executeQueryID(ctx, tableG)
 		executeTopOneTest(ctx, tableG)
 		listTest(ctx, tableG)
@@ -196,7 +199,6 @@ func executeTopOneTest(ctx context.Context, table *Table) {
 }
 
 func executeQueryID(ctx context.Context, table *Table) {
-
 	obj, err := table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldBeNil)
@@ -231,4 +233,44 @@ func executeQueryID(ctx context.Context, table *Table) {
 
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)
+}
+
+func queryNotExistFieldWillNotCauseError(ctx context.Context, table *Table) {
+
+	sample1 := &Sample{
+		BaseObject: BaseObject{
+			ID: "s1",
+		},
+		Name:  "sample",
+		Value: 1,
+	}
+	defer table.DeleteObject(ctx, sample1)
+
+	err := table.Set(ctx, sample1)
+	So(err, ShouldBeNil)
+
+	// get top one object only
+	obj, err := table.Query().Where("notExist", "<", time.Now().UTC()).ExecuteTopOne(ctx)
+	So(err, ShouldBeNil)
+	So(obj, ShouldBeNil)
+}
+
+func createUpdateTimeTest(ctx context.Context, table *Table) {
+
+	sample1 := &Sample{
+		BaseObject: BaseObject{
+			ID: "s1",
+		},
+		Name:  "sample",
+		Value: 1,
+	}
+	defer table.DeleteObject(ctx, sample1)
+
+	err := table.Set(ctx, sample1)
+	So(err, ShouldBeNil)
+
+	// get top one object only
+	obj, err := table.Query().Where("Created", "<=", time.Now().UTC()).ExecuteTopOne(ctx)
+	So(err, ShouldBeNil)
+	So(obj, ShouldNotBeNil)
 }

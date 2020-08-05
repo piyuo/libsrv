@@ -123,9 +123,9 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 // Sample
 //
 type Sample struct {
-	BaseObject `firestore:"-"`
-	Name       string
-	Value      int
+	BaseObject
+	Name  string
+	Value int
 }
 
 // SampleCoders  represent collection of code
@@ -142,8 +142,8 @@ func (ss *SampleCoders) SampleCoder() Coder {
 
 // SampleCoder100 return sample code with 100 shards
 //
-func (ss *SampleCoders) SampleCoder800() Coder {
-	return ss.Coder("sample-code", 800)
+func (ss *SampleCoders) SampleCoder1000() Coder {
+	return ss.Coder("sample-code", 1000)
 }
 
 // DeleteSampleSerial delete sample serial
@@ -182,8 +182,8 @@ func (scs *SampleCounters) SampleCounter() Counter {
 
 // SampleCounter100 return sample counter with 100 shards
 //
-func (scs *SampleCounters) SampleCounter500() Counter {
-	return scs.Counter("sample-counter", 500)
+func (scs *SampleCounters) SampleCounter1000() Counter {
+	return scs.Counter("sample-counter", 1000)
 }
 
 // DeleteSampleCounter delete sample counter

@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"strconv"
 
@@ -30,9 +31,9 @@ type CounterFirestore struct {
 
 // IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
 //
-//	err = counter.IncrementRX(1)
+//	err = counter.IncrementRX(ctx,1)
 //
-func (c *CounterFirestore) IncrementRX(value interface{}) error {
+func (c *CounterFirestore) IncrementRX(ctx context.Context, value interface{}) error {
 	if c.conn.tx == nil {
 		return errors.New("This function must run in transaction")
 	}
@@ -41,7 +42,9 @@ func (c *CounterFirestore) IncrementRX(value interface{}) error {
 	c.incrementValue = value
 	c.incrementShardExist = false
 
-	pick, exist, err := c.pickShardWithRetry()
+	pick, exist, err := c.pickShard(ctx)
+	fmt.Printf("counter pick:%v\n", pick)
+
 	if err != nil {
 		return err
 	}
@@ -51,44 +54,30 @@ func (c *CounterFirestore) IncrementRX(value interface{}) error {
 	return nil
 }
 
-// pickShardWithRetry random pick a shard, return shardIndex, isShardExist, error
-//
-func (c *CounterFirestore) pickShardWithRetry() (int, bool, error) {
-	var err error
-	var pick int
-	var exist bool
-	for i := 0; i < 3; i++ {
-		pick, exist, err = c.pickShard()
-		if err == nil {
-			return pick, exist, err
-		}
-	}
-	return 0, false, errors.Wrap(err, "failed to get shard with 3 retry: "+c.errorID())
-}
-
 // pickShard random pick a shard, return shardIndex, isShardExist, error
 //
-func (c *CounterFirestore) pickShard() (int, bool, error) {
+func (c *CounterFirestore) pickShard(ctx context.Context) (int, bool, error) {
 	pick := rand.Intn(c.numShards)
 	_, shardsRef := c.getRef()
 	shardID := strconv.Itoa(pick)
 	shardRef := shardsRef.Doc(shardID)
 	snapshot, err := c.conn.tx.Get(shardRef)
+	//snapshot, err := shardRef.Get(ctx), must use tx to get shardRef cause it will lock
 	if snapshot != nil && !snapshot.Exists() {
 		return pick, false, nil
 	}
 
 	if err != nil {
-		return 0, false, err
+		return pick, false, err
 	}
 	return pick, true, nil
 }
 
 // IncrementWX commit IncrementRX()
 //
-//	err = counter.IncrementWX()
+//	err = counter.IncrementWX(ctx)
 //
-func (c *CounterFirestore) IncrementWX() error {
+func (c *CounterFirestore) IncrementWX(ctx context.Context) error {
 	if c.conn.tx == nil {
 		return errors.New("This function must run in transaction")
 	}
