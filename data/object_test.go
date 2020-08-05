@@ -13,7 +13,6 @@ func TestID(t *testing.T) {
 		d := &Sample{}
 		So(d.ID, ShouldBeEmpty)
 		So(d.CreateTime.IsZero(), ShouldBeTrue)
-		So(d.ReadTime.IsZero(), ShouldBeTrue)
 		So(d.UpdateTime.IsZero(), ShouldBeTrue)
 	})
 }

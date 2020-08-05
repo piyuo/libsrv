@@ -31,12 +31,10 @@ type QueryFirestore struct {
 //	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 //
 func (c *QueryFirestore) Where(path, op string, value interface{}) Query {
-
 	if path == "ID" {
 		path = firestore.DocumentID
 		value = c.conn.client.Collection(c.tablename).Doc(value.(string))
 	}
-
 	c.query = c.query.Where(path, op, value)
 	return c
 }
@@ -186,7 +184,6 @@ func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 		object.SetID(snapshot.Ref.ID)
 		object.SetCreateTime(snapshot.CreateTime)
 		object.SetUpdateTime(snapshot.UpdateTime)
-		object.SetReadTime(snapshot.ReadTime)
 		result = append(result, object)
 	}
 	return result, nil

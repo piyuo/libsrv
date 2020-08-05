@@ -165,7 +165,6 @@ func (c *ConnectionFirestore) snapshotToObject(tablename string, docRef *firesto
 	object.SetID(docRef.ID)
 	object.SetCreateTime(snapshot.CreateTime)
 	object.SetUpdateTime(snapshot.UpdateTime)
-	object.SetReadTime(snapshot.ReadTime)
 	return nil
 }
 
@@ -332,7 +331,6 @@ func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object 
 	}
 	object.SetCreateTime(time.Now())
 	object.SetUpdateTime(time.Now())
-	object.SetReadTime(time.Now())
 	return nil
 }
 
@@ -562,7 +560,6 @@ func (c *ConnectionFirestore) DeleteObject(ctx context.Context, tablename string
 	object.SetRef(nil)
 	object.SetID("")
 	object.SetCreateTime(time.Time{})
-	object.SetReadTime(time.Time{})
 	object.SetUpdateTime(time.Time{})
 	return nil
 }

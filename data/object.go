@@ -42,14 +42,6 @@ type Object interface {
 	//
 	SetCreateTime(time.Time)
 
-	// ReadTime return object read time
-	//
-	GetReadTime() time.Time
-
-	// SetReadTime set object read time
-	//
-	SetReadTime(time.Time)
-
 	// UpdateTime return object update time
 	//
 	GetUpdateTime() time.Time
@@ -76,10 +68,6 @@ type BaseObject struct {
 	//
 	CreateTime time.Time `firestore:"-"`
 
-	// ReadTime is object read time, this is readonly field
-	//
-	ReadTime time.Time `firestore:"-"`
-
 	// UpdateTime is object update time, this is readonly field
 	//
 	UpdateTime time.Time `firestore:"-"`
@@ -90,8 +78,8 @@ type BaseObject struct {
 //	d := &Sample{}
 //	id := d.ID()
 //
-func (o *BaseObject) GetID() string {
-	return o.ID
+func (c *BaseObject) GetID() string {
+	return c.ID
 }
 
 // SetID set object unique identifier
@@ -99,70 +87,54 @@ func (o *BaseObject) GetID() string {
 //	d := &Sample{}
 //	id := d.setID("uniqueID")
 //
-func (o *BaseObject) SetID(id string) {
-	o.ID = id
+func (c *BaseObject) SetID(id string) {
+	c.ID = id
 }
 
 // GetRef return reference which used by db implementation
 //
 //	ref := d.Ref()
 //
-func (o *BaseObject) GetRef() interface{} {
-	return o.Ref
+func (c *BaseObject) GetRef() interface{} {
+	return c.Ref
 }
 
 // SetRef set reference which used by db implementation
 //
 //	d.setRef(ref)
 //
-func (o *BaseObject) SetRef(ref interface{}) {
-	o.Ref = ref
+func (c *BaseObject) SetRef(ref interface{}) {
+	c.Ref = ref
 }
 
 // GetCreateTime return object create time
 //
 //	id := d.CreateTime()
 //
-func (o *BaseObject) GetCreateTime() time.Time {
-	return o.CreateTime
+func (c *BaseObject) GetCreateTime() time.Time {
+	return c.CreateTime
 }
 
 // SetCreateTime set object create time
 //
 //	id := d.SetCreateTime(time.Now())
 //
-func (o *BaseObject) SetCreateTime(t time.Time) {
-	o.CreateTime = t
-}
-
-// GetReadTime return object create time
-//
-//	id := d.ReadTime()
-//
-func (o *BaseObject) GetReadTime() time.Time {
-	return o.ReadTime
-}
-
-// SetReadTime set object read time
-//
-//	id := d.SetReadTime(time.Now())
-//
-func (o *BaseObject) SetReadTime(t time.Time) {
-	o.ReadTime = t
+func (c *BaseObject) SetCreateTime(t time.Time) {
+	c.CreateTime = t
 }
 
 // GetUpdateTime return object update time
 //
 //	id := d.UpdateTime()
 //
-func (o *BaseObject) GetUpdateTime() time.Time {
-	return o.UpdateTime
+func (c *BaseObject) GetUpdateTime() time.Time {
+	return c.UpdateTime
 }
 
 // SetUpdateTime set object update time
 //
 //	id := d.SetUpdateTime(time.Now())
 //
-func (o *BaseObject) SetUpdateTime(t time.Time) {
-	o.UpdateTime = t
+func (c *BaseObject) SetUpdateTime(t time.Time) {
+	c.UpdateTime = t
 }

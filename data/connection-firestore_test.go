@@ -133,7 +133,6 @@ func testID(ctx context.Context, table *Table) {
 	So(sample.Name, ShouldEqual, sample2.(*Sample).Name)
 	So(sample2.GetCreateTime().IsZero(), ShouldBeFalse)
 	So(sample2.GetUpdateTime().IsZero(), ShouldBeFalse)
-	So(sample2.GetReadTime().IsZero(), ShouldBeFalse)
 
 	// factory has no object return must error
 	bakFactory := table.Factory
