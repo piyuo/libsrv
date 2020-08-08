@@ -12,7 +12,7 @@ func TestSlowAction(t *testing.T) {
 		action := &SlowAction{}
 		// action.Name = "hello"
 
-		response, err := action.Main(context.Background())
+		response, err := action.Do(context.Background())
 		So(err, ShouldBeNil)
 		So(response, ShouldNotBeNil)
 		//sr := response.(*StringResponse)

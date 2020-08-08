@@ -9,6 +9,6 @@ import (
 // you can return a response to user and error will be log to server
 //
 // do not return nil on response
-func (a *DeadlineAction) Main(ctx context.Context) (interface{}, error) {
+func (a *DeadlineAction) Do(ctx context.Context) (interface{}, error) {
 	return nil, context.DeadlineExceeded
 }

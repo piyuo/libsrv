@@ -12,7 +12,7 @@ import (
 // you can return a response to user and error will be log to server
 //
 // do not return nil on response
-func (a *SlowAction) Main(ctx context.Context) (interface{}, error) {
+func (a *SlowAction) Do(ctx context.Context) (interface{}, error) {
 	time.Sleep(time.Duration(2) * time.Millisecond)
 	return &shared.Err{
 		Code: "",

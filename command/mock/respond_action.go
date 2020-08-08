@@ -10,7 +10,7 @@ import (
 // you can return a response to user and error will be log to server
 //
 // do not return nil on response
-func (a *RespondAction) Main(ctx context.Context) (interface{}, error) {
+func (a *RespondAction) Do(ctx context.Context) (interface{}, error) {
 	return &shared.Err{
 		Code: "",
 	}, nil

@@ -15,7 +15,7 @@ import (
 
 // Action interface
 type Action interface {
-	Main(ctx context.Context) (interface{}, error)
+	Do(ctx context.Context) (interface{}, error)
 	//  1 to 100 is shared command id between all service, 101 to 65,535 is valid service id
 	XXX_MapID() uint16
 	XXX_MapName() string
@@ -147,7 +147,7 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 //
 //DeadlineExceeded is the only error return
 func (dp *Dispatch) runAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
-	responseInterface, err := action.(Action).Main(ctx)
+	responseInterface, err := action.(Action).Do(ctx)
 	if err != nil {
 		return 0, nil, err
 	}

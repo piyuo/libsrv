@@ -12,7 +12,7 @@ func TestNoRespondAction(t *testing.T) {
 		action := &NoRespondAction{}
 		// action.Name = "hello"
 
-		response, err := action.Main(context.Background())
+		response, err := action.Do(context.Background())
 		So(err, ShouldBeNil)
 		So(response, ShouldBeNil)
 		//sr := response.(*StringResponse)

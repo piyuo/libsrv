@@ -12,7 +12,7 @@ func TestDeadlineAction(t *testing.T) {
 		action := &DeadlineAction{}
 		// action.Name = "hello"
 
-		response, err := action.Main(context.Background())
+		response, err := action.Do(context.Background())
 		So(err, ShouldNotBeNil)
 		So(response, ShouldBeNil)
 	})
