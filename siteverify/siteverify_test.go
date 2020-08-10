@@ -48,7 +48,7 @@ func TestVerification(t *testing.T) {
 		//result, err = siteverify.Verify(ctx, domainName)
 		//So(err, ShouldBeNil)
 		//So(result, ShouldBeTrue)
-		time.Sleep(10 * time.Second)
+		time.Sleep(60 * time.Second)
 		result, _ := siteverify.Verify(ctx, domainName)
 		So(err, ShouldBeNil)
 		So(result, ShouldBeTrue)
