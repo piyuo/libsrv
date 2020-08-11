@@ -3,11 +3,13 @@ package identifier
 import (
 	"encoding/binary"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 // UUID generates base58,max 22 character long,concise, unambiguous, URL-safe UUIDs string
@@ -93,4 +95,27 @@ func RandomNumber(digit int) string {
 		remain--
 	}
 	return sb.String()
+}
+
+// MapID generate unique serial id in map
+//
+//	m := map[string] string{}
+//	id, err := MapID() // "1"
+//
+func MapID(m map[string]string) (string, error) {
+	if len(m) == 0 {
+		return "1", nil
+	}
+
+	max := 0
+	for k := range m {
+		i, err := strconv.Atoi(k)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to convert map key to number")
+		}
+		if i > max {
+			max = i
+		}
+	}
+	return strconv.Itoa(max + 1), nil
 }

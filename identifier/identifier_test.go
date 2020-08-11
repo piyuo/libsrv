@@ -57,3 +57,31 @@ func BenchmarkRandomNumber(b *testing.B) {
 		RandomNumber(6)
 	}
 }
+
+func TestMapID(t *testing.T) {
+	Convey("should generate id for map", t, func() {
+		m := map[string]string{}
+		id, err := MapID(m)
+		So(err, ShouldBeNil)
+		So(id, ShouldEqual, "1")
+		m[id] = "a"
+
+		id, err = MapID(m)
+		So(err, ShouldBeNil)
+		So(id, ShouldEqual, "2")
+		m[id] = "b"
+
+		id, err = MapID(m)
+		So(err, ShouldBeNil)
+		So(id, ShouldEqual, "3")
+		m[id] = "c"
+	})
+}
+
+func BenchmarkMapID(b *testing.B) {
+	m := map[string]string{}
+	for i := 0; i < 100; i++ {
+		id, _ := MapID(m)
+		m[id] = id
+	}
+}
