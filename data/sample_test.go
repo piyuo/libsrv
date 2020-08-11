@@ -124,8 +124,11 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 //
 type Sample struct {
 	BaseObject
-	Name  string
-	Value int
+	Name    string
+	Value   int
+	Map     map[string]string
+	Array   []string
+	Numbers []int
 }
 
 // SampleCoders  represent collection of code

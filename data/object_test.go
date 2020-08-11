@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"reflect"
 	"strconv"
 	"testing"
@@ -14,6 +15,47 @@ func TestID(t *testing.T) {
 		So(d.ID, ShouldBeEmpty)
 		So(d.TimeCreated().IsZero(), ShouldBeTrue)
 		So(d.TimeUpdated().IsZero(), ShouldBeTrue)
+	})
+}
+
+func TestMap(t *testing.T) {
+	Convey("should set/get map", t, func() {
+		ctx := context.Background()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		samplesG, samplesR := createSampleTable(dbG, dbR)
+		defer removeSampleTable(samplesG, samplesR)
+
+		sample := &Sample{
+			Name:  "sample",
+			Value: 1,
+			Map: map[string]string{
+				"1": "a",
+				"2": "b",
+			},
+			Array: []string{
+				"a",
+				"b",
+			},
+			Numbers: []int{
+				1,
+				2,
+			},
+		}
+
+		err := samplesG.Set(ctx, sample)
+		So(err, ShouldBeNil)
+		sampleID := sample.ID
+		sample2Obj, err := samplesG.Get(ctx, sampleID)
+		So(err, ShouldBeNil)
+		sample2 := sample2Obj.(*Sample)
+		So(sample2.Map, ShouldNotBeNil)
+		So(sample2.Map["1"], ShouldEqual, "a")
+		So(sample2.Map["2"], ShouldEqual, "b")
+		So(sample2.Array[0], ShouldEqual, "a")
+		So(sample2.Array[1], ShouldEqual, "b")
+		So(sample2.Numbers[0], ShouldEqual, 1)
+		So(sample2.Numbers[1], ShouldEqual, 2)
 	})
 }
 
