@@ -43,6 +43,11 @@ func TestMap(t *testing.T) {
 			},
 		}
 
+		sample.Obj = &PlainObject{
+			ID:   "1",
+			Name: "a",
+		}
+
 		err := samplesG.Set(ctx, sample)
 		So(err, ShouldBeNil)
 		sampleID := sample.ID
@@ -56,6 +61,8 @@ func TestMap(t *testing.T) {
 		So(sample2.Array[1], ShouldEqual, "b")
 		So(sample2.Numbers[0], ShouldEqual, 1)
 		So(sample2.Numbers[1], ShouldEqual, 2)
+		So(sample2.Obj.ID, ShouldEqual, "1")
+		So(sample2.Obj.Name, ShouldEqual, "a")
 	})
 }
 

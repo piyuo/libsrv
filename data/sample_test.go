@@ -120,6 +120,11 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 	}
 }
 
+type PlainObject struct {
+	ID   string
+	Name string
+}
+
 // Sample
 //
 type Sample struct {
@@ -129,6 +134,7 @@ type Sample struct {
 	Map     map[string]string
 	Array   []string
 	Numbers []int
+	Obj     *PlainObject
 }
 
 // SampleCoders  represent collection of code
