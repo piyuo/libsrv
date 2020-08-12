@@ -212,7 +212,6 @@ func TestHandleRouteException(t *testing.T) {
 		//r, _ := http.NewRequest("POST", "/", nil)
 		w := httptest.NewRecorder()
 		handleRouteException(context.Background(), w, context.DeadlineExceeded)
-		handleRouteException(context.Background(), w, ErrTokenRequired)
 		handleRouteException(context.Background(), w, errors.New(""))
 	})
 }

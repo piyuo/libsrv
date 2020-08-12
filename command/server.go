@@ -94,15 +94,6 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	//add request to context
 	ctx = context.WithValue(ctx, keyRequest, r)
 
-	//add cookie token to context
-	var err error
-	ctx, err = contextFromCookie(ctx, r)
-	if err != nil {
-		errID := log.Error(ctx, here, err)
-		writeError(w, err, http.StatusInternalServerError, errID)
-		return
-	}
-
 	// handle by custom http handler ?
 	if s.HTTPHandler != nil {
 		result, err := s.HTTPHandler(w, r)
@@ -136,13 +127,6 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = contextToCookie(ctx, w)
-	if err != nil {
-		errID := log.Error(ctx, here, err)
-		writeError(w, err, http.StatusInternalServerError, errID)
-		return
-	}
-
 	writeBinary(w, bytes)
 }
 
@@ -155,11 +139,6 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 	if goerrors.Is(err, context.DeadlineExceeded) {
 		errID := log.Error(ctx, here, err)
 		writeError(w, err, http.StatusGatewayTimeout, errID)
-		return
-	}
-
-	if goerrors.Is(err, ErrTokenRequired) {
-		writeError(w, err, http.StatusNetworkAuthenticationRequired, err.Error())
 		return
 	}
 
