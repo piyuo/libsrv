@@ -22,9 +22,9 @@ type BaseToken struct {
 //
 const expiredFormat = "200601021504"
 
-// expiredKey is expired key name
+// keyExpired is expired key name
 //
-const expiredKey = "expired"
+const keyExpired = "_"
 
 // NewToken return a empty token
 //
@@ -62,12 +62,12 @@ func FromString(str string) (Token, bool, error) {
 		return nil, false, errors.Wrap(err, "failed to decrypt str:"+str)
 	}
 	content := util.MapFromString(everything)
-	expired := content[expiredKey]
+	expired := content[keyExpired]
 	if isExpired(expired) {
 		return nil, true, nil
 	}
 
-	delete(content, expiredKey)
+	delete(content, keyExpired)
 	return &BaseToken{
 		content: content,
 	}, false, nil
@@ -79,7 +79,7 @@ func FromString(str string) (Token, bool, error) {
 //
 func (c *BaseToken) ToString(duration time.Duration) (string, error) {
 	expiredTime := time.Now().UTC().Add(duration)
-	c.content[expiredKey] = expiredTime.Format(expiredFormat)
+	c.content[keyExpired] = expiredTime.Format(expiredFormat)
 
 	everything := util.MapToString(c.content)
 	crypted, err := crypto.Encrypt(everything)
