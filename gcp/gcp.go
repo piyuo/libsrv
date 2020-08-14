@@ -2,9 +2,9 @@ package gcp
 
 import (
 	"context"
-	"os"
 
 	"github.com/piyuo/libsrv/key"
+	"github.com/piyuo/libsrv/region"
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -49,23 +49,21 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	var cred = regionalCredentials[gcpRegion]
-	if regionalCredentials[gcpRegion] == nil {
-		bytes, err := key.BytesWithoutCache("/region/" + gcpRegion + ".json")
+	var cred = regionalCredentials[region.Current]
+	if regionalCredentials[region.Current] == nil {
+		bytes, err := key.BytesWithoutCache("/region/" + region.Current + ".json")
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/region/"+gcpRegion+".json")
+			return nil, errors.Wrap(err, "failed to get keys/region/"+region.Current+".json")
 		}
 		cred, err := createCredential(ctx, bytes)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check keys/region/"+gcpRegion+".json format is correct")
+			return nil, errors.Wrap(err, "failed to create credential, check keys/region/"+region.Current+".json format is correct")
 		}
-		regionalCredentials[gcpRegion] = cred
+		regionalCredentials[region.Current] = cred
 		return cred, nil
 	}
 	return cred, nil
 }
-
-var gcpRegion = os.Getenv("REGION")
 
 // createCredential create google credential from json bytes
 //

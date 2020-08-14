@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/piyuo/libsrv/key"
+	"github.com/piyuo/libsrv/region"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -31,17 +32,17 @@ func TestCredential(t *testing.T) {
 
 func TestDataCredentialByRegion(t *testing.T) {
 	Convey("should get data credential by region", t, func() {
-		gcpRegion = "us"
+		region.Current = "us"
 		cred, err := RegionalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 
-		gcpRegion = "jp"
+		region.Current = "jp"
 		cred, err = RegionalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
 
-		gcpRegion = "be"
+		region.Current = "be"
 		cred, err = RegionalCredential(context.Background())
 		So(err, ShouldBeNil)
 		So(cred, ShouldNotBeNil)
