@@ -20,3 +20,16 @@ func TestString(t *testing.T) {
 		So(StringAfter("111", "1"), ShouldEqual, "")
 	})
 }
+
+func TestStringSplit(t *testing.T) {
+	Convey("should split string", t, func() {
+		array := []string{"1", "2", "3"}
+		str := ArrayToString(array)
+		So(str, ShouldNotBeEmpty)
+		ary := StringToArray(str)
+		So(len(ary), ShouldEqual, 3)
+		So(ary[0], ShouldEqual, "1")
+		So(ary[1], ShouldEqual, "2")
+		So(ary[2], ShouldEqual, "3")
+	})
+}

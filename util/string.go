@@ -2,7 +2,8 @@ package util
 
 import "strings"
 
-//StringBetween Get substring between two strings
+// StringBetween Get substring between two strings
+//
 func StringBetween(value string, a string, b string) string {
 	posFirst := strings.Index(value, a)
 	if posFirst == -1 {
@@ -19,7 +20,8 @@ func StringBetween(value string, a string, b string) string {
 	return value[posFirstAdjusted:posLast]
 }
 
-//StringBefore Get substring before a string
+// StringBefore Get substring before a string
+//
 func StringBefore(value string, a string) string {
 	pos := strings.Index(value, a)
 	if pos == -1 {
@@ -28,7 +30,8 @@ func StringBefore(value string, a string) string {
 	return value[0:pos]
 }
 
-//StringAfter Get substring after a string.
+// StringAfter Get substring after a string
+//
 func StringAfter(value string, a string) string {
 	pos := strings.LastIndex(value, a)
 	if pos == -1 {
@@ -39,4 +42,24 @@ func StringAfter(value string, a string) string {
 		return ""
 	}
 	return value[adjustedPos:len(value)]
+}
+
+// ArrayToString convert list of string to string
+//
+//	array := []string{"1", "2", "3"}
+//	str := ArrayToString(array) //1,2,3
+//	ary := StringToArray(str)
+//
+func ArrayToString(stringArray []string) string {
+	return strings.Join(stringArray, ",")
+}
+
+// StringToArray split string to []string
+//
+//	array := []string{"1", "2", "3"}
+//	str := ArrayToString(array)  //1,2,3
+//	ary := StringToArray(str)
+//
+func StringToArray(str string) []string {
+	return strings.Split(str, ",")
 }
