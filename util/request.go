@@ -10,9 +10,18 @@ import (
 	useragent "github.com/mileusna/useragent"
 )
 
+// GetUserAgentID return short id from user agent
+//
+//	txt := GetUserAgentID(request)
+//
+func GetUserAgentID(r *http.Request) string {
+	u := useragent.Parse(r.UserAgent())
+	return u.Device + ", " + u.OS + " " + u.OSVersion + ", " + u.Name + " " + u.Version
+}
+
 // ParseUserAgent return browser name,browser version,os name,os version,device from user agent
 //
-//	browserName,browserVer,osName,osVer,device := ParseUserAgent(request)
+//	browserName,browserVer,osName,osVer,device := ParseUserAgent(ua)
 //
 func ParseUserAgent(ua string) (string, string, string, string, string) {
 	u := useragent.Parse(ua)
