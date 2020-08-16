@@ -85,6 +85,19 @@ func GetIP(ctx context.Context) string {
 	return util.GetIP(req)
 }
 
+// GetUserAgent return user agent from current request, return empty if anything wrong
+//
+//	ua := GetUserAgent(ctx)
+//
+func GetUserAgent(ctx context.Context) string {
+	value := ctx.Value(keyRequest)
+	if value == nil {
+		return ""
+	}
+	req := value.(*http.Request)
+	return util.GetIP(req)
+}
+
 // GetLocale return locale from current request, return en-us if anything else
 //
 //	lang := GetLocale(ctx)

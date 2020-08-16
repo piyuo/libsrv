@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/firestore v1.1.1
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/storage v1.8.0
+	github.com/mileusna/useragent v1.0.1
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/golang/protobuf v1.4.2
 	github.com/google/uuid v1.1.1

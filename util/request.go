@@ -6,7 +6,26 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	useragent "github.com/mileusna/useragent"
 )
+
+// ParseUserAgent return browser name,browser version,os name,os version,device from user agent
+//
+//	browserName,browserVer,osName,osVer,device := ParseUserAgent(request)
+//
+func ParseUserAgent(ua string) (string, string, string, string, string) {
+	u := useragent.Parse(ua)
+	return u.Name, u.Version, u.OS, u.OSVersion, u.Device
+}
+
+// GetUserAgent return user agent
+//
+//	ua := GetUserAgent(request)
+//
+func GetUserAgent(r *http.Request) string {
+	return r.UserAgent()
+}
 
 // GetIP return ip from request
 //
