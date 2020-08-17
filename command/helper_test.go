@@ -56,3 +56,21 @@ func TestGetIPAndLocale(t *testing.T) {
 		So(GetLocale(ctx), ShouldEqual, "zh-cn")
 	})
 }
+
+func TestUserAgent(t *testing.T) {
+	Convey("should get useragent", t, func() {
+		req, _ := http.NewRequest("GET", "/whatever", nil)
+		req.Header.Set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25")
+
+		ctx := context.Background()
+		So(GetUserAgent(ctx), ShouldEqual, "")
+		So(GetUserAgentID(ctx), ShouldEqual, "")
+
+		ctx = context.WithValue(context.Background(), keyRequest, req)
+
+		ua := GetUserAgent(ctx)
+		So(ua, ShouldNotBeEmpty)
+		txt := GetUserAgentID(ctx)
+		So(txt, ShouldEqual, "iPhone, iOS 7.0, Safari 6.0")
+	})
+}

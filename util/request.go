@@ -12,7 +12,7 @@ import (
 
 // GetUserAgentID return short id from user agent
 //
-//	txt := GetUserAgentID(request)
+//	txt := GetUserAgentID(request) // "iPhone, iOS 7.0, Safari 6.0"
 //
 func GetUserAgentID(r *http.Request) string {
 	u := useragent.Parse(r.UserAgent())
@@ -30,7 +30,7 @@ func ParseUserAgent(ua string) (string, string, string, string, string) {
 
 // GetUserAgent return user agent
 //
-//	ua := GetUserAgent(request)
+//	ua := GetUserAgent(request) // "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25"
 //
 func GetUserAgent(r *http.Request) string {
 	return r.UserAgent()

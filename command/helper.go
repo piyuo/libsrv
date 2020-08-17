@@ -85,9 +85,22 @@ func GetIP(ctx context.Context) string {
 	return util.GetIP(req)
 }
 
+// GetUserAgentID return short id from user agent
+//
+//	ua := GetUserAgentID(ctx) // "iPhone, iOS 7.0, Safari 6.0"
+//
+func GetUserAgentID(ctx context.Context) string {
+	value := ctx.Value(keyRequest)
+	if value == nil {
+		return ""
+	}
+	req := value.(*http.Request)
+	return util.GetUserAgentID(req)
+}
+
 // GetUserAgent return user agent from current request, return empty if anything wrong
 //
-//	ua := GetUserAgent(ctx)
+//	ua := GetUserAgent(ctx) //"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25"
 //
 func GetUserAgent(ctx context.Context) string {
 	value := ctx.Value(keyRequest)
@@ -95,7 +108,7 @@ func GetUserAgent(ctx context.Context) string {
 		return ""
 	}
 	req := value.(*http.Request)
-	return util.GetIP(req)
+	return util.GetUserAgent(req)
 }
 
 // GetLocale return locale from current request, return en-us if anything else
