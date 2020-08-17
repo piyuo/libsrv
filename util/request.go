@@ -16,7 +16,7 @@ import (
 //
 func GetUserAgentID(r *http.Request) string {
 	u := useragent.Parse(r.UserAgent())
-	return u.Device + ", " + u.OS + " " + u.OSVersion + ", " + u.Name + " " + u.Version
+	return u.Device + ", " + u.OS + ", " + u.Name
 }
 
 // ParseUserAgent return browser name,browser version,os name,os version,device from user agent
