@@ -12,20 +12,20 @@ import (
 
 // GetUserAgentID return short id from user agent. no version in here cause we used this for refresh token
 //
-//	txt := GetUserAgentID(request) // "iPhone, iOS, Safari"
+//	txt := GetUserAgentID(request) // "iPhone,iOS,Safari"
 //
 func GetUserAgentID(r *http.Request) string {
 	u := useragent.Parse(r.UserAgent())
-	return u.Device + ", " + u.OS + ", " + u.Name
+	return u.Device + "," + u.OS + "," + u.Name
 }
 
 // GetUserAgentString return short string with version info from user agent
 //
-//	txt := GetUserAgentString(request) // "iPhone, iOS 7.0, Safari 6.0"
+//	txt := GetUserAgentString(request) // "iPhone,iOS 7.0,Safari 6.0"
 //
 func GetUserAgentString(r *http.Request) string {
 	u := useragent.Parse(r.UserAgent())
-	return u.Device + ", " + u.OS + " " + u.OSVersion + ", " + u.Name + " " + u.Version
+	return u.Device + "," + u.OS + " " + u.OSVersion + "," + u.Name + " " + u.Version
 }
 
 // ParseUserAgent return browser name,browser version,os name,os version,device from user agent

@@ -23,10 +23,10 @@ func TestUserAgent(t *testing.T) {
 		So(device, ShouldNotBeEmpty)
 
 		id := GetUserAgentID(req)
-		So(id, ShouldEqual, "iPhone, iOS, Safari")
+		So(id, ShouldEqual, "iPhone,iOS,Safari")
 
 		str := GetUserAgentString(req)
-		So(str, ShouldEqual, "iPhone, iOS 7.0, Safari 6.0")
+		So(str, ShouldEqual, "iPhone,iOS 7.0,Safari 6.0")
 	})
 }
 
