@@ -92,7 +92,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	//add request to context
-	ctx = context.WithValue(ctx, keyRequest, r)
+	ctx = context.WithValue(ctx, KeyRequest, r)
 
 	// handle by custom http handler ?
 	if s.HTTPHandler != nil {

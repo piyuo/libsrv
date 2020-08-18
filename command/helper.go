@@ -18,13 +18,13 @@ import (
 type keyContext int
 
 const (
-	// REQUEST is context key name for request
+	// KeyRequest is context key name for request
 	//
-	keyRequest keyContext = iota
+	KeyRequest keyContext = iota
 
-	// TOKEN is context key name for token
+	// KeyToken is context key name for token
 	//
-	keyToken
+	KeyToken
 )
 
 // commandDateline cache os env COMMAND_DEADLINE value
@@ -77,7 +77,7 @@ func writeBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
 //	ip := GetIP(ctx)
 //
 func GetIP(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
+	value := ctx.Value(KeyRequest)
 	if value == nil {
 		return ""
 	}
@@ -90,7 +90,7 @@ func GetIP(ctx context.Context) string {
 //	ua := GetUserAgentID(ctx) // "iPhone, iOS, Safari"
 //
 func GetUserAgentID(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
+	value := ctx.Value(KeyRequest)
 	if value == nil {
 		return ""
 	}
@@ -103,7 +103,7 @@ func GetUserAgentID(ctx context.Context) string {
 //	ua := GetUserAgentString(ctx) // "iPhone, iOS 7.0, Safari 6.0"
 //
 func GetUserAgentString(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
+	value := ctx.Value(KeyRequest)
 	if value == nil {
 		return ""
 	}
@@ -116,7 +116,7 @@ func GetUserAgentString(ctx context.Context) string {
 //	ua := GetUserAgent(ctx) //"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25"
 //
 func GetUserAgent(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
+	value := ctx.Value(KeyRequest)
 	if value == nil {
 		return ""
 	}
@@ -129,7 +129,7 @@ func GetUserAgent(ctx context.Context) string {
 //	lang := GetLocale(ctx)
 //
 func GetLocale(ctx context.Context) string {
-	value := ctx.Value(keyRequest)
+	value := ctx.Value(KeyRequest)
 	if value == nil {
 		return "en-us"
 	}

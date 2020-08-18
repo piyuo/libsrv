@@ -51,7 +51,7 @@ func TestGetIPAndLocale(t *testing.T) {
 
 		req.Header.Add("Accept-Language", "zh-cn")
 		req.RemoteAddr = "[::1]:80"
-		ctx = context.WithValue(context.Background(), keyRequest, req)
+		ctx = context.WithValue(context.Background(), KeyRequest, req)
 		So(GetIP(ctx), ShouldEqual, "::1")
 		So(GetLocale(ctx), ShouldEqual, "zh-cn")
 	})
@@ -66,7 +66,7 @@ func TestUserAgent(t *testing.T) {
 		So(GetUserAgent(ctx), ShouldEqual, "")
 		So(GetUserAgentID(ctx), ShouldEqual, "")
 
-		ctx = context.WithValue(context.Background(), keyRequest, req)
+		ctx = context.WithValue(context.Background(), KeyRequest, req)
 
 		ua := GetUserAgent(ctx)
 		So(ua, ShouldNotBeEmpty)
