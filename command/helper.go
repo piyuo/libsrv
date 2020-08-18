@@ -85,9 +85,9 @@ func GetIP(ctx context.Context) string {
 	return util.GetIP(req)
 }
 
-// GetUserAgentID return short id from user agent
+// GetUserAgentID return short id from user agent. no version in here cause we used this for refresh token
 //
-//	ua := GetUserAgentID(ctx) // "iPhone, iOS 7.0, Safari 6.0"
+//	ua := GetUserAgentID(ctx) // "iPhone, iOS, Safari"
 //
 func GetUserAgentID(ctx context.Context) string {
 	value := ctx.Value(keyRequest)
@@ -96,6 +96,19 @@ func GetUserAgentID(ctx context.Context) string {
 	}
 	req := value.(*http.Request)
 	return util.GetUserAgentID(req)
+}
+
+// GetUserAgentString return short string with version info from user agent
+//
+//	ua := GetUserAgentString(ctx) // "iPhone, iOS 7.0, Safari 6.0"
+//
+func GetUserAgentString(ctx context.Context) string {
+	value := ctx.Value(keyRequest)
+	if value == nil {
+		return ""
+	}
+	req := value.(*http.Request)
+	return util.GetUserAgentString(req)
 }
 
 // GetUserAgent return user agent from current request, return empty if anything wrong
