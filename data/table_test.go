@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/session"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -65,4 +66,25 @@ func searchTest(ctx context.Context, table *Table) {
 	So(obj2.Value, ShouldEqual, 2)
 	table.Delete(ctx, obj1.ID)
 	table.Delete(ctx, obj2.ID)
+}
+
+func TestChangedBy(t *testing.T) {
+	Convey("should set by which user", t, func() {
+		ctx := context.Background()
+		dbG, dbR := createSampleDB()
+		defer removeSampleDB(dbG, dbR)
+		tableG, tableR := createSampleTable(dbG, dbR)
+		defer removeSampleTable(tableG, tableR)
+		sample := &Sample{
+			Name:  "a",
+			Value: 1,
+		}
+		tableG.Set(ctx, sample)
+		So(sample.GetBy(), ShouldBeEmpty)
+
+		ctx = session.SetUserID(ctx, "user1")
+		tableG.Set(ctx, sample)
+		So(sample.GetBy(), ShouldEqual, "user1")
+
+	})
 }

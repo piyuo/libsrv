@@ -18,6 +18,15 @@ func TestID(t *testing.T) {
 	})
 }
 
+func TestBy(t *testing.T) {
+	Convey("should set/get by", t, func() {
+		d := &Sample{}
+		So(d.GetBy(), ShouldBeEmpty)
+		d.SetBy("user1")
+		So(d.GetBy(), ShouldEqual, "user1")
+	})
+}
+
 func TestMap(t *testing.T) {
 	Convey("should set/get map", t, func() {
 		ctx := context.Background()

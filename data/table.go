@@ -4,6 +4,8 @@ import (
 	"context"
 
 	identifier "github.com/piyuo/libsrv/identifier"
+	"github.com/piyuo/libsrv/session"
+	"github.com/pkg/errors"
 )
 
 // Table represent collection of document in document database, you can do operation like get/set/query on documents
@@ -66,9 +68,17 @@ func (c *Table) Get(ctx context.Context, id string) (Object, error) {
 //	err = table.Set(ctx, sample)
 //
 func (c *Table) Set(ctx context.Context, object Object) error {
+	if object == nil {
+		return errors.New("object can not be nil: " + c.TableName)
+	}
+
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
+
+	userID := session.GetUserID(ctx)
+	object.SetBy(userID)
+
 	if err := c.Connection.Set(ctx, c.TableName, object); err != nil {
 		return err
 	}

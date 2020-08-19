@@ -57,20 +57,24 @@ type Object interface {
 	//	d.setUpdated(time.Now().UTC())
 	//
 	setUpdated(t time.Time)
+
+	// GetBy get who changed the record
+	//
+	//	userID := d.GetBy()
+	//
+	GetBy() string
+
+	// SetBy set who change the record
+	//
+	//	d.SetBy(userID)
+	//
+	SetBy(userID string)
 }
 
 // BaseObject represent object stored in document database
 //
 type BaseObject struct {
 	Object `firestore:"-"`
-
-	// Created is object create time
-	//
-	Created time.Time
-
-	// Updated is object latest update time
-	//
-	Updated time.Time
 
 	// ID is object unique identifier used for other object to reference
 	//
@@ -79,6 +83,18 @@ type BaseObject struct {
 	// reference used by connection implementation
 	//
 	Ref interface{} `firestore:"-"`
+
+	// By usually is user id, indicate who change the record
+	//
+	By string
+
+	// Created is object create time
+	//
+	Created time.Time
+
+	// Updated is object latest update time
+	//
+	Updated time.Time
 }
 
 // GetID return object unique identifier
@@ -97,6 +113,22 @@ func (c *BaseObject) GetID() string {
 //
 func (c *BaseObject) SetID(id string) {
 	c.ID = id
+}
+
+// GetBy get who changed the record
+//
+//	userID := d.GetBy()
+//
+func (c *BaseObject) GetBy() string {
+	return c.By
+}
+
+// SetBy set who change the record
+//
+//	d.SetBy(userID)
+//
+func (c *BaseObject) SetBy(userID string) {
+	c.By = userID
 }
 
 // GetRef return reference which used by db implementation
