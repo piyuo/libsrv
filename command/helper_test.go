@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
@@ -20,7 +19,6 @@ func TestWriteResponse(t *testing.T) {
 		writeBadRequest(context.Background(), w, "message")
 	})
 }
-
 
 func TestIsSlow(t *testing.T) {
 	Convey("should determine slow work", t, func() {
