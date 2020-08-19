@@ -75,12 +75,11 @@ func FromString(str string) (Token, bool, error) {
 
 // ToString return string with expired time, after expired time the token will not read from string
 //
-//	str := token.ToString(20 * time.Minute ) // 20 min
+//	expired := time.Now().UTC().Add(60 * time.Second)
+//	str := token.ToString(expired)
 //
-func (c *BaseToken) ToString(duration time.Duration) (string, error) {
-	expiredTime := time.Now().UTC().Add(duration)
-	c.content[keyExpired] = expiredTime.Format(expiredFormat)
-
+func (c *BaseToken) ToString(expired time.Time) (string, error) {
+	c.content[keyExpired] = expired.Format(expiredFormat)
 	everything := util.MapToString(c.content)
 	crypted, err := crypto.Encrypt(everything)
 	if err != nil {

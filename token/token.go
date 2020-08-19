@@ -8,9 +8,10 @@ type Token interface {
 
 	// ToString return string with expired time, after expired time the token will not read from string
 	//
-	//	str := token.ToString(20 * time.Minute ) // 20 min
+	//	expired := time.Now().UTC().Add(60 * time.Second)
+	//	str := token.ToString(expired)
 	//
-	ToString(duration time.Duration) (string, error)
+	ToString(expired time.Time) (string, error)
 
 	// Get return value from key
 	//

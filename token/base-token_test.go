@@ -44,14 +44,14 @@ func TestTokenFromToString(t *testing.T) {
 	Convey("should get/set token", t, func() {
 		token := NewToken()
 		token.Set("a", "1")
-
-		crypted, err := token.ToString(60 * time.Second)
+		expired := time.Now().UTC().Add(60 * time.Second)
+		crypted, err := token.ToString(expired)
 		So(err, ShouldBeNil)
 		So(crypted, ShouldNotBeEmpty)
 
-		token2, expired, err := FromString(crypted)
+		token2, isExpired, err := FromString(crypted)
 		So(err, ShouldBeNil)
-		So(expired, ShouldBeFalse)
+		So(isExpired, ShouldBeFalse)
 
 		value := token2.Get("a")
 		So(value, ShouldEqual, "1")
@@ -63,13 +63,14 @@ func TestTokenExpired(t *testing.T) {
 		token := NewToken()
 		token.Set("a", "1")
 
-		crypted, err := token.ToString(-60 * time.Second)
+		expired := time.Now().UTC().Add(-60 * time.Second)
+		crypted, err := token.ToString(expired)
 		So(err, ShouldBeNil)
 		So(crypted, ShouldNotBeEmpty)
 
-		token2, expired, err := FromString(crypted)
+		token2, isExpired, err := FromString(crypted)
 		So(err, ShouldBeNil)
-		So(expired, ShouldBeTrue)
+		So(isExpired, ShouldBeTrue)
 		So(token2, ShouldBeNil)
 	})
 }
