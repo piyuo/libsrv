@@ -7,29 +7,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
-	log "github.com/piyuo/libsrv/log"
-	util "github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/log"
 )
-
-// keyContext define key used in ctx
-//
-type keyContext int
-
-const (
-	// KeyRequest is context key name for request
-	//
-	KeyRequest keyContext = iota
-
-	// KeyToken is context key name for token
-	//
-	KeyToken
-)
-
-// commandDateline cache os env COMMAND_DEADLINE value
-//
-var commandDateline time.Duration = -1
 
 // commandDateline cache os env COMMAND_SLOW value
 //
@@ -70,89 +50,6 @@ func writeBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusBadRequest)
 	writeText(w, msg)
 	log.Debug(ctx, here, msg)
-}
-
-// GetIP return ip from current request, return empty if anything wrong
-//
-//	ip := GetIP(ctx)
-//
-func GetIP(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
-	if value == nil {
-		return ""
-	}
-	req := value.(*http.Request)
-	return util.GetIP(req)
-}
-
-// GetUserAgentID return short id from user agent. no version in here cause we used this for refresh token
-//
-//	ua := GetUserAgentID(ctx) // "iPhone,iOS,Safari"
-//
-func GetUserAgentID(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
-	if value == nil {
-		return ""
-	}
-	req := value.(*http.Request)
-	return util.GetUserAgentID(req)
-}
-
-// GetUserAgentString return short string with version info from user agent
-//
-//	ua := GetUserAgentString(ctx) // "iPhone,iOS 7.0,Safari 6.0"
-//
-func GetUserAgentString(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
-	if value == nil {
-		return ""
-	}
-	req := value.(*http.Request)
-	return util.GetUserAgentString(req)
-}
-
-// GetUserAgent return user agent from current request, return empty if anything wrong
-//
-//	ua := GetUserAgent(ctx) //"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25"
-//
-func GetUserAgent(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
-	if value == nil {
-		return ""
-	}
-	req := value.(*http.Request)
-	return util.GetUserAgent(req)
-}
-
-// GetLocale return locale from current request, return en-us if anything else
-//
-//	lang := GetLocale(ctx)
-//
-func GetLocale(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
-	if value == nil {
-		return "en-us"
-	}
-	req := value.(*http.Request)
-	return util.GetLocale(req)
-}
-
-// getDeadline get context deadline,dateline should not greater than 10 min.
-//
-//	deadline := getDeadline()
-//
-func getDeadline() time.Time {
-	if commandDateline == -1 {
-		text := os.Getenv("DEADLINE")
-		var err error
-		ms, err := strconv.Atoi(text)
-		if err != nil {
-			ms = 20000
-			fmt.Print("use default deadline 20 seconds")
-		}
-		commandDateline = time.Duration(ms)
-	}
-	return time.Now().Add(commandDateline * time.Millisecond)
 }
 
 //IsSlow check execution time is greater than slow definition,if so return slow limit, other return 0

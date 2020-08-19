@@ -6,6 +6,7 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	gcp "github.com/piyuo/libsrv/gcp"
+	"github.com/piyuo/libsrv/session"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 )
@@ -76,13 +77,13 @@ func (c *gcpErrorer) Write(ctx context.Context, where, message, stack, errID str
 	if stack == "" {
 		c.client.Report(errorreporting.Entry{
 			Error: e, User: id,
-			Req: getRequest(ctx),
+			Req: session.GetRequest(ctx),
 		})
 		return
 	}
 	c.client.Report(errorreporting.Entry{
 		Error: e, User: id,
 		Stack: []byte(stack),
-		Req:   getRequest(ctx),
+		Req:   session.GetRequest(ctx),
 	})
 }

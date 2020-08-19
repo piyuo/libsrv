@@ -11,7 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	log "github.com/piyuo/libsrv/log"
+	"github.com/piyuo/libsrv/log"
+	"github.com/piyuo/libsrv/session"
 )
 
 const here = "command"
@@ -88,11 +89,11 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	//add deadline to context
-	ctx, cancel := context.WithDeadline(r.Context(), getDeadline())
+	ctx, cancel := session.SetDeadline(r.Context())
 	defer cancel()
 
 	//add request to context
-	ctx = context.WithValue(ctx, KeyRequest, r)
+	ctx = session.SetRequest(r)
 
 	// handle by custom http handler ?
 	if s.HTTPHandler != nil {

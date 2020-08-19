@@ -7,6 +7,7 @@ import (
 	"time"
 
 	identifier "github.com/piyuo/libsrv/identifier"
+	"github.com/piyuo/libsrv/session"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -26,7 +27,7 @@ func TestGetHeader(t *testing.T) {
 	Convey("should get header", t, func() {
 		appName = "test"
 		ctx := context.Background()
-		ctx = context.WithValue(ctx, keyToken, map[string]string{"id": "user1"})
+		ctx = session.SetUserID(ctx, "user1")
 		header, id := getHeader(ctx, here)
 		So(header, ShouldEqual, "user1@test/log_test: ")
 		So(id, ShouldEqual, "user1")

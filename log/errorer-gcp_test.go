@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	identifier "github.com/piyuo/libsrv/identifier"
+	"github.com/piyuo/libsrv/session"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -12,7 +13,7 @@ func TestGCPErrorer(t *testing.T) {
 	Convey("should write error", t, func() {
 		appName = "error-gcp_test"
 		ctx := context.Background()
-		ctx = context.WithValue(ctx, keyToken, map[string]string{"id": "user1"})
+		ctx = session.SetUserID(ctx, "user1")
 		errorer, err := NewGCPErrorer(ctx)
 		So(err, ShouldBeNil)
 		So(errorer, ShouldNotBeNil)

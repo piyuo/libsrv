@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	identifier "github.com/piyuo/libsrv/identifier"
+	"github.com/piyuo/libsrv/session"
 )
 
 // TOKEN is context key that store token
@@ -54,7 +55,7 @@ func shouldPrintToConsole() bool {
 //
 func getHeader(ctx context.Context, where string) (string, string) {
 	header := getLocation(where)
-	id := getID(ctx)
+	id := session.GetUserID(ctx)
 	if id != "" {
 		header = id + "@" + header
 	}
