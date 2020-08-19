@@ -93,7 +93,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	//add request to context
-	ctx = session.SetRequest(r)
+	ctx = session.SetRequest(ctx, r)
 
 	// handle by custom http handler ?
 	if s.HTTPHandler != nil {
