@@ -18,6 +18,13 @@ func TestShared(t *testing.T) {
 		So(num.Value, ShouldEqual, 201)
 	})
 
+	Convey("should create bool response", t, func() {
+		b := Bool(true).(*shared.Bool)
+		So(b.Value, ShouldEqual, true)
+		b = Bool(false).(*shared.Bool)
+		So(b.Value, ShouldEqual, false)
+	})
+
 	Convey("should create error response", t, func() {
 		err := Error("errCode").(*shared.Err)
 		So(err.Code, ShouldEqual, "errCode")

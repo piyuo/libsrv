@@ -71,3 +71,13 @@ func Number(num int64) interface{} {
 		Value: num,
 	}
 }
+
+// Bool return bool response
+//
+//	return command.Bool(true)
+//
+func Bool(value bool) interface{} {
+	return &shared.Bool{
+		Value: value,
+	}
+}
