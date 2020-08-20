@@ -76,6 +76,7 @@ func RandomNumber(digit int) string {
 	if randSrc == nil {
 		randSrc = rand.NewSource(time.Now().UnixNano())
 	}
+
 	sb := strings.Builder{}
 	sb.Grow(digit)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
@@ -87,14 +88,43 @@ func RandomNumber(digit int) string {
 			sb.WriteByte(letterBytes[idx])
 			i--
 		}
-		l := sb.Len()
-		if l == 9 || l == 14 {
-			sb.WriteString("-")
-		}
 		cache >>= letterIdxBits
 		remain--
 	}
 	return sb.String()
+}
+
+// NotIdenticalRandomNumber return number string that avoid identical
+//
+//	id := RandomNumber(6) //062448
+//
+func NotIdenticalRandomNumber(digit int) string {
+
+	for i := 0; i < 10; i++ {
+		str := RandomNumber(digit)
+		if !IsNumberStringIdentical(str) {
+			return str
+		}
+	}
+	return RandomNumber(digit)
+}
+
+// IsNumberStringIdentical return true has only 2 digit different
+//
+//	 IsNumberStringIdentical("111111") //true
+//	 IsNumberStringIdentical("111112") //true
+//	 IsNumberStringIdentical("111124") //false
+//
+func IsNumberStringIdentical(str string) bool {
+	diffCount := 0
+	c := str[0]
+	for i := 1; i < len(str); i++ {
+		if str[i] != c {
+			diffCount++
+		}
+		c = str[i]
+	}
+	return diffCount <= 1
 }
 
 // MapID generate unique serial id in map

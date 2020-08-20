@@ -52,9 +52,32 @@ func TestRandomNumber(t *testing.T) {
 	})
 }
 
+func TestIdenticalNumberString(t *testing.T) {
+	Convey("should be Identical", t, func() {
+		So(IsNumberStringIdentical("111111"), ShouldBeTrue)
+		So(IsNumberStringIdentical("111122"), ShouldBeTrue)
+	})
+	Convey("should Not be Identical", t, func() {
+		So(IsNumberStringIdentical("111124"), ShouldBeFalse)
+		So(IsNumberStringIdentical("123456"), ShouldBeFalse)
+		So(IsNumberStringIdentical("177756"), ShouldBeFalse)
+		So(IsNumberStringIdentical("211311"), ShouldBeFalse)
+		So(IsNumberStringIdentical("111311"), ShouldBeFalse)
+	})
+	Convey("should Not Identical random", t, func() {
+		So(NotIdenticalRandomNumber(6), ShouldNotBeEmpty)
+	})
+}
+
 func BenchmarkRandomNumber(b *testing.B) {
 	for i := 0; i < 10000; i++ {
 		RandomNumber(6)
+	}
+}
+
+func BenchmarkNotIdenticalRandomNumber(b *testing.B) {
+	for i := 0; i < 10000; i++ {
+		NotIdenticalRandomNumber(6)
 	}
 }
 
