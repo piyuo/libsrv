@@ -72,6 +72,9 @@ func Get(key string) (interface{}, bool) {
 //
 func GetBool(key string) (bool, bool) {
 	item, found := cache.Get(key)
+	if !found {
+		return false, false
+	}
 	return item.(bool), found
 }
 
@@ -79,6 +82,9 @@ func GetBool(key string) (bool, bool) {
 //
 func GetInt(key string) (int, bool) {
 	item, found := cache.Get(key)
+	if !found {
+		return 0, false
+	}
 	return item.(int), found
 }
 
@@ -86,6 +92,9 @@ func GetInt(key string) (int, bool) {
 //
 func GetInt64(key string) (int64, bool) {
 	item, found := cache.Get(key)
+	if !found {
+		return 0, false
+	}
 	return item.(int64), found
 }
 
@@ -93,6 +102,9 @@ func GetInt64(key string) (int64, bool) {
 //
 func GetString(key string) (string, bool) {
 	item, found := cache.Get(key)
+	if !found {
+		return "", false
+	}
 	return item.(string), found
 }
 
@@ -100,6 +112,9 @@ func GetString(key string) (string, bool) {
 //
 func GetBytes(key string) ([]byte, bool) {
 	item, found := cache.Get(key)
+	if !found {
+		return nil, false
+	}
 	return item.([]byte), found
 }
 

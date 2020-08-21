@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"testing"
@@ -53,7 +52,7 @@ func TestConcurrentCache(t *testing.T) {
 				t.Fatal("key" + strconv.Itoa(i) + " get value is not equal to set value")
 				return
 			}
-			fmt.Print(strconv.Itoa(i) + "\n")
+			//fmt.Print(strconv.Itoa(i) + "\n")
 
 		}
 		wg.Done()
@@ -93,6 +92,27 @@ func TestGetMethod(t *testing.T) {
 		valueBytes, found := GetBytes("key")
 		convey.So(found, convey.ShouldBeTrue)
 		convey.So(valueBytes, convey.ShouldNotBeNil)
+
+		//test not exist
+		valueInt, found = GetInt("not-exist")
+		convey.So(valueInt, convey.ShouldEqual, 0)
+		convey.So(found, convey.ShouldBeFalse)
+
+		valueInt64, found = GetInt64("not-exist")
+		convey.So(valueInt64, convey.ShouldEqual, 0)
+		convey.So(found, convey.ShouldBeFalse)
+
+		valueBool, found = GetBool("not-exist")
+		convey.So(valueBool, convey.ShouldBeFalse)
+		convey.So(found, convey.ShouldBeFalse)
+
+		valueString, found = GetString("not-exist")
+		convey.So(valueString, convey.ShouldBeEmpty)
+		convey.So(found, convey.ShouldBeFalse)
+
+		valueBytes, found = GetBytes("not-exist")
+		convey.So(valueBytes, convey.ShouldBeNil)
+		convey.So(found, convey.ShouldBeFalse)
 	})
 }
 
