@@ -73,6 +73,16 @@ func TestGetMethod(t *testing.T) {
 		convey.So(found, convey.ShouldBeTrue)
 		convey.So(valueInt, convey.ShouldEqual, 1)
 
+		Set(HIGH, "key32", uint32(1))
+		valueUInt32, found := GetUInt32("key32")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueUInt32, convey.ShouldEqual, uint32(1))
+
+		Set(HIGH, "key64", uint64(1))
+		valueUInt64, found := GetUInt64("key64")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(valueUInt64, convey.ShouldEqual, uint64(1))
+
 		Set(HIGH, "key", int64(2))
 		valueInt64, found := GetInt64("key")
 		convey.So(found, convey.ShouldBeTrue)
@@ -96,6 +106,14 @@ func TestGetMethod(t *testing.T) {
 		//test not exist
 		valueInt, found = GetInt("not-exist")
 		convey.So(valueInt, convey.ShouldEqual, 0)
+		convey.So(found, convey.ShouldBeFalse)
+
+		valueUInt32, found = GetUInt32("not-exist")
+		convey.So(valueUInt32, convey.ShouldEqual, 0)
+		convey.So(found, convey.ShouldBeFalse)
+
+		valueUInt64, found = GetUInt64("not-exist")
+		convey.So(valueUInt64, convey.ShouldEqual, 0)
 		convey.So(found, convey.ShouldBeFalse)
 
 		valueInt64, found = GetInt64("not-exist")

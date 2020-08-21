@@ -68,7 +68,7 @@ func Get(key string) (interface{}, bool) {
 	return cache.Get(key)
 }
 
-// GetBool returns the bool or nil, and a bool indicating whether the key was found.
+// GetBool returns the bool and a bool indicating whether the key was found.
 //
 func GetBool(key string) (bool, bool) {
 	item, found := cache.Get(key)
@@ -78,7 +78,7 @@ func GetBool(key string) (bool, bool) {
 	return item.(bool), found
 }
 
-// GetInt returns the int or nil, and a bool indicating whether the key was found.
+// GetInt returns the int and a bool indicating whether the key was found.
 //
 func GetInt(key string) (int, bool) {
 	item, found := cache.Get(key)
@@ -88,7 +88,7 @@ func GetInt(key string) (int, bool) {
 	return item.(int), found
 }
 
-// GetInt64 returns the int or nil, and a bool indicating whether the key was found.
+// GetInt64 returns the int and a bool indicating whether the key was found.
 //
 func GetInt64(key string) (int64, bool) {
 	item, found := cache.Get(key)
@@ -96,6 +96,26 @@ func GetInt64(key string) (int64, bool) {
 		return 0, false
 	}
 	return item.(int64), found
+}
+
+// GetUInt32 returns the uint32 and a bool indicating whether the key was found.
+//
+func GetUInt32(key string) (uint32, bool) {
+	item, found := cache.Get(key)
+	if !found {
+		return 0, false
+	}
+	return item.(uint32), found
+}
+
+// GetUInt64 returns the uint64 and a bool indicating whether the key was found.
+//
+func GetUInt64(key string) (uint64, bool) {
+	item, found := cache.Get(key)
+	if !found {
+		return 0, false
+	}
+	return item.(uint64), found
 }
 
 // GetString returns the string or nil, and a bool indicating whether the key was found.
