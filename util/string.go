@@ -1,6 +1,9 @@
 package util
 
-import "strings"
+import (
+	"hash/fnv"
+	"strings"
+)
 
 // StringBetween Get substring between two strings
 //
@@ -62,4 +65,12 @@ func ArrayToString(stringArray []string) string {
 //
 func StringToArray(str string) []string {
 	return strings.Split(str, ",")
+}
+
+// StringHash Get hash code for string
+//
+func StringHash(str string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(str))
+	return h.Sum32()
 }

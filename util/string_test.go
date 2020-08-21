@@ -33,3 +33,13 @@ func TestStringSplit(t *testing.T) {
 		So(ary[2], ShouldEqual, "3")
 	})
 }
+
+func TestStringHash(t *testing.T) {
+	Convey("should get hashcode", t, func() {
+		str := "hi"
+		code := StringHash(str)
+		So(code, ShouldBeGreaterThan, 0)
+		code2 := StringHash(str)
+		So(code, ShouldEqual, code2)
+	})
+}
