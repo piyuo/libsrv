@@ -39,12 +39,11 @@ func MapFromString(str string) map[string]string {
 	ss := strings.Split(str, "&")
 	m := make(map[string]string)
 	for _, pair := range ss {
-		z := strings.Split(pair, "=")
-		if len(z) == 1 {
-			m[z[0]] = ""
-
-		} else {
-			m[z[0]] = z[1]
+		if pair != "" {
+			z := strings.Split(pair, "=")
+			if len(z) == 2 && z[0] != "" && z[1] != "" {
+				m[z[0]] = z[1]
+			}
 		}
 	}
 	return m
