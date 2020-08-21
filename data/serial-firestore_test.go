@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"sync"
 	"testing"
@@ -138,7 +137,7 @@ func TestConcurrentserial(t *testing.T) {
 			serial := serials.SampleSerial()
 
 			err := db.Transaction(ctx, func(ctx context.Context) error {
-				num, err := serial.NumberRX()
+				_, err := serial.NumberRX()
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)
 				}

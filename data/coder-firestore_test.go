@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"sync"
 	"testing"
@@ -261,7 +260,7 @@ func TestConcurrentCoder(t *testing.T) {
 				}
 				resultMutex.Lock()
 				// this may print more than 9 time, cause transaction may rerun
-				fmt.Printf("num:%v\n", num)
+				//fmt.Printf("num:%v\n", num)
 				result[num] = num
 				resultMutex.Unlock()
 				return nil
