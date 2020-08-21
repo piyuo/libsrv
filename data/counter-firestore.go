@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"strconv"
 
@@ -43,7 +42,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context, value interface{}) e
 	c.incrementShardExist = false
 
 	pick, exist, err := c.pickShard(ctx)
-	fmt.Printf("counter pick:%v\n", pick)
+	//	fmt.Printf("counter pick:%v\n", pick)
 
 	if err != nil {
 		return err

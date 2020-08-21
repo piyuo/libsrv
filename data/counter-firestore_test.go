@@ -163,7 +163,7 @@ func TestConcurrentCounter(t *testing.T) {
 					t.Errorf("err should be nil, got %v", err)
 					return err
 				}
-				fmt.Printf("count:%v\n", i)
+				//fmt.Printf("count:%v\n", i)
 				err = counter.IncrementWX(ctx)
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)

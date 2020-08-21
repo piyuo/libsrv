@@ -11,7 +11,7 @@ func TestUUID(t *testing.T) {
 	Convey("should generate uuid", t, func() {
 		id := UUID()
 		So(id, ShouldNotBeEmpty)
-		fmt.Printf("%v, %v\n", id, len(id))
+		//fmt.Printf("%v, %v\n", id, len(id))
 	})
 }
 

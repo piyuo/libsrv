@@ -142,7 +142,7 @@ func TestConcurrentserial(t *testing.T) {
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)
 				}
-				fmt.Printf("num:%v\n", num)
+				//fmt.Printf("num:%v\n", num)
 				return serial.NumberWX()
 			})
 			if err != nil {

@@ -318,6 +318,10 @@ func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object 
 		docRef = object.GetRef().(*firestore.DocumentRef)
 	}
 
+	t := time.Now().UTC()
+	object.setCreated(t)
+	object.setUpdated(t)
+
 	var err error
 	if c.tx != nil {
 		err = c.tx.Set(docRef, object)
@@ -329,9 +333,6 @@ func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object 
 	if err != nil {
 		return errors.Wrap(err, "failed to set object: "+c.errorID(tablename, object.GetID()))
 	}
-	t := time.Now().UTC()
-	object.setCreated(t)
-	object.setUpdated(t)
 	return nil
 }
 
