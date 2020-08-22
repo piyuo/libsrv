@@ -19,7 +19,7 @@ func TestQuery(t *testing.T) {
 		createUpdateTimeTest(ctx, tableG)
 		queryNotExistFieldWillNotCauseError(ctx, tableG)
 		executeQueryID(ctx, tableG)
-		executeTopOneTest(ctx, tableG)
+		getFirstObjectTest(ctx, tableG)
 		listTest(ctx, tableG)
 		queryTest(ctx, tableG)
 	})
@@ -144,7 +144,7 @@ func listTest(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 
 	// get id only
-	list, err := table.Query().Where("Name", "==", "sample").ExecuteListID(ctx)
+	list, err := table.Query().Where("Name", "==", "sample").GetIDs(ctx)
 	So(err, ShouldBeNil)
 	So(len(list), ShouldEqual, 2)
 	So(list[0], ShouldNotBeEmpty)
@@ -156,13 +156,13 @@ func listTest(ctx context.Context, table *Table) {
 
 }
 
-func executeTopOneTest(ctx context.Context, table *Table) {
+func getFirstObjectTest(ctx context.Context, table *Table) {
 
-	obj, err := table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
+	obj, err := table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldBeNil)
 
-	id, err := table.Query().Where("Name", "==", "sample").ExecuteTopID(ctx)
+	id, err := table.Query().Where("Name", "==", "sample").GetFirstID(ctx)
 	So(err, ShouldBeNil)
 	So(id, ShouldBeEmpty)
 
@@ -180,16 +180,16 @@ func executeTopOneTest(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 
 	// get top one object only
-	obj, err = table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
+	obj, err = table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldNotBeNil)
 
-	id, err = table.Query().Where("Name", "==", "sample").ExecuteTopID(ctx)
+	id, err = table.Query().Where("Name", "==", "sample").GetFirstID(ctx)
 	So(err, ShouldBeNil)
 	So(id, ShouldNotBeEmpty)
 
 	// set limit 2 still get 1 object
-	obj, err = table.Query().Where("Name", "==", "sample").Limit(2).ExecuteTopOne(ctx)
+	obj, err = table.Query().Where("Name", "==", "sample").Limit(2).GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldNotBeNil)
 
@@ -199,11 +199,11 @@ func executeTopOneTest(ctx context.Context, table *Table) {
 }
 
 func executeQueryID(ctx context.Context, table *Table) {
-	obj, err := table.Query().Where("Name", "==", "sample").ExecuteTopOne(ctx)
+	obj, err := table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldBeNil)
 
-	id, err := table.Query().Where("Name", "==", "sample").ExecuteTopID(ctx)
+	id, err := table.Query().Where("Name", "==", "sample").GetFirstID(ctx)
 	So(err, ShouldBeNil)
 	So(id, ShouldBeEmpty)
 
@@ -227,7 +227,7 @@ func executeQueryID(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 
 	// get top one object only
-	obj, err = table.Query().Where("ID", "==", "s1").ExecuteTopOne(ctx)
+	obj, err = table.Query().Where("ID", "==", "s1").GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldNotBeNil)
 
@@ -250,7 +250,7 @@ func queryNotExistFieldWillNotCauseError(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 
 	// get top one object only
-	obj, err := table.Query().Where("notExist", "<", time.Now().UTC()).ExecuteTopOne(ctx)
+	obj, err := table.Query().Where("notExist", "<", time.Now().UTC()).GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldBeNil)
 }
@@ -270,7 +270,7 @@ func createUpdateTimeTest(ctx context.Context, table *Table) {
 	So(err, ShouldBeNil)
 
 	// get top one object only
-	obj, err := table.Query().Where("Created", "<=", time.Now().UTC()).ExecuteTopOne(ctx)
+	obj, err := table.Query().Where("Created", "<=", time.Now().UTC()).GetFirstObject(ctx)
 	So(err, ShouldBeNil)
 	So(obj, ShouldNotBeNil)
 }

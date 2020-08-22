@@ -111,13 +111,13 @@ func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Quer
 	return c
 }
 
-// ExecuteTopOne execute query return first object in result
+// GetFirstObject execute query return first object in result
 //
-//	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteTopOne(ctx)
+//	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetFirstObject(ctx)
 //	greet := obj.(*Greet)
 //	So(greet.From, ShouldEqual, "b city")
 //
-func (c *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
+func (c *QueryFirestore) GetFirstObject(ctx context.Context) (Object, error) {
 	list, err := c.Limit(1).Execute(ctx)
 	if err != nil {
 		return nil, err
@@ -128,12 +128,12 @@ func (c *QueryFirestore) ExecuteTopOne(ctx context.Context) (Object, error) {
 	return list[0], nil
 }
 
-// ExecuteTopID execute query return first object id in result
+// GetFirstID execute query return first object id in result
 //
-//	id, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteTopID(ctx)
+//	id, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetFirstID(ctx)
 //	So(id, ShouldEqual, "city1")
 //
-func (c *QueryFirestore) ExecuteTopID(ctx context.Context) (string, error) {
+func (c *QueryFirestore) GetFirstID(ctx context.Context) (string, error) {
 	list, err := c.Limit(1).Execute(ctx)
 	if err != nil {
 		return "", err
@@ -187,12 +187,12 @@ func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	return result, nil
 }
 
-// ExecuteListID query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
+// GetIDs query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 //
-//	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").ExecuteListID(ctx)
+//	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetIDs(ctx)
 //	So(len(idList), ShouldEqual, 1)
 //
-func (c *QueryFirestore) ExecuteListID(ctx context.Context) ([]string, error) {
+func (c *QueryFirestore) GetIDs(ctx context.Context) ([]string, error) {
 	if c.limit == 0 {
 		c.Limit(limitQueryDefault)
 	}

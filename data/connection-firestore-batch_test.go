@@ -104,7 +104,7 @@ func batchDeleteTest(ctx context.Context, db SampleDB, table *Table) {
 	err := db.BatchCommit(ctx)
 	So(err, ShouldBeNil)
 
-	idList, err := table.Query().ExecuteListID(ctx)
+	idList, err := table.Query().GetIDs(ctx)
 	So(err, ShouldBeNil)
 	So(len(idList), ShouldEqual, 2)
 
