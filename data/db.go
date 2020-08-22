@@ -175,3 +175,25 @@ func (c *BaseDB) DeleteNamespace(ctx context.Context) error {
 	}
 	return c.Connection.DeleteNamespace(ctx)
 }
+
+// IsNamespaceExist check namespace is exist
+//
+//	isExist,err := db.IsNamespaceExist(ctx)
+//
+func (c *BaseDB) IsNamespaceExist(ctx context.Context) (bool, error) {
+	if ctx.Err() != nil {
+		return false, ctx.Err()
+	}
+	return c.Connection.IsNamespaceExist(ctx)
+}
+
+// ClearNamespace delete all namespace
+//
+//	err := c.ClearNamespace(ctx)
+//
+func (c *BaseDB) ClearNamespace(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return c.Connection.ClearNamespace(ctx)
+}
