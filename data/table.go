@@ -215,6 +215,29 @@ func (c *Table) Find(ctx context.Context, field, operator string, value interfac
 	return nil, nil
 }
 
+// GetFirstObject return first object in table, return nil if not found
+//
+//	obj, err = table.GetFirstObject(ctx)
+//	So((obj.(*Sample)).Name, ShouldEqual, "sample")
+//
+func (c *Table) GetFirstObject(ctx context.Context) (Object, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	return c.Query().GetFirstObject(ctx)
+}
+
+// GetFirstID return first id in table, return nil if not found
+//
+//	id, err = table.GetFirstID(ctx)
+//
+func (c *Table) GetFirstID(ctx context.Context) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+	return c.Query().GetFirstID(ctx)
+}
+
 // List return max 10 result set,cause firestore are charged for a read each time a document in the result set, we need keep result set as small as possible, if you need more please use query
 //
 //	list, err := table.Search(ctx, "Name", "==", "sample")

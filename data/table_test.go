@@ -20,6 +20,7 @@ func TestTable(t *testing.T) {
 		noErrorTest(ctx, tableR)
 
 		searchTest(ctx, tableG)
+		firstObjectTest(ctx, tableG)
 	})
 }
 
@@ -34,6 +35,25 @@ func noErrorTest(ctx context.Context, table *Table) {
 
 	obj2 := table.Factory
 	So(obj2, ShouldNotBeNil)
+}
+
+func firstObjectTest(ctx context.Context, table *Table) {
+	sample1 := &Sample{
+		Name:  "a",
+		Value: 1,
+	}
+	table.Set(ctx, sample1)
+
+	obj, err := table.GetFirstObject(ctx)
+	So(err, ShouldBeNil)
+	So(obj, ShouldNotBeNil)
+
+	id, err := table.GetFirstID(ctx)
+	So(err, ShouldBeNil)
+	So(id, ShouldNotBeEmpty)
+
+	err = table.Delete(ctx, id)
+	So(err, ShouldBeNil)
 }
 
 func searchTest(ctx context.Context, table *Table) {
