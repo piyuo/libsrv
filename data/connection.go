@@ -13,9 +13,15 @@ type Connection interface {
 	//
 	Close()
 
+	// ClearNamespace delete all namespace
+	//
+	//	err := c.ClearNamespace(ctx)
+	//
+	ClearNamespace(ctx context.Context) error
+
 	// CreateNamespace create namespace, create new one if not exist
 	//
-	//	db, err := conn.CreateNamespace(ctx)
+	//	err := db.CreateNamespace(ctx)
 	//
 	CreateNamespace(ctx context.Context) error
 
@@ -24,6 +30,12 @@ type Connection interface {
 	//	err := db.DeleteNamespace(ctx)
 	//
 	DeleteNamespace(ctx context.Context) error
+
+	// IsNamespaceExist check namespace is exist
+	//
+	//	isExist,err := db.IsNamespaceExist(ctx)
+	//
+	IsNamespaceExist(ctx context.Context) (bool, error)
 
 	// Get data object from data store, return nil if object does not exist
 	//

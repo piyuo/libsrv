@@ -42,7 +42,9 @@ func TestFirestoreGlobalDB(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		err = firestoreConn.DeleteNamespace(ctx)
 		So(err, ShouldNotBeNil)
-
+		exist, err := firestoreConn.IsNamespaceExist(ctx)
+		So(err, ShouldNotBeNil)
+		So(exist, ShouldBeFalse)
 	})
 }
 
@@ -76,6 +78,18 @@ func TestNameSpace(t *testing.T) {
 
 		err = conn.CreateNamespace(ctx)
 		So(err, ShouldBeNil)
+
+		exist, err := conn.IsNamespaceExist(ctx)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeTrue)
+
+		err = conn.ClearNamespace(ctx)
+		So(err, ShouldBeNil)
+
+		exist, err = conn.IsNamespaceExist(ctx)
+		So(err, ShouldBeNil)
+		So(exist, ShouldBeFalse)
+
 		err = conn.DeleteNamespace(ctx)
 		So(err, ShouldBeNil)
 

@@ -90,9 +90,21 @@ func firestoreNewConnection(ctx context.Context, cred *google.Credentials, names
 	return conn, nil
 }
 
-// CreateNamespace create namespace, overwrite if namespace exist
+// ClearNamespace delete all namespace
 //
-//	conn, err := c.CreateNamespace(ctx)
+//	err := db.ClearNamespace(ctx)
+//
+func (c *ConnectionFirestore) ClearNamespace(ctx context.Context) error {
+	backup := c.nsRef
+	c.nsRef = nil
+	err := c.Clear(ctx, "namespace")
+	c.nsRef = backup
+	return err
+}
+
+// CreateNamespace create namespace, overwrite if namesace exist
+//
+//	err := db.CreateNamespace(ctx)
 //
 func (c *ConnectionFirestore) CreateNamespace(ctx context.Context) error {
 	if c.nsRef == nil {
@@ -130,6 +142,26 @@ func (c *ConnectionFirestore) DeleteNamespace(ctx context.Context) error {
 		return errors.Wrap(err, "failed to delete namespace: "+c.nsRef.ID)
 	}
 	return nil
+}
+
+// IsNamespaceExist check namespace is exist
+//
+//	isExist,err := conn.IsNamespaceExist(ctx)
+//
+func (c *ConnectionFirestore) IsNamespaceExist(ctx context.Context) (bool, error) {
+	if c.nsRef == nil {
+		return false, errors.New("no namespace can be check existence")
+	}
+
+	snapshot, err := c.nsRef.Get(ctx)
+
+	if snapshot != nil && !snapshot.Exists() {
+		return false, nil
+	}
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get namespace: "+c.nsRef.ID)
+	}
+	return true, nil
 }
 
 // errorID return identifier for error, identifier text is from namespace,table and object name
