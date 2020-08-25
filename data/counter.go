@@ -64,3 +64,27 @@ const (
 	//
 	HierarchyAll = "A"
 )
+
+// CounterPeriodAll define all period
+//
+const CounterPeriodAll = "All"
+
+// CounterID field in shard
+//
+const CounterID = "ID"
+
+// CounterCount field in shard
+//
+const CounterCount = "N"
+
+// CounterType field in shard
+//
+const CounterType = "T"
+
+// CounterPeriod field in shard
+//
+const CounterPeriod = "P"
+
+// CounterDate field in shard
+//
+const CounterDate = "D"

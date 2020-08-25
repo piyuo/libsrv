@@ -13,30 +13,6 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// CounterPeriodAll define all period
-//
-const CounterPeriodAll = "All"
-
-// ID field in shard
-//
-const ID = "ID"
-
-// COUNT field in shard
-//
-const COUNT = "N"
-
-// TYPE field in shard
-//
-const TYPE = "T"
-
-// PERIOD field in shard
-//
-const PERIOD = "P"
-
-// DATE field in shard
-//
-const DATE = "D"
-
 // CounterFirestore implement Counter
 //
 type CounterFirestore struct {
@@ -135,36 +111,36 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context) error {
 		}
 	} else {
 		shard := map[string]interface{}{
-			TYPE:  MetaCounter,
-			ID:    c.id,
-			COUNT: c.incrementValue,
+			CounterType:  MetaCounter,
+			CounterID:    c.id,
+			CounterCount: c.incrementValue,
 		}
 
-		shard[PERIOD] = HierarchyAll
+		shard[CounterPeriod] = HierarchyAll
 		if err := c.createShard(ctx, c.getPickedAllRef(), shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard all")
 		}
 
-		shard[PERIOD] = HierarchyYear
-		shard[DATE] = time.Date(c.native.Year(), time.Month(1), 01, 0, 0, 0, 0, c.loc)
+		shard[CounterPeriod] = HierarchyYear
+		shard[CounterDate] = time.Date(c.native.Year(), time.Month(1), 01, 0, 0, 0, 0, c.loc)
 		if err := c.createShard(ctx, yearRef, shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard year")
 		}
 
-		shard[PERIOD] = HierarchyMonth
-		shard[DATE] = time.Date(c.native.Year(), c.native.Month(), 01, 0, 0, 0, 0, c.loc)
+		shard[CounterPeriod] = HierarchyMonth
+		shard[CounterDate] = time.Date(c.native.Year(), c.native.Month(), 01, 0, 0, 0, 0, c.loc)
 		if err := c.createShard(ctx, monthRef, shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard month")
 		}
 
-		shard[PERIOD] = HierarchyDay
-		shard[DATE] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), 0, 0, 0, 0, c.loc)
+		shard[CounterPeriod] = HierarchyDay
+		shard[CounterDate] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), 0, 0, 0, 0, c.loc)
 		if err := c.createShard(ctx, dayRef, shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard day")
 		}
 
-		shard[PERIOD] = HierarchyHour
-		shard[DATE] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), c.native.Hour(), 0, 0, 0, c.loc)
+		shard[CounterPeriod] = HierarchyHour
+		shard[CounterDate] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), c.native.Hour(), 0, 0, 0, c.loc)
 		if err := c.createShard(ctx, hourRef, shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard hour")
 		}
@@ -190,7 +166,7 @@ func (c *CounterFirestore) createShard(ctx context.Context, ref *firestore.Docum
 //
 func (c *CounterFirestore) incrementShard(ctx context.Context, ref *firestore.DocumentRef) error {
 	err := c.conn.tx.Update(ref, []firestore.Update{
-		{Path: COUNT, Value: firestore.Increment(c.incrementValue)},
+		{Path: CounterCount, Value: firestore.Increment(c.incrementValue)},
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to increment shard: "+ref.ID)
@@ -218,7 +194,7 @@ func (c *CounterFirestore) countShards(ctx context.Context, shards *firestore.Do
 			return 0, errors.Wrap(err, "failed to iterator shards: "+c.errorID())
 		}
 
-		iTotal := snotshot.Data()[COUNT]
+		iTotal := snotshot.Data()[CounterCount]
 		shardCount, err := util.ToFloat64(iTotal)
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to get count on shards, invalid dataType %T, want float64: "+c.errorID(), iTotal)
@@ -234,7 +210,7 @@ func (c *CounterFirestore) countShards(ctx context.Context, shards *firestore.Do
 //
 func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 	metaRef := c.conn.getCollectionRef(MetaDoc)
-	shards := metaRef.Where(TYPE, "==", MetaCounter).Where(ID, "==", c.id).Where(PERIOD, "==", HierarchyAll).Documents(ctx)
+	shards := metaRef.Where(CounterType, "==", MetaCounter).Where(CounterID, "==", c.id).Where(CounterPeriod, "==", HierarchyAll).Documents(ctx)
 	return c.countShards(ctx, shards)
 }
 
@@ -244,7 +220,7 @@ func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 //
 func (c *CounterFirestore) CountPeriod(ctx context.Context, period string, from, to time.Time) (float64, error) {
 	metaRef := c.conn.getCollectionRef(MetaDoc)
-	shards := metaRef.Where(TYPE, "==", MetaCounter).Where(ID, "==", c.id).Where(PERIOD, "==", HierarchyAll).Documents(ctx)
+	shards := metaRef.Where(CounterType, "==", MetaCounter).Where(CounterID, "==", c.id).Where(CounterPeriod, "==", HierarchyAll).Documents(ctx)
 	return c.countShards(ctx, shards)
 }
 
@@ -260,7 +236,7 @@ func (c *CounterFirestore) Clear(ctx context.Context) error {
 	batch := c.conn.client.Batch()
 	var deleted = false
 	metaRef := c.conn.getCollectionRef(MetaDoc)
-	shards := metaRef.Where(TYPE, "==", MetaCounter).Where(ID, "==", c.id).Documents(ctx)
+	shards := metaRef.Where(CounterType, "==", MetaCounter).Where(CounterID, "==", c.id).Documents(ctx)
 	for {
 		snotshot, err := shards.Next()
 		if err == iterator.Done {
