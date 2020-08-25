@@ -8,6 +8,12 @@ import (
 //
 type Counter interface {
 
+	// Increment increments a randomly picked shard and generate count for all/year/month/day/hour
+	//
+	//	err = counter.Increment(ctx,1)
+	//
+	Increment(ctx context.Context, value interface{}) error
+
 	// IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
 	//
 	//	err = counter.IncrementRX(1)
@@ -20,17 +26,41 @@ type Counter interface {
 	//
 	IncrementWX(ctx context.Context) error
 
-	// Count returns a total count across all shards. please be aware it easily cause "Too much contention on these documents"
+	// CountAll return a total count across all period. this function not support transation cause it easily cause "Too much contention on these documents"
 	//
-	//	count, err = counter.Count(ctx)
+	//	count, err = counter.CountAll(ctx)
 	//
-	Count(ctx context.Context) (float64, error)
+	CountAll(ctx context.Context) (float64, error)
 
-	// Reset reset counter
+	// Clear all counter shards
 	//
-	//	err = db.Transaction(ctx, func(ctx context.Context) error {
-	//		err:= counter.Reset(ctx)
-	//	})
+	//	err = counter.Clear(ctx)
 	//
-	Reset(ctx context.Context) error
+	Clear(ctx context.Context) error
 }
+
+// Hierarchy define date hierarchy
+//
+type Hierarchy string
+
+const (
+	// HierarchyYear Define year period
+	//
+	HierarchyYear Hierarchy = "Y"
+
+	// HierarchyMonth Define month period
+	//
+	HierarchyMonth = "M"
+
+	// HierarchyDay Define day period
+	//
+	HierarchyDay = "D"
+
+	// HierarchyHour Define hour period
+	//
+	HierarchyHour = "H"
+
+	// HierarchyAll Define all period
+	//
+	HierarchyAll = "A"
+)

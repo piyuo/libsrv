@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -23,7 +24,8 @@ func TestCounters(t *testing.T) {
 func countersTest(db SampleDB, counters *SampleCounters) {
 	ctx := context.Background()
 
-	counter := counters.Counter("sample-counter", 3)
+	zone, offset := time.Now().UTC().Zone()
+	counter := counters.Counter("sample-counter", 3, zone, offset)
 	So(counter, ShouldNotBeNil)
 
 	err := db.Transaction(ctx, func(ctx context.Context) error {
@@ -33,7 +35,7 @@ func countersTest(db SampleDB, counters *SampleCounters) {
 	})
 	So(err, ShouldBeNil)
 
-	count, err := counter.Count(ctx)
+	count, err := counter.CountAll(ctx)
 	So(err, ShouldBeNil)
 	So(count, ShouldEqual, 1)
 }

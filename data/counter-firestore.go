@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/piyuo/libsrv/util"
 
@@ -12,6 +13,30 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+// CounterPeriodAll define all period
+//
+const CounterPeriodAll = "All"
+
+// ID field in shard
+//
+const ID = "ID"
+
+// COUNT field in shard
+//
+const COUNT = "N"
+
+// TYPE field in shard
+//
+const TYPE = "T"
+
+// PERIOD field in shard
+//
+const PERIOD = "P"
+
+// DATE field in shard
+//
+const DATE = "D"
+
 // CounterFirestore implement Counter
 //
 type CounterFirestore struct {
@@ -19,11 +44,15 @@ type CounterFirestore struct {
 
 	ShardsFirestore `firestore:"-"`
 
+	loc *time.Location
+
+	native time.Time
+
 	incrementCallRX bool
 
 	incrementValue interface{}
 
-	incrementShardIndex int
+	incrementShardPick string
 
 	incrementShardExist bool
 }
@@ -36,40 +65,35 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context, value interface{}) e
 	if c.conn.tx == nil {
 		return errors.New("This function must run in transaction")
 	}
-
 	c.incrementCallRX = true
 	c.incrementValue = value
 	c.incrementShardExist = false
-
-	pick, exist, err := c.pickShard(ctx)
-	//	fmt.Printf("counter pick:%v\n", pick)
-
+	c.incrementShardPick = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
+	exist, err := c.isShardExist(ctx, c.incrementShardPick)
 	if err != nil {
 		return err
 	}
-
-	c.incrementShardIndex = pick
 	c.incrementShardExist = exist
 	return nil
 }
 
-// pickShard random pick a shard, return shardIndex, isShardExist, error
+// getPickedAllRef return picked all period ref
 //
-func (c *CounterFirestore) pickShard(ctx context.Context) (int, bool, error) {
-	pick := rand.Intn(c.numShards)
-	_, shardsRef := c.getRef()
-	shardID := strconv.Itoa(pick)
-	shardRef := shardsRef.Doc(shardID)
-	snapshot, err := c.conn.tx.Get(shardRef)
-	//snapshot, err := shardRef.Get(ctx), must use tx to get shardRef cause it will lock
-	if snapshot != nil && !snapshot.Exists() {
-		return pick, false, nil
-	}
+func (c *CounterFirestore) getPickedAllRef() *firestore.DocumentRef {
+	return c.conn.getDocRef(MetaDoc, MetaCounter+c.id+CounterPeriodAll+"."+c.incrementShardPick)
+}
 
-	if err != nil {
-		return pick, false, err
+// isShardExist return true if shard already exist
+//
+func (c *CounterFirestore) isShardExist(ctx context.Context, pick string) (bool, error) {
+	snapshot, err := c.conn.tx.Get(c.getPickedAllRef())
+	if snapshot != nil && !snapshot.Exists() {
+		return false, nil
 	}
-	return pick, true, nil
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // IncrementWX commit IncrementRX()
@@ -84,56 +108,106 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context) error {
 		return errors.New("WX() function need call NumberRX() first")
 	}
 
-	docRef, shardsRef := c.getRef()
-	shardID := strconv.Itoa(c.incrementShardIndex)
-	shardRef := shardsRef.Doc(shardID)
+	year := strconv.Itoa(c.native.Year())
+	month := strconv.Itoa(int(c.native.Month()))
+	day := strconv.Itoa(int(c.native.Day()))
+	hour := strconv.Itoa(int(c.native.Hour()))
+	yearRef := c.conn.getDocRef(MetaDoc, MetaCounter+c.id+year+"."+c.incrementShardPick)
+	monthRef := c.conn.getDocRef(MetaDoc, MetaCounter+c.id+year+"-"+month+"."+c.incrementShardPick)
+	dayRef := c.conn.getDocRef(MetaDoc, MetaCounter+c.id+year+"-"+month+"-"+day+"."+c.incrementShardPick)
+	hourRef := c.conn.getDocRef(MetaDoc, MetaCounter+c.id+year+"-"+month+"-"+day+"-"+hour+"."+c.incrementShardPick)
+
 	if c.incrementShardExist {
-		err := c.conn.tx.Update(shardRef, []firestore.Update{
-			{Path: "N", Value: firestore.Increment(c.incrementValue)},
-		})
-		if err != nil {
-			return errors.Wrap(err, "failed to increment shard: "+c.errorID())
+		if err := c.incrementShard(ctx, c.getPickedAllRef()); err != nil {
+			return errors.Wrap(err, "Failed to increment shard all")
+		}
+		if err := c.incrementShard(ctx, yearRef); err != nil {
+			return errors.Wrap(err, "Failed to increment shard year")
+		}
+		if err := c.incrementShard(ctx, monthRef); err != nil {
+			return errors.Wrap(err, "Failed to increment shard month")
+		}
+		if err := c.incrementShard(ctx, dayRef); err != nil {
+			return errors.Wrap(err, "Failed to increment shard day")
+		}
+		if err := c.incrementShard(ctx, hourRef); err != nil {
+			return errors.Wrap(err, "Failed to increment shard hour")
 		}
 	} else {
-		// create shards document
-		err := c.conn.tx.Set(docRef, &struct{}{}) //put empty struct
-		if err != nil {
-			return errors.Wrap(err, "failed to create shards document: "+c.errorID())
+		shard := map[string]interface{}{
+			TYPE:  MetaCounter,
+			ID:    c.id,
+			COUNT: c.incrementValue,
 		}
 
-		// create shard
-		err = c.conn.tx.Set(shardRef, map[string]interface{}{"N": c.incrementValue}, firestore.MergeAll)
-		if err != nil {
-			return errors.Wrap(err, "failed to create shard: "+c.errorID())
+		shard[PERIOD] = HierarchyAll
+		if err := c.createShard(ctx, c.getPickedAllRef(), shard); err != nil {
+			return errors.Wrap(err, "Failed to create shard all")
+		}
+
+		shard[PERIOD] = HierarchyYear
+		shard[DATE] = time.Date(c.native.Year(), time.Month(1), 01, 0, 0, 0, 0, c.loc)
+		if err := c.createShard(ctx, yearRef, shard); err != nil {
+			return errors.Wrap(err, "Failed to create shard year")
+		}
+
+		shard[PERIOD] = HierarchyMonth
+		shard[DATE] = time.Date(c.native.Year(), c.native.Month(), 01, 0, 0, 0, 0, c.loc)
+		if err := c.createShard(ctx, monthRef, shard); err != nil {
+			return errors.Wrap(err, "Failed to create shard month")
+		}
+
+		shard[PERIOD] = HierarchyDay
+		shard[DATE] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), 0, 0, 0, 0, c.loc)
+		if err := c.createShard(ctx, dayRef, shard); err != nil {
+			return errors.Wrap(err, "Failed to create shard day")
+		}
+
+		shard[PERIOD] = HierarchyHour
+		shard[DATE] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), c.native.Hour(), 0, 0, 0, c.loc)
+		if err := c.createShard(ctx, hourRef, shard); err != nil {
+			return errors.Wrap(err, "Failed to create shard hour")
 		}
 	}
-
 	c.incrementCallRX = false
 	c.incrementValue = 0
 	c.incrementShardExist = false
-	c.incrementShardIndex = -1
+	c.incrementShardPick = ""
 	return nil
-
 }
 
-// Count returns a total count across all shards. avoid use this function in transation it easily cause "Too much contention on these documents"
+// createShard create a shard
 //
-//	count, err = counter.Count(ctx)
+func (c *CounterFirestore) createShard(ctx context.Context, ref *firestore.DocumentRef, shard map[string]interface{}) error {
+	err := c.conn.tx.Set(ref, shard, firestore.MergeAll)
+	if err != nil {
+		return errors.Wrap(err, "failed to create shard: "+ref.ID)
+	}
+	return nil
+}
+
+// incrementShard increment shard count
 //
-func (c *CounterFirestore) Count(ctx context.Context) (float64, error) {
+func (c *CounterFirestore) incrementShard(ctx context.Context, ref *firestore.DocumentRef) error {
+	err := c.conn.tx.Update(ref, []firestore.Update{
+		{Path: COUNT, Value: firestore.Increment(c.incrementValue)},
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to increment shard: "+ref.ID)
+	}
+	return nil
+}
+
+// countShards returns a total count on given shards
+//
+//	count, err = counter.countShards(ctx)
+//
+func (c *CounterFirestore) countShards(ctx context.Context, shards *firestore.DocumentIterator) (float64, error) {
 	if err := c.assert(ctx); err != nil {
 		return 0, err
 	}
 
-	_, shardsRef := c.getRef()
-	var shards *firestore.DocumentIterator
-	if c.conn.tx != nil {
-		shards = c.conn.tx.Documents(shardsRef)
-	} else {
-		shards = shardsRef.Documents(ctx)
-	}
 	defer shards.Stop()
-
 	var total float64
 	for {
 		snotshot, err := shards.Next()
@@ -144,7 +218,7 @@ func (c *CounterFirestore) Count(ctx context.Context) (float64, error) {
 			return 0, errors.Wrap(err, "failed to iterator shards: "+c.errorID())
 		}
 
-		iTotal := snotshot.Data()["N"]
+		iTotal := snotshot.Data()[COUNT]
 		shardCount, err := util.ToFloat64(iTotal)
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to get count on shards, invalid dataType %T, want float64: "+c.errorID(), iTotal)
@@ -154,15 +228,55 @@ func (c *CounterFirestore) Count(ctx context.Context) (float64, error) {
 	return total, nil
 }
 
-// Reset reset counter
+// CountAll return a total count across all period. this function not support transation cause it easily cause "Too much contention on these documents"
 //
-//	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		err:= counter.Reset(ctx)
-//	})
+//	count, err = counter.CountAll(ctx)
 //
-func (c *CounterFirestore) Reset(ctx context.Context) error {
+func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
+	metaRef := c.conn.getCollectionRef(MetaDoc)
+	shards := metaRef.Where(TYPE, "==", MetaCounter).Where(ID, "==", c.id).Where(PERIOD, "==", HierarchyAll).Documents(ctx)
+	return c.countShards(ctx, shards)
+}
+
+// CountPeriod return count between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
+//
+//	count, err = counter.CountAll(ctx)
+//
+func (c *CounterFirestore) CountPeriod(ctx context.Context, period string, from, to time.Time) (float64, error) {
+	metaRef := c.conn.getCollectionRef(MetaDoc)
+	shards := metaRef.Where(TYPE, "==", MetaCounter).Where(ID, "==", c.id).Where(PERIOD, "==", HierarchyAll).Documents(ctx)
+	return c.countShards(ctx, shards)
+}
+
+// Clear all counter shards
+//
+//	err = counter.Clear(ctx)
+//
+func (c *CounterFirestore) Clear(ctx context.Context) error {
 	if err := c.assert(ctx); err != nil {
 		return err
 	}
-	return c.deleteShards(ctx)
+
+	batch := c.conn.client.Batch()
+	var deleted = false
+	metaRef := c.conn.getCollectionRef(MetaDoc)
+	shards := metaRef.Where(TYPE, "==", MetaCounter).Where(ID, "==", c.id).Documents(ctx)
+	for {
+		snotshot, err := shards.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return errors.Wrap(err, "failed to iterator shards: "+c.errorID())
+		}
+		deleted = true
+		batch.Delete(snotshot.Ref)
+	}
+	if deleted {
+		_, err := batch.Commit(ctx)
+		if err != nil {
+			return errors.Wrap(err, "failed to commit batch")
+		}
+	}
+	return nil
 }

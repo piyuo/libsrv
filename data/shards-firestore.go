@@ -123,7 +123,7 @@ func (c *ShardsFirestore) deleteShardsTx(ctx context.Context, tx *firestore.Tran
 	return nil
 }
 
-// count is a debug function it return shards document and collection count
+// shardsInfo is a debug function it return shards document and collection count
 //
 //	docCount,shardsCount,err = c.shardsInfo(ctx)
 //
