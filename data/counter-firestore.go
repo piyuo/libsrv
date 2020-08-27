@@ -2,13 +2,14 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/piyuo/libsrv/util"
 	"github.com/pkg/errors"
+	"google.golang.org/api/iterator"
 )
 
 // CounterFirestore implement Counter
@@ -55,7 +56,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context, value interface{}) e
 	c.callRX = true
 	c.value = value
 	c.shardPick = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
-	fmt.Printf("counter pick:" + c.shardPick + "\n")
+	//fmt.Printf("counter pick:" + c.shardPick + "\n")
 	exist, err := c.isShardExist(ctx, c.getPickedAllRef())
 	if err != nil {
 		return err
@@ -67,6 +68,18 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context, value interface{}) e
 // mock create mock data
 //
 func (c *CounterFirestore) mock(hierarchy Hierarchy, date time.Time, pick int, value interface{}) error {
+
+	switch hierarchy {
+	case HierarchyYear:
+		date = time.Date(date.Year(), time.Month(1), 01, 0, 0, 0, 0, c.loc)
+	case HierarchyMonth:
+		date = time.Date(date.Year(), date.Month(), 01, 0, 0, 0, 0, c.loc)
+	case HierarchyDay:
+		date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, c.loc)
+	case HierarchyHour:
+		date = time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), 0, 0, 0, c.loc)
+	}
+
 	c.shardPick = strconv.Itoa(pick)
 	shard := map[string]interface{}{
 		MetaID:           c.id,
@@ -177,12 +190,51 @@ func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 
 // CountPeriod return count between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
 //
-//	count, err = counter.CountAll(ctx)
+//	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
+//	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
+//	count, err := counter.CountPeriod(ctx, HierarchyYear, from, to)
 //
 func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (float64, error) {
 	tableRef := c.conn.getCollectionRef(c.tableName)
 	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterHierarchy, "==", string(hierarchy)).Where(CounterDate, ">=", from).Where(CounterDate, "<=", to).Documents(ctx)
 	return c.countValue(shards)
+}
+
+// DetailPeriod return detail between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
+//
+//	dict, err = counter.DetailPeriod(ctx)
+//
+func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (map[time.Time]float64, error) {
+	result := map[time.Time]float64{}
+
+	tableRef := c.conn.getCollectionRef(c.tableName)
+	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterHierarchy, "==", string(hierarchy)).Where(CounterDate, ">=", from).Where(CounterDate, "<=", to).Documents(ctx)
+	defer shards.Stop()
+	for {
+		snotshot, err := shards.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to iterator shards at detail period: "+c.errorID())
+		}
+
+		obj := snotshot.Data()
+		iValue := obj[MetaValue]
+		value, err := util.ToFloat64(iValue)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get value on shards, invalid dataType %T, want float64: "+c.errorID(), iValue)
+		}
+		iDate := obj[CounterDate]
+		date := iDate.(time.Time)
+
+		if val, ok := result[date]; ok {
+			result[date] = value + val
+		} else {
+			result[date] = value
+		}
+	}
+	return result, nil
 }
 
 // Clear all shards

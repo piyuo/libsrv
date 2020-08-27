@@ -39,6 +39,12 @@ type Counter interface {
 	//
 	CountPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (float64, error)
 
+	// DetailPeriod return detail between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
+	//
+	//	dict, err = counter.DetailPeriod(ctx)
+	//
+	DetailPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (map[time.Time]float64, error)
+
 	// Clear all shards
 	//
 	//	err = counter.Clear(ctx)

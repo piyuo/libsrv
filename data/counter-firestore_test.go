@@ -41,47 +41,13 @@ func TestCountPeriod(t *testing.T) {
 
 		from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
 		to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
-		//		fmt.Println(to.Format("2006-01-02 15:04:05"))
 		count, err := counter.CountPeriod(ctx, HierarchyYear, from, to)
 		So(err, ShouldBeNil)
 		So(count, ShouldEqual, 2)
-	})
-}
 
-func TestCountPeriodR(t *testing.T) {
-	Convey("Should init, increment, count on counter", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		_, countersR := createSampleCounters(dbG, dbR)
-		counter := countersR.SampleCounter()
-		counterFirestore := counter.(*CounterFirestore)
-		err := counter.Clear(ctx)
-		So(err, ShouldBeNil)
-		defer counter.Clear(ctx)
-
-		// add mock data
-		now := time.Now().UTC()
-		err = dbR.Transaction(ctx, func(ctx context.Context) error {
-			if err := counterFirestore.mock(HierarchyYear, now, 1, 1); err != nil {
-				return err
-			}
-			if err := counterFirestore.mock(HierarchyYear, now.AddDate(-1, 0, 0), 2, 1); err != nil {
-				return err
-			}
-			if err := counterFirestore.mock(HierarchyYear, now.AddDate(-2, 0, 0), 3, 1); err != nil {
-				return err
-			}
-			return nil
-		})
-		So(err, ShouldBeNil)
-
-		from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
-		to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
-		//		fmt.Println(to.Format("2006-01-02 15:04:05"))
-		count, err := counter.CountPeriod(ctx, HierarchyYear, from, to)
-		So(err, ShouldBeNil)
-		So(count, ShouldEqual, 2)
+		//test DetailPeriod
+		dict, err := counter.DetailPeriod(ctx, HierarchyYear, from, to)
+		So(len(dict), ShouldEqual, 2)
 	})
 }
 

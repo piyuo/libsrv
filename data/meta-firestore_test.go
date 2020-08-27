@@ -21,7 +21,7 @@ func TestShardsFirestore(t *testing.T) {
 			numShards: 0,
 		}
 		id := shards.errorID()
-		So(id, ShouldEqual, "tablename{root}-id")
+		So(id, ShouldEqual, "tablename-id")
 
 		//check canceled ctx
 		ctxCanceled := util.CanceledCtx()

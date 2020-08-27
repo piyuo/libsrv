@@ -43,18 +43,6 @@ func TestConcurrentDB(t *testing.T) {
 	coderR.Clear(ctx)
 	defer coderR.Clear(ctx)
 
-	//init test data
-	table := tableG
-	root := &Sample{
-		Name:  "root",
-		Value: 15,
-	}
-	root.SetID("root")
-
-	if err := table.Set(ctx, root); err != nil {
-		t.Errorf("err should be nil, got %v", err)
-	}
-
 	//	begin concurrent run
 	var concurrent = 3
 	var wg sync.WaitGroup
@@ -69,12 +57,6 @@ func TestConcurrentDB(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			errTx := sdb.Transaction(ctx, func(ctx context.Context) error {
 				stable := sdb.SampleTable()
-				sRootRef, err := stable.Find(ctx, "Name", "==", "root")
-				if err != nil {
-					t.Errorf("err should be nil, got %v", err)
-					return errors.New("failed to find")
-				}
-				sRoot := sRootRef.(*Sample)
 
 				// read count first to avoid read after write error
 				counter := sdb.Counters().SampleCounter1000()
@@ -103,12 +85,6 @@ func TestConcurrentDB(t *testing.T) {
 					return errors.Wrap(err, "failed to create sample")
 				}
 
-				sRoot.Value--
-				if err := stable.Set(ctx, sRoot); err != nil {
-					t.Errorf("err should be nil, got %v", err)
-					return errors.Wrap(err, "failed to update root sample")
-				}
-
 				if err := counter.IncrementWX(ctx); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.Wrap(err, "failed to IncrementWX")
@@ -129,12 +105,12 @@ func TestConcurrentDB(t *testing.T) {
 	}
 	wg.Wait()
 	//finish concurrent run
-	rootRef, err := table.Find(ctx, "Name", "==", "root")
+
+	count, err := counterG.CountAll(ctx)
 	if err != nil {
 		t.Errorf("err should be nil, got %v", err)
 	}
-	root = rootRef.(*Sample)
-	if root.Value != 0 {
-		t.Errorf("serial = %d; want 0", root.Value)
+	if count != 15 {
+		t.Errorf("count = %v; want 15", count)
 	}
 }
