@@ -138,7 +138,7 @@ func TestCounterIncrement(t *testing.T) {
 
 		shardsCount, err := counter.ShardsCount(ctx)
 		So(err, ShouldBeNil)
-		So(shardsCount, ShouldEqual, 1)
+		So(shardsCount, ShouldEqual, 5) // 5 shard, all/year/month/day/hour
 
 		count, err := counter.CountAll(ctx)
 		So(err, ShouldBeNil)

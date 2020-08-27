@@ -73,8 +73,8 @@ type SampleRegionalDB struct {
 	BaseDB
 }
 
-func NewSampleRegionalDB(ctx context.Context, databaseName string) (*SampleRegionalDB, error) {
-	conn, err := FirestoreRegionalConnection(ctx, databaseName)
+func NewSampleRegionalDB(ctx context.Context) (*SampleRegionalDB, error) {
+	conn, err := FirestoreRegionalConnection(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +190,11 @@ func createSampleDB() (*SampleGlobalDB, *SampleRegionalDB) {
 	ctx := context.Background()
 	dbG, _ := NewSampleGlobalDB(ctx)
 
-	dbR, _ := NewSampleRegionalDB(ctx, "sample-namespace")
-	dbR.DeleteNamespace(ctx)
-	dbR.CreateNamespace(ctx)
+	dbR, _ := NewSampleRegionalDB(ctx)
 	return dbG, dbR
 }
 
 func removeSampleDB(dbG *SampleGlobalDB, dbR *SampleRegionalDB) {
-	ctx := context.Background()
-	dbR.DeleteNamespace(ctx)
 	dbG.Close()
 	dbR.Close()
 }

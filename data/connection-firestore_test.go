@@ -15,7 +15,7 @@ func TestFirestoreNewDB(t *testing.T) {
 		ctx := context.Background()
 		cred, err := gcp.GlobalCredential(ctx)
 		So(err, ShouldBeNil)
-		db, err := firestoreNewConnection(ctx, cred, "")
+		db, err := firestoreNewConnection(ctx, cred)
 		defer db.Close()
 		So(err, ShouldBeNil)
 		So(db, ShouldNotBeNil)
@@ -30,74 +30,11 @@ func TestFirestoreGlobalDB(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(conn, ShouldNotBeNil)
 
-		// error id should use root if not having namespace
 		firestoreConn := conn.(*ConnectionFirestore)
 		id := firestoreConn.errorID("tablename", "")
-		So(id, ShouldEqual, "tablename{root}")
+		So(id, ShouldEqual, "tablename")
 		id = firestoreConn.errorID("tablename", "id")
-		So(id, ShouldEqual, "tablename{root}-id")
-
-		// global has no namespace to be create or delete
-		err = firestoreConn.CreateNamespace(ctx)
-		So(err, ShouldNotBeNil)
-		err = firestoreConn.DeleteNamespace(ctx)
-		So(err, ShouldNotBeNil)
-		exist, err := firestoreConn.IsNamespaceExist(ctx)
-		So(err, ShouldNotBeNil)
-		So(exist, ShouldBeFalse)
-	})
-}
-
-func TestFirestoreRegionalDB(t *testing.T) {
-	Convey("should create regional db", t, func() {
-		ctx := context.Background()
-		db, err := FirestoreRegionalConnection(ctx, "sample-namespace")
-		defer db.Close()
-		So(err, ShouldBeNil)
-		So(db, ShouldNotBeNil)
-
-		firestoreDB := db.(*ConnectionFirestore)
-		id := firestoreDB.errorID("tablename", "")
-		So(id, ShouldEqual, "tablename{sample-namespace}")
-		id = firestoreDB.errorID("tablename", "id")
-		So(id, ShouldEqual, "tablename{sample-namespace}-id")
-
-		err = firestoreDB.snapshotToObject("tableName", nil, nil, nil)
-		So(err, ShouldNotBeNil)
-
-	})
-}
-
-func TestNameSpace(t *testing.T) {
-	Convey("should create name space", t, func() {
-		ctx := context.Background()
-		conn, err := FirestoreRegionalConnection(ctx, "sample-namespace")
-		defer conn.Close()
-		So(err, ShouldBeNil)
-		So(conn, ShouldNotBeNil)
-
-		err = conn.CreateNamespace(ctx)
-		So(err, ShouldBeNil)
-
-		exist, err := conn.IsNamespaceExist(ctx)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeTrue)
-
-		err = conn.ClearNamespace(ctx)
-		So(err, ShouldBeNil)
-
-		exist, err = conn.IsNamespaceExist(ctx)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeFalse)
-
-		err = conn.DeleteNamespace(ctx)
-		So(err, ShouldBeNil)
-
-		ctxCanceled := util.CanceledCtx()
-		err = conn.CreateNamespace(ctxCanceled)
-		So(err, ShouldNotBeNil)
-		err = conn.DeleteNamespace(ctxCanceled)
-		So(err, ShouldNotBeNil)
+		So(id, ShouldEqual, "tablename-id")
 	})
 }
 
@@ -467,7 +404,7 @@ func BenchmarkPutSpeed(b *testing.B) {
 	table := dbG.SampleTable()
 	So(table, ShouldBeNil)
 
-	dbR, err := NewSampleRegionalDB(ctx, "sample-namespace")
+	dbR, err := NewSampleRegionalDB(ctx)
 	defer dbR.Close()
 	samplesR := dbR.SampleTable()
 	So(samplesR, ShouldBeNil)
@@ -493,7 +430,7 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 	table := dbG.SampleTable()
 	So(table, ShouldBeNil)
 
-	dbR, err := NewSampleRegionalDB(ctx, "sample-namespace")
+	dbR, err := NewSampleRegionalDB(ctx)
 	defer dbR.Close()
 	samplesR := dbR.SampleTable()
 	So(samplesR, ShouldBeNil)

@@ -223,22 +223,4 @@ func methodTest(ctx context.Context, db SampleDB, table *Table, isGlobal bool) {
 	isEmpty, err = table.IsEmpty(ctx)
 	So(isEmpty, ShouldBeTrue)
 
-	//create & delete namespace
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		err = db.CreateNamespace(ctx)
-		if isGlobal {
-			So(err, ShouldNotBeNil)
-		} else {
-			So(err, ShouldBeNil)
-		}
-		err = db.DeleteNamespace(ctx)
-		if isGlobal {
-			So(err, ShouldNotBeNil)
-		} else {
-			So(err, ShouldBeNil)
-		}
-		return nil
-	})
-	So(err, ShouldBeNil)
-
 }

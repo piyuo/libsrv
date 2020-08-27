@@ -23,10 +23,6 @@ type ConnectionFirestore struct {
 	//
 	client *firestore.Client
 
-	// nsRef point to a namespace in database
-	//
-	nsRef *firestore.DocumentRef
-
 	//tx is curenet transacton, it is nil if not in transaction
 	//
 	tx *firestore.Transaction
@@ -34,12 +30,6 @@ type ConnectionFirestore struct {
 	//batch is curenet batch, it is nil if not in batch
 	//
 	batch *firestore.WriteBatch
-}
-
-// Namespace separate data into different namespace in database, a database can have multiple namespace
-//
-type Namespace struct {
-	BaseObject `firestore:"-"`
 }
 
 // FirestoreGlobalConnection create global firestore connection
@@ -53,29 +43,29 @@ func FirestoreGlobalConnection(ctx context.Context) (Connection, error) {
 	if err != nil {
 		return nil, err
 	}
-	return firestoreNewConnection(ctx, cred, "")
+	return firestoreNewConnection(ctx, cred)
 }
 
-// FirestoreRegionalConnection create regional database instance, regional database use namespace to sepearate data
+// FirestoreRegionalConnection create regional database instance
 //
 //	ctx := context.Background()
-//	conn, err := FirestoreRegionalConnection(ctx, "sample-namespace")
+//	conn, err := FirestoreRegionalConnection(ctx)
 //	defer c.Close()
 //
-func FirestoreRegionalConnection(ctx context.Context, namespace string) (Connection, error) {
+func FirestoreRegionalConnection(ctx context.Context) (Connection, error) {
 	cred, err := gcp.RegionalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return firestoreNewConnection(ctx, cred, namespace)
+	return firestoreNewConnection(ctx, cred)
 }
 
 // firestoreNewConnection create connection to firestore
 //
 //	cred, err := gcp.RegionalCredential(ctx)
-//	return firestoreNewConnection(ctx, cred, namespace)
+//	return firestoreNewConnection(ctx, cred)
 //
-func firestoreNewConnection(ctx context.Context, cred *google.Credentials, namespace string) (Connection, error) {
+func firestoreNewConnection(ctx context.Context, cred *google.Credentials) (Connection, error) {
 	client, err := firestore.NewClient(ctx, cred.ProjectID, option.WithCredentials(cred))
 	if err != nil {
 		return nil, err
@@ -84,97 +74,16 @@ func firestoreNewConnection(ctx context.Context, cred *google.Credentials, names
 	conn := &ConnectionFirestore{
 		client: client,
 	}
-	if namespace != "" {
-		conn.nsRef = client.Collection("namespace").Doc(namespace)
-	}
 	return conn, nil
 }
 
-// ClearNamespace delete all namespace
+// errorID return identifier for error
 //
-//	err := db.ClearNamespace(ctx)
-//
-func (c *ConnectionFirestore) ClearNamespace(ctx context.Context) error {
-	backup := c.nsRef
-	c.nsRef = nil
-	err := c.Clear(ctx, "namespace")
-	c.nsRef = backup
-	return err
-}
-
-// CreateNamespace create namespace, overwrite if namesace exist
-//
-//	err := db.CreateNamespace(ctx)
-//
-func (c *ConnectionFirestore) CreateNamespace(ctx context.Context) error {
-	if c.nsRef == nil {
-		return errors.New("no namespace can be create")
-	}
-
-	var err error
-	if c.tx != nil {
-		err = c.tx.Set(c.nsRef, &Namespace{})
-	} else {
-		_, err = c.nsRef.Set(ctx, &Namespace{})
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to create namespace: "+c.nsRef.ID)
-	}
-	return nil
-}
-
-// DeleteNamespace delete namespace
-//
-//	err := c.DeleteNamespace(ctx)
-//
-func (c *ConnectionFirestore) DeleteNamespace(ctx context.Context) error {
-	if c.nsRef == nil {
-		return errors.New("no namespace can be delete")
-	}
-
-	var err error
-	if c.tx != nil {
-		err = c.tx.Delete(c.nsRef)
-	} else {
-		_, err = c.nsRef.Delete(ctx)
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to delete namespace: "+c.nsRef.ID)
-	}
-	return nil
-}
-
-// IsNamespaceExist check namespace is exist
-//
-//	isExist,err := conn.IsNamespaceExist(ctx)
-//
-func (c *ConnectionFirestore) IsNamespaceExist(ctx context.Context) (bool, error) {
-	if c.nsRef == nil {
-		return false, errors.New("no namespace can be check existence")
-	}
-
-	snapshot, err := c.nsRef.Get(ctx)
-
-	if snapshot != nil && !snapshot.Exists() {
-		return false, nil
-	}
-	if err != nil {
-		return false, errors.Wrap(err, "failed to get namespace: "+c.nsRef.ID)
-	}
-	return true, nil
-}
-
-// errorID return identifier for error, identifier text is from namespace,table and object name
-//
-//	id := c.errorID("tablename", "")
-//	So(id, ShouldEqual, "tablename{sample-namespace}")
+//	id := c.errorID("tablename", id)
+//	So(id, ShouldEqual, "tablename-id")
 //
 func (c *ConnectionFirestore) errorID(tablename, name string) string {
-	id := "{root}"
-	if c.nsRef != nil {
-		id = "{" + c.nsRef.ID + "}"
-	}
-	id = tablename + id
+	id := tablename
 	if name != "" {
 		id += "-" + name
 	}
@@ -203,12 +112,11 @@ func (c *ConnectionFirestore) snapshotToObject(tablename string, docRef *firesto
 // Close database connection
 //
 //	ctx := context.Background()
-//	conn, err := FirestoreRegionalConnection(ctx, "sample-namespace")
+//	conn, err := FirestoreRegionalConnection(ctx)
 //	defer c.Close()
 //
 func (c *ConnectionFirestore) Close() {
 	c.tx = nil
-	c.nsRef = nil
 	if c.client != nil {
 		c.client.Close()
 		c.client = nil
@@ -276,9 +184,6 @@ func (c *ConnectionFirestore) InTransaction() bool {
 //	collectionRef, err := c.getCollectionRef(tablename)
 //
 func (c *ConnectionFirestore) getCollectionRef(tablename string) *firestore.CollectionRef {
-	if c.nsRef != nil {
-		return c.nsRef.Collection(tablename)
-	}
 	return c.client.Collection(tablename)
 }
 

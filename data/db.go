@@ -18,18 +18,6 @@ type DB interface {
 	//
 	Close()
 
-	// CreateNamespace create namespace, create new one if not exist
-	//
-	//	db, err := c.CreateNamespace(ctx)
-	//
-	CreateNamespace(ctx context.Context) error
-
-	// DeleteNamespace delete namespace
-	//
-	//	err := c.DeleteNamespace(ctx)
-	//
-	DeleteNamespace(ctx context.Context) error
-
 	// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
 	//
 	//	err := conn.BatchBegin()
@@ -152,48 +140,4 @@ func (c *BaseDB) Transaction(ctx context.Context, callback func(ctx context.Cont
 //
 func (c *BaseDB) InTransaction() bool {
 	return c.Connection.InTransaction()
-}
-
-// CreateNamespace create namespace, create new one if not exist
-//
-//	db, err := conn.CreateNamespace(ctx)
-//
-func (c *BaseDB) CreateNamespace(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	return c.Connection.CreateNamespace(ctx)
-}
-
-// DeleteNamespace delete namespace
-//
-//	err := c.DeleteNamespace(ctx)
-//
-func (c *BaseDB) DeleteNamespace(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	return c.Connection.DeleteNamespace(ctx)
-}
-
-// IsNamespaceExist check namespace is exist
-//
-//	isExist,err := db.IsNamespaceExist(ctx)
-//
-func (c *BaseDB) IsNamespaceExist(ctx context.Context) (bool, error) {
-	if ctx.Err() != nil {
-		return false, ctx.Err()
-	}
-	return c.Connection.IsNamespaceExist(ctx)
-}
-
-// ClearNamespace delete all namespace
-//
-//	err := c.ClearNamespace(ctx)
-//
-func (c *BaseDB) ClearNamespace(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	return c.Connection.ClearNamespace(ctx)
 }
