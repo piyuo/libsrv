@@ -133,6 +133,10 @@ func (c *MetaFirestore) countValue(shards *firestore.DocumentIterator) (float64,
 // createShard create a shard
 //
 func (c *MetaFirestore) createShard(ref *firestore.DocumentRef, shard map[string]interface{}) error {
+	if shard[MetaValue] == nil {
+		return errors.New("value can not be nil when create shard: " + c.errorID())
+	}
+
 	err := c.conn.tx.Set(ref, shard, firestore.MergeAll)
 	if err != nil {
 		return errors.Wrap(err, "failed to create shard: "+c.errorID())
@@ -143,6 +147,10 @@ func (c *MetaFirestore) createShard(ref *firestore.DocumentRef, shard map[string
 // incrementShard increment shard count
 //
 func (c *MetaFirestore) incrementShard(ref *firestore.DocumentRef, value interface{}) error {
+	if value == nil {
+		return errors.New("value can not be nil when increment shard: " + c.errorID())
+	}
+
 	err := c.conn.tx.Update(ref, []firestore.Update{
 		{Path: MetaValue, Value: firestore.Increment(value)},
 	})

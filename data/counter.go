@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"time"
 )
 
 // Counter is a collection of documents (shards) to realize counter with high frequency.
@@ -31,6 +32,12 @@ type Counter interface {
 	//	count, err = counter.CountAll(ctx)
 	//
 	CountAll(ctx context.Context) (float64, error)
+
+	// CountPeriod return count between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
+	//
+	//	count, err = counter.CountAll(ctx)
+	//
+	CountPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (float64, error)
 
 	// Clear all shards
 	//
@@ -73,11 +80,11 @@ const (
 
 // CounterPeriodAll define all period
 //
-const CounterPeriodAll = "All"
+//const CounterPeriodAll = "All"
 
-// CounterPeriod field in shard
+// CounterHierarchy field in shard
 //
-const CounterPeriod = "P"
+const CounterHierarchy = "H"
 
 // CounterDate field in shard
 //
