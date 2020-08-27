@@ -19,15 +19,16 @@ type Counters struct {
 //	timezone is user timezone, cause counter will automatically generate year/month/day/hour count
 //
 //	counters := db.Counters()
-//	orderCountCounter,err = counters.Counter("order-count",100,"UTC",0) // utc timezone
+//	zone, offset := time.Now().UTC().Zone()
+//	loc := time.FixedZone(zone, offset)
+//	loc = time.FixedZone("PDT", -25200)
+//	orderCountCounter,err = counters.Counter("order-count",100,loc) // utc timezone
 //
-func (c *Counters) Counter(name string, numshards int, timezoneName string, timezoneOffset int) Counter {
-
+func (c *Counters) Counter(name string, numshards int, loc *time.Location) Counter {
 	if numshards <= 0 {
 		numshards = 10
 	}
 
-	loc := time.FixedZone(timezoneName, timezoneOffset)
 	return &CounterFirestore{
 		MetaFirestore: MetaFirestore{
 			conn:      c.Connection.(*ConnectionFirestore),

@@ -226,7 +226,9 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	})
 
 	//counter minimal shards is 10
-	counter = counters.Counter("minShards", 0, "UTC", 0)
+	zone, offset := time.Now().UTC().Zone()
+	loc := time.FixedZone(zone, offset)
+	counter = counters.Counter("minShards", 0, loc)
 	So(counter, ShouldNotBeNil)
 	firestoreCounter := counter.(*CounterFirestore)
 	So(firestoreCounter.numShards, ShouldEqual, 10)

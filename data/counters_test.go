@@ -24,7 +24,8 @@ func countersTest(db SampleDB, counters *SampleCounters) {
 	ctx := context.Background()
 
 	zone, offset := time.Now().UTC().Zone()
-	counter := counters.Counter("sample-counter", 3, zone, offset)
+	loc := time.FixedZone(zone, offset)
+	counter := counters.Counter("SampleCount", 3, loc)
 	So(counter, ShouldNotBeNil)
 
 	err := counter.Clear(ctx)

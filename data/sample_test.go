@@ -175,15 +175,17 @@ type SampleCounters struct {
 // SampleCounter return sample counter
 //
 func (scs *SampleCounters) SampleCounter() Counter {
-	zone, offset := time.Now().Zone()
-	return scs.Counter("SampleCount", 3, zone, offset)
+	zone, offset := time.Now().UTC().Zone()
+	loc := time.FixedZone(zone, offset)
+	return scs.Counter("SampleCount", 3, loc)
 }
 
 // SampleCounter100 return sample counter with 100 shards
 //
 func (scs *SampleCounters) SampleCounter1000() Counter {
-	zone, offset := time.Now().Zone()
-	return scs.Counter("SampleCount", 1000, zone, offset)
+	zone, offset := time.Now().UTC().Zone()
+	loc := time.FixedZone(zone, offset)
+	return scs.Counter("SampleCount", 1000, loc)
 }
 
 func createSampleDB() (*SampleGlobalDB, *SampleRegionalDB) {
