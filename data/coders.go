@@ -1,9 +1,5 @@
 package data
 
-import (
-	"context"
-)
-
 // Coders is collection of code
 //
 type Coders struct {
@@ -21,30 +17,11 @@ type Coders struct {
 //
 func (c *Coders) Coder(name string, numshards int) Coder {
 	return &CoderFirestore{
-		ShardsFirestore: ShardsFirestore{
+		MetaFirestore: MetaFirestore{
 			conn:      c.Connection.(*ConnectionFirestore),
 			tableName: c.TableName,
 			id:        name,
 			numShards: numshards,
 		},
 	}
-}
-
-// Delete code from database
-//
-//	coders := db.Coders()
-//	err = coders.Delete(ctx, "product-code")
-//
-func (c *Coders) Delete(ctx context.Context, name string) error {
-	shards := ShardsFirestore{
-		conn:      c.Connection.(*ConnectionFirestore),
-		tableName: c.TableName,
-		id:        name,
-		numShards: 0,
-	}
-	if err := shards.assert(ctx); err != nil {
-		return err
-	}
-
-	return shards.deleteShards(ctx)
 }

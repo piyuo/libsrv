@@ -21,14 +21,27 @@ func TestConcurrentDB(t *testing.T) {
 	dbG, dbR := createSampleDB()
 	defer removeSampleDB(dbG, dbR)
 	tableG, tableR := createSampleTable(dbG, dbR)
+
 	removeSampleTable(tableG, tableR)
 	defer removeSampleTable(tableG, tableR)
 	countersG, countersR := createSampleCounters(dbG, dbR)
-	removeSampleCounters(countersG, countersR)
-	defer removeSampleCounters(countersG, countersR)
 	codersG, codersR := createSampleCoders(dbG, dbR)
-	removeSampleCoders(codersG, codersR)
-	defer removeSampleCoders(codersG, codersR)
+
+	counterG := countersG.SampleCounter()
+	counterG.Clear(ctx)
+	defer counterG.Clear(ctx)
+
+	counterR := countersR.SampleCounter()
+	counterR.Clear(ctx)
+	defer counterR.Clear(ctx)
+
+	coderG := codersG.SampleCoder()
+	coderG.Clear(ctx)
+	defer coderG.Clear(ctx)
+
+	coderR := codersR.SampleCoder()
+	coderR.Clear(ctx)
+	defer coderR.Clear(ctx)
 
 	//init test data
 	table := tableG

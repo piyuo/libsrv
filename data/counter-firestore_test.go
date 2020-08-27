@@ -16,8 +16,7 @@ func TestCounterIncrement(t *testing.T) {
 		ctx := context.Background()
 		dbG, dbR := createSampleDB()
 		defer removeSampleDB(dbG, dbR)
-		countersG, countersR := createSampleCounters(dbG, dbR)
-		defer removeSampleCounters(countersG, countersR)
+		countersG, _ := createSampleCounters(dbG, dbR)
 
 		counter := countersG.SampleCounter()
 		So(counter, ShouldNotBeNil)
@@ -58,7 +57,6 @@ func TestCounter(t *testing.T) {
 		dbG, dbR := createSampleDB()
 		defer removeSampleDB(dbG, dbR)
 		countersG, countersR := createSampleCounters(dbG, dbR)
-		defer removeSampleCounters(countersG, countersR)
 
 		incrementMustUseWithInTransacton(ctx, dbG, countersG)
 		incrementMustUseWithInTransacton(ctx, dbR, countersR)
@@ -159,7 +157,7 @@ func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
 	So(counter, ShouldNotBeNil)
 	firestoreCounter := counter.(*CounterFirestore)
 	So(firestoreCounter.numShards, ShouldEqual, 10)
-	err = counters.Delete(ctx, "minShards")
+	err = counter.Clear(ctx)
 	So(err, ShouldBeNil)
 }
 

@@ -14,18 +14,14 @@ func TestShardsFirestore(t *testing.T) {
 		dbG, dbR := createSampleDB()
 		defer removeSampleDB(dbG, dbR)
 
-		shards := ShardsFirestore{
+		shards := MetaFirestore{
 			conn:      dbG.Connection.(*ConnectionFirestore),
-			tableName: "tablename",
 			id:        "id",
+			tableName: "tablename",
 			numShards: 0,
 		}
 		id := shards.errorID()
 		So(id, ShouldEqual, "tablename{root}-id")
-
-		docRef, shardsRef := shards.getRef()
-		So(docRef, ShouldNotBeNil)
-		So(shardsRef, ShouldNotBeNil)
 
 		//check canceled ctx
 		ctxCanceled := util.CanceledCtx()

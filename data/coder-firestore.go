@@ -15,13 +15,13 @@ import (
 type CoderFirestore struct {
 	Coder `firestore:"-"`
 
-	ShardsFirestore `firestore:"-"`
+	MetaFirestore `firestore:"-"`
 
-	numberCallRX bool
+	callRX bool
 
-	numberShardIndex int
+	shardPick int
 
-	numberShardExist bool
+	shardExist bool
 }
 
 // CodeRX encode uint32 number into string, must used it in transaction with CodeWX()
@@ -125,47 +125,48 @@ func (c *CoderFirestore) Code64WX(ctx context.Context) error {
 //
 func (c *CoderFirestore) NumberRX(ctx context.Context) (int64, error) {
 	if c.conn.tx == nil {
-		return 0, errors.New("this function must run in transaction")
+		return 0, errors.New("NumberRX() must run in transaction")
 	}
 
-	c.numberCallRX = true
-	c.numberShardExist = false
-	pick, exist, value, err := c.pickShard(ctx)
+	c.callRX = true
+	c.shardPick = rand.Intn(c.numShards) //random pick a shard
+	//	fmt.Printf("coder pick:" + strconv.Itoa(c.shardPick) + "\n")
+
+	exist, value, err := c.pickShard(ctx)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
-
-	c.numberShardIndex = pick
-	c.numberShardExist = exist
+	c.shardExist = exist
 	return value, nil
+}
+
+// getPickedRef return picked all period ref
+//
+func (c *CoderFirestore) getPickedRef() *firestore.DocumentRef {
+	return c.conn.getDocRef(c.tableName, c.id+"."+strconv.Itoa(c.shardPick))
 }
 
 // pickShard random pick a shard, return shardIndex, isShardExist, error
 //
-func (c *CoderFirestore) pickShard(ctx context.Context) (int, bool, int64, error) {
-	pick := rand.Intn(c.numShards)
-	_, shardsRef := c.getRef()
-	shardID := strconv.Itoa(pick)
-	shardRef := shardsRef.Doc(shardID)
-	snapshot, err := c.conn.tx.Get(shardRef)
-	//snapshot, err := shardRef.Get(ctx), must use tx to get shardRef cause it will lock
+func (c *CoderFirestore) pickShard(ctx context.Context) (bool, int64, error) {
+	snapshot, err := c.conn.tx.Get(c.getPickedRef())
 	if snapshot != nil && !snapshot.Exists() {
 		// value format is incrementValue+shardIndex, e.g. 12 , 1= increment value, 2=shard index
-		value := int64(c.numShards + pick)
-		return pick, false, value, nil
+		value := int64(c.numShards + c.shardPick)
+		return false, value, nil
 	}
 
 	if err != nil {
-		return 0, false, 0, err
+		return false, 0, err
 	}
 
-	idRef, err := snapshot.DataAt("N")
+	idRef, err := snapshot.DataAt(MetaValue)
 	if err != nil {
-		return 0, false, 0, errors.Wrap(err, "failed to get value from number: "+c.errorID())
+		return false, 0, errors.Wrap(err, "failed to get value from number: "+c.errorID())
 	}
 	id := idRef.(int64)
-	value := (id+1)*int64(c.numShards) + int64(pick)
-	return pick, true, value, nil
+	value := (id+1)*int64(c.numShards) + int64(c.shardPick)
+	return true, value, nil
 }
 
 // NumberWX commit NumberRX()
@@ -179,52 +180,43 @@ func (c *CoderFirestore) pickShard(ctx context.Context) (int, bool, int64, error
 //
 func (c *CoderFirestore) NumberWX(ctx context.Context) error {
 	if c.conn.tx == nil {
-		return errors.New("This function must run in transaction")
+		return errors.New("NumberWX() must run in transaction")
 	}
-	if c.numberCallRX == false {
-		return errors.New("WX() function need call NumberRX() first")
+	if c.callRX == false {
+		return errors.New("NumberWX() need call NumberRX() first")
 	}
 
-	docRef, shardsRef := c.getRef()
-	shardID := strconv.Itoa(c.numberShardIndex)
-	shardRef := shardsRef.Doc(shardID)
-	if c.numberShardExist {
-		err := c.conn.tx.Update(shardRef, []firestore.Update{
-			{Path: "N", Value: firestore.Increment(1)},
-		})
-		if err != nil {
-			return errors.Wrap(err, "failed to increment shard: "+c.errorID())
+	if c.shardExist {
+		if err := c.incrementShard(c.getPickedRef(), 1); err != nil {
+			return err
 		}
-
 	} else {
-		// create shards document
-		err := c.conn.tx.Set(docRef, &struct{}{}) //put empty struct
-		if err != nil {
-			return errors.Wrap(err, "failed to create shards document: "+c.errorID())
+		shard := map[string]interface{}{
+			MetaID:    c.id,
+			MetaValue: 1,
 		}
-
-		// create shard
-		err = c.conn.tx.Set(shardRef, map[string]interface{}{"N": 1}, firestore.MergeAll)
-		if err != nil {
-			return errors.Wrap(err, "failed to create shard: "+c.errorID())
+		if err := c.createShard(c.getPickedRef(), shard); err != nil {
+			return err
 		}
 	}
-
-	c.numberCallRX = false
-	c.numberShardExist = false
-	c.numberShardIndex = -1
+	c.callRX = false
+	c.shardExist = false
+	c.shardPick = -1
 	return nil
 }
 
-// Reset reset code
+// Clear all shards
 //
-//	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		err:= coder.Reset(ctx)
-//	})
+//	err = c.Clear(ctx)
 //
-func (c *CoderFirestore) Reset(ctx context.Context) error {
-	if err := c.assert(ctx); err != nil {
-		return err
-	}
-	return c.deleteShards(ctx)
+func (c *CoderFirestore) Clear(ctx context.Context) error {
+	return c.clear(ctx)
+}
+
+// ShardsCount returns shards count
+//
+//	count, err = coder.ShardsCount(ctx)
+//
+func (c *CoderFirestore) ShardsCount(ctx context.Context) (int, error) {
+	return c.shardsCount(ctx)
 }

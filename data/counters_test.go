@@ -13,7 +13,6 @@ func TestCounters(t *testing.T) {
 		dbG, dbR := createSampleDB()
 		defer removeSampleDB(dbG, dbR)
 		cg, cr := createSampleCounters(dbG, dbR)
-		defer removeSampleCounters(cg, cr)
 
 		countersTest(dbG, cg)
 		countersTest(dbR, cr)
@@ -28,7 +27,11 @@ func countersTest(db SampleDB, counters *SampleCounters) {
 	counter := counters.Counter("sample-counter", 3, zone, offset)
 	So(counter, ShouldNotBeNil)
 
-	err := db.Transaction(ctx, func(ctx context.Context) error {
+	err := counter.Clear(ctx)
+	So(err, ShouldBeNil)
+	defer counter.Clear(ctx)
+
+	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementRX(ctx, 1)
 		So(err, ShouldBeNil)
 		return counter.IncrementWX(ctx)

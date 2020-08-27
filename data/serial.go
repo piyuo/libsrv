@@ -28,11 +28,15 @@ type Serial interface {
 	//
 	NumberWX() error
 
-	// Reset reset sequence number
+	// Clear all shards
 	//
-	//	err = db.Transaction(ctx, func(ctx context.Context) error {
-	//		err:= serial.Reset(ctx)
-	//	})
+	//	err = serial.Clear(ctx)
 	//
-	Reset(ctx context.Context) error
+	Clear(ctx context.Context) error
+
+	// ShardsCount returns shards count
+	//
+	//	count, err = serial.ShardsCount(ctx)
+	//
+	ShardsCount(ctx context.Context) (int, error)
 }

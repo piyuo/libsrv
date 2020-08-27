@@ -18,7 +18,6 @@ func TestCoder(t *testing.T) {
 		dbG, dbR := createSampleDB()
 		defer removeSampleDB(dbG, dbR)
 		codesG, codesR := createSampleCoders(dbG, dbR)
-		defer removeSampleCoders(codesG, codesR)
 
 		coderMustUseWithInTransacton(codesG)
 		coderMustReadBeforeWrite(ctx, dbG, codesG)
@@ -42,7 +41,7 @@ func testCoderInCanceledCtx(ctx context.Context, db SampleDB, coders *SampleCode
 	So(coder, ShouldNotBeNil)
 
 	ctxCanceled := util.CanceledCtx()
-	err := coder.Reset(ctxCanceled)
+	err := coder.Clear(ctxCanceled)
 	So(err, ShouldNotBeNil)
 }
 
@@ -90,14 +89,14 @@ func coderMustReadBeforeWrite(ctx context.Context, db *SampleGlobalDB, codes *Sa
 }
 
 func coderInFailTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
-	err := codes.DeleteSampleCode(ctx)
-	So(err, ShouldBeNil)
 
-	iCoder := codes.SampleCoder()
-	coder := iCoder.(*CoderFirestore)
-	docCount, shardsCount, err := coder.shardsInfo(ctx)
+	coder := codes.SampleCoder()
+	err := coder.Clear(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 0)
+	defer coder.Clear(ctx)
+
+	shardsCount, err := coder.ShardsCount(ctx)
+	So(err, ShouldBeNil)
 	So(shardsCount, ShouldEqual, 0)
 
 	// success
@@ -110,9 +109,8 @@ func coderInFailTransaction(ctx context.Context, db SampleDB, codes *SampleCoder
 	})
 	So(err, ShouldBeNil)
 
-	docCount, shardsCount, err = coder.shardsInfo(ctx)
+	shardsCount, err = coder.ShardsCount(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 1)
 	So(shardsCount, ShouldEqual, 1)
 
 	// fail
@@ -127,15 +125,16 @@ func coderInFailTransaction(ctx context.Context, db SampleDB, codes *SampleCoder
 	})
 	So(err, ShouldNotBeNil)
 
-	docCount, shardsCount, err = coder.shardsInfo(ctx)
+	shardsCount, err = coder.ShardsCount(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 1)
 	So(shardsCount, ShouldEqual, 1)
 }
 
 func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
-	err := codes.DeleteSampleCode(ctx)
+	coder := codes.SampleCoder()
+	err := coder.Clear(ctx)
 	So(err, ShouldBeNil)
+	defer coder.Clear(ctx)
 
 	var num1 int64
 	var num2 int64
@@ -218,26 +217,18 @@ func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	})
 	So(err, ShouldBeNil)
 	So(code641, ShouldNotEqual, code642)
-
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		err := codes.DeleteSampleCode(ctx)
-		So(err, ShouldBeNil)
-		return nil
-	})
-	So(err, ShouldBeNil)
 }
 
 func TestConcurrentCoder(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
+
 	gdb, _ := NewSampleGlobalDB(ctx)
 	defer gdb.Close()
 	coders := gdb.Coders()
-	defer coders.DeleteSampleCode(ctx)
-	err := coders.DeleteSampleCode(ctx)
-	if err != nil {
-		t.Errorf("err should be nil, got %v", err)
-	}
+	coder := coders.SampleCoder()
+	err := coder.Clear(ctx)
+	defer coder.Clear(ctx)
 
 	result := make(map[int64]int64)
 	resultMutex := sync.RWMutex{}
@@ -283,12 +274,10 @@ func TestConcurrentCoder(t *testing.T) {
 }
 
 func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
-	err := codes.DeleteSampleCode(ctx)
-	defer codes.DeleteSampleCode(ctx)
+	coder := codes.SampleCoder()
+	err := coder.Clear(ctx)
 	So(err, ShouldBeNil)
-
-	iCoder := codes.SampleCoder()
-	cdr := iCoder.(*CoderFirestore)
+	defer coder.Clear(ctx)
 
 	var num1 int64
 	err = db.Transaction(ctx, func(ctx context.Context) error {
@@ -300,18 +289,16 @@ func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	})
 	So(err, ShouldBeNil)
 
-	docCount, shardsCount, err := cdr.shardsInfo(ctx)
+	shardsCount, err := coder.ShardsCount(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 1)
 	So(shardsCount, ShouldEqual, 1)
 
 	// reset
-	coder := codes.SampleCoder()
-	coder.Reset(ctx)
+	coder = codes.SampleCoder()
+	coder.Clear(ctx)
 
-	docCount, shardsCount, err = cdr.shardsInfo(ctx)
+	shardsCount, err = coder.ShardsCount(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 0)
 	So(shardsCount, ShouldEqual, 0)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
@@ -323,19 +310,17 @@ func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
 	})
 	So(err, ShouldBeNil)
 
-	docCount, shardsCount, err = cdr.shardsInfo(ctx)
+	shardsCount, err = coder.ShardsCount(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 1)
 	So(shardsCount, ShouldEqual, 1)
 
 	// reset in transaction
 	coder = codes.SampleCoder()
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		return coder.Reset(ctx)
+		return coder.Clear(ctx)
 	})
 
-	docCount, shardsCount, err = cdr.shardsInfo(ctx)
+	shardsCount, err = coder.ShardsCount(ctx)
 	So(err, ShouldBeNil)
-	So(docCount, ShouldEqual, 0)
 	So(shardsCount, ShouldEqual, 0)
 }

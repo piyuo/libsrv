@@ -12,13 +12,17 @@ import (
 type SerialFirestore struct {
 	Serial `firestore:"-"`
 
-	ShardsFirestore `firestore:"-"`
+	MetaFirestore `firestore:"-"`
 
-	numberCallRX bool
+	callRX bool
 
-	numberCanCreate bool
+	shardExist bool
+}
 
-	numberCanIncrement bool
+// getRef return docRef and shardsRef
+//
+func (c *SerialFirestore) getRef() *firestore.DocumentRef {
+	return c.conn.getDocRef(c.tableName, c.id)
 }
 
 // NumberRX return sequence number, number is unique and serial, please be aware serial can only generate one sequence per second, use it with high frequency will cause error and  must used it in transaction with NumberWX()
@@ -32,17 +36,13 @@ type SerialFirestore struct {
 //
 func (c *SerialFirestore) NumberRX() (int64, error) {
 	if c.conn.tx == nil {
-		return 0, errors.New("this function must run in transaction")
+		return 0, errors.New("NumberRX() must run in transaction")
 	}
 
-	c.numberCallRX = true
-	c.numberCanCreate = false
-	c.numberCanIncrement = false
-
-	docRef, _ := c.getRef()
-	snapshot, err := c.conn.tx.Get(docRef)
+	c.callRX = true
+	snapshot, err := c.conn.tx.Get(c.getRef())
 	if snapshot != nil && !snapshot.Exists() {
-		c.numberCanCreate = true
+		c.shardExist = false
 		return 1, nil
 	}
 
@@ -50,11 +50,11 @@ func (c *SerialFirestore) NumberRX() (int64, error) {
 		return 0, errors.Wrap(err, "failed to get serial: "+c.errorID())
 	}
 
-	idRef, err := snapshot.DataAt("N")
+	idRef, err := snapshot.DataAt(MetaValue)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get value from serial: "+c.errorID())
 	}
-	c.numberCanIncrement = true
+	c.shardExist = true
 	id := idRef.(int64)
 	return id + 1, nil
 }
@@ -70,43 +70,42 @@ func (c *SerialFirestore) NumberRX() (int64, error) {
 //
 func (c *SerialFirestore) NumberWX() error {
 	if c.conn.tx == nil {
-		return errors.New("This function must run in transaction")
+		return errors.New("NumberWX() must run in transaction")
 	}
-	if c.numberCallRX == false {
-		return errors.New("WX() function need call NumberRX() first")
-	}
-
-	docRef, _ := c.getRef()
-	if c.numberCanCreate {
-		err := c.conn.tx.Set(docRef, map[string]interface{}{"N": 1}, firestore.MergeAll)
-		if err != nil {
-			return errors.Wrap(err, "failed to create serial: "+c.errorID())
-		}
+	if c.callRX == false {
+		return errors.New("NumberWX() need call NumberRX() first")
 	}
 
-	if c.numberCanIncrement {
-		err := c.conn.tx.Update(docRef, []firestore.Update{
-			{Path: "N", Value: firestore.Increment(1)},
-		})
-		if err != nil {
-			return errors.Wrap(err, "failed to increment serial: "+c.errorID())
+	if c.shardExist {
+		if err := c.incrementShard(c.getRef(), 1); err != nil {
+			return nil
+		}
+	} else {
+		shard := map[string]interface{}{
+			MetaID:    c.id,
+			MetaValue: 1,
+		}
+		if err := c.createShard(c.getRef(), shard); err != nil {
+			return err
 		}
 	}
-	c.numberCallRX = false
-	c.numberCanCreate = false
-	c.numberCanIncrement = false
+	c.callRX = false
+	c.shardExist = false
 	return nil
 }
 
-// Reset reset sequence number
+// Clear all shards
 //
-//	err = db.Transaction(ctx, func(ctx context.Context) error {
-//		err:= serial.Reset(ctx)
-//	})
+//	err = c.Clear(ctx)
 //
-func (c *SerialFirestore) Reset(ctx context.Context) error {
-	if err := c.assert(ctx); err != nil {
-		return err
-	}
-	return c.deleteDoc(ctx)
+func (c *SerialFirestore) Clear(ctx context.Context) error {
+	return c.clear(ctx)
+}
+
+// ShardsCount returns shards count
+//
+//	count, err = coder.ShardsCount(ctx)
+//
+func (c *SerialFirestore) ShardsCount(ctx context.Context) (int, error) {
+	return c.shardsCount(ctx)
 }

@@ -32,11 +32,17 @@ type Counter interface {
 	//
 	CountAll(ctx context.Context) (float64, error)
 
-	// Clear all counter shards
+	// Clear all shards
 	//
 	//	err = counter.Clear(ctx)
 	//
 	Clear(ctx context.Context) error
+
+	// ShardsCount returns shards count
+	//
+	//	count, err = counter.ShardsCount(ctx)
+	//
+	ShardsCount(ctx context.Context) (int, error)
 }
 
 // Hierarchy define date hierarchy
@@ -68,18 +74,6 @@ const (
 // CounterPeriodAll define all period
 //
 const CounterPeriodAll = "All"
-
-// CounterID field in shard
-//
-const CounterID = "ID"
-
-// CounterCount field in shard
-//
-const CounterCount = "N"
-
-// CounterType field in shard
-//
-const CounterType = "T"
 
 // CounterPeriod field in shard
 //

@@ -94,11 +94,15 @@ type Coder interface {
 	//
 	NumberWX(ctx context.Context) error
 
-	// Reset reset code
+	// Clear all shards
 	//
-	//	err = db.Transaction(ctx, func(ctx context.Context) error {
-	//		err:= code.Reset(ctx)
-	//	})
+	//	err = coder.Clear(ctx)
 	//
-	Reset(ctx context.Context) error
+	Clear(ctx context.Context) error
+
+	// ShardsCount returns shards count
+	//
+	//	count, err = coder.ShardsCount(ctx)
+	//
+	ShardsCount(ctx context.Context) (int, error)
 }

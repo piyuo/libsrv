@@ -18,7 +18,6 @@ func TestSerial(t *testing.T) {
 		dbG, dbR := createSampleDB()
 		defer removeSampleDB(dbG, dbR)
 		serialsG, serialsR := createSampleSerials(dbG, dbR)
-		defer removeSampleSerials(serialsG, serialsR)
 
 		serialMustUseWithInTransacton(ctx, serialsG)
 		serialMustUseWithInTransacton(ctx, serialsR)
@@ -37,7 +36,7 @@ func testSerialInCanceledCtx(ctx context.Context, db SampleDB, serials *SampleSe
 	So(serial, ShouldNotBeNil)
 
 	ctxCanceled := util.CanceledCtx()
-	err := serial.Reset(ctxCanceled)
+	err := serial.Clear(ctxCanceled)
 	So(err, ShouldNotBeNil)
 }
 
@@ -53,9 +52,9 @@ func serialMustUseWithInTransacton(ctx context.Context, serials *SampleSerials) 
 
 func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSerials) {
 	serial := serials.SampleSerial()
-	err := serials.DeleteSampleSerial(ctx)
+	err := serial.Clear(ctx)
 	So(err, ShouldBeNil)
-	defer serials.DeleteSampleSerial(ctx)
+	defer serial.Clear(ctx)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
@@ -91,7 +90,7 @@ func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSe
 	})
 
 	// reset serial
-	err = serial.Reset(ctx)
+	err = serial.Clear(ctx)
 	So(err, ShouldBeNil)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
@@ -103,7 +102,7 @@ func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSe
 
 	// reset in transaction
 	err = db.Transaction(ctx, func(ctx context.Context) error {
-		return serial.Reset(ctx)
+		return serial.Clear(ctx)
 	})
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
@@ -116,13 +115,16 @@ func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSe
 	So(err, ShouldBeNil)
 }
 
-func TestConcurrentserial(t *testing.T) {
+func TestConcurrentSerial(t *testing.T) {
 	ctx := context.Background()
 	rand.Seed(time.Now().UnixNano())
 	dbG, dbR := createSampleDB()
 	defer removeSampleDB(dbG, dbR)
-	serialsG, serialsR := createSampleSerials(dbG, dbR)
-	defer removeSampleSerials(serialsG, serialsR)
+	serialsG, _ := createSampleSerials(dbG, dbR)
+
+	serial := serialsG.SampleSerial()
+	err := serial.Clear(ctx)
+	defer serial.Clear(ctx)
 
 	var concurrent = 3
 	var wg sync.WaitGroup
@@ -159,7 +161,7 @@ func TestConcurrentserial(t *testing.T) {
 	}
 	wg.Wait()
 
-	err := dbG.Transaction(ctx, func(ctx context.Context) error {
+	err = dbG.Transaction(ctx, func(ctx context.Context) error {
 		serial := serialsG.SampleSerial()
 		num, err := serial.NumberRX()
 		if err != nil {

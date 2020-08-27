@@ -1,9 +1,5 @@
 package data
 
-import (
-	"context"
-)
-
 // Serials is collection of serial
 //
 type Serials struct {
@@ -21,30 +17,11 @@ type Serials struct {
 //
 func (c *Serials) Serial(name string) Serial {
 	return &SerialFirestore{
-		ShardsFirestore: ShardsFirestore{
+		MetaFirestore: MetaFirestore{
 			conn:      c.Connection.(*ConnectionFirestore),
 			tableName: c.TableName,
 			id:        name,
 			numShards: 0,
 		},
 	}
-}
-
-// Delete serial from database
-//
-//	serials := db.Serials()
-//	err = serials.Delete(ctx, "product-no")
-//
-func (c *Serials) Delete(ctx context.Context, name string) error {
-
-	shards := ShardsFirestore{
-		conn:      c.Connection.(*ConnectionFirestore),
-		tableName: c.TableName,
-		id:        name,
-		numShards: 0,
-	}
-	if err := shards.assert(ctx); err != nil {
-		return err
-	}
-	return shards.deleteDoc(ctx)
 }

@@ -44,7 +44,7 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
-			TableName:  "SampleCount",
+			TableName:  "Count",
 		},
 	}
 }
@@ -53,7 +53,7 @@ func (db *SampleGlobalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.Connection,
-			TableName:  "SampleSerial",
+			TableName:  "Serial",
 		},
 	}
 }
@@ -62,7 +62,7 @@ func (db *SampleGlobalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
 			Connection: db.Connection,
-			TableName:  "SampleCode",
+			TableName:  "Code",
 		},
 	}
 }
@@ -98,7 +98,7 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 	return &SampleCounters{
 		Counters: Counters{
 			Connection: db.Connection,
-			TableName:  "SampleCount",
+			TableName:  "Count",
 		},
 	}
 }
@@ -107,7 +107,7 @@ func (db *SampleRegionalDB) Serials() *SampleSerials {
 	return &SampleSerials{
 		Serials: Serials{
 			Connection: db.Connection,
-			TableName:  "SampleSerial",
+			TableName:  "Serial",
 		},
 	}
 }
@@ -116,7 +116,7 @@ func (db *SampleRegionalDB) Coders() *SampleCoders {
 	return &SampleCoders{
 		Coders: Coders{
 			Connection: db.Connection,
-			TableName:  "SampleCode",
+			TableName:  "Code",
 		},
 	}
 }
@@ -147,19 +147,13 @@ type SampleCoders struct {
 // SampleCoder return sample code
 //
 func (ss *SampleCoders) SampleCoder() Coder {
-	return ss.Coder("sample-code", 10)
+	return ss.Coder("SampleCode", 10)
 }
 
 // SampleCoder100 return sample code with 100 shards
 //
 func (ss *SampleCoders) SampleCoder1000() Coder {
-	return ss.Coder("sample-code", 1000)
-}
-
-// DeleteSampleSerial delete sample serial
-//
-func (ss *SampleCoders) DeleteSampleCode(ctx context.Context) error {
-	return ss.Delete(ctx, "sample-code")
+	return ss.Coder("SampleCode", 1000)
 }
 
 // SampleSerials  represent collection of serial
@@ -169,13 +163,7 @@ type SampleSerials struct {
 }
 
 func (ss *SampleSerials) SampleSerial() Serial {
-	return ss.Serial("sample-no")
-}
-
-// DeleteSampleSerial delete sample serial
-//
-func (ss *SampleSerials) DeleteSampleSerial(ctx context.Context) error {
-	return ss.Delete(ctx, "sample-no")
+	return ss.Serial("SampleSerial")
 }
 
 // SampleCounters represent collection of counter
@@ -188,20 +176,14 @@ type SampleCounters struct {
 //
 func (scs *SampleCounters) SampleCounter() Counter {
 	zone, offset := time.Now().Zone()
-	return scs.Counter("Sample", 3, zone, offset)
+	return scs.Counter("SampleCount", 3, zone, offset)
 }
 
 // SampleCounter100 return sample counter with 100 shards
 //
 func (scs *SampleCounters) SampleCounter1000() Counter {
 	zone, offset := time.Now().Zone()
-	return scs.Counter("Sample", 1000, zone, offset)
-}
-
-// DeleteSampleCounter delete sample counter
-//
-func (scs *SampleCounters) DeleteSampleCounter(ctx context.Context) error {
-	return scs.Delete(ctx, "Sample")
+	return scs.Counter("SampleCount", 1000, zone, offset)
 }
 
 func createSampleDB() (*SampleGlobalDB, *SampleRegionalDB) {
@@ -237,38 +219,17 @@ func removeSampleTable(g *Table, r *Table) {
 func createSampleCounters(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*SampleCounters, *SampleCounters) {
 	g := dbG.Counters()
 	r := dbR.Counters()
-	removeSampleCounters(g, r)
 	return g, r
-}
-
-func removeSampleCounters(g *SampleCounters, r *SampleCounters) {
-	ctx := context.Background()
-	g.DeleteSampleCounter(ctx)
-	r.DeleteSampleCounter(ctx)
 }
 
 func createSampleSerials(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*SampleSerials, *SampleSerials) {
 	g := dbG.Serials()
 	r := dbR.Serials()
-	removeSampleSerials(g, r)
 	return g, r
-}
-
-func removeSampleSerials(g *SampleSerials, r *SampleSerials) {
-	ctx := context.Background()
-	g.DeleteSampleSerial(ctx)
-	r.DeleteSampleSerial(ctx)
 }
 
 func createSampleCoders(dbG *SampleGlobalDB, dbR *SampleRegionalDB) (*SampleCoders, *SampleCoders) {
 	g := dbG.Coders()
 	r := dbR.Coders()
-	removeSampleCoders(g, r)
 	return g, r
-}
-
-func removeSampleCoders(g *SampleCoders, r *SampleCoders) {
-	ctx := context.Background()
-	g.DeleteSampleCode(ctx)
-	r.DeleteSampleCode(ctx)
 }

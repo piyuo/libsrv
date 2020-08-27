@@ -1,22 +1,11 @@
 package data
 
-// Meta is a empty document that hold all meta document like counter/serial/code
-//
-type Meta struct {
-}
+// Meta is collection of document that hold all meta document like counter/serial/code
 
-// MetaDoc is meta document id
+// MetaID field in shard
 //
-const MetaDoc = "Meta"
+const MetaID = "ID"
 
-// MetaCounter is for counter
+// MetaValue field in shard
 //
-const MetaCounter = "C"
-
-// MetaSerial is for serial
-//
-const MetaSerial = "S"
-
-// MetaCode is for code
-//
-const MetaCode = "D"
+const MetaValue = "N"
