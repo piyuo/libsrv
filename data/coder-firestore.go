@@ -143,7 +143,7 @@ func (c *CoderFirestore) NumberRX(ctx context.Context) (int64, error) {
 // getPickedRef return picked all period ref
 //
 func (c *CoderFirestore) getPickedRef() *firestore.DocumentRef {
-	return c.conn.getDocRef(c.tableName, c.id+"."+strconv.Itoa(c.shardPick))
+	return c.conn.getDocRef(c.tableName, c.id+"_"+strconv.Itoa(c.shardPick))
 }
 
 // pickShard random pick a shard, return shardIndex, isShardExist, error
