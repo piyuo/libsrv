@@ -52,11 +52,11 @@ func IsError(x interface{}, errCode string) bool {
 	return false
 }
 
-// String return string response
+// Text return string response
 //
 //	return command.Text("hi")
 //
-func String(text string) interface{} {
+func Text(text string) interface{} {
 	return &shared.Text{
 		Value: text,
 	}
