@@ -70,8 +70,8 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 //	result := betterResponseName(errOK.XXX_MapID(), errOK)
 func betterResponseName(id uint16, response interface{}) string {
 	name := response.(Response).XXX_MapName()
-	if id == 0 { // err
-		err := response.(*shared.Err)
+	if id == 0 { // error
+		err := response.(*shared.PbError)
 		errLen := len(err.Code)
 		if errLen == 0 {
 			return "OK"

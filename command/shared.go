@@ -4,7 +4,7 @@ import (
 	shared "github.com/piyuo/libsrv/command/shared"
 )
 
-var ok = &shared.Err{
+var ok = &shared.PbError{
 	Code: "",
 }
 
@@ -16,12 +16,12 @@ func OK() interface{} {
 	return ok
 }
 
-// Error return  error response with code
+// NewPbError return  error response with code
 //
 //	return command.Error("INVALID_EMAIL")
 //
-func Error(errCode string) interface{} {
-	return &shared.Err{
+func NewPbError(errCode string) interface{} {
+	return &shared.PbError{
 		Code: errCode,
 	}
 }
@@ -43,8 +43,8 @@ func IsError(x interface{}, errCode string) bool {
 		return false
 	}
 	switch x.(type) {
-	case *shared.Err:
-		e := x.(*shared.Err)
+	case *shared.PbError:
+		e := x.(*shared.PbError)
 		if e.Code == errCode {
 			return true
 		}
@@ -52,32 +52,32 @@ func IsError(x interface{}, errCode string) bool {
 	return false
 }
 
-// Text return string response
+// NewPbString return string response
 //
 //	return command.Text("hi")
 //
-func Text(text string) interface{} {
-	return &shared.Text{
+func NewPbString(text string) interface{} {
+	return &shared.PbString{
 		Value: text,
 	}
 }
 
-// Number return number response
+// NewPbInt return int response
 //
-//	return command.Number(101)
+//	return command.PbInt(101)
 //
-func Number(num int64) interface{} {
-	return &shared.Num{
+func NewPbInt(num int32) interface{} {
+	return &shared.PbInt{
 		Value: num,
 	}
 }
 
-// Bool return bool response
+// NewPbBool return bool response
 //
-//	return command.Bool(true)
+//	return command.NewPbBool(true)
 //
-func Bool(value bool) interface{} {
-	return &shared.Bool{
+func NewPbBool(value bool) interface{} {
+	return &shared.PbBool{
 		Value: value,
 	}
 }
