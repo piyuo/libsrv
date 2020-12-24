@@ -4,23 +4,19 @@ import (
 	shared "github.com/piyuo/libsrv/command/shared"
 )
 
-var ok = &shared.PbError{
-	Code: "",
-}
-
-// OK return empty string
+// OK return PbOK
 //
 //	return command.OK(),nil
 //
 func OK() interface{} {
-	return ok
+	return &shared.PbOK{}
 }
 
-// NewPbError return  error response with code
+// Error return error response with code
 //
 //	return command.Error("INVALID_EMAIL")
 //
-func NewPbError(errCode string) interface{} {
+func Error(errCode string) interface{} {
 	return &shared.PbError{
 		Code: errCode,
 	}
@@ -30,21 +26,25 @@ func NewPbError(errCode string) interface{} {
 //
 //	is := command.IsOK(response)
 //
-func IsOK(x interface{}) bool {
-	return IsError(x, "")
+func IsOK(obj interface{}) bool {
+	switch obj.(type) {
+	case *shared.PbOK:
+		return true
+	}
+	return false
 }
 
 // IsError return true if object is shared.Err and code is the same
 //
 //	is := command.IsError(response,"INVALID_EMAIL")
 //
-func IsError(x interface{}, errCode string) bool {
-	if x == nil {
+func IsError(obj interface{}, errCode string) bool {
+	if obj == nil {
 		return false
 	}
-	switch x.(type) {
+	switch obj.(type) {
 	case *shared.PbError:
-		e := x.(*shared.PbError)
+		e := obj.(*shared.PbError)
 		if e.Code == errCode {
 			return true
 		}
@@ -52,31 +52,31 @@ func IsError(x interface{}, errCode string) bool {
 	return false
 }
 
-// NewPbString return string response
+// String return string response
 //
 //	return command.Text("hi")
 //
-func NewPbString(text string) interface{} {
+func String(text string) interface{} {
 	return &shared.PbString{
 		Value: text,
 	}
 }
 
-// NewPbInt return int response
+// Int return int response
 //
 //	return command.PbInt(101)
 //
-func NewPbInt(num int32) interface{} {
+func Int(num int32) interface{} {
 	return &shared.PbInt{
 		Value: num,
 	}
 }
 
-// NewPbBool return bool response
+// Bool return bool response
 //
 //	return command.NewPbBool(true)
 //
-func NewPbBool(value bool) interface{} {
+func Bool(value bool) interface{} {
 	return &shared.PbBool{
 		Value: value,
 	}

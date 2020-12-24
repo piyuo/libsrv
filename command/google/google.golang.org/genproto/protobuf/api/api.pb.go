@@ -6,8 +6,8 @@ package api
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	ptype "google.golang.org/genproto/protobuf/ptype"
-	source_context "google.golang.org/genproto/protobuf/source_context"
+	sourcecontextpb "google.golang.org/protobuf/types/known/sourcecontextpb"
+	typepb "google.golang.org/protobuf/types/known/typepb"
 	math "math"
 )
 
@@ -38,7 +38,7 @@ type Api struct {
 	// The methods of this interface, in unspecified order.
 	Methods []*Method `protobuf:"bytes,2,rep,name=methods,proto3" json:"methods,omitempty"`
 	// Any metadata attached to the interface.
-	Options []*ptype.Option `protobuf:"bytes,3,rep,name=options,proto3" json:"options,omitempty"`
+	Options []*typepb.Option `protobuf:"bytes,3,rep,name=options,proto3" json:"options,omitempty"`
 	// A version string for this interface. If specified, must have the form
 	// `major-version.minor-version`, as in `1.10`. If the minor version is
 	// omitted, it defaults to zero. If the entire version field is empty, the
@@ -63,14 +63,14 @@ type Api struct {
 	Version string `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
 	// Source context for the protocol buffer service represented by this
 	// message.
-	SourceContext *source_context.SourceContext `protobuf:"bytes,5,opt,name=source_context,json=sourceContext,proto3" json:"source_context,omitempty"`
+	SourceContext *sourcecontextpb.SourceContext `protobuf:"bytes,5,opt,name=source_context,json=sourceContext,proto3" json:"source_context,omitempty"`
 	// Included interfaces. See [Mixin][].
 	Mixins []*Mixin `protobuf:"bytes,6,rep,name=mixins,proto3" json:"mixins,omitempty"`
 	// The source syntax of the service.
-	Syntax               ptype.Syntax `protobuf:"varint,7,opt,name=syntax,proto3,enum=google.protobuf.Syntax" json:"syntax,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Syntax               typepb.Syntax `protobuf:"varint,7,opt,name=syntax,proto3,enum=google.protobuf.Syntax" json:"syntax,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *Api) Reset()         { *m = Api{} }
@@ -112,7 +112,7 @@ func (m *Api) GetMethods() []*Method {
 	return nil
 }
 
-func (m *Api) GetOptions() []*ptype.Option {
+func (m *Api) GetOptions() []*typepb.Option {
 	if m != nil {
 		return m.Options
 	}
@@ -126,7 +126,7 @@ func (m *Api) GetVersion() string {
 	return ""
 }
 
-func (m *Api) GetSourceContext() *source_context.SourceContext {
+func (m *Api) GetSourceContext() *sourcecontextpb.SourceContext {
 	if m != nil {
 		return m.SourceContext
 	}
@@ -140,11 +140,11 @@ func (m *Api) GetMixins() []*Mixin {
 	return nil
 }
 
-func (m *Api) GetSyntax() ptype.Syntax {
+func (m *Api) GetSyntax() typepb.Syntax {
 	if m != nil {
 		return m.Syntax
 	}
-	return ptype.Syntax_SYNTAX_PROTO2
+	return typepb.Syntax_SYNTAX_PROTO2
 }
 
 // Method represents a method of an API interface.
@@ -160,12 +160,12 @@ type Method struct {
 	// If true, the response is streamed.
 	ResponseStreaming bool `protobuf:"varint,5,opt,name=response_streaming,json=responseStreaming,proto3" json:"response_streaming,omitempty"`
 	// Any metadata attached to the method.
-	Options []*ptype.Option `protobuf:"bytes,6,rep,name=options,proto3" json:"options,omitempty"`
+	Options []*typepb.Option `protobuf:"bytes,6,rep,name=options,proto3" json:"options,omitempty"`
 	// The source syntax of this method.
-	Syntax               ptype.Syntax `protobuf:"varint,7,opt,name=syntax,proto3,enum=google.protobuf.Syntax" json:"syntax,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Syntax               typepb.Syntax `protobuf:"varint,7,opt,name=syntax,proto3,enum=google.protobuf.Syntax" json:"syntax,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *Method) Reset()         { *m = Method{} }
@@ -228,18 +228,18 @@ func (m *Method) GetResponseStreaming() bool {
 	return false
 }
 
-func (m *Method) GetOptions() []*ptype.Option {
+func (m *Method) GetOptions() []*typepb.Option {
 	if m != nil {
 		return m.Options
 	}
 	return nil
 }
 
-func (m *Method) GetSyntax() ptype.Syntax {
+func (m *Method) GetSyntax() typepb.Syntax {
 	if m != nil {
 		return m.Syntax
 	}
-	return ptype.Syntax_SYNTAX_PROTO2
+	return typepb.Syntax_SYNTAX_PROTO2
 }
 
 // Declares an API Interface to be included in this interface. The including

@@ -6,8 +6,8 @@ package ptype
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	any "github.com/golang/protobuf/ptypes/any"
-	source_context "google.golang.org/genproto/protobuf/source_context"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	sourcecontextpb "google.golang.org/protobuf/types/known/sourcecontextpb"
 	math "math"
 )
 
@@ -193,7 +193,7 @@ type Type struct {
 	// The protocol buffer options.
 	Options []*Option `protobuf:"bytes,4,rep,name=options,proto3" json:"options,omitempty"`
 	// The source context.
-	SourceContext *source_context.SourceContext `protobuf:"bytes,5,opt,name=source_context,json=sourceContext,proto3" json:"source_context,omitempty"`
+	SourceContext *sourcecontextpb.SourceContext `protobuf:"bytes,5,opt,name=source_context,json=sourceContext,proto3" json:"source_context,omitempty"`
 	// The source syntax.
 	Syntax               Syntax   `protobuf:"varint,6,opt,name=syntax,proto3,enum=google.protobuf.Syntax" json:"syntax,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -254,7 +254,7 @@ func (m *Type) GetOptions() []*Option {
 	return nil
 }
 
-func (m *Type) GetSourceContext() *source_context.SourceContext {
+func (m *Type) GetSourceContext() *sourcecontextpb.SourceContext {
 	if m != nil {
 		return m.SourceContext
 	}
@@ -401,7 +401,7 @@ type Enum struct {
 	// Protocol buffer options.
 	Options []*Option `protobuf:"bytes,3,rep,name=options,proto3" json:"options,omitempty"`
 	// The source context.
-	SourceContext *source_context.SourceContext `protobuf:"bytes,4,opt,name=source_context,json=sourceContext,proto3" json:"source_context,omitempty"`
+	SourceContext *sourcecontextpb.SourceContext `protobuf:"bytes,4,opt,name=source_context,json=sourceContext,proto3" json:"source_context,omitempty"`
 	// The source syntax.
 	Syntax               Syntax   `protobuf:"varint,5,opt,name=syntax,proto3,enum=google.protobuf.Syntax" json:"syntax,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -455,7 +455,7 @@ func (m *Enum) GetOptions() []*Option {
 	return nil
 }
 
-func (m *Enum) GetSourceContext() *source_context.SourceContext {
+func (m *Enum) GetSourceContext() *sourcecontextpb.SourceContext {
 	if m != nil {
 		return m.SourceContext
 	}
@@ -540,10 +540,10 @@ type Option struct {
 	// the corresponding wrapper type defined in google/protobuf/wrappers.proto
 	// should be used. If the value is an enum, it should be stored as an int32
 	// value using the google.protobuf.Int32Value type.
-	Value                *any.Any `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Value                *anypb.Any `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
 }
 
 func (m *Option) Reset()         { *m = Option{} }
@@ -578,7 +578,7 @@ func (m *Option) GetName() string {
 	return ""
 }
 
-func (m *Option) GetValue() *any.Any {
+func (m *Option) GetValue() *anypb.Any {
 	if m != nil {
 		return m.Value
 	}

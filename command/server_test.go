@@ -166,7 +166,7 @@ func okResponse() []byte {
 	dispatch := &Dispatch{
 		Map: &shared.MapXXX{},
 	}
-	ok := OK().(*shared.Err)
+	ok := OK().(*shared.PbOK)
 	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
 	return bytes
 }

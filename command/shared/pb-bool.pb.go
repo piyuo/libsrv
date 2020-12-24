@@ -79,7 +79,7 @@ var fileDescriptor_b304491e16ee92f2 = []byte{
 
 
 func (m *PbBool) XXX_MapID() uint16 {
-	return 3
+	return 1
 }
 
 func (m *PbBool) XXX_MapName() string {

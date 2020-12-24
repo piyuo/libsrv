@@ -31,17 +31,17 @@ func TestEncodeDecodeCommand(t *testing.T) {
 
 func TestBetterResponseName(t *testing.T) {
 	Convey("should get better response name", t, func() {
-		errOK := OK().(*shared.Err)
+		errOK := OK().(*shared.PbOK)
 		result := betterResponseName(errOK.XXX_MapID(), errOK)
 		So(result, ShouldEqual, "OK")
 
-		err := Error("failed").(*shared.Err)
+		err := Error("failed").(*shared.PbError)
 		result = betterResponseName(err.XXX_MapID(), err)
 		So(result, ShouldEqual, "failed")
 
-		errText := &shared.Text{}
+		errText := &shared.PbString{}
 		result = betterResponseName(errText.XXX_MapID(), errText)
-		So(result, ShouldEqual, "Text")
+		So(result, ShouldEqual, "PbString")
 	})
 }
 
@@ -72,12 +72,12 @@ func TestRoute(t *testing.T) {
 	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
 	_, resp, err3 := dispatch.decodeCommand(resultBytes)
-	actualResponse := resp.(*shared.Err)
+	actualResponse := resp.(*shared.PbOK)
 	Convey("test dispatch route", t, func() {
 		So(err, ShouldBeNil)
 		So(err2, ShouldBeNil)
 		So(err3, ShouldBeNil)
-		So(actualResponse.Code, ShouldEqual, "")
+		So(actualResponse, ShouldNotBeNil)
 	})
 }
 
@@ -93,9 +93,9 @@ func TestHandle(t *testing.T) {
 	}
 	Convey("should run action", t, func() {
 		_, respInterface, err := dispatch.runAction(context.Background(), act)
-		response := respInterface.(*shared.Err)
+		response := respInterface.(*shared.PbOK)
 		So(err, ShouldBeNil)
-		So(response.Code, ShouldEqual, "")
+		So(response, ShouldNotBeNil)
 	})
 }
 

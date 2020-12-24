@@ -52,7 +52,7 @@ func TestReadWriteDelete(t *testing.T) {
 		ctx := context.Background()
 		storage, err := NewCloudstorage(ctx)
 		bucketName := "mock-libsrv.piyuo.com"
-		path := "text.txt"
+		path := "TestReadWriteDelete.txt"
 
 		err = storage.AddBucket(ctx, bucketName, "US")
 		So(err, ShouldBeNil)
@@ -73,20 +73,23 @@ func TestReadWriteDelete(t *testing.T) {
 }
 
 func TestCleanBucket(t *testing.T) {
-	ctx := context.Background()
-	storage, err := NewCloudstorage(ctx)
-	bucketName := "mock-libsrv.piyuo.com"
-	path := "text.txt"
+	Convey("should clean bucket", t, func() {
+		ctx := context.Background()
+		storage, err := NewCloudstorage(ctx)
+		bucketName := "mock-libsrv.piyuo.com"
+		path := "TestCleanBucket.txt"
 
-	err = storage.AddBucket(ctx, bucketName, "US")
-	//	So(err, ShouldBeNil)
+		err = storage.AddBucket(ctx, bucketName, "US")
+		//	So(err, ShouldBeNil)
 
-	for i := 0; i < 100; i++ {
-		err = storage.WriteText(ctx, bucketName, fmt.Sprintf("%v%v", path, i), fmt.Sprintf("hi %v", i))
-		fmt.Printf("add object:%v\n", i)
-	}
+		for i := 0; i < 10; i++ {
+			err = storage.WriteText(ctx, bucketName, fmt.Sprintf("%v%v", path, i), fmt.Sprintf("hi %v", i))
+			fmt.Printf("add object:%v\n", i)
+		}
+		err = storage.CleanBucket(ctx, bucketName, 25*time.Second)
+		So(err, ShouldBeNil)
+		err = storage.RemoveBucket(ctx, bucketName)
+		So(err, ShouldBeNil)
 
-	err = storage.CleanBucket(ctx, bucketName, 25*time.Second)
-	err = storage.RemoveBucket(ctx, bucketName)
-	fmt.Printf("%v", err)
+	})
 }

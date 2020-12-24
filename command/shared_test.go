@@ -9,30 +9,30 @@ import (
 
 func TestShared(t *testing.T) {
 	Convey("should create text response", t, func() {
-		text := String("hi").(*shared.Text)
+		text := String("hi").(*shared.PbString)
 		So(text.Value, ShouldEqual, "hi")
 	})
 
 	Convey("should create number response", t, func() {
-		num := Number(201).(*shared.Num)
+		num := Int(201).(*shared.PbInt)
 		So(num.Value, ShouldEqual, 201)
 	})
 
 	Convey("should create bool response", t, func() {
-		b := Bool(true).(*shared.Bool)
+		b := Bool(true).(*shared.PbBool)
 		So(b.Value, ShouldEqual, true)
-		b = Bool(false).(*shared.Bool)
+		b = Bool(false).(*shared.PbBool)
 		So(b.Value, ShouldEqual, false)
 	})
 
 	Convey("should create error response", t, func() {
-		err := Error("errCode").(*shared.Err)
+		err := Error("errCode").(*shared.PbError)
 		So(err.Code, ShouldEqual, "errCode")
 	})
 
 	Convey("should be OK", t, func() {
-		err := Error("")
-		So(IsOK(err), ShouldBeTrue)
+		ok := OK()
+		So(IsOK(ok), ShouldBeTrue)
 	})
 
 	Convey("should be INVALID_MAIL error", t, func() {

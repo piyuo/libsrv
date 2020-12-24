@@ -5,10 +5,8 @@ import (
 	//data "github.com/piyuo/libsrv/data"
 )
 
-// Main entry for client command execution
-// you can return a response to user and error will be log to server
+// Do return DeadlineExceeded
 //
-// do not return nil on response
 func (a *DeadlineAction) Do(ctx context.Context) (interface{}, error) {
 	return nil, context.DeadlineExceeded
 }

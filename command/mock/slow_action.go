@@ -8,13 +8,11 @@ import (
 	//data "github.com/piyuo/libsrv/data"
 )
 
-// Main entry for client command execution
-// you can return a response to user and error will be log to server
+// Do return PbError
 //
-// do not return nil on response
 func (a *SlowAction) Do(ctx context.Context) (interface{}, error) {
 	time.Sleep(time.Duration(2) * time.Millisecond)
-	return &shared.Err{
+	return &shared.PbError{
 		Code: "",
 	}, nil
 

@@ -17,7 +17,7 @@ func (a *BigDataAction) GetSample() string {
 //
 // do not return nil on response
 func (a *BigDataAction) Do(ctx context.Context) (interface{}, error) {
-	return &shared.Text{
+	return &shared.PbString{
 		Value: a.GetSample(),
 	}, nil
 }
