@@ -8,6 +8,14 @@ import (
 	file "github.com/piyuo/libsrv/file"
 )
 
+var mockMailService = false
+
+// MockMailService fake send mail by always send success
+//
+func MockMailService(mock bool) {
+	mockMailService = mock
+}
+
 type template struct {
 	subject string
 
