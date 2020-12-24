@@ -1,29 +1,34 @@
 module github.com/piyuo/libsrv
 
-go 1.14
+go 1.15
 
 require (
-	cloud.google.com/go v0.59.0
-	cloud.google.com/go/firestore v1.1.1
-	cloud.google.com/go/logging v1.0.0
-	cloud.google.com/go/storage v1.8.0
+	cloud.google.com/go v0.74.0
+	cloud.google.com/go/firestore v1.4.0
+	cloud.google.com/go/logging v1.1.2
+	cloud.google.com/go/storage v1.12.0
 	github.com/btcsuite/btcutil v1.0.2
-	github.com/golang/protobuf v1.4.2
-	github.com/google/uuid v1.1.1
-	github.com/mileusna/useragent v1.0.1
-	github.com/nyaruka/phonenumbers v1.0.56
+	github.com/golang/protobuf v1.4.3
+	github.com/google/uuid v1.1.2
+	github.com/gorilla/schema v1.2.0 // indirect
+	github.com/mileusna/useragent v1.0.2
+	github.com/nyaruka/phonenumbers v1.0.60
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/sendgrid/rest v2.4.1+incompatible // indirect
-	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
-	github.com/sfreiberg/gotwilio v0.0.0-20200424172909-47a95c1c632a
+	github.com/sendgrid/rest v2.6.2+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.7.2+incompatible
+	github.com/sfreiberg/gotwilio v0.0.0-20201211181435-c426a3710ab5
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
+	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
+	golang.org/x/sys v0.0.0-20201223074533-0d417f636930 // indirect
+	golang.org/x/tools v0.0.0-20201224043029-2b0845dc783e // indirect
 	golang.org/x/tools/gopls v0.4.1 // indirect
-	google.golang.org/api v0.28.0
-	google.golang.org/genproto v0.0.0-20200623002339-fbb79eadd5eb
-	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.24.0
+	google.golang.org/api v0.36.0
+	google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d
+	google.golang.org/grpc v1.34.0
+	google.golang.org/protobuf v1.25.0
 )

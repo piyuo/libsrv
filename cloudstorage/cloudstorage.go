@@ -86,9 +86,9 @@ type Cloudstorage interface {
 	//setCors
 }
 
-// CloudstorageImpl is cloudflare implementation
+// Implementation is Cloudstorage implementation
 //
-type CloudstorageImpl struct {
+type Implementation struct {
 	Cloudstorage
 	client    *storage.Client
 	projectID string
@@ -114,7 +114,7 @@ func NewCloudstorage(ctx context.Context) (Cloudstorage, error) {
 		return nil, err
 	}
 
-	cloudstorage := &CloudstorageImpl{
+	cloudstorage := &Implementation{
 		client:    client,
 		projectID: cred.ProjectID,
 	}
@@ -127,7 +127,7 @@ func NewCloudstorage(ctx context.Context) (Cloudstorage, error) {
 //	storage, err := NewCloudstorage(ctx)
 //	err = storage.AddBucket(ctx, "mock-libsrv.piyuo.com", "US")
 //
-func (impl *CloudstorageImpl) AddBucket(ctx context.Context, bucketName, location string) error {
+func (impl *Implementation) AddBucket(ctx context.Context, bucketName, location string) error {
 
 	exist, err := impl.IsBucketExist(ctx, bucketName)
 	if err != nil {
@@ -155,7 +155,7 @@ func (impl *CloudstorageImpl) AddBucket(ctx context.Context, bucketName, locatio
 //	storage, err := NewCloudstorage(ctx)
 //	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
 //
-func (impl *CloudstorageImpl) RemoveBucket(ctx context.Context, bucketName string) error {
+func (impl *Implementation) RemoveBucket(ctx context.Context, bucketName string) error {
 
 	exist, err := impl.IsBucketExist(ctx, bucketName)
 	if err != nil {
@@ -182,7 +182,7 @@ func (impl *CloudstorageImpl) RemoveBucket(ctx context.Context, bucketName strin
 //	storage, err := NewCloudstorage(ctx)
 //	exist, err := storage.IsBucketExist(ctx, bucketName)
 //
-func (impl *CloudstorageImpl) IsBucketExist(ctx context.Context, bucketName string) (bool, error) {
+func (impl *Implementation) IsBucketExist(ctx context.Context, bucketName string) (bool, error) {
 
 	bucketIterator := impl.client.Buckets(ctx, impl.projectID)
 	for {
@@ -208,7 +208,7 @@ func (impl *CloudstorageImpl) IsBucketExist(ctx context.Context, bucketName stri
 //	err = storage.AddBucket(ctx, bucketName, "US")
 //	So(err, ShouldBeNil)
 //
-func (impl *CloudstorageImpl) WriteText(ctx context.Context, bucketName, path, txt string) error {
+func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt string) error {
 	bucket := impl.client.Bucket(bucketName)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
@@ -234,7 +234,7 @@ func (impl *CloudstorageImpl) WriteText(ctx context.Context, bucketName, path, t
 //	So(err, ShouldBeNil)
 //	So(txt, ShouldEqual, "hi")
 //
-func (impl *CloudstorageImpl) ReadText(ctx context.Context, bucketName, path string) (string, error) {
+func (impl *Implementation) ReadText(ctx context.Context, bucketName, path string) (string, error) {
 	bucket := impl.client.Bucket(bucketName)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
@@ -258,7 +258,7 @@ func (impl *CloudstorageImpl) ReadText(ctx context.Context, bucketName, path str
 //	storage, err := NewCloudstorage(ctx)
 //	err = storage.Delete(ctx, bucketName, path)
 //
-func (impl *CloudstorageImpl) Delete(ctx context.Context, bucketName, path string) error {
+func (impl *Implementation) Delete(ctx context.Context, bucketName, path string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
 
@@ -276,7 +276,7 @@ func (impl *CloudstorageImpl) Delete(ctx context.Context, bucketName, path strin
 //	storage, err := NewCloudstorage(ctx)
 //	err = storage.Delete(ctx, bucketName, path)
 //
-func (impl *CloudstorageImpl) CleanBucket(ctx context.Context, bucketName string, timeout time.Duration) error {
+func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string, timeout time.Duration) error {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	bucket := impl.client.Bucket(bucketName)
@@ -295,7 +295,7 @@ func (impl *CloudstorageImpl) CleanBucket(ctx context.Context, bucketName string
 //
 //
 //
-func (impl *CloudstorageImpl) RemoveObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
+func (impl *Implementation) RemoveObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
 
 	query := &storage.Query{}
 	query.SetAttrSelection([]string{"Name"})

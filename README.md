@@ -39,3 +39,13 @@ unit test using go test
 ```bash
 go test ./...
 ```
+
+## Update go.mod
+
+To upgrade all dependencies at once for a given module, just run the following from the root directory of your module
+
+This upgrades to the latest or minor patch release
+
+```bash
+go get -u ./...
+```
