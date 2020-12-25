@@ -119,7 +119,7 @@ type Mail interface {
 	// Send mail
 	//
 	//	m, err := mail.NewMail("verify", "en-US")
-	//	m.AddTo("piyuo", "piyuo.com@gmail.com")
+	//	m.AddTo("piyuo", "a@b.c")
 	//	m.ReplaceText("%1", "1234")
 	//	m.ReplaceHTML("%1", "1234")
 	//	err := m.Send(ctx)
@@ -143,7 +143,7 @@ type Email struct {
 // NewMail return Mail instance, require template name and locale to find template
 //
 //	m, err := mail.NewMail("verify", "en-us")
-//	m.AddTo("piyuo", "piyuo.com@gmail.com")
+//	m.AddTo("piyuo", "a@b.c")
 //	m.ReplaceText("%1", "1234")
 //	m.ReplaceHTML("%1", "1234")
 //	m.Send(ctx)

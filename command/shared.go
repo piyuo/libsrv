@@ -4,12 +4,16 @@ import (
 	shared "github.com/piyuo/libsrv/command/shared"
 )
 
+// pbOK single instace cause it use frequently
+//
+var pbOK = &shared.PbOK{}
+
 // OK return PbOK
 //
 //	return command.OK(),nil
 //
 func OK() interface{} {
-	return &shared.PbOK{}
+	return pbOK
 }
 
 // Error return error response with code
