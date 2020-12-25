@@ -209,6 +209,24 @@ func TestCachePurges(t *testing.T) {
 	})
 }
 
+func TestIncrement(t *testing.T) {
+	convey.Convey("should increment value", t, func() {
+		Reset()
+		key := "key"
+		Increment(LOW, key, 2)
+
+		value, found := Get(key)
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, 2)
+
+		Increment(LOW, key, -1)
+
+		value, found = Get("key")
+		convey.So(found, convey.ShouldBeTrue)
+		convey.So(value, convey.ShouldEqual, 1)
+	})
+}
+
 func BenchmarkGoCache(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

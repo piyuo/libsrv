@@ -58,6 +58,21 @@ func Set(freq Frequency, key string, value interface{}) {
 	cache.Set(key, value, d)
 }
 
+// Increment a value in cache, set value if cache not exist
+//
+//	Increment(LOW, key, 1)
+//
+func Increment(freq Frequency, key string, value int) {
+	record, found := cache.Get(key)
+	if !found {
+		Set(freq, key, value)
+		return
+	}
+	count := record.(int)
+	count = count + value
+	Set(freq, key, count)
+}
+
 func set(key string, value interface{}, duration time.Duration) {
 	cache.Set(key, value, duration)
 }
