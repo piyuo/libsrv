@@ -49,3 +49,9 @@ This upgrades to the latest or minor patch release
 ```bash
 go get -u ./...
 ```
+
+## use gopls
+
+```bash
+go get golang.org/x/tools/gopls@latest
+```
