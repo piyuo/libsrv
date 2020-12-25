@@ -84,7 +84,7 @@ func TestMockSendMail(t *testing.T) {
 		So(err, ShouldBeNil)
 		err = mail.Send(ctx)
 		So(err, ShouldBeNil)
-		So(mockResult, ShouldNotBeNil)
+		So(MockResult(), ShouldNotBeNil)
 		So(mockResult.GetTo()[0].Name, ShouldEqual, "p")
 		So(mockResult.GetTo()[0].Address, ShouldEqual, "a@b.c")
 	})

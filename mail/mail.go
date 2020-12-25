@@ -20,6 +20,12 @@ func Mock(mockService bool) {
 	mock = mockService
 }
 
+// MockResult mock sent mail
+//
+func MockResult() Mail {
+	return mockResult
+}
+
 type template struct {
 	subject string
 
