@@ -65,7 +65,7 @@ func TestSendMail(t *testing.T) {
 		ctx := context.Background()
 		mail, err := NewMail("verify", "en-US")
 		So(err, ShouldBeNil)
-		mail.AddTo("piyuo", "a@b.c")
+		mail.AddTo("p", "a@b.c")
 		mail.ReplaceText("%1", "1234")
 		mail.ReplaceHTML("%1", "1234")
 		err = mail.Send(ctx)
@@ -73,13 +73,19 @@ func TestSendMail(t *testing.T) {
 	})
 }
 
-func TestSendMailMock(t *testing.T) {
+func TestMockSendMail(t *testing.T) {
 	Convey("should mock send mail", t, func() {
-		MockMailService(true)
+		So(mockResult, ShouldBeNil)
+		Mock(true)
 		ctx := context.Background()
 		mail, err := NewMail("verify", "en-US")
+		mail.AddTo("p", "a@b.c")
+		mail.ReplaceText("%1", "1234")
 		So(err, ShouldBeNil)
 		err = mail.Send(ctx)
 		So(err, ShouldBeNil)
+		So(mockResult, ShouldNotBeNil)
+		So(mockResult.GetTo()[0].Name, ShouldEqual, "p")
+		So(mockResult.GetTo()[0].Address, ShouldEqual, "a@b.c")
 	})
 }

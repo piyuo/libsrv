@@ -39,7 +39,8 @@ func newSendgridMail(t *template) (Mail, error) {
 //	err := mail.Send(ctx)
 //
 func (c *SendgridMail) Send(ctx context.Context) error {
-	if mockMailService { //always success when mock
+	if mock { //always success when mock
+		mockResult = c
 		return nil
 	}
 
