@@ -35,14 +35,38 @@ func TestShared(t *testing.T) {
 		So(IsOK(ok), ShouldBeTrue)
 	})
 
-	Convey("should be INVALID_MAIL error", t, func() {
-		err := Error("INVALID_MAIL")
-		So(IsError(err, "INVALID_MAIL"), ShouldBeTrue)
+	Convey("should be INVALID error", t, func() {
+		err := Error("INVALID")
+		So(IsError(err, "INVALID"), ShouldBeTrue)
 	})
 
-	Convey("should not be INVALID_MAIL error", t, func() {
-		So(IsError(nil, "INVALID_MAIL"), ShouldBeFalse)
+	Convey("should not be INVALID error", t, func() {
+		So(IsError(nil, "INVALID"), ShouldBeFalse)
 		err := 3
-		So(IsError(err, "INVALID_MAIL"), ShouldBeFalse)
+		So(IsError(err, "INVALID"), ShouldBeFalse)
+	})
+}
+
+func TestPbString(t *testing.T) {
+	Convey("should return is PbString", t, func() {
+		So(IsString(nil, ""), ShouldBeFalse)
+		So(IsString(String("hi"), ""), ShouldBeFalse)
+		So(IsString(String("hi"), "hi"), ShouldBeTrue)
+	})
+}
+
+func TestPbInt(t *testing.T) {
+	Convey("should return is PbInt", t, func() {
+		So(IsInt(nil, 1), ShouldBeFalse)
+		So(IsInt(Int(12), 42), ShouldBeFalse)
+		So(IsInt(Int(42), 42), ShouldBeTrue)
+	})
+}
+
+func TestPbBool(t *testing.T) {
+	Convey("should return is PbBool", t, func() {
+		So(IsBool(nil, false), ShouldBeFalse)
+		So(IsBool(Bool(false), true), ShouldBeFalse)
+		So(IsBool(Bool(true), true), ShouldBeTrue)
 	})
 }
