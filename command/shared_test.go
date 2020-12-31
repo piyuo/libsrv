@@ -35,6 +35,10 @@ func TestShared(t *testing.T) {
 		So(IsOK(ok), ShouldBeTrue)
 	})
 
+	Convey("should not be OK", t, func() {
+		So(IsOK(1), ShouldBeFalse)
+	})
+
 	Convey("should be INVALID error", t, func() {
 		err := Error("INVALID")
 		So(IsError(err, "INVALID"), ShouldBeTrue)
