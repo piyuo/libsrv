@@ -1,0 +1,7 @@
+{
+  "subject": "verification code",
+  "text": "%1 is your verification code.",
+  "html": "<b>%1</b> is your verification code.",
+  "fromName": "a@b.c",
+  "fromAddress": "no-reply@b.c"
+}

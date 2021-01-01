@@ -2,10 +2,10 @@ package mail
 
 import (
 	"context"
-	"errors"
 
-	cache "github.com/piyuo/libsrv/cache"
-	file "github.com/piyuo/libsrv/file"
+	"github.com/pkg/errors"
+
+	"github.com/piyuo/libsrv/i18n"
 )
 
 // for test
@@ -116,7 +116,7 @@ type Mail interface {
 
 	// AddTo add email to
 	//
-	//	mail.AddTo("user","user@piyuo.com")
+	//	mail.AddTo("user","a@b.c")
 	//
 	AddTo(emailName, emailAddress string) *BaseMail
 
@@ -128,7 +128,7 @@ type Mail interface {
 
 	// Send mail
 	//
-	//	m, err := mail.NewMail("verify", "en-US")
+	//	m, err := mail.NewMail("verify", "en_US;'")
 	//	m.AddTo("piyuo", "a@b.c")
 	//	m.ReplaceText("%1", "1234")
 	//	m.ReplaceHTML("%1", "1234")
@@ -152,14 +152,14 @@ type Email struct {
 
 // NewMail return Mail instance, require template name and locale to find template
 //
-//	m, err := mail.NewMail("verify", "en-us")
+//	m, err := mail.NewMail("verify", "en_US")
 //	m.AddTo("piyuo", "a@b.c")
 //	m.ReplaceText("%1", "1234")
 //	m.ReplaceHTML("%1", "1234")
 //	m.Send(ctx)
 //
-func NewMail(templateName, locale string) (Mail, error) {
-	template, err := getTemplate(templateName, locale)
+func NewMail(ctx context.Context, name string) (Mail, error) {
+	template, err := getTemplate(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -168,25 +168,14 @@ func NewMail(templateName, locale string) (Mail, error) {
 
 // getTemplate get mail template
 //
-//	template, err := getTemplate("verify", "en-us")
+//	template, err := getTemplate("verify", "en_US")
 //
-func getTemplate(templateName, locale string) (*template, error) {
-	filename := templateName + "_" + locale + ".json"
-	keyname := "MAIL" + filename
-	value, found := cache.Get(keyname)
-	if found {
-		return value.(*template), nil
-	}
-
-	filepath, found := file.Find("assets/mail/" + filename)
-	if !found {
-		return nil, errors.New("mail template " + filename + " not found")
-	}
-
-	json, err := file.ReadJSON(filepath)
+func getTemplate(ctx context.Context, name string) (*template, error) {
+	json, err := i18n.Resource(ctx, name)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get i18n resource: "+name)
 	}
+
 	template := &template{
 		subject:     json["subject"].(string),
 		text:        json["text"].(string),
@@ -194,6 +183,5 @@ func getTemplate(templateName, locale string) (*template, error) {
 		fromName:    json["fromName"].(string),
 		fromAddress: json["fromAddress"].(string),
 	}
-	cache.Set(cache.MEDIUM, keyname, template)
 	return template, nil
 }

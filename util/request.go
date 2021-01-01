@@ -3,12 +3,9 @@ package util
 import (
 	"net"
 	"net/http"
-	"sort"
-	"strconv"
 	"strings"
 
 	useragent "github.com/mileusna/useragent"
-	"github.com/piyuo/libsrv/i18n"
 )
 
 // GetUserAgentID return short id from user agent. no version in here cause we used this for refresh token
@@ -82,63 +79,4 @@ func GetIP(r *http.Request) string {
 		}
 	}
 	return ""
-}
-
-// GetLocale parse http header Accept-Language field and return first one as default language
-//
-//	defaultLocale := GetLocale(request)
-//
-func GetLocale(r *http.Request) string {
-	return acceptLanguage(r.Header.Get("Accept-Language"))
-}
-
-// acceptLanguage parse http header Accept-Language field and match to i18n predefine locale, return 'en_US' if nothing match
-//
-//	locale := acceptLanguage("da, en-us;q=0.8, en;q=0.7") // "en_US"
-//
-func acceptLanguage(acptLang string) string {
-	//if acptLang is locale like 'en_US', this will speed thing up
-	exist, predefined := i18n.IsPredefined(acptLang)
-	if exist {
-		return predefined
-	}
-
-	type langQ struct {
-		Lang string
-		Q    float64
-	}
-
-	langQS := []*langQ{}
-	accepts := strings.Split(acptLang, ",")
-	for _, accept := range accepts {
-		accept = strings.Trim(accept, " ")
-		args := strings.Split(accept, ";")
-		if len(args) == 1 {
-			langQS = append(langQS, &langQ{
-				Lang: args[0],
-				Q:    1,
-			})
-		} else {
-			qp := strings.Split(args[1], "=")
-			q, err := strconv.ParseFloat(qp[1], 64)
-			if err == nil {
-				langQS = append(langQS, &langQ{
-					Lang: args[0],
-					Q:    q,
-				})
-			}
-		}
-	}
-
-	sort.SliceStable(langQS, func(i, j int) bool {
-		return langQS[i].Q > langQS[j].Q
-	})
-
-	for _, lq := range langQS {
-		exist, predefined := i18n.IsPredefined(lq.Lang)
-		if exist {
-			return predefined
-		}
-	}
-	return "en_US"
 }

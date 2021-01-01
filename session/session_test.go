@@ -65,13 +65,11 @@ func TestGetIPAndLocale(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/", nil)
 		ctx := context.Background()
 		So(GetIP(ctx), ShouldEqual, "")
-		So(GetLocale(ctx), ShouldEqual, "en_US")
 
 		req.Header.Add("Accept-Language", "zh-cn")
 		req.RemoteAddr = "[::1]:80"
 		ctx = context.WithValue(context.Background(), KeyRequest, req)
 		So(GetIP(ctx), ShouldEqual, "::1")
-		So(GetLocale(ctx), ShouldEqual, "zh_CN")
 	})
 }
 

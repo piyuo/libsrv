@@ -2,14 +2,20 @@ package mail
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
+	"github.com/piyuo/libsrv/session"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestMail(t *testing.T) {
 	Convey("should set/get method", t, func() {
-		mail, err := NewMail("verify", "en-US")
+		req, _ := http.NewRequest("GET", "/", nil)
+		req.Header.Add("Accept-Language", "en_US")
+		ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+
+		mail, err := NewMail(ctx, "mock-mail")
 		So(err, ShouldBeNil)
 		So(mail.GetSubject(), ShouldNotBeEmpty)
 		backupSubject := mail.GetSubject()
@@ -49,12 +55,12 @@ func TestMail(t *testing.T) {
 		So(mail.GetTo(), ShouldBeNil)
 
 		//should from cache
-		mail, err = NewMail("verify", "en-US")
+		mail, err = NewMail(ctx, "mock-mail")
 		So(err, ShouldBeNil)
 		So(mail, ShouldNotBeNil)
 		So(mail.GetSubject(), ShouldEqual, backupSubject)
 
-		mail, err = NewMail("not exist", "en-US")
+		mail, err = NewMail(ctx, "notExist")
 		So(err, ShouldNotBeNil)
 		So(mail, ShouldBeNil)
 	})
@@ -62,8 +68,10 @@ func TestMail(t *testing.T) {
 
 func TestSendMail(t *testing.T) {
 	Convey("should send mail", t, func() {
-		ctx := context.Background()
-		mail, err := NewMail("verify", "en-US")
+		req, _ := http.NewRequest("GET", "/", nil)
+		req.Header.Add("Accept-Language", "en_US")
+		ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+		mail, err := NewMail(ctx, "mock-mail")
 		So(err, ShouldBeNil)
 		mail.AddTo("p", "a@b.c")
 		mail.ReplaceText("%1", "1234")
@@ -77,8 +85,10 @@ func TestMockSendMail(t *testing.T) {
 	Convey("should mock send mail", t, func() {
 		So(mockResult, ShouldBeNil)
 		Mock(true)
-		ctx := context.Background()
-		mail, err := NewMail("verify", "en-US")
+		req, _ := http.NewRequest("GET", "/", nil)
+		req.Header.Add("Accept-Language", "en_US")
+		ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+		mail, err := NewMail(ctx, "mock-mail")
 		mail.AddTo("p", "a@b.c")
 		mail.ReplaceText("%1", "1234")
 		So(err, ShouldBeNil)
