@@ -148,7 +148,7 @@ func GetUserAgent(ctx context.Context) string {
 func GetLocale(ctx context.Context) string {
 	value := ctx.Value(KeyRequest)
 	if value == nil {
-		return "en-us"
+		return "en_US"
 	}
 	req := value.(*http.Request)
 	return util.GetLocale(req)
