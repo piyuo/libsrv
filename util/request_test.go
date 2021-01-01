@@ -58,38 +58,42 @@ func TestGetIP(t *testing.T) {
 
 func TestAcceptLanguage(t *testing.T) {
 	Convey("should get accept language", t, func() {
-		list := parseAcceptLanguage("")
-		So(len(list), ShouldEqual, 1)
-		So(list[0], ShouldEqual, "en-us")
+		locale := acceptLanguage("")
+		So(locale, ShouldEqual, "en_US")
 
-		list = parseAcceptLanguage("da, en-gb;q=0.8, en;q=0.7")
-		So(list[0], ShouldEqual, "da")
-		So(list[1], ShouldEqual, "en-gb")
-		So(list[2], ShouldEqual, "en")
+		locale = acceptLanguage("en-us")
+		So(locale, ShouldEqual, "en_US")
 
+		locale = acceptLanguage("zh_TW")
+		So(locale, ShouldEqual, "zh_TW")
+
+		locale = acceptLanguage("da, en-us;q=0.8, en;q=0.7")
+		So(locale, ShouldEqual, "en_US")
+
+		locale = acceptLanguage("da, zh-cn;q=0.8, zh-tw;q=0.7")
+		So(locale, ShouldEqual, "zh_CN")
+	})
+}
+
+func TestGetLocale(t *testing.T) {
+	Convey("should get accept language", t, func() {
 		req, _ := http.NewRequest("GET", "/whatever", nil)
-		req.Header.Add("Accept-Language", "da, en-gb;q=0.8, en;q=0.7")
-		list = GetAcceptLanguage(req)
-		So(list[0], ShouldEqual, "da")
-		So(list[1], ShouldEqual, "en-gb")
-		So(list[2], ShouldEqual, "en")
-		req.Header = map[string][]string{}
-
-		req.Header.Add("Accept-Language", "da, en-gb;q=0.8, en;q=0.7")
+		req.Header.Add("Accept-Language", "da, en-xx;q=0.8, en;q=0.7")
 		locale := GetLocale(req)
-		So(locale, ShouldEqual, "da")
-		req.Header = map[string][]string{}
+		So(locale, ShouldEqual, "en_US") //nothing match, use en_US
 
+		req.Header = map[string][]string{}
 		//empty accept-language will result en-us
 		req.Header.Add("Accept-Language", "")
 		locale = GetLocale(req)
-		So(locale, ShouldEqual, "en-us")
-		req.Header = map[string][]string{}
+		So(locale, ShouldEqual, "en_US")
 
-		//language will be lower case
+		req.Header = map[string][]string{}
+		//will convert accept language to predefined locale
 		req.Header.Add("Accept-Language", "EN-US")
 		locale = GetLocale(req)
-		So(locale, ShouldEqual, "en-us")
+		So(locale, ShouldEqual, "en_US")
 		req.Header = map[string][]string{}
+
 	})
 }

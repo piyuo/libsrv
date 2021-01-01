@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	useragent "github.com/mileusna/useragent"
+	i18n "github.com/piyuo/libsrv/i18n"
 )
 
 // GetUserAgentID return short id from user agent. no version in here cause we used this for refresh token
@@ -88,25 +89,18 @@ func GetIP(r *http.Request) string {
 //	defaultLocale := GetLocale(request)
 //
 func GetLocale(r *http.Request) string {
-	languages := parseAcceptLanguage(r.Header.Get("Accept-Language"))
-	return languages[0]
+	return acceptLanguage(r.Header.Get("Accept-Language"))
 }
 
-// GetAcceptLanguage parse http header Accept-Language field to sorted string list
+// acceptLanguage parse http header Accept-Language field and match to i18n predefine locale, return 'en_US' if nothing match
 //
-//	list := GetAcceptLanguage(request)
+//	locale := acceptLanguage("da, en-us;q=0.8, en;q=0.7") // "en_US"
 //
-func GetAcceptLanguage(r *http.Request) []string {
-	return parseAcceptLanguage(r.Header.Get("Accept-Language"))
-}
-
-// parseAcceptLanguage parse http header Accept-Language field to sorted string list
-//
-//	list := parseAcceptLanguage("da, en-gb;q=0.8, en;q=0.7") // []string{"da","en-gb","en"}
-//
-func parseAcceptLanguage(acptLang string) []string {
-	if acptLang == "" {
-		return []string{"en-us"}
+func acceptLanguage(acptLang string) string {
+	//if acptLang is locale like 'en_US', this will speed thing up
+	exist, predefined := i18n.IsPredefined(acptLang)
+	if exist {
+		return predefined
 	}
 
 	type langQ struct {
@@ -140,10 +134,11 @@ func parseAcceptLanguage(acptLang string) []string {
 		return langQS[i].Q > langQS[j].Q
 	})
 
-	result := []string{}
 	for _, lq := range langQS {
-		result = append(result, strings.ToLower(lq.Lang))
+		exist, predefined := i18n.IsPredefined(lq.Lang)
+		if exist {
+			return predefined
+		}
 	}
-
-	return result
+	return "en_US"
 }
