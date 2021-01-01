@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	useragent "github.com/mileusna/useragent"
-	i18n "github.com/piyuo/libsrv/i18n"
+	"github.com/piyuo/libsrv/i18n"
 )
 
 // GetUserAgentID return short id from user agent. no version in here cause we used this for refresh token
