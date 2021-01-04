@@ -37,23 +37,26 @@ func TestUtcToLocal(t *testing.T) {
 func TestDateToLocalStr(t *testing.T) {
 	Convey("should create local time string", t, func() {
 		utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
-		locStr := DateToLocalStr(utcTime, "PDT", -25200)
-		So(locStr, ShouldEqual, "2021-01-02")
-	})
-}
-
-func TestDateTimeToLocalStr(t *testing.T) {
-	Convey("should create local time string", t, func() {
-		utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
-		locStr := DateTimeToLocalStr(utcTime, "PDT", -25200)
-		So(locStr, ShouldEqual, "2021-01-02 16:55") //PDT Time
+		So(DateToLocalStr(utcTime, "zh_TW"), ShouldEqual, "2021年1月2日")
+		So(DateToLocalStr(utcTime, "zh_CN"), ShouldEqual, "2021年1月2日")
+		So(DateToLocalStr(utcTime, "en_US"), ShouldEqual, "Jan 2, 2021")
 	})
 }
 
 func TestTimeToLocalStr(t *testing.T) {
 	Convey("should create local time string", t, func() {
 		utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
-		locStr := TimeToLocalStr(utcTime, "PDT", -25200)
-		So(locStr, ShouldEqual, "16:55") //PDT Time
+		So(TimeToLocalStr(utcTime, "en_US"), ShouldEqual, "11:55 PM")
+		So(TimeToLocalStr(utcTime, "zh_TW"), ShouldEqual, "下午11:55")
+		So(TimeToLocalStr(utcTime, "zh_CN"), ShouldEqual, "下午11:55")
+	})
+}
+
+func TestDateTimeToLocalStr(t *testing.T) {
+	Convey("should create local time string", t, func() {
+		utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
+		So(DateTimeToLocalStr(utcTime, "zh_TW"), ShouldEqual, "2021年1月2日 下午11:55")
+		So(DateTimeToLocalStr(utcTime, "zh_CN"), ShouldEqual, "2021年1月2日 下午11:55")
+		So(DateTimeToLocalStr(utcTime, "en_US"), ShouldEqual, "Jan 2, 2021 11:55 PM")
 	})
 }

@@ -9,6 +9,7 @@ require (
 	cloud.google.com/go/storage v1.12.0
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/golang/protobuf v1.4.3
+	github.com/goodsign/monday v1.0.0
 	github.com/google/uuid v1.1.2
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
