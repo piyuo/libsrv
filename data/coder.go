@@ -28,7 +28,7 @@ type Coder interface {
 	//
 	CodeWX(ctx context.Context) error
 
-	// Code16RX encode uint32 number into string, must used it in transaction with Code16WX()
+	// Code16RX encode uint16 number into string, must used it in transaction with Code16WX()
 	//
 	//	err = db.Transaction(ctx, func(ctx context.Context) error {
 	//		code, err:= coder.Code16RX()
@@ -50,7 +50,7 @@ type Coder interface {
 	//
 	Code16WX(ctx context.Context) error
 
-	// Code64RX encode uint32 number into string, must used it in transaction with Code64WX()
+	// Code64RX encode uint64 number into string, must used it in transaction with Code64WX()
 	//
 	//	err = db.Transaction(ctx, func(ctx context.Context) error {
 	//		code, err:= coder.Code64RX()
