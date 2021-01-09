@@ -68,7 +68,7 @@ func TestConcurrentDB(t *testing.T) {
 					return errors.Wrap(err, "failed to get code")
 				}
 
-				if err := counter.IncrementRX(ctx, 1); err != nil {
+				if err := counter.IncrementRX(ctx); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.Wrap(err, "failed to IncrementRX")
 				}
@@ -85,7 +85,7 @@ func TestConcurrentDB(t *testing.T) {
 					return errors.Wrap(err, "failed to create sample")
 				}
 
-				if err := counter.IncrementWX(ctx); err != nil {
+				if err := counter.IncrementWX(ctx, 1); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.Wrap(err, "failed to IncrementWX")
 				}

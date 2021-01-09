@@ -19,17 +19,25 @@ type CounterFirestore struct {
 
 	MetaFirestore `firestore:"-"`
 
-	loc *time.Location
-
-	native time.Time
-
 	callRX bool
 
-	value interface{}
+	// pickedShard is a shard random picked
+	//
+	pickedShard string
 
-	shardPick string
+	// keepDateHierarchy set to true mean keep count in date keepDateHierarchy
+	//
+	keepDateHierarchy bool
 
-	shardExist bool
+	shardAllExist bool
+
+	shardYearExist bool
+
+	shardMonthExist bool
+
+	shardDayExist bool
+
+	shardHourExist bool
 }
 
 // isShardExist return true if shard already exist
@@ -45,65 +53,93 @@ func (c *CounterFirestore) isShardExist(ctx context.Context, ref *firestore.Docu
 	return true, nil
 }
 
+// shardAllRef return picked all period ref
+//
+func (c *CounterFirestore) shardAllRef() *firestore.DocumentRef {
+	return c.conn.getDocRef(c.tableName, c.id+string(HierarchyTotal)+"_"+c.pickedShard)
+}
+
 // IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
 //
 //	err = counter.IncrementRX(ctx,1)
 //
-func (c *CounterFirestore) IncrementRX(ctx context.Context, value interface{}) error {
+func (c *CounterFirestore) IncrementRX(ctx context.Context) error {
 	if c.conn.tx == nil {
 		return errors.New("IncrementRX() must run in transaction")
 	}
 	c.callRX = true
-	c.value = value
-	c.shardPick = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
+	if c.pickedShard == "" {
+		c.pickedShard = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
+	}
 	//fmt.Printf("counter pick:" + c.shardPick + "\n")
-	exist, err := c.isShardExist(ctx, c.getPickedAllRef())
+
+	var err error
+	if c.keepDateHierarchy {
+		utcNow := time.Now().UTC()
+		year := strconv.Itoa(utcNow.Year())
+		month := strconv.Itoa(int(utcNow.Month()))
+		day := strconv.Itoa(int(utcNow.Day()))
+		hour := strconv.Itoa(int(utcNow.Hour()))
+		yearRef := c.conn.getDocRef(c.tableName, c.id+year+"_"+c.pickedShard)
+		monthRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"_"+c.pickedShard)
+		dayRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"_"+c.pickedShard)
+		hourRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.pickedShard)
+
+		c.shardHourExist, err = c.isShardExist(ctx, hourRef)
+		if err != nil {
+			return err
+		}
+		if c.shardHourExist {
+			c.shardDayExist = true
+			c.shardMonthExist = true
+			c.shardYearExist = true
+			c.shardAllExist = true
+			return nil
+		}
+
+		c.shardDayExist, err = c.isShardExist(ctx, dayRef)
+		if err != nil {
+			return err
+		}
+		if c.shardDayExist {
+			c.shardMonthExist = true
+			c.shardYearExist = true
+			c.shardAllExist = true
+			return nil
+		}
+
+		c.shardMonthExist, err = c.isShardExist(ctx, monthRef)
+		if err != nil {
+			return err
+		}
+		if c.shardMonthExist {
+			c.shardYearExist = true
+			c.shardAllExist = true
+			return nil
+		}
+
+		c.shardYearExist, err = c.isShardExist(ctx, yearRef)
+		if err != nil {
+			return err
+		}
+		if c.shardYearExist {
+			c.shardAllExist = true
+			return nil
+		}
+	}
+
+	c.shardAllExist, err = c.isShardExist(ctx, c.shardAllRef())
 	if err != nil {
 		return err
 	}
-	c.shardExist = exist
 	return nil
-}
-
-// mock create mock data
-//
-func (c *CounterFirestore) mock(hierarchy Hierarchy, date time.Time, pick int, value interface{}) error {
-
-	switch hierarchy {
-	case HierarchyYear:
-		date = time.Date(date.Year(), time.Month(1), 01, 0, 0, 0, 0, c.loc)
-	case HierarchyMonth:
-		date = time.Date(date.Year(), date.Month(), 01, 0, 0, 0, 0, c.loc)
-	case HierarchyDay:
-		date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, c.loc)
-	case HierarchyHour:
-		date = time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), 0, 0, 0, c.loc)
-	}
-
-	c.shardPick = strconv.Itoa(pick)
-	shard := map[string]interface{}{
-		MetaID:           c.id,
-		MetaValue:        value,
-		CounterHierarchy: hierarchy,
-		CounterDate:      date,
-	}
-	if err := c.createShard(c.getPickedAllRef(), shard); err != nil {
-		return errors.Wrap(err, "Failed to create shard at mock")
-	}
-	return nil
-}
-
-// getPickedAllRef return picked all period ref
-//
-func (c *CounterFirestore) getPickedAllRef() *firestore.DocumentRef {
-	return c.conn.getDocRef(c.tableName, c.id+string(HierarchyAll)+"_"+c.shardPick)
 }
 
 // IncrementWX commit IncrementRX()
 //
 //	err = counter.IncrementWX(ctx)
 //
-func (c *CounterFirestore) IncrementWX(ctx context.Context) error {
+func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) error {
 	if c.conn.tx == nil {
 		return errors.New("IncrementWX() must run in transaction")
 	}
@@ -111,70 +147,101 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context) error {
 		return errors.New("IncrementWX() need call IncrementRX() first")
 	}
 
-	year := strconv.Itoa(c.native.Year())
-	month := strconv.Itoa(int(c.native.Month()))
-	day := strconv.Itoa(int(c.native.Day()))
-	hour := strconv.Itoa(int(c.native.Hour()))
-	yearRef := c.conn.getDocRef(c.tableName, c.id+year+"_"+c.shardPick)
-	monthRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"_"+c.shardPick)
-	dayRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"_"+c.shardPick)
-	hourRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.shardPick)
+	utcNow := time.Now().UTC()
+	shard := map[string]interface{}{
+		MetaID:      c.id,
+		MetaValue:   value,
+		CounterTime: utcNow,
+	}
+	if c.keepDateHierarchy {
+		year := strconv.Itoa(utcNow.Year())
+		month := strconv.Itoa(int(utcNow.Month()))
+		day := strconv.Itoa(int(utcNow.Day()))
+		hour := strconv.Itoa(int(utcNow.Hour()))
+		yearRef := c.conn.getDocRef(c.tableName, c.id+year+"_"+c.pickedShard)
+		monthRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"_"+c.pickedShard)
+		dayRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"_"+c.pickedShard)
+		hourRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.pickedShard)
 
-	if c.shardExist {
-		if err := c.incrementShard(c.getPickedAllRef(), c.value); err != nil {
+		if c.shardHourExist {
+			if err := c.incrementShard(hourRef, value); err != nil {
+				return errors.Wrap(err, "Failed to increment shard hour")
+			}
+		} else {
+			shard[CounterDateLevel] = HierarchyHour
+			if err := c.createShard(hourRef, shard); err != nil {
+				return errors.Wrap(err, "Failed to create shard hour")
+			}
+		}
+
+		if c.shardDayExist {
+			if err := c.incrementShard(dayRef, value); err != nil {
+				return errors.Wrap(err, "Failed to increment shard day")
+			}
+		} else {
+			shard[CounterDateLevel] = HierarchyDay
+			if err := c.createShard(dayRef, shard); err != nil {
+				return errors.Wrap(err, "Failed to create shard day")
+			}
+		}
+
+		if c.shardMonthExist {
+			if err := c.incrementShard(monthRef, value); err != nil {
+				return errors.Wrap(err, "Failed to increment shard month")
+			}
+		} else {
+			shard[CounterDateLevel] = HierarchyMonth
+			if err := c.createShard(monthRef, shard); err != nil {
+				return errors.Wrap(err, "Failed to create shard month")
+			}
+		}
+
+		if c.shardYearExist {
+			if err := c.incrementShard(yearRef, value); err != nil {
+				return errors.Wrap(err, "Failed to increment shard year")
+			}
+		} else {
+			shard[CounterDateLevel] = HierarchyYear
+			if err := c.createShard(yearRef, shard); err != nil {
+				return errors.Wrap(err, "Failed to create shard year")
+			}
+		}
+	}
+
+	if c.shardAllExist {
+		if err := c.incrementShard(c.shardAllRef(), value); err != nil {
 			return errors.Wrap(err, "Failed to increment shard all")
 		}
-		if err := c.incrementShard(yearRef, c.value); err != nil {
-			return errors.Wrap(err, "Failed to increment shard year")
-		}
-		if err := c.incrementShard(monthRef, c.value); err != nil {
-			return errors.Wrap(err, "Failed to increment shard month")
-		}
-		if err := c.incrementShard(dayRef, c.value); err != nil {
-			return errors.Wrap(err, "Failed to increment shard day")
-		}
-		if err := c.incrementShard(hourRef, c.value); err != nil {
-			return errors.Wrap(err, "Failed to increment shard hour")
-		}
 	} else {
-		shard := map[string]interface{}{
-			MetaID:    c.id,
-			MetaValue: c.value,
-		}
-
-		shard[CounterHierarchy] = HierarchyAll
-		if err := c.createShard(c.getPickedAllRef(), shard); err != nil {
+		shard[CounterDateLevel] = HierarchyTotal
+		if err := c.createShard(c.shardAllRef(), shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard all")
 		}
 
-		shard[CounterHierarchy] = HierarchyYear
-		shard[CounterDate] = time.Date(c.native.Year(), time.Month(1), 01, 0, 0, 0, 0, c.loc)
-		if err := c.createShard(yearRef, shard); err != nil {
-			return errors.Wrap(err, "Failed to create shard year")
-		}
-
-		shard[CounterHierarchy] = HierarchyMonth
-		shard[CounterDate] = time.Date(c.native.Year(), c.native.Month(), 01, 0, 0, 0, 0, c.loc)
-		if err := c.createShard(monthRef, shard); err != nil {
-			return errors.Wrap(err, "Failed to create shard month")
-		}
-
-		shard[CounterHierarchy] = HierarchyDay
-		shard[CounterDate] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), 0, 0, 0, 0, c.loc)
-		if err := c.createShard(dayRef, shard); err != nil {
-			return errors.Wrap(err, "Failed to create shard day")
-		}
-
-		shard[CounterHierarchy] = HierarchyHour
-		shard[CounterDate] = time.Date(c.native.Year(), c.native.Month(), c.native.Day(), c.native.Hour(), 0, 0, 0, c.loc)
-		if err := c.createShard(hourRef, shard); err != nil {
-			return errors.Wrap(err, "Failed to create shard hour")
-		}
 	}
 	c.callRX = false
-	c.value = 0
-	c.shardExist = false
-	c.shardPick = ""
+	c.shardAllExist = false
+	c.shardYearExist = false
+	c.shardMonthExist = false
+	c.shardDayExist = false
+	c.shardHourExist = false
+	return nil
+}
+
+// mock create mock data
+//
+func (c *CounterFirestore) mock(hierarchy Hierarchy, date time.Time, pick int, value interface{}) error {
+
+	c.pickedShard = strconv.Itoa(pick)
+	shard := map[string]interface{}{
+		MetaID:           c.id,
+		MetaValue:        value,
+		CounterDateLevel: hierarchy,
+		CounterTime:      date,
+	}
+	if err := c.createShard(c.shardAllRef(), shard); err != nil {
+		return errors.Wrap(err, "Failed to create shard at mock")
+	}
 	return nil
 }
 
@@ -184,7 +251,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context) error {
 //
 func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterHierarchy, "==", HierarchyAll).Documents(ctx)
+	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterDateLevel, "==", HierarchyTotal).Documents(ctx)
 	return c.countValue(shards)
 }
 
@@ -196,7 +263,7 @@ func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 //
 func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (float64, error) {
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterHierarchy, "==", string(hierarchy)).Where(CounterDate, ">=", from).Where(CounterDate, "<=", to).Documents(ctx)
+	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterDateLevel, "==", string(hierarchy)).Where(CounterTime, ">=", from).Where(CounterTime, "<=", to).Documents(ctx)
 	return c.countValue(shards)
 }
 
@@ -208,7 +275,7 @@ func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy Hierarchy
 	result := map[time.Time]float64{}
 
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterHierarchy, "==", string(hierarchy)).Where(CounterDate, ">=", from).Where(CounterDate, "<=", to).Documents(ctx)
+	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterDateLevel, "==", string(hierarchy)).Where(CounterTime, ">=", from).Where(CounterTime, "<=", to).Documents(ctx)
 	defer shards.Stop()
 	for {
 		snotshot, err := shards.Next()
@@ -225,7 +292,7 @@ func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy Hierarchy
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get value on shards, invalid dataType %T, want float64: "+c.errorID(), iValue)
 		}
-		iDate := obj[CounterDate]
+		iDate := obj[CounterTime]
 		date := iDate.(time.Time)
 
 		if val, ok := result[date]; ok {

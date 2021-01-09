@@ -19,13 +19,13 @@ type Counter interface {
 	//
 	//	err = counter.IncrementRX(1)
 	//
-	IncrementRX(ctx context.Context, value interface{}) error
+	IncrementRX(ctx context.Context) error
 
 	// IncrementWX commit IncrementRX()
 	//
 	//	err = counter.IncrementWX()
 	//
-	IncrementWX(ctx context.Context) error
+	IncrementWX(ctx context.Context, value interface{}) error
 
 	// CountAll return a total count across all period. this function not support transation cause it easily cause "Too much contention on these documents"
 	//
@@ -63,35 +63,31 @@ type Counter interface {
 type Hierarchy string
 
 const (
-	// HierarchyYear Define year period
+	// HierarchyYear define year period
 	//
-	HierarchyYear Hierarchy = "Y"
+	HierarchyYear Hierarchy = "Year"
 
-	// HierarchyMonth Define month period
+	// HierarchyMonth define month period
 	//
-	HierarchyMonth = "M"
+	HierarchyMonth = "Month"
 
-	// HierarchyDay Define day period
+	// HierarchyDay define day period
 	//
-	HierarchyDay = "D"
+	HierarchyDay = "Day"
 
-	// HierarchyHour Define hour period
+	// HierarchyHour define hour period
 	//
-	HierarchyHour = "H"
+	HierarchyHour = "Hour"
 
-	// HierarchyAll Define all period
+	// HierarchyTotal define total period
 	//
-	HierarchyAll = "A"
+	HierarchyTotal = "Total"
 )
 
-// CounterPeriodAll define all period
+// CounterDateLevel field in shard
 //
-//const CounterPeriodAll = "All"
+const CounterDateLevel = "Level"
 
-// CounterHierarchy field in shard
+// CounterTime field in shard
 //
-const CounterHierarchy = "H"
-
-// CounterDate field in shard
-//
-const CounterDate = "D"
+const CounterTime = "Time"

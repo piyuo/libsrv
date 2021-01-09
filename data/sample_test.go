@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"time"
 )
 
 type SampleDB interface {
@@ -175,23 +174,18 @@ type SampleCounters struct {
 // SampleCounter return sample counter
 //
 func (scs *SampleCounters) SampleCounter() Counter {
-	zone, offset := time.Now().UTC().Zone()
-	loc := time.FixedZone(zone, offset)
-	return scs.Counter("SampleCount", 3, loc)
+	return scs.Counter("SampleCount", 3, DateHierarchyNone)
 }
 
 // SampleCounter100 return sample counter with 100 shards
 //
 func (scs *SampleCounters) SampleCounter1000() Counter {
-	zone, offset := time.Now().UTC().Zone()
-	loc := time.FixedZone(zone, offset)
-	return scs.Counter("SampleCount", 1000, loc)
+	return scs.Counter("SampleCount", 1000, DateHierarchyNone)
 }
 
 func createSampleDB() (*SampleGlobalDB, *SampleRegionalDB) {
 	ctx := context.Background()
 	dbG, _ := NewSampleGlobalDB(ctx)
-
 	dbR, _ := NewSampleRegionalDB(ctx)
 	return dbG, dbR
 }
