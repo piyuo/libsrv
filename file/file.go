@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -72,15 +73,24 @@ func Find(name string) (string, bool) {
 		return "", false
 	}
 
-	var dir string
+	fmt.Printf("find in current dir %v\n", curdir)
+
+	var filepath string
+	dir := curdir
 	for i := 0; i <= 5; i++ {
-		dir = path.Join(curdir, name)
-		if _, err = os.Stat(dir); err == nil {
+		filepath = path.Join(dir, name)
+		fmt.Printf("check file is exist %v\n", filepath)
+		if _, err = os.Stat(filepath); err == nil {
 			//dir exist
-			return dir, true
+			fmt.Printf("found\n")
+			return filepath, true
 		}
+		fmt.Printf("not found\n")
 		//dir not exist, go up
-		curdir = path.Join(curdir, "../")
+		dir = path.Join(curdir, "../")
 	}
+
+	filepath = path.Join(curdir, name)
+	fmt.Printf("failed to find %v\n", filepath)
 	return "", false
 }

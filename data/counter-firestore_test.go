@@ -11,6 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+//TODO: refactor test, only need test in global
 func TestCountPeriod(t *testing.T) {
 	Convey("Should init, increment, count on counter", t, func() {
 		ctx := context.Background()
