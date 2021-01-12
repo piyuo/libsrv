@@ -73,19 +73,20 @@ func Find(name string) (string, bool) {
 		return "", false
 	}
 
-	fmt.Printf("find in current dir %v\n", curdir)
-
 	var filepath string
 	dir := curdir
 	for i := 0; i <= 5; i++ {
 		filepath = path.Join(dir, name)
-		fmt.Printf("check file is exist %v\n", filepath)
 		if _, err = os.Stat(filepath); err == nil {
 			//dir exist
-			fmt.Printf("found\n")
 			return filepath, true
 		}
-		fmt.Printf("not found\n")
+
+		//root dir, just give up
+		if dir == "/" {
+			break
+		}
+
 		//dir not exist, go up
 		dir = path.Join(curdir, "../")
 	}
