@@ -51,7 +51,7 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 	var cred = regionalCredentials[region.Current]
 	if regionalCredentials[region.Current] == nil {
-		bytes, err := key.BytesWithoutCache("/region/" + region.Current + ".json")
+		bytes, err := key.BytesWithoutCache("region/" + region.Current + ".json")
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get keys/region/"+region.Current+".json")
 		}

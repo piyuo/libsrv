@@ -88,7 +88,7 @@ func Find(name string) (string, bool) {
 		}
 
 		//dir not exist, go up
-		dir = path.Join(curdir, "../")
+		dir = path.Join(dir, "../")
 	}
 
 	filepath = path.Join(curdir, name)
