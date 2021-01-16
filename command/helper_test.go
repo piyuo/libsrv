@@ -6,25 +6,22 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWriteResponse(t *testing.T) {
-	Convey("should write binary", t, func() {
-		w := httptest.NewRecorder()
-		bytes := newTestAction(textLong)
-		writeBinary(w, bytes)
-		writeText(w, "code")
-		writeError(w, errors.New("error"), 500, "error")
-		writeBadRequest(context.Background(), w, "message")
-	})
+	w := httptest.NewRecorder()
+	bytes := newTestAction(textLong)
+	writeBinary(w, bytes)
+	writeText(w, "code")
+	writeError(w, errors.New("error"), 500, "error")
+	writeBadRequest(context.Background(), w, "message")
 }
 
 func TestIsSlow(t *testing.T) {
-	Convey("should determine slow work", t, func() {
-		// 3 seconds execution time is not slow
-		So(IsSlow(5000), ShouldEqual, 0)
-		// 20 seconds execution time is really slow
-		So(IsSlow(20000000), ShouldBeGreaterThan, 5000)
-	})
+	assert := assert.New(t)
+	// 3 seconds execution time is not slow
+	assert.Equal(0, IsSlow(5000))
+	// 20 seconds execution time is really slow
+	assert.Greater(IsSlow(20000000), 5000)
 }

@@ -10,10 +10,9 @@ import (
 	"testing"
 	"time"
 
-	mock "github.com/piyuo/libsrv/command/mock"
-	shared "github.com/piyuo/libsrv/command/shared"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/piyuo/libsrv/command/mock"
+	"github.com/piyuo/libsrv/command/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 var textLong = `{
@@ -62,6 +61,7 @@ func newBigDataAction() (*mock.BigDataAction, []byte) {
 }
 
 func TestArchive(t *testing.T) {
+	assert := assert.New(t)
 	handler := newTestServerHandler()
 
 	act, actBytes := newBigDataAction()
@@ -74,13 +74,11 @@ func TestArchive(t *testing.T) {
 	res1 := resp1.Result()
 	returnBytes := resp1.Body.Bytes()
 	returnLen := len(returnBytes)
-	Convey("test any file request", t, func() {
-		So(res1.StatusCode, ShouldEqual, 200)
-		So(returnLen, ShouldBeGreaterThan, 10)
-		So(sampleLen, ShouldBeGreaterThan, returnLen)
-		So(res1.Header.Get("Content-Encoding"), ShouldEqual, "gzip")
-		So(res1.Header.Get("Content-Type"), ShouldEqual, "application/octet-stream")
-	})
+	assert.Equal(200, res1.StatusCode)
+	assert.Greater(returnLen, 10)
+	assert.Greater(sampleLen, returnLen)
+	assert.Equal("gzip", res1.Header.Get("Content-Encoding"))
+	assert.Equal("application/octet-stream", res1.Header.Get("Content-Type"))
 }
 
 func customHTTPHandler(w http.ResponseWriter, r *http.Request) (bool, error) {
@@ -90,6 +88,7 @@ func customHTTPHandler(w http.ResponseWriter, r *http.Request) (bool, error) {
 }
 
 func TestHTTPHandler(t *testing.T) {
+	assert := assert.New(t)
 	server := &Server{
 		Map:         &mock.MapXXX{},
 		HTTPHandler: customHTTPHandler,
@@ -103,13 +102,12 @@ func TestHTTPHandler(t *testing.T) {
 	res1 := resp1.Result()
 	returnBytes := resp1.Body.Bytes()
 	bodyString := string(returnBytes)
-	Convey("should use custom http handler", t, func() {
-		So(res1.StatusCode, ShouldEqual, 200)
-		So(bodyString, ShouldEqual, "hello")
-	})
+	assert.Equal(200, res1.StatusCode)
+	assert.Equal("hello", bodyString)
 }
 
 func TestServe(t *testing.T) {
+	assert := assert.New(t)
 	handler := newTestServerHandler()
 	actBytes := newTestAction("Hi")
 	req1, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
@@ -121,23 +119,20 @@ func TestServe(t *testing.T) {
 	returnLen := len(returnBytes)
 	ok := okResponse()
 	okLen := len(ok)
-	Convey("test any file request", t, func() {
-		So(res1.StatusCode, ShouldEqual, 200)
-		So(returnLen, ShouldEqual, okLen)
-		So(returnBytes[0], ShouldEqual, ok[0])
-		So(res1.Header.Get("Content-Type"), ShouldEqual, "application/octet-stream")
-	})
+	assert.Equal(200, res1.StatusCode)
+	assert.Equal(okLen, returnLen)
+	assert.Equal(ok[0], returnBytes[0])
+	assert.Equal("application/octet-stream", res1.Header.Get("Content-Type"))
 }
 
 func TestServe404(t *testing.T) {
+	assert := assert.New(t)
 	handler := newTestServerHandler()
 	req1, _ := http.NewRequest("GET", "/favicon.ico", nil)
 	resp1 := httptest.NewRecorder()
 	handler.ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
-	Convey("test any file request", t, func() {
-		So(res1.StatusCode, ShouldEqual, 400)
-	})
+	assert.Equal(400, res1.StatusCode)
 }
 
 func newTestServerHandler() http.Handler {
@@ -172,18 +167,17 @@ func okResponse() []byte {
 }
 
 func TestContextCanceled(t *testing.T) {
-	Convey("should get error when context canceled", t, func() {
-		dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
-		ctx, cancel := context.WithDeadline(context.Background(), dateline)
-		defer cancel()
+	assert := assert.New(t)
+	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
+	ctx, cancel := context.WithDeadline(context.Background(), dateline)
+	defer cancel()
 
-		So(ctx.Err(), ShouldBeNil)
-		time.Sleep(time.Duration(2) * time.Millisecond)
-		So(ctx.Err(), ShouldNotBeNil)
+	assert.Nil(ctx.Err())
+	time.Sleep(time.Duration(2) * time.Millisecond)
+	assert.NotNil(ctx.Err())
 
-		err := ctx.Err()
-		So(errors.Is(err, context.DeadlineExceeded), ShouldBeTrue)
-	})
+	err := ctx.Err()
+	assert.True(errors.Is(err, context.DeadlineExceeded))
 }
 
 func newDeadlineAction() []byte {
@@ -196,37 +190,33 @@ func newDeadlineAction() []byte {
 }
 
 func TestServeWhenContextCanceled(t *testing.T) {
-	Convey("should get error when context canceled", t, func() {
-		handler := newTestServerHandler()
-		actBytes := newDeadlineAction()
-		req, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
-		resp := httptest.NewRecorder()
-		handler.ServeHTTP(resp, req)
-		res := resp.Result()
-		So(res.StatusCode, ShouldEqual, 504)
-	})
+	assert := assert.New(t)
+	handler := newTestServerHandler()
+	actBytes := newDeadlineAction()
+	req, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	res := resp.Result()
+	assert.Equal(504, res.StatusCode)
 }
 
 func TestHandleRouteException(t *testing.T) {
-	Convey("should handle route exception", t, func() {
-		//r, _ := http.NewRequest("POST", "/", nil)
-		w := httptest.NewRecorder()
-		handleRouteException(context.Background(), w, context.DeadlineExceeded)
-		handleRouteException(context.Background(), w, errors.New(""))
-	})
+	//r, _ := http.NewRequest("POST", "/", nil)
+	w := httptest.NewRecorder()
+	handleRouteException(context.Background(), w, context.DeadlineExceeded)
+	handleRouteException(context.Background(), w, errors.New(""))
 }
 
 func TestServer(t *testing.T) {
+	assert := assert.New(t)
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println("panic occurred:", err)
 		}
 	}()
-	Convey("should start server", t, func() {
-		server := &Server{
-			Map:         nil,
-			HTTPHandler: customHTTPHandler,
-		}
-		So(server.Start, ShouldPanic)
-	})
+	server := &Server{
+		Map:         nil,
+		HTTPHandler: customHTTPHandler,
+	}
+	assert.Panics(server.Start)
 }

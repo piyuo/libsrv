@@ -4,19 +4,13 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSlowAction(t *testing.T) {
-	Convey("should execute the action and get response", t, func() {
-		action := &SlowAction{}
-		// action.Name = "hello"
-
-		response, err := action.Do(context.Background())
-		So(err, ShouldBeNil)
-		So(response, ShouldNotBeNil)
-		//sr := response.(*StringResponse)
-		//So(sr.Text, ShouldEqual, "hi")
-	})
-
+	assert := assert.New(t)
+	action := &DeadlineAction{}
+	response, err := action.Do(context.Background())
+	assert.NotNil(err)
+	assert.Nil(response)
 }
