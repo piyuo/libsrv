@@ -4,39 +4,38 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestKeys(t *testing.T) {
-	Convey("should get key content", t, func() {
+func TestShouldGetKeyContent(t *testing.T) {
+	assert := assert.New(t)
+	text, err := Text("gcloud.json")
+	assert.Nil(err)
+	assert.NotEmpty(text)
 
-		text, err := Text("gcloud.json")
-		So(err, ShouldBeNil)
-		So(text, ShouldNotBeEmpty)
+	bytes, err := Bytes("gcloud.json")
+	assert.Nil(err)
+	assert.NotNil(bytes)
 
-		bytes, err := Bytes("gcloud.json")
-		So(err, ShouldBeNil)
-		So(bytes, ShouldNotBeNil)
+	json, err := JSON("gcloud.json")
+	assert.Nil(err)
+	assert.NotEmpty(json["project_id"])
+}
 
-		json, err := JSON("gcloud.json")
-		So(err, ShouldBeNil)
-		So(json["project_id"], ShouldNotBeEmpty)
+func TestReturnErrorWhenKeyNotExist(t *testing.T) {
+	assert := assert.New(t)
+	content, err := Text("not exist")
+	assert.NotNil(err)
+	assert.Empty(content)
 
-	})
+	json, err := JSON("not exist")
+	assert.NotNil(err)
+	assert.Nil(json)
 
-	Convey("should return error when key not exist", t, func() {
-		content, err := Text("not exist")
-		So(err, ShouldNotBeNil)
-		So(content, ShouldBeEmpty)
+	bytes, err := Bytes("not exist")
+	assert.NotNil(err)
+	assert.Nil(bytes)
 
-		json, err := JSON("not exist")
-		So(err, ShouldNotBeNil)
-		So(json, ShouldBeNil)
-
-		bytes, err := Bytes("not exist")
-		So(err, ShouldNotBeNil)
-		So(bytes, ShouldBeNil)
-	})
 }
 
 func TestConcurrentKey(t *testing.T) {

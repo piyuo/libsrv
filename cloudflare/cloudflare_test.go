@@ -4,95 +4,91 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewCloudflare(t *testing.T) {
-	Convey("should new cloudflare", t, func() {
-		cflare, err := NewCloudflare(context.Background())
-		So(err, ShouldBeNil)
-		So(cflare, ShouldNotBeNil)
-	})
+	assert := assert.New(t)
+	cflare, err := NewCloudflare(context.Background())
+	assert.Nil(err)
+	assert.NotNil(cflare)
 }
 
 func TestDomain(t *testing.T) {
-	Convey("should add remove sub domain", t, func() {
-		ctx := context.Background()
-		cflare, err := NewCloudflare(ctx)
-		So(err, ShouldBeNil)
-		So(cflare, ShouldNotBeNil)
-		subDomain := "mock-libsrv"
-		domainName := subDomain + ".piyuo.com"
+	assert := assert.New(t)
+	ctx := context.Background()
+	cflare, err := NewCloudflare(ctx)
+	assert.Nil(err)
+	assert.NotNil(cflare)
+	subDomain := "mock-libsrv"
+	domainName := subDomain + ".piyuo.com"
 
-		//remove sample domain
-		cflare.RemoveDomain(ctx, domainName)
+	//remove sample domain
+	cflare.RemoveDomain(ctx, domainName)
 
-		exist, err := cflare.IsDomainExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeFalse)
+	exist, err := cflare.IsDomainExist(ctx, domainName)
+	assert.Nil(err)
+	assert.False(exist)
 
-		err = cflare.AddDomain(ctx, domainName, false)
-		So(err, ShouldBeNil)
+	err = cflare.AddDomain(ctx, domainName, false)
+	assert.Nil(err)
 
-		exist, err = cflare.IsDomainExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeTrue)
+	exist, err = cflare.IsDomainExist(ctx, domainName)
+	assert.Nil(err)
+	assert.True(exist)
 
-		// add domain that already exist should not error
-		err = cflare.AddDomain(ctx, domainName, false)
-		So(err, ShouldBeNil)
+	// add domain that already exist should not error
+	err = cflare.AddDomain(ctx, domainName, false)
+	assert.Nil(err)
 
-		err = cflare.RemoveDomain(ctx, domainName)
-		So(err, ShouldBeNil)
+	err = cflare.RemoveDomain(ctx, domainName)
+	assert.Nil(err)
 
-		exist, err = cflare.IsDomainExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeFalse)
+	exist, err = cflare.IsDomainExist(ctx, domainName)
+	assert.Nil(err)
+	assert.False(exist)
 
-		// remove domain second time should not error
-		err = cflare.RemoveDomain(ctx, domainName)
-		So(err, ShouldBeNil)
-
-	})
+	// remove domain second time should not error
+	err = cflare.RemoveDomain(ctx, domainName)
+	assert.Nil(err)
 }
 
 func TestTxtRecord(t *testing.T) {
-	Convey("should add remove sub domain", t, func() {
-		ctx := context.Background()
-		cflare, err := NewCloudflare(ctx)
-		So(err, ShouldBeNil)
-		So(cflare, ShouldNotBeNil)
-		subDomain := "mock-libsrv"
-		domainName := subDomain + ".piyuo.com"
-		txt := "hi"
-		//remove sample record
-		cflare.RemoveTxtRecord(ctx, domainName)
+	assert := assert.New(t)
 
-		exist, err := cflare.IsTxtRecordExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeFalse)
+	ctx := context.Background()
+	cflare, err := NewCloudflare(ctx)
+	assert.Nil(err)
+	assert.NotNil(cflare)
+	subDomain := "mock-libsrv"
+	domainName := subDomain + ".piyuo.com"
+	txt := "hi"
+	//remove sample record
+	cflare.RemoveTxtRecord(ctx, domainName)
 
-		err = cflare.AddTxtRecord(ctx, domainName, txt)
-		So(err, ShouldBeNil)
+	exist, err := cflare.IsTxtRecordExist(ctx, domainName)
+	assert.Nil(err)
+	assert.False(exist)
 
-		exist, err = cflare.IsTxtRecordExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeTrue)
+	err = cflare.AddTxtRecord(ctx, domainName, txt)
+	assert.Nil(err)
 
-		// add txt record that already exist should not error
-		err = cflare.AddTxtRecord(ctx, domainName, txt)
-		So(err, ShouldBeNil)
+	exist, err = cflare.IsTxtRecordExist(ctx, domainName)
+	assert.Nil(err)
+	assert.True(exist)
 
-		err = cflare.RemoveTxtRecord(ctx, domainName)
-		So(err, ShouldBeNil)
+	// add txt record that already exist should not error
+	err = cflare.AddTxtRecord(ctx, domainName, txt)
+	assert.Nil(err)
 
-		exist, err = cflare.IsTxtRecordExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(exist, ShouldBeFalse)
+	err = cflare.RemoveTxtRecord(ctx, domainName)
+	assert.Nil(err)
 
-		// remove txt record second time should not error
-		err = cflare.RemoveTxtRecord(ctx, domainName)
-		So(err, ShouldBeNil)
+	exist, err = cflare.IsTxtRecordExist(ctx, domainName)
+	assert.Nil(err)
+	assert.False(exist)
 
-	})
+	// remove txt record second time should not error
+	err = cflare.RemoveTxtRecord(ctx, domainName)
+	assert.Nil(err)
 }

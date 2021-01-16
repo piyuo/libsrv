@@ -4,24 +4,22 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCheck(t *testing.T) {
-	Convey("should pass check with no panic", t, func() {
-		So(Checklist, ShouldNotPanic)
+	assert := assert.New(t)
+	assert.NotPanics(Checklist)
 
-		os.Setenv("NAME", "")
-		So(Checklist, ShouldPanic)
-		os.Setenv("NAME", "not empty")
+	os.Setenv("NAME", "")
+	assert.Panics(Checklist)
+	os.Setenv("NAME", "not empty")
 
-		os.Setenv("REGION", "")
-		So(Checklist, ShouldPanic)
-		os.Setenv("REGION", "not empty")
+	os.Setenv("REGION", "")
+	assert.Panics(Checklist)
+	os.Setenv("REGION", "not empty")
 
-		os.Setenv("BRANCH", "")
-		So(Checklist, ShouldPanic)
-		os.Setenv("BRANCH", "not empty")
-
-	})
+	os.Setenv("BRANCH", "")
+	assert.Panics(Checklist)
+	os.Setenv("BRANCH", "not empty")
 }

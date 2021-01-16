@@ -6,34 +6,32 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCacheLimit(t *testing.T) {
-	convey.Convey("should only cache 1000 low frequency item", t, func() {
-		Reset()
-		for i := 0; i <= 1002; i++ {
-			Set(LOW, "l"+strconv.Itoa(i), "1")
-		}
-		convey.So(Count(), convey.ShouldEqual, 1000)
-		Reset()
-	})
-	convey.Convey("should only cache 2000 medium frequency item", t, func() {
-		Reset()
-		for i := 0; i <= 2002; i++ {
-			Set(MEDIUM, "m"+strconv.Itoa(i), "1")
-		}
-		convey.So(Count(), convey.ShouldEqual, 2000)
-		Reset()
-	})
-	convey.Convey("should only cache 2500 high frequency item", t, func() {
-		Reset()
-		for i := 0; i <= 2530; i++ {
-			Set(HIGH, "m"+strconv.Itoa(i), "1")
-		}
-		convey.So(Count(), convey.ShouldEqual, 2500)
-		Reset()
-	})
+	assert := assert.New(t)
+	//should only cache 1000 low frequency item
+	Reset()
+	for i := 0; i <= 1002; i++ {
+		Set(LOW, "l"+strconv.Itoa(i), "1")
+	}
+	assert.Equal(1000, Count())
+	Reset()
+	//should only cache 2000 medium frequency item
+	Reset()
+	for i := 0; i <= 2002; i++ {
+		Set(MEDIUM, "m"+strconv.Itoa(i), "1")
+	}
+	assert.Equal(2000, Count())
+	Reset()
+	//should only cache 2500 high frequency item
+	Reset()
+	for i := 0; i <= 2530; i++ {
+		Set(HIGH, "m"+strconv.Itoa(i), "1")
+	}
+	assert.Equal(2500, Count())
+	Reset()
 }
 
 func TestConcurrentCache(t *testing.T) {
@@ -65,166 +63,157 @@ func TestConcurrentCache(t *testing.T) {
 	wg.Wait()
 }
 
-func TestGetMethod(t *testing.T) {
-	convey.Convey("should set and get", t, func() {
-		Reset()
-		Set(HIGH, "key", 1)
-		valueInt, found := GetInt("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueInt, convey.ShouldEqual, 1)
+func TestGetSetMethod(t *testing.T) {
+	assert := assert.New(t)
+	Reset()
+	Set(HIGH, "key", 1)
+	valueInt, found := GetInt("key")
+	assert.True(found)
+	assert.Equal(1, valueInt)
 
-		Set(HIGH, "key32", uint32(1))
-		valueUInt32, found := GetUInt32("key32")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueUInt32, convey.ShouldEqual, uint32(1))
+	Set(HIGH, "key32", uint32(1))
+	valueUInt32, found := GetUInt32("key32")
+	assert.True(found)
+	assert.Equal(uint32(1), valueUInt32)
 
-		Set(HIGH, "key64", uint64(1))
-		valueUInt64, found := GetUInt64("key64")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueUInt64, convey.ShouldEqual, uint64(1))
+	Set(HIGH, "key64", uint64(1))
+	valueUInt64, found := GetUInt64("key64")
+	assert.True(found)
+	assert.Equal(uint64(1), valueUInt64)
 
-		Set(HIGH, "key", int64(2))
-		valueInt64, found := GetInt64("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueInt64, convey.ShouldEqual, 2)
+	Set(HIGH, "key", int64(2))
+	valueInt64, found := GetInt64("key")
+	assert.True(found)
+	assert.Equal(int64(2), valueInt64)
 
-		Set(HIGH, "key", true)
-		valueBool, found := GetBool("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueBool, convey.ShouldEqual, true)
+	Set(HIGH, "key", true)
+	valueBool, found := GetBool("key")
+	assert.True(found)
+	assert.True(valueBool)
 
-		Set(HIGH, "key", "hi")
-		valueString, found := GetString("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueString, convey.ShouldEqual, "hi")
+	Set(HIGH, "key", "hi")
+	valueString, found := GetString("key")
+	assert.True(found)
+	assert.Equal("hi", valueString)
 
-		Set(HIGH, "key", []byte("hi"))
-		valueBytes, found := GetBytes("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(valueBytes, convey.ShouldNotBeNil)
+	Set(HIGH, "key", []byte("hi"))
+	valueBytes, found := GetBytes("key")
+	assert.True(found)
+	assert.NotNil(valueBytes)
 
-		//test not exist
-		valueInt, found = GetInt("not-exist")
-		convey.So(valueInt, convey.ShouldEqual, 0)
-		convey.So(found, convey.ShouldBeFalse)
+	//test not exist
+	valueInt, found = GetInt("not-exist")
+	assert.Equal(0, valueInt)
+	assert.False(found)
 
-		valueUInt32, found = GetUInt32("not-exist")
-		convey.So(valueUInt32, convey.ShouldEqual, 0)
-		convey.So(found, convey.ShouldBeFalse)
+	valueUInt32, found = GetUInt32("not-exist")
+	assert.Equal(uint32(0), valueUInt32)
+	assert.False(found)
 
-		valueUInt64, found = GetUInt64("not-exist")
-		convey.So(valueUInt64, convey.ShouldEqual, 0)
-		convey.So(found, convey.ShouldBeFalse)
+	valueUInt64, found = GetUInt64("not-exist")
+	assert.Equal(uint64(0), valueUInt64)
+	assert.False(found)
 
-		valueInt64, found = GetInt64("not-exist")
-		convey.So(valueInt64, convey.ShouldEqual, 0)
-		convey.So(found, convey.ShouldBeFalse)
+	valueInt64, found = GetInt64("not-exist")
+	assert.Equal(int64(0), valueInt64)
+	assert.False(found)
 
-		valueBool, found = GetBool("not-exist")
-		convey.So(valueBool, convey.ShouldBeFalse)
-		convey.So(found, convey.ShouldBeFalse)
+	valueBool, found = GetBool("not-exist")
+	assert.False(valueBool)
+	assert.False(found)
 
-		valueString, found = GetString("not-exist")
-		convey.So(valueString, convey.ShouldBeEmpty)
-		convey.So(found, convey.ShouldBeFalse)
+	valueString, found = GetString("not-exist")
+	assert.Empty(valueString)
+	assert.False(found)
 
-		valueBytes, found = GetBytes("not-exist")
-		convey.So(valueBytes, convey.ShouldBeNil)
-		convey.So(found, convey.ShouldBeFalse)
-	})
+	valueBytes, found = GetBytes("not-exist")
+	assert.Nil(valueBytes)
+	assert.False(found)
 }
 
 func TestCache(t *testing.T) {
-	convey.Convey("should set and get", t, func() {
-		Reset()
-		Set(HIGH, "key-1", "1")
-		Set(HIGH, "key-2", "2")
+	assert := assert.New(t)
+	Reset()
+	Set(HIGH, "key-1", "1")
+	Set(HIGH, "key-2", "2")
 
-		// wait for value to pass through buffers
-		time.Sleep(10 * time.Millisecond)
+	// wait for value to pass through buffers
+	time.Sleep(10 * time.Millisecond)
 
-		value, found := Get("key-1")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, "1")
-		value, found = Get("key-2")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, "2")
-		if found {
-		}
+	value, found := Get("key-1")
+	assert.True(found)
+	assert.Equal("1", value)
+	value, found = Get("key-2")
+	assert.True(found)
+	assert.Equal("2", value)
 
-		Delete("key-1")
-		value, found = Get("key-1")
-		convey.So(found, convey.ShouldBeFalse)
-		convey.So(value, convey.ShouldBeNil)
+	Delete("key-1")
+	value, found = Get("key-1")
+	assert.False(found)
+	assert.Nil(value)
 
-		value, found = Get("not exist")
-		convey.So(found, convey.ShouldBeFalse)
-		convey.So(value, convey.ShouldBeNil)
-	})
+	value, found = Get("not exist")
+	assert.False(found)
+	assert.Nil(value)
 }
 
 func TestExpireCache(t *testing.T) {
-	convey.Convey("should expire", t, func() {
-		Reset()
-		set("key", "1", 50*time.Millisecond)
-		value, found := Get("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, "1")
+	assert := assert.New(t)
+	Reset()
+	set("key", "1", 50*time.Millisecond)
+	value, found := Get("key")
+	assert.True(found)
+	assert.Equal("1", value)
 
-		// wait for value to pass through buffers
-		time.Sleep(51 * time.Millisecond)
-		value, found = Get("key")
-		convey.So(found, convey.ShouldBeFalse)
-		convey.So(value, convey.ShouldBeNil)
-
-	})
+	// wait for value to pass through buffers
+	time.Sleep(51 * time.Millisecond)
+	value, found = Get("key")
+	assert.False(found)
+	assert.Nil(value)
 }
 
 func TestCachePurges(t *testing.T) {
-	convey.Convey("should purge expired item", t, func() {
-		configCache(50*time.Millisecond, 50*time.Millisecond)
-		defer configCache(10*time.Minute, 3*time.Minute)
+	assert := assert.New(t)
+	configCache(50*time.Millisecond, 50*time.Millisecond)
+	defer configCache(10*time.Minute, 3*time.Minute)
 
-		set("key", "1", 1500*time.Millisecond)
-		value, found := Get("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, "1")
+	set("key", "1", 1500*time.Millisecond)
+	value, found := Get("key")
+	assert.True(found)
+	assert.Equal("1", value)
 
-		set("key2", "2", 50*time.Millisecond)
-		value2, found2 := Get("key2")
-		convey.So(found2, convey.ShouldBeTrue)
-		convey.So(value2, convey.ShouldEqual, "2")
+	set("key2", "2", 50*time.Millisecond)
+	value2, found2 := Get("key2")
+	assert.True(found2)
+	assert.Equal("2", value2)
 
-		// wait for value to pass through buffers
-		time.Sleep(51 * time.Millisecond)
+	// wait for value to pass through buffers
+	time.Sleep(51 * time.Millisecond)
 
-		value, found = Get("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, "1")
+	value, found = Get("key")
+	assert.True(found)
+	assert.Equal("1", value)
 
-		value2, found2 = Get("key2")
-		convey.So(found2, convey.ShouldBeFalse)
-		convey.So(value2, convey.ShouldBeNil)
-
-	})
+	value2, found2 = Get("key2")
+	assert.False(found2)
+	assert.Nil(value2)
 }
 
 func TestIncrement(t *testing.T) {
-	convey.Convey("should increment value", t, func() {
-		Reset()
-		key := "key"
-		Increment(LOW, key, 2)
+	assert := assert.New(t)
+	Reset()
+	key := "key"
+	Increment(LOW, key, 2)
 
-		value, found := Get(key)
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, 2)
+	value, found := Get(key)
+	assert.True(found)
+	assert.Equal(2, value)
 
-		Increment(LOW, key, -1)
+	Increment(LOW, key, -1)
 
-		value, found = Get("key")
-		convey.So(found, convey.ShouldBeTrue)
-		convey.So(value, convey.ShouldEqual, 1)
-	})
+	value, found = Get("key")
+	assert.True(found)
+	assert.Equal(1, value)
 }
 
 func BenchmarkGoCache(b *testing.B) {

@@ -3,11 +3,10 @@ package region
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRegion(t *testing.T) {
-	Convey("should get current region", t, func() {
-		So(Current, ShouldNotBeEmpty)
-	})
+	assert := assert.New(t)
+	assert.NotEmpty(Current)
 }

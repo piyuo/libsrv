@@ -3,58 +3,44 @@ package file
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFile(t *testing.T) {
+	assert := assert.New(t)
 	keyPath := "../../keys/gcloud.json"
-
-	Convey("should have bytes", t, func() {
-		bytes, err := Read("../../keys/gcloud.json")
-		So(err, ShouldBeNil)
-		So(len(bytes), ShouldBeGreaterThan, 0)
-	})
-
-	Convey("should not have bytes", t, func() {
-		bytes, err := Read("not exist")
-		So(err, ShouldNotBeNil)
-		So(bytes, ShouldBeNil)
-	})
-
-	Convey("should have text", t, func() {
-		text, err := ReadText(keyPath)
-		So(err, ShouldBeNil)
-		So(len(text), ShouldBeGreaterThan, 1)
-	})
-
-	Convey("should not have bytes", t, func() {
-		text, err := ReadText("not exist")
-		So(err, ShouldNotBeNil)
-		So(text, ShouldBeEmpty)
-	})
-
-	Convey("should have json", t, func() {
-		json, err := ReadJSON(keyPath)
-		So(err, ShouldBeNil)
-		So(json["project_id"], ShouldEqual, "piyuo-beta")
-	})
-
-	Convey("should not have json", t, func() {
-		json, err := ReadJSON("not exist")
-		So(err, ShouldNotBeNil)
-		So(json, ShouldBeNil)
-	})
-
+	//should have bytes
+	bytes, err := Read("../../keys/gcloud.json")
+	assert.Nil(err)
+	assert.Greater(len(bytes), 0)
+	//should not have bytes
+	bytes, err = Read("not exist")
+	assert.NotNil(err)
+	assert.Nil(bytes)
+	//should have text
+	text, err := ReadText(keyPath)
+	assert.Nil(err)
+	assert.Greater(len(text), 1)
+	//should not have bytes
+	text, err = ReadText("not exist")
+	assert.NotNil(err)
+	assert.Empty(text)
+	//should have json
+	json, err := ReadJSON(keyPath)
+	assert.Nil(err)
+	assert.Equal("piyuo-beta", json["project_id"])
+	//should not have json
+	json, err = ReadJSON("not exist")
+	assert.NotNil(err)
+	assert.Nil(json)
 }
 
 func TestFind(t *testing.T) {
-	Convey("should find assets", t, func() {
-		dir, found := Find("assets")
-		So(found, ShouldBeTrue)
-		So(dir, ShouldNotBeEmpty)
-		dir, found = Find("not exist")
-		So(found, ShouldBeFalse)
-		So(dir, ShouldBeEmpty)
-	})
-
+	assert := assert.New(t)
+	dir, found := Find("assets")
+	assert.True(found)
+	assert.NotEmpty(dir)
+	dir, found = Find("not exist")
+	assert.False(found)
+	assert.Empty(dir)
 }

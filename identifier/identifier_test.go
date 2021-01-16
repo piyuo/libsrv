@@ -4,69 +4,62 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUUID(t *testing.T) {
-	Convey("should generate uuid", t, func() {
-		id := UUID()
-		So(id, ShouldNotBeEmpty)
-		//fmt.Printf("%v, %v\n", id, len(id))
-	})
+	assert := assert.New(t)
+	id := UUID()
+	assert.NotEmpty(id)
+	//fmt.Printf("%v, %v\n", id, len(id))
 }
 
 func TestSerialID16(t *testing.T) {
-	Convey("should generate base58 id from uint16", t, func() {
-		id := SerialID16(uint16(42))
-		So(id, ShouldNotBeEmpty)
-		//fmt.Printf("%v, %v\n", id, len(id))
-	})
+	assert := assert.New(t)
+	id := SerialID16(uint16(42))
+	assert.NotEmpty(id)
+	//fmt.Printf("%v, %v\n", id, len(id))
 }
 
 func TestSerialID32(t *testing.T) {
-	Convey("should generate base58 id from uint32", t, func() {
-		//		for i := 0; i < 10000; i++ {
-		id := SerialID32(uint32(42))
-		So(id, ShouldNotBeEmpty)
-		//		fmt.Printf("%v, %v\n", id, len(id))
-		//		}
-	})
+	assert := assert.New(t)
+	//		for i := 0; i < 10000; i++ {
+	id := SerialID32(uint32(42))
+	assert.NotEmpty(id)
+	//		fmt.Printf("%v, %v\n", id, len(id))
+	//		}
 }
 
 func TestSerialID64(t *testing.T) {
-	Convey("should generate base58 id from uint64", t, func() {
-		//for i := 0; i < 10000; i++ {
-		id := SerialID64(uint64(42))
-		So(id, ShouldNotBeEmpty)
-		//fmt.Printf("%v, %v\n", id, len(id))
-		//}
-	})
+	assert := assert.New(t)
+	//for i := 0; i < 10000; i++ {
+	id := SerialID64(uint64(42))
+	assert.NotEmpty(id)
+	//fmt.Printf("%v, %v\n", id, len(id))
+	//}
 }
 
 func TestRandomNumber(t *testing.T) {
-	Convey("should generate 6 digit random number string", t, func() {
-		id := RandomNumber(6)
-		So(id, ShouldNotBeEmpty)
-		So(len(id), ShouldEqual, 6)
-		fmt.Printf("%v, %v\n", id, len(id))
-	})
+	assert := assert.New(t)
+	id := RandomNumber(6)
+	assert.NotEmpty(id)
+	assert.Equal(6, len(id))
+	fmt.Printf("%v, %v\n", id, len(id))
 }
 
 func TestIdenticalNumberString(t *testing.T) {
-	Convey("should be Identical", t, func() {
-		So(IsNumberStringIdentical("111111"), ShouldBeTrue)
-		So(IsNumberStringIdentical("111122"), ShouldBeTrue)
-	})
-	Convey("should Not be Identical", t, func() {
-		So(IsNumberStringIdentical("111124"), ShouldBeFalse)
-		So(IsNumberStringIdentical("123456"), ShouldBeFalse)
-		So(IsNumberStringIdentical("177756"), ShouldBeFalse)
-		So(IsNumberStringIdentical("211311"), ShouldBeFalse)
-		So(IsNumberStringIdentical("111311"), ShouldBeFalse)
-	})
-	Convey("should Not Identical random", t, func() {
-		So(NotIdenticalRandomNumber(6), ShouldNotBeEmpty)
-	})
+	assert := assert.New(t)
+	//should be Identical
+	assert.True(IsNumberStringIdentical("111111"))
+	assert.True(IsNumberStringIdentical("111122"))
+	//should Not be Identical
+	assert.False(IsNumberStringIdentical("111124"))
+	assert.False(IsNumberStringIdentical("123456"))
+	assert.False(IsNumberStringIdentical("177756"))
+	assert.False(IsNumberStringIdentical("211311"))
+	assert.False(IsNumberStringIdentical("111311"))
+	//should Not Identical random
+	assert.NotEmpty(NotIdenticalRandomNumber(6))
 }
 
 func BenchmarkRandomNumber(b *testing.B) {
@@ -82,23 +75,23 @@ func BenchmarkNotIdenticalRandomNumber(b *testing.B) {
 }
 
 func TestMapID(t *testing.T) {
-	Convey("should generate id for map", t, func() {
-		m := map[string]string{}
-		id, err := MapID(m)
-		So(err, ShouldBeNil)
-		So(id, ShouldEqual, "1")
-		m[id] = "a"
+	assert := assert.New(t)
+	m := map[string]string{}
+	id, err := MapID(m)
+	assert.Nil(err)
+	assert.Equal("1", id)
+	m[id] = "a"
 
-		id, err = MapID(m)
-		So(err, ShouldBeNil)
-		So(id, ShouldEqual, "2")
-		m[id] = "b"
+	id, err = MapID(m)
+	assert.Nil(err)
+	assert.Equal("2", id)
+	m[id] = "b"
 
-		id, err = MapID(m)
-		So(err, ShouldBeNil)
-		So(id, ShouldEqual, "3")
-		m[id] = "c"
-	})
+	id, err = MapID(m)
+	assert.Nil(err)
+	assert.Equal("3", id)
+	m[id] = "c"
+
 }
 
 func BenchmarkMapID(b *testing.B) {

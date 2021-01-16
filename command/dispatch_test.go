@@ -8,44 +8,43 @@ import (
 
 	mock "github.com/piyuo/libsrv/command/mock"
 	shared "github.com/piyuo/libsrv/command/shared"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeDecodeCommand(t *testing.T) {
+	assert := assert.New(t)
 	act := &mock.RespondAction{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	Convey("test decode command is right", t, func() {
-		actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
-		actID, iAct2, err2 := dispatch.decodeCommand(actBytes)
-		So(err2, ShouldBeNil)
-		act2 := iAct2.(*mock.RespondAction)
-		So(err, ShouldBeNil)
-		So(actID, ShouldEqual, act.XXX_MapID())
-		So(act2.Text, ShouldEqual, act.Text)
-	})
+	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
+	actID, iAct2, err2 := dispatch.decodeCommand(actBytes)
+	assert.Nil(err2)
+	act2 := iAct2.(*mock.RespondAction)
+	assert.Nil(err)
+	assert.Equal(act.XXX_MapID(), actID)
+	assert.Equal(act.Text, act2.Text)
 }
 
 func TestBetterResponseName(t *testing.T) {
-	Convey("should get better response name", t, func() {
-		errOK := OK().(*shared.PbOK)
-		result := betterResponseName(errOK.XXX_MapID(), errOK)
-		So(result, ShouldEqual, "OK")
+	assert := assert.New(t)
+	errOK := OK().(*shared.PbOK)
+	result := betterResponseName(errOK.XXX_MapID(), errOK)
+	assert.Equal("OK", result)
 
-		err := Error("failed").(*shared.PbError)
-		result = betterResponseName(err.XXX_MapID(), err)
-		So(result, ShouldEqual, "failed")
+	err := Error("failed").(*shared.PbError)
+	result = betterResponseName(err.XXX_MapID(), err)
+	assert.Equal("failed", result)
 
-		errText := &shared.PbString{}
-		result = betterResponseName(errText.XXX_MapID(), errText)
-		So(result, ShouldEqual, "PbString")
-	})
+	errText := &shared.PbString{}
+	result = betterResponseName(errText.XXX_MapID(), errText)
+	assert.Equal("PbString", result)
 }
 
 func TestActionNoRespose(t *testing.T) {
+	assert := assert.New(t)
 	act := &mock.NoRespondAction{
 		Text: "Hi",
 	}
@@ -53,16 +52,15 @@ func TestActionNoRespose(t *testing.T) {
 		Map: &mock.MapXXX{},
 	}
 	//no response action,will cause &shared.Err{}
-	Convey("test dispatch route", t, func() {
-		actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
-		So(err, ShouldBeNil)
-		resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
-		So(err2, ShouldNotBeNil)
-		So(resultBytes, ShouldBeNil)
-	})
+	actBytes, err := dispatch.encodeCommand(act.XXX_MapID(), act)
+	assert.Nil(err)
+	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
+	assert.NotNil(err2)
+	assert.Nil(resultBytes)
 }
 
 func TestRoute(t *testing.T) {
+	assert := assert.New(t)
 	act := &mock.RespondAction{
 		Text: "Hi",
 	}
@@ -73,15 +71,14 @@ func TestRoute(t *testing.T) {
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
 	_, resp, err3 := dispatch.decodeCommand(resultBytes)
 	actualResponse := resp.(*shared.PbOK)
-	Convey("test dispatch route", t, func() {
-		So(err, ShouldBeNil)
-		So(err2, ShouldBeNil)
-		So(err3, ShouldBeNil)
-		So(actualResponse, ShouldNotBeNil)
-	})
+	assert.Nil(err)
+	assert.Nil(err2)
+	assert.Nil(err3)
+	assert.NotNil(actualResponse)
 }
 
 func TestHandle(t *testing.T) {
+	assert := assert.New(t)
 
 	//create sample data
 	act := &mock.RespondAction{
@@ -91,25 +88,22 @@ func TestHandle(t *testing.T) {
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	Convey("should run action", t, func() {
-		_, respInterface, err := dispatch.runAction(context.Background(), act)
-		response := respInterface.(*shared.PbOK)
-		So(err, ShouldBeNil)
-		So(response, ShouldNotBeNil)
-	})
+	_, respInterface, err := dispatch.runAction(context.Background(), act)
+	response := respInterface.(*shared.PbOK)
+	assert.Nil(err)
+	assert.NotNil(response)
 }
 
 func TestTimeExecuteAction(t *testing.T) {
-	Convey("should warn slow action", t, func() {
-		os.Setenv("PIYUO_SLOW", "1")
-		act := &mock.SlowAction{}
-		dispatch := &Dispatch{
-			Map: &mock.MapXXX{},
-		}
-		_, respInterface, err := dispatch.timeExecuteAction(context.Background(), act)
-		So(err, ShouldBeNil)
-		So(respInterface, ShouldNotBeNil)
-	})
+	assert := assert.New(t)
+	os.Setenv("PIYUO_SLOW", "1")
+	act := &mock.SlowAction{}
+	dispatch := &Dispatch{
+		Map: &mock.MapXXX{},
+	}
+	_, respInterface, err := dispatch.timeExecuteAction(context.Background(), act)
+	assert.Nil(err)
+	assert.NotNil(respInterface)
 }
 
 var benchmarkResult string

@@ -6,35 +6,35 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCrypto(t *testing.T) {
-	Convey("should encrypt decrypt string", t, func() {
-		crypted, err := Encrypt("hello")
-		So(err, ShouldBeNil)
+	assert := assert.New(t)
+	crypted, err := Encrypt("hello")
+	assert.Nil(err)
 
-		crypted1, err := Encrypt("hello1")
-		So(err, ShouldBeNil)
+	crypted1, err := Encrypt("hello1")
+	assert.Nil(err)
 
-		So(crypted, ShouldNotBeEmpty)
-		So(crypted1, ShouldNotBeEmpty)
-		result, err := Decrypt(crypted)
-		So(err, ShouldBeNil)
+	assert.NotEmpty(crypted)
+	assert.NotEmpty(crypted1)
+	result, err := Decrypt(crypted)
+	assert.Nil(err)
 
-		result1, err := Decrypt(crypted1)
-		So(err, ShouldBeNil)
+	result1, err := Decrypt(crypted1)
+	assert.Nil(err)
 
-		So(result, ShouldEqual, "hello")
-		So(result1, ShouldEqual, "hello1")
-	})
+	assert.Equal("hello", result)
+	assert.Equal("hello1", result1)
+}
 
-	Convey("should has error when decrypt empty or wrong string", t, func() {
-		_, err := Decrypt("")
-		So(err, ShouldNotBeNil)
-		_, err1 := Decrypt("something wrong")
-		So(err1, ShouldNotBeNil)
-	})
+func TestShouldReturnErrorDecryptWrongString(t *testing.T) {
+	assert := assert.New(t)
+	_, err := Decrypt("")
+	assert.NotNil(err)
+	_, err1 := Decrypt("something wrong")
+	assert.NotNil(err1)
 }
 
 func TestConcurrentCrypto(t *testing.T) {
