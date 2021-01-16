@@ -7,102 +7,96 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDeadline(t *testing.T) {
-	Convey("should return deadline", t, func() {
-		ctx := context.Background()
-		So(ctx.Err(), ShouldBeNil)
+	assert := assert.New(t)
+	ctx := context.Background()
+	assert.Nil(ctx.Err())
 
-		backup := os.Getenv("DEADLINE")
-		os.Setenv("DEADLINE", "20")
-		ctx, cancel := SetDeadline(ctx)
-		defer cancel()
+	backup := os.Getenv("DEADLINE")
+	os.Setenv("DEADLINE", "20")
+	ctx, cancel := SetDeadline(ctx)
+	defer cancel()
 
-		So(ctx.Err(), ShouldBeNil)
-		time.Sleep(time.Duration(31) * time.Millisecond)
-		So(ctx.Err(), ShouldNotBeNil)
+	assert.Nil(ctx.Err())
+	time.Sleep(time.Duration(31) * time.Millisecond)
+	assert.NotNil(ctx.Err())
 
-		deadline = -1 // remove cache
-		os.Setenv("DEADLINE", backup)
-	})
+	deadline = -1 // remove cache
+	os.Setenv("DEADLINE", backup)
 }
 
 func TestDeadlineNotSet(t *testing.T) {
-	Convey("should return deadline", t, func() {
-		ctx := context.Background()
-		So(ctx.Err(), ShouldBeNil)
+	assert := assert.New(t)
+	ctx := context.Background()
+	assert.Nil(ctx.Err())
 
-		backup := os.Getenv("DEADLINE")
-		os.Setenv("DEADLINE", "")
-		ctx, cancel := SetDeadline(ctx)
-		defer cancel()
+	backup := os.Getenv("DEADLINE")
+	os.Setenv("DEADLINE", "")
+	ctx, cancel := SetDeadline(ctx)
+	defer cancel()
 
-		time.Sleep(time.Duration(21) * time.Millisecond)
-		So(ctx.Err(), ShouldBeNil) // default expired is in 20,000ms
-		deadline = -1              // remove cache
-		os.Setenv("DEADLINE", backup)
-	})
+	time.Sleep(time.Duration(21) * time.Millisecond)
+	assert.Nil(ctx.Err()) // default expired is in 20,000ms
+	deadline = -1         // remove cache
+	os.Setenv("DEADLINE", backup)
 }
 
-func TestRequest(t *testing.T) {
-	Convey("should get ip and locale", t, func() {
-		ctx := context.Background()
-		So(GetRequest(ctx), ShouldBeNil)
+func TestGetIPLocale(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	assert.Nil(GetRequest(ctx))
 
-		req, _ := http.NewRequest("GET", "/", nil)
-		ctx = SetRequest(ctx, req)
-		So(ctx, ShouldNotBeNil)
+	req, _ := http.NewRequest("GET", "/", nil)
+	ctx = SetRequest(ctx, req)
+	assert.NotNil(ctx)
 
-		req2 := GetRequest(ctx)
-		So(req, ShouldEqual, req2)
-	})
+	req2 := GetRequest(ctx)
+	assert.Equal(req, req2)
 }
 
 func TestGetIPAndLocale(t *testing.T) {
-	Convey("should get ip and locale", t, func() {
-		req, _ := http.NewRequest("GET", "/", nil)
-		ctx := context.Background()
-		So(GetIP(ctx), ShouldEqual, "")
+	assert := assert.New(t)
+	req, _ := http.NewRequest("GET", "/", nil)
+	ctx := context.Background()
+	assert.Empty(GetIP(ctx))
 
-		req.Header.Add("Accept-Language", "zh-cn")
-		req.RemoteAddr = "[::1]:80"
-		ctx = context.WithValue(context.Background(), KeyRequest, req)
-		So(GetIP(ctx), ShouldEqual, "::1")
-	})
+	req.Header.Add("Accept-Language", "zh-cn")
+	req.RemoteAddr = "[::1]:80"
+	ctx = context.WithValue(context.Background(), KeyRequest, req)
+	assert.Equal("::1", GetIP(ctx))
 }
 
 func TestUserAgent(t *testing.T) {
-	Convey("should get useragent", t, func() {
-		ctx := context.Background()
-		str := GetUserAgentString(ctx)
-		So(str, ShouldBeEmpty)
+	assert := assert.New(t)
+	ctx := context.Background()
+	str := GetUserAgentString(ctx)
+	assert.Empty(str)
 
-		req, _ := http.NewRequest("GET", "/whatever", nil)
-		req.Header.Set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25")
+	req, _ := http.NewRequest("GET", "/whatever", nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25")
 
-		So(GetUserAgent(ctx), ShouldEqual, "")
-		So(GetUserAgentID(ctx), ShouldEqual, "")
+	assert.Empty(GetUserAgent(ctx))
+	assert.Empty(GetUserAgentID(ctx))
 
-		ctx = context.WithValue(context.Background(), KeyRequest, req)
+	ctx = context.WithValue(context.Background(), KeyRequest, req)
 
-		ua := GetUserAgent(ctx)
-		So(ua, ShouldNotBeEmpty)
-		id := GetUserAgentID(ctx)
-		So(id, ShouldEqual, "iPhone,iOS,Safari")
-		str = GetUserAgentString(ctx)
-		So(str, ShouldEqual, "iPhone,iOS 7.0,Safari 6.0")
-	})
+	ua := GetUserAgent(ctx)
+	assert.NotEmpty(ua)
+	id := GetUserAgentID(ctx)
+	assert.Equal("iPhone,iOS,Safari", id)
+	str = GetUserAgentString(ctx)
+	assert.Equal("iPhone,iOS 7.0,Safari 6.0", str)
 }
 
 func TestUserID(t *testing.T) {
-	Convey("should get/set user id in context", t, func() {
-		ctx := context.Background()
-		userID := GetUserID(ctx)
-		So(userID, ShouldBeEmpty)
-		ctx = SetUserID(ctx, "id")
-		userID = GetUserID(ctx)
-		So(userID, ShouldEqual, "id")
-	})
+	assert := assert.New(t)
+	ctx := context.Background()
+	userID := GetUserID(ctx)
+	assert.Empty(userID)
+	ctx = SetUserID(ctx, "id")
+	userID = GetUserID(ctx)
+	assert.Equal("id", userID)
 }
