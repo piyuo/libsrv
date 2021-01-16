@@ -4,95 +4,89 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExpiredToken(t *testing.T) {
-	Convey("should check expired date", t, func() {
-		t := time.Now().UTC().Add(60 * time.Second)
-		txt := t.Format(expiredFormat)
+	assert := assert.New(t)
+	tt := time.Now().UTC().Add(60 * time.Second)
+	txt := tt.Format(expiredFormat)
 
-		expired := isExpired(txt)
-		So(expired, ShouldBeFalse)
+	expired := isExpired(txt)
+	assert.False(expired)
 
-		expired = isExpired("200001010101")
-		So(expired, ShouldBeTrue)
+	expired = isExpired("200001010101")
+	assert.True(expired)
 
-		expired = isExpired("300001010101")
-		So(expired, ShouldBeFalse)
-	})
+	expired = isExpired("300001010101")
+	assert.False(expired)
 }
 
-func TestTokenGetSetDelete(t *testing.T) {
-	Convey("should get/set token", t, func() {
-		token := NewToken()
+func TestGetSetDeleteToken(t *testing.T) {
+	assert := assert.New(t)
 
-		value := token.Get("a")
-		So(value, ShouldEqual, "")
+	token := NewToken()
 
-		token.Set("a", "1")
-		value = token.Get("a")
-		So(value, ShouldEqual, "1")
+	value := token.Get("a")
+	assert.Equal("", value)
 
-		token.Delete("a")
-		value = token.Get("a")
-		So(value, ShouldEqual, "")
-	})
+	token.Set("a", "1")
+	value = token.Get("a")
+	assert.Equal("1", value)
+
+	token.Delete("a")
+	value = token.Get("a")
+	assert.Equal("", value)
 }
 
 func TestTokenFromToString(t *testing.T) {
-	Convey("should get/set token", t, func() {
-		token := NewToken()
-		token.Set("a", "1")
-		expired := time.Now().UTC().Add(60 * time.Second)
-		crypted, err := token.ToString(expired)
-		So(err, ShouldBeNil)
-		So(crypted, ShouldNotBeEmpty)
+	assert := assert.New(t)
+	token := NewToken()
+	token.Set("a", "1")
+	expired := time.Now().UTC().Add(60 * time.Second)
+	crypted, err := token.ToString(expired)
+	assert.Nil(err)
+	assert.NotEmpty(crypted)
 
-		token2, isExpired, err := FromString(crypted)
-		So(err, ShouldBeNil)
-		So(isExpired, ShouldBeFalse)
+	token2, isExpired, err := FromString(crypted)
+	assert.Nil(err)
+	assert.False(isExpired)
 
-		value := token2.Get("a")
-		So(value, ShouldEqual, "1")
-	})
+	value := token2.Get("a")
+	assert.Equal("1", value)
 }
 
 func TestTokenExpired(t *testing.T) {
-	Convey("should expired", t, func() {
-		token := NewToken()
-		token.Set("a", "1")
+	assert := assert.New(t)
+	token := NewToken()
+	token.Set("a", "1")
 
-		expired := time.Now().UTC().Add(-60 * time.Second)
-		crypted, err := token.ToString(expired)
-		So(err, ShouldBeNil)
-		So(crypted, ShouldNotBeEmpty)
+	expired := time.Now().UTC().Add(-60 * time.Second)
+	crypted, err := token.ToString(expired)
+	assert.Nil(err)
+	assert.NotEmpty(crypted)
 
-		token2, isExpired, err := FromString(crypted)
-		So(err, ShouldBeNil)
-		So(isExpired, ShouldBeTrue)
-		So(token2, ShouldBeNil)
-	})
+	token2, isExpired, err := FromString(crypted)
+	assert.Nil(err)
+	assert.True(isExpired)
+	assert.Nil(token2)
 }
 
 func TestInvalidToken(t *testing.T) {
-	Convey("should return error", t, func() {
-		token, expired, err := FromString("")
-		So(err, ShouldNotBeNil)
-		So(expired, ShouldBeFalse)
-		So(token, ShouldBeNil)
+	assert := assert.New(t)
+	token, expired, err := FromString("")
+	assert.NotNil(err)
+	assert.False(expired)
+	assert.Nil(token)
 
-		token, expired, err = FromString("123213123")
-		So(err, ShouldNotBeNil)
-		So(expired, ShouldBeFalse)
-		So(token, ShouldBeNil)
-	})
+	token, expired, err = FromString("123213123")
+	assert.NotNil(err)
+	assert.False(expired)
+	assert.Nil(token)
 }
 
 func TestIsExpired(t *testing.T) {
-	Convey("should expired when str is invalid", t, func() {
-		result := isExpired("a")
-		So(result, ShouldBeTrue)
-
-	})
+	assert := assert.New(t)
+	result := isExpired("a")
+	assert.True(result)
 }
