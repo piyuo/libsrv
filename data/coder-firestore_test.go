@@ -12,315 +12,346 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCoder(t *testing.T) {
-	Convey("check coder function", t, func() {
+func TestCoderInCanceledCtx(t *testing.T) {
+	Convey("should return error on canceled context", t, func() {
 		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		codesG, codesR := createSampleCoders(dbG, dbR)
+		g, err := NewSampleGlobalDB(ctx)
+		So(err, ShouldBeNil)
+		defer g.Close()
+		coders := g.Coders()
 
-		coderMustUseWithInTransacton(codesG)
-		coderMustReadBeforeWrite(ctx, dbG, codesG)
+		coder := coders.SampleCoder()
+		So(coder, ShouldNotBeNil)
 
-		coderInFailTransaction(ctx, dbG, codesG)
-		coderInFailTransaction(ctx, dbR, codesR)
+		ctxCanceled := util.CanceledCtx()
+		err = coder.Clear(ctxCanceled)
+		So(err, ShouldNotBeNil)
 
-		coderInTransaction(ctx, dbG, codesG)
-		coderInTransaction(ctx, dbR, codesR)
-
-		coderReset(ctx, dbG, codesG)
-		coderReset(ctx, dbR, codesR)
-
-		testCoderInCanceledCtx(ctx, dbR, codesG)
-		testCoderInCanceledCtx(ctx, dbR, codesR)
 	})
 }
 
-func testCoderInCanceledCtx(ctx context.Context, db SampleDB, coders *SampleCoders) {
-	coder := coders.SampleCoder()
-	So(coder, ShouldNotBeNil)
+func TestMustUseWithInTransacton(t *testing.T) {
+	Convey("should use in transaction", t, func() {
+		ctx := context.Background()
+		g, err := NewSampleGlobalDB(ctx)
+		So(err, ShouldBeNil)
+		defer g.Close()
 
-	ctxCanceled := util.CanceledCtx()
-	err := coder.Clear(ctxCanceled)
-	So(err, ShouldNotBeNil)
-}
-
-func coderMustUseWithInTransacton(codes *SampleCoders) {
-	coder := codes.SampleCoder()
-	ctx := context.Background()
-	num, err := coder.NumberRX(ctx)
-	So(err, ShouldNotBeNil)
-	So(num, ShouldEqual, 0)
-	err = coder.NumberWX(ctx)
-	So(err, ShouldNotBeNil)
-
-	code, err := coder.CodeRX(ctx)
-	So(err, ShouldNotBeNil)
-	So(code, ShouldBeEmpty)
-	err = coder.CodeWX(ctx)
-	So(err, ShouldNotBeNil)
-
-	code, err = coder.Code16RX(ctx)
-	So(err, ShouldNotBeNil)
-	So(code, ShouldBeEmpty)
-	err = coder.Code16WX(ctx)
-	So(err, ShouldNotBeNil)
-
-	code, err = coder.Code64RX(ctx)
-	So(err, ShouldNotBeNil)
-	So(code, ShouldBeEmpty)
-	err = coder.Code64WX(ctx)
-	So(err, ShouldNotBeNil)
-}
-
-func coderMustReadBeforeWrite(ctx context.Context, db *SampleGlobalDB, codes *SampleCoders) {
-	db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		err := coder.NumberWX(ctx)
+		coders := g.Coders()
+		coder := coders.SampleCoder()
+		num, err := coder.NumberRX(ctx)
 		So(err, ShouldNotBeNil)
+		So(num, ShouldEqual, 0)
+		err = coder.NumberWX(ctx)
+		So(err, ShouldNotBeNil)
+
+		code, err := coder.CodeRX(ctx)
+		So(err, ShouldNotBeNil)
+		So(code, ShouldBeEmpty)
 		err = coder.CodeWX(ctx)
 		So(err, ShouldNotBeNil)
+
+		code, err = coder.Code16RX(ctx)
+		So(err, ShouldNotBeNil)
+		So(code, ShouldBeEmpty)
 		err = coder.Code16WX(ctx)
 		So(err, ShouldNotBeNil)
+
+		code, err = coder.Code64RX(ctx)
+		So(err, ShouldNotBeNil)
+		So(code, ShouldBeEmpty)
 		err = coder.Code64WX(ctx)
 		So(err, ShouldNotBeNil)
-		return nil
+
 	})
 }
 
-func coderInFailTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
-
-	coder := codes.SampleCoder()
-	err := coder.Clear(ctx)
-	So(err, ShouldBeNil)
-	defer coder.Clear(ctx)
-
-	shardsCount, err := coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 0)
-
-	// success
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		num, err := coder.NumberRX(ctx)
+func TestMustReadBeforeWrite(t *testing.T) {
+	Convey("should read before write", t, func() {
+		ctx := context.Background()
+		g, err := NewSampleGlobalDB(ctx)
 		So(err, ShouldBeNil)
-		So(num, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX(ctx)
+		defer g.Close()
+		coders := g.Coders()
+
+		g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			err := coder.NumberWX(ctx)
+			So(err, ShouldNotBeNil)
+			err = coder.CodeWX(ctx)
+			So(err, ShouldNotBeNil)
+			err = coder.Code16WX(ctx)
+			So(err, ShouldNotBeNil)
+			err = coder.Code64WX(ctx)
+			So(err, ShouldNotBeNil)
+			return nil
+		})
+
 	})
-	So(err, ShouldBeNil)
-
-	shardsCount, err = coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 1)
-
-	// fail
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		num, err := coder.NumberRX(ctx)
-		So(err, ShouldBeNil)
-		So(num, ShouldBeGreaterThanOrEqualTo, 10)
-		err = coder.NumberWX(ctx)
-		So(err, ShouldBeNil)
-		return errors.New("make transation fail")
-	})
-	So(err, ShouldNotBeNil)
-
-	shardsCount, err = coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 1)
 }
 
-func coderInTransaction(ctx context.Context, db SampleDB, codes *SampleCoders) {
-	coder := codes.SampleCoder()
-	err := coder.Clear(ctx)
-	So(err, ShouldBeNil)
-	defer coder.Clear(ctx)
+func TestInFailTransaction(t *testing.T) {
+	Convey("should failed transaction when error", t, func() {
+		ctx := context.Background()
+		g, err := NewSampleGlobalDB(ctx)
+		So(err, ShouldBeNil)
+		defer g.Close()
+		coders := g.Coders()
 
-	var num1 int64
-	var num2 int64
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		num1, err = coder.NumberRX(ctx)
+		coder := coders.SampleCoder()
+		err = coder.Clear(ctx)
 		So(err, ShouldBeNil)
-		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX(ctx)
-	})
-	So(err, ShouldBeNil)
+		defer coder.Clear(ctx)
 
-	// call second time
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		num2, err = coder.NumberRX(ctx)
+		shardsCount, err := coder.ShardsCount(ctx)
 		So(err, ShouldBeNil)
-		So(num2, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX(ctx)
-	})
-	So(err, ShouldBeNil)
-	So(num1, ShouldNotEqual, num2)
+		So(shardsCount, ShouldEqual, 0)
 
-	var code1 string
-	var code2 string
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		code1, err = coder.CodeRX(ctx)
+		// success
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			num, err := coder.NumberRX(ctx)
+			So(err, ShouldBeNil)
+			So(num, ShouldBeGreaterThanOrEqualTo, 10)
+			return coder.NumberWX(ctx)
+		})
 		So(err, ShouldBeNil)
-		So(code1, ShouldNotBeEmpty)
-		return coder.CodeWX(ctx)
-	})
-	So(err, ShouldBeNil)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		code2, err = coder.CodeRX(ctx)
-		So(err, ShouldBeNil)
-		So(code2, ShouldNotBeEmpty)
-		return coder.CodeWX(ctx)
-	})
-	So(err, ShouldBeNil)
-	So(code1, ShouldNotEqual, code2)
 
-	var code161 string
-	var code162 string
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		code161, err = coder.Code16RX(ctx)
+		shardsCount, err = coder.ShardsCount(ctx)
 		So(err, ShouldBeNil)
-		So(code161, ShouldNotBeEmpty)
-		return coder.Code16WX(ctx)
-	})
-	So(err, ShouldBeNil)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		code162, err = coder.Code16RX(ctx)
-		So(err, ShouldBeNil)
-		So(code162, ShouldNotBeEmpty)
-		return coder.Code16WX(ctx)
-	})
-	So(err, ShouldBeNil)
-	So(code161, ShouldNotEqual, code162)
+		So(shardsCount, ShouldEqual, 1)
 
-	var code641 string
-	var code642 string
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		code641, err = coder.Code64RX(ctx)
+		// fail
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			num, err := coder.NumberRX(ctx)
+			So(err, ShouldBeNil)
+			So(num, ShouldBeGreaterThanOrEqualTo, 10)
+			err = coder.NumberWX(ctx)
+			So(err, ShouldBeNil)
+			return errors.New("make transation fail")
+		})
+		So(err, ShouldNotBeNil)
+
+		shardsCount, err = coder.ShardsCount(ctx)
 		So(err, ShouldBeNil)
-		So(code641, ShouldNotBeEmpty)
-		return coder.Code16WX(ctx)
+		So(shardsCount, ShouldEqual, 1)
 	})
-	So(err, ShouldBeNil)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		code642, err = coder.Code64RX(ctx)
+
+}
+
+func TestInTransaction(t *testing.T) {
+	Convey("should work in transaction", t, func() {
+		ctx := context.Background()
+		g, err := NewSampleGlobalDB(ctx)
 		So(err, ShouldBeNil)
-		So(code642, ShouldNotBeEmpty)
-		return coder.Code64WX(ctx)
+		defer g.Close()
+		coders := g.Coders()
+
+		coder := coders.SampleCoder()
+		err = coder.Clear(ctx)
+		So(err, ShouldBeNil)
+		defer coder.Clear(ctx)
+
+		var num1 int64
+		var num2 int64
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			num1, err = coder.NumberRX(ctx)
+			So(err, ShouldBeNil)
+			So(num1, ShouldBeGreaterThanOrEqualTo, 10)
+			return coder.NumberWX(ctx)
+		})
+		So(err, ShouldBeNil)
+
+		// call second time
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			num2, err = coder.NumberRX(ctx)
+			So(err, ShouldBeNil)
+			So(num2, ShouldBeGreaterThanOrEqualTo, 10)
+			return coder.NumberWX(ctx)
+		})
+		So(err, ShouldBeNil)
+		So(num1, ShouldNotEqual, num2)
+
+		var code1 string
+		var code2 string
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			code1, err = coder.CodeRX(ctx)
+			So(err, ShouldBeNil)
+			So(code1, ShouldNotBeEmpty)
+			return coder.CodeWX(ctx)
+		})
+		So(err, ShouldBeNil)
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			code2, err = coder.CodeRX(ctx)
+			So(err, ShouldBeNil)
+			So(code2, ShouldNotBeEmpty)
+			return coder.CodeWX(ctx)
+		})
+		So(err, ShouldBeNil)
+		So(code1, ShouldNotEqual, code2)
+
+		var code161 string
+		var code162 string
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			code161, err = coder.Code16RX(ctx)
+			So(err, ShouldBeNil)
+			So(code161, ShouldNotBeEmpty)
+			return coder.Code16WX(ctx)
+		})
+		So(err, ShouldBeNil)
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			code162, err = coder.Code16RX(ctx)
+			So(err, ShouldBeNil)
+			So(code162, ShouldNotBeEmpty)
+			return coder.Code16WX(ctx)
+		})
+		So(err, ShouldBeNil)
+		So(code161, ShouldNotEqual, code162)
+
+		var code641 string
+		var code642 string
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			code641, err = coder.Code64RX(ctx)
+			So(err, ShouldBeNil)
+			So(code641, ShouldNotBeEmpty)
+			return coder.Code16WX(ctx)
+		})
+		So(err, ShouldBeNil)
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			code642, err = coder.Code64RX(ctx)
+			So(err, ShouldBeNil)
+			So(code642, ShouldNotBeEmpty)
+			return coder.Code64WX(ctx)
+		})
+		So(err, ShouldBeNil)
+		So(code641, ShouldNotEqual, code642)
 	})
-	So(err, ShouldBeNil)
-	So(code641, ShouldNotEqual, code642)
 }
 
 func TestConcurrentCoder(t *testing.T) {
-	rand.Seed(time.Now().UTC().UnixNano())
-	ctx := context.Background()
+	Convey("should work concurrently", t, func() {
 
-	gdb, _ := NewSampleGlobalDB(ctx)
-	defer gdb.Close()
-	coders := gdb.Coders()
-	coder := coders.SampleCoder()
-	err := coder.Clear(ctx)
-	defer coder.Clear(ctx)
+		rand.Seed(time.Now().UTC().UnixNano())
+		ctx := context.Background()
 
-	result := make(map[int64]int64)
-	resultMutex := sync.RWMutex{}
+		gdb, _ := NewSampleGlobalDB(ctx)
+		defer gdb.Close()
+		coders := gdb.Coders()
+		coder := coders.SampleCoder()
+		err := coder.Clear(ctx)
+		defer coder.Clear(ctx)
 
-	var concurrent = 3
-	var wg sync.WaitGroup
-	wg.Add(concurrent)
-	createCode := func() {
-		db, _ := NewSampleGlobalDB(ctx)
-		defer db.Close()
+		result := make(map[int64]int64)
+		resultMutex := sync.RWMutex{}
 
-		for i := 0; i < 3; i++ {
-			err = db.Transaction(ctx, func(ctx context.Context) error {
-				coders := db.Coders()
-				coder := coders.SampleCoder()
-				num, err := coder.NumberRX(ctx)
-				defer coder.NumberWX(ctx)
+		var concurrent = 3
+		var wg sync.WaitGroup
+		wg.Add(concurrent)
+		createCode := func() {
+			db, _ := NewSampleGlobalDB(ctx)
+			defer db.Close()
+
+			for i := 0; i < 3; i++ {
+				err = db.Transaction(ctx, func(ctx context.Context) error {
+					coders := db.Coders()
+					coder := coders.SampleCoder()
+					num, err := coder.NumberRX(ctx)
+					defer coder.NumberWX(ctx)
+					if err != nil {
+						t.Errorf("err should be nil, got %v", err)
+					}
+					resultMutex.Lock()
+					// this may print more than 9 time, cause transaction may rerun
+					//fmt.Printf("num:%v\n", num)
+					result[num] = num
+					resultMutex.Unlock()
+					return nil
+				})
 				if err != nil {
 					t.Errorf("err should be nil, got %v", err)
 				}
-				resultMutex.Lock()
-				// this may print more than 9 time, cause transaction may rerun
-				//fmt.Printf("num:%v\n", num)
-				result[num] = num
-				resultMutex.Unlock()
-				return nil
-			})
-			if err != nil {
-				t.Errorf("err should be nil, got %v", err)
 			}
+			wg.Done()
 		}
-		wg.Done()
-	}
-	//create go routing to do counting
-	for i := 0; i < concurrent; i++ {
-		go createCode()
-	}
-	wg.Wait()
-	resultLen := len(result)
-	if resultLen != 9 {
-		t.Errorf("result = %d; need 9", resultLen)
-	}
+		//create go routing to do counting
+		for i := 0; i < concurrent; i++ {
+			go createCode()
+		}
+		wg.Wait()
+		resultLen := len(result)
+		if resultLen != 9 {
+			t.Errorf("result = %d; need 9", resultLen)
+		}
+
+	})
 }
 
-func coderReset(ctx context.Context, db SampleDB, codes *SampleCoders) {
-	coder := codes.SampleCoder()
-	err := coder.Clear(ctx)
-	So(err, ShouldBeNil)
-	defer coder.Clear(ctx)
-
-	var num1 int64
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		num1, err = coder.NumberRX(ctx)
+func TestCoderReset(t *testing.T) {
+	Convey("should reset coder", t, func() {
+		ctx := context.Background()
+		g, err := NewSampleGlobalDB(ctx)
 		So(err, ShouldBeNil)
-		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX(ctx)
-	})
-	So(err, ShouldBeNil)
+		defer g.Close()
+		coders := g.Coders()
 
-	shardsCount, err := coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 1)
-
-	// reset
-	coder = codes.SampleCoder()
-	coder.Clear(ctx)
-
-	shardsCount, err = coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 0)
-
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		coder := codes.SampleCoder()
-		num1, err = coder.NumberRX(ctx)
+		coder := coders.SampleCoder()
+		err = coder.Clear(ctx)
 		So(err, ShouldBeNil)
-		So(num1, ShouldBeGreaterThanOrEqualTo, 10)
-		return coder.NumberWX(ctx)
+		defer coder.Clear(ctx)
+
+		var num1 int64
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			num1, err = coder.NumberRX(ctx)
+			So(err, ShouldBeNil)
+			So(num1, ShouldBeGreaterThanOrEqualTo, 10)
+			return coder.NumberWX(ctx)
+		})
+		So(err, ShouldBeNil)
+
+		shardsCount, err := coder.ShardsCount(ctx)
+		So(err, ShouldBeNil)
+		So(shardsCount, ShouldEqual, 1)
+
+		// reset
+		coder = coders.SampleCoder()
+		coder.Clear(ctx)
+
+		shardsCount, err = coder.ShardsCount(ctx)
+		So(err, ShouldBeNil)
+		So(shardsCount, ShouldEqual, 0)
+
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			coder := coders.SampleCoder()
+			num1, err = coder.NumberRX(ctx)
+			So(err, ShouldBeNil)
+			So(num1, ShouldBeGreaterThanOrEqualTo, 10)
+			return coder.NumberWX(ctx)
+		})
+		So(err, ShouldBeNil)
+
+		shardsCount, err = coder.ShardsCount(ctx)
+		So(err, ShouldBeNil)
+		So(shardsCount, ShouldEqual, 1)
+
+		// reset in transaction
+		coder = coders.SampleCoder()
+		err = g.Transaction(ctx, func(ctx context.Context) error {
+			return coder.Clear(ctx)
+		})
+
+		shardsCount, err = coder.ShardsCount(ctx)
+		So(err, ShouldBeNil)
+		So(shardsCount, ShouldEqual, 0)
+
 	})
-	So(err, ShouldBeNil)
-
-	shardsCount, err = coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 1)
-
-	// reset in transaction
-	coder = codes.SampleCoder()
-	err = db.Transaction(ctx, func(ctx context.Context) error {
-		return coder.Clear(ctx)
-	})
-
-	shardsCount, err = coder.ShardsCount(ctx)
-	So(err, ShouldBeNil)
-	So(shardsCount, ShouldEqual, 0)
 }

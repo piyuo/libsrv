@@ -4,17 +4,17 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTimer(t *testing.T) {
-	Convey("should use timer'", t, func() {
-		timer := NewTimer()
-		timer.Start()
-		time.Sleep(1 * time.Millisecond)
-		ms := timer.TimeSpan()
-		So(ms >= 1, ShouldBeTrue)
-		ms = timer.Stop()
-		So(ms >= 1, ShouldBeTrue)
-	})
+	assert := assert.New(t)
+	timer := NewTimer()
+	timer.Start()
+	time.Sleep(1 * time.Millisecond)
+	ms := timer.TimeSpan()
+	assert.True(ms >= 1)
+	ms = timer.Stop()
+	assert.True(ms >= 1)
+
 }

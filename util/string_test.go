@@ -3,43 +3,41 @@ package util
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestString(t *testing.T) {
-	Convey("should work on string", t, func() {
-		So(StringBetween("123", "1", "3"), ShouldEqual, "2")
-		So(StringBetween("123", "a", "3"), ShouldEqual, "")
-		So(StringBetween("123", "1", "a"), ShouldEqual, "")
-		So(StringBetween("111", "1", "1"), ShouldEqual, "")
+func TestFindInString(t *testing.T) {
+	assert := assert.New(t)
 
-		So(StringBefore("123", "2"), ShouldEqual, "1")
-		So(StringBefore("123", "a"), ShouldEqual, "")
-		So(StringAfter("123", "2"), ShouldEqual, "3")
-		So(StringAfter("123", "a"), ShouldEqual, "")
-		So(StringAfter("111", "1"), ShouldEqual, "")
-	})
+	assert.Equal("2", StringBetween("123", "1", "3"))
+	assert.Equal("", StringBetween("123", "a", "3"))
+	assert.Equal("", StringBetween("123", "1", "a"))
+	assert.Equal("", StringBetween("111", "1", "1"))
+
+	assert.Equal("1", StringBefore("123", "2"))
+	assert.Equal("", StringBefore("123", "a"))
+	assert.Equal("3", StringAfter("123", "2"))
+	assert.Equal("", StringAfter("123", "a"))
+	assert.Equal("", StringAfter("111", "1"))
 }
 
 func TestStringSplit(t *testing.T) {
-	Convey("should split string", t, func() {
-		array := []string{"1", "2", "3"}
-		str := ArrayToString(array)
-		So(str, ShouldNotBeEmpty)
-		ary := StringToArray(str)
-		So(len(ary), ShouldEqual, 3)
-		So(ary[0], ShouldEqual, "1")
-		So(ary[1], ShouldEqual, "2")
-		So(ary[2], ShouldEqual, "3")
-	})
+	assert := assert.New(t)
+	array := []string{"1", "2", "3"}
+	str := ArrayToString(array)
+	assert.NotEmpty(str)
+	ary := StringToArray(str)
+	assert.Equal(3, len(ary))
+	assert.Equal("1", ary[0])
+	assert.Equal("2", ary[1])
+	assert.Equal("3", ary[2])
 }
 
-func TestStringHash(t *testing.T) {
-	Convey("should get hashcode", t, func() {
-		str := "hi"
-		code := StringHash(str)
-		So(code, ShouldBeGreaterThan, 0)
-		code2 := StringHash(str)
-		So(code, ShouldEqual, code2)
-	})
+func TestGetHashcode(t *testing.T) {
+	assert := assert.New(t)
+	str := "hi"
+	code := StringHash(str)
+	assert.Greater(code, uint32(0))
+	code2 := StringHash(str)
+	assert.Equal(code, code2)
 }

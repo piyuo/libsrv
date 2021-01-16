@@ -3,12 +3,28 @@ package util
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestCanceledCtx(t *testing.T) {
-	Convey("should return canceled ctx", t, func() {
-		ctx := CanceledCtx()
-		So(ctx.Err(), ShouldNotBeNil)
-	})
+func TestShouldReturnErrorOnCanceledContext(t *testing.T) {
+	assert := assert.New(t)
+	ctx := CanceledCtx()
+	assert.NotNil(ctx.Err())
 }
+
+/*
+var tests = []struct {
+		input    int
+		expected int
+	}{
+		{2, 4},
+		{-1, 1},
+		{0, 2},
+		{-5, -3},
+		{99999, 100001},
+	}
+
+	for _, test := range tests {
+		assert.Equal(Calculate(test.input), test.expected)
+	}
+*/

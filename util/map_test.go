@@ -3,38 +3,35 @@ package util
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestMap(t *testing.T) {
-	Convey("should ToString() and FromString", t, func() {
-		m := map[string]string{
-			"a": "1",
-			"b": "2",
-		}
-		s := MapToString(m)
-		So(s, ShouldNotBeEmpty)
+func TestShouldConvertMapToString(t *testing.T) {
+	assert := assert.New(t)
+	m := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+	s := MapToString(m)
+	assert.NotEmpty(s)
 
-		m2 := MapFromString(s)
-		So(m2["a"], ShouldEqual, "1")
-		So(m2["b"], ShouldEqual, "2")
-	})
+	m2 := MapFromString(s)
+	assert.Equal("1", m2["a"])
+	assert.Equal("2", m2["b"])
 }
 
-func TestMapEmpty(t *testing.T) {
-	Convey("should allow empty map", t, func() {
-		m := map[string]string{}
-		s := MapToString(m)
-		So(s, ShouldBeEmpty)
+func TestShouldAllowEmptyMap(t *testing.T) {
+	assert := assert.New(t)
+	m := map[string]string{}
+	s := MapToString(m)
+	assert.Empty(s)
 
-		m2 := MapFromString(s)
-		So(len(m2), ShouldEqual, 0)
-	})
+	m2 := MapFromString(s)
+	assert.Equal(0, len(m2))
 }
 
-func TestMapEmpty2(t *testing.T) {
-	Convey("should allow empty map", t, func() {
-		m := MapFromString("=")
-		So(len(m), ShouldEqual, 0)
-	})
+func TestShouldReturnEmptyMap(t *testing.T) {
+	assert := assert.New(t)
+	m := MapFromString("=")
+	assert.Equal(0, len(m))
 }

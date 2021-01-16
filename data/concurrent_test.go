@@ -17,31 +17,17 @@ import (
 func TestConcurrentDB(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	defer g.Close()
 
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	tableG, tableR := createSampleTable(dbG, dbR)
+	counters := g.Counters()
+	coders := g.Coders()
 
-	removeSampleTable(tableG, tableR)
-	defer removeSampleTable(tableG, tableR)
-	countersG, countersR := createSampleCounters(dbG, dbR)
-	codersG, codersR := createSampleCoders(dbG, dbR)
+	counter := counters.SampleCounter()
+	defer counter.Clear(ctx)
 
-	counterG := countersG.SampleCounter()
-	counterG.Clear(ctx)
-	defer counterG.Clear(ctx)
-
-	counterR := countersR.SampleCounter()
-	counterR.Clear(ctx)
-	defer counterR.Clear(ctx)
-
-	coderG := codersG.SampleCoder()
-	coderG.Clear(ctx)
-	defer coderG.Clear(ctx)
-
-	coderR := codersR.SampleCoder()
-	coderR.Clear(ctx)
-	defer coderR.Clear(ctx)
+	coder := coders.SampleCoder()
+	defer coder.Clear(ctx)
 
 	//	begin concurrent run
 	var concurrent = 3
@@ -56,7 +42,6 @@ func TestConcurrentDB(t *testing.T) {
 
 		for i := 0; i < 5; i++ {
 			errTx := sdb.Transaction(ctx, func(ctx context.Context) error {
-				stable := sdb.SampleTable()
 
 				// read count first to avoid read after write error
 				counter := sdb.Counters().SampleCounter1000()
@@ -80,7 +65,7 @@ func TestConcurrentDB(t *testing.T) {
 				}
 				sSample.SetID(code)
 
-				if err := stable.Set(ctx, sSample); err != nil {
+				if err := sdb.SampleTable().Set(ctx, sSample); err != nil {
 					t.Errorf("err should be nil, got %v", err)
 					return errors.Wrap(err, "failed to create sample")
 				}
@@ -106,11 +91,13 @@ func TestConcurrentDB(t *testing.T) {
 	wg.Wait()
 	//finish concurrent run
 
-	count, err := counterG.CountAll(ctx)
+	count, err := counter.CountAll(ctx)
 	if err != nil {
 		t.Errorf("err should be nil, got %v", err)
 	}
 	if count != 15 {
 		t.Errorf("count = %v; want 15", count)
 	}
+
+	g.SampleTable().Clear(ctx)
 }
