@@ -4,78 +4,73 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/util"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSMS(t *testing.T) {
-	Convey("should set/get method", t, func() {
-		sms, err := NewSMS("verify", "en-US")
-		So(err, ShouldBeNil)
-		backupText := sms.GetText()
-		So(sms.GetText(), ShouldNotBeEmpty)
-		sms.SetText("ok")
-		So(sms.GetText(), ShouldEqual, "ok")
-		sms.ReplaceText("ok", "1")
-		So(sms.GetText(), ShouldEqual, "1")
+	assert := assert.New(t)
+	sms, err := NewSMS("verify", "en-US")
+	assert.Nil(err)
+	backupText := sms.GetText()
+	assert.NotEmpty(sms.GetText())
+	sms.SetText("ok")
+	assert.Equal("ok", sms.GetText())
+	sms.ReplaceText("ok", "1")
+	assert.Equal("1", sms.GetText())
 
-		//should from cache
-		sms, err = NewSMS("verify", "en-US")
-		So(err, ShouldBeNil)
-		So(sms, ShouldNotBeNil)
-		So(sms.GetText(), ShouldEqual, backupText)
-
-	})
+	//should from cache
+	sms, err = NewSMS("verify", "en-US")
+	assert.Nil(err)
+	assert.NotNil(sms)
+	assert.Equal(backupText, sms.GetText())
 }
 
 func TestSMSError(t *testing.T) {
-	Convey("should set/get method", t, func() {
-		//test not exist template
-		sms, err := NewSMS("not exist", "en-US")
-		So(err, ShouldNotBeNil)
-		So(sms, ShouldBeNil)
+	assert := assert.New(t)
+	//test not exist template
+	sms, err := NewSMS("not exist", "en-US")
+	assert.NotNil(err)
+	assert.Nil(sms)
 
-		sms, err = NewSMS("verify", "en-US")
-		So(err, ShouldBeNil)
+	sms, err = NewSMS("verify", "en-US")
+	assert.Nil(err)
 
-		//test canceled ctx
-		canceledCtx := util.CanceledCtx()
-		err = sms.Send(canceledCtx, "+19999999999")
-		So(err, ShouldNotBeNil)
-	})
+	//test canceled ctx
+	canceledCtx := util.CanceledCtx()
+	err = sms.Send(canceledCtx, "+19999999999")
+	assert.NotNil(err)
 }
 
 func TestSendSMS(t *testing.T) {
-	Convey("should send SMS", t, func() {
-		sms, err := NewSMS("verify", "en-US")
-		So(err, ShouldBeNil)
-		sms.ReplaceText("%1", "1234")
-		//err = sms.Send(context.Background(), "+19493026176")
-		So(err, ShouldBeNil)
-	})
+	assert := assert.New(t)
+	sms, err := NewSMS("verify", "en-US")
+	assert.Nil(err)
+	sms.ReplaceText("%1", "1234")
+	//err = sms.Send(context.Background(), "+19493026176")
+	assert.Nil(err)
 }
 
 func TestE164(t *testing.T) {
-	Convey("should check number is valid E164 format", t, func() {
-		mobile, err := E164("9493017165", "US")
-		So(err, ShouldBeNil)
-		So(mobile, ShouldEqual, "+19493017165")
-		mobile, err = E164("", "")
-		So(err, ShouldNotBeNil)
-		So(mobile, ShouldBeEmpty)
-		mobile, err = E164("94911", "US")
-		So(err, ShouldNotBeNil)
-		So(mobile, ShouldBeEmpty)
-		mobile, err = E164("0987926234", "TW")
-		So(err, ShouldBeNil)
-		So(mobile, ShouldEqual, "+886987926234")
-		mobile, err = E164("9492341654", "TW")
-		So(err, ShouldNotBeNil)
-		So(mobile, ShouldBeEmpty)
-		mobile, err = E164("13916219123", "CN")
-		So(err, ShouldBeNil)
-		So(mobile, ShouldEqual, "+8613916219123")
-		mobile, err = E164("9492341654", "CN")
-		So(err, ShouldNotBeNil)
-		So(mobile, ShouldBeEmpty)
-	})
+	assert := assert.New(t)
+	mobile, err := E164("9493017165", "US")
+	assert.Nil(err)
+	assert.Equal("+19493017165", mobile)
+	mobile, err = E164("", "")
+	assert.NotNil(err)
+	assert.Empty(mobile)
+	mobile, err = E164("94911", "US")
+	assert.NotNil(err)
+	assert.Empty(mobile)
+	mobile, err = E164("0987926234", "TW")
+	assert.Nil(err)
+	assert.Equal("+886987926234", mobile)
+	mobile, err = E164("9492341654", "TW")
+	assert.NotNil(err)
+	assert.Empty(mobile)
+	mobile, err = E164("13916219123", "CN")
+	assert.Nil(err)
+	assert.Equal("+8613916219123", mobile)
+	mobile, err = E164("9492341654", "CN")
+	assert.NotNil(err)
+	assert.Empty(mobile)
 }
