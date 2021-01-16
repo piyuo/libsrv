@@ -65,9 +65,9 @@ type SiteVerify interface {
 	//Delete(ctx context.Context, siteID string) error
 }
 
-// SiteVerifyImpl is cloudflare implementation
+// Impl is cloudflare implementation
 //
-type SiteVerifyImpl struct {
+type Impl struct {
 	SiteVerify
 	client       *siteverification.Service
 	serviceEmail string
@@ -99,7 +99,7 @@ func NewSiteVerify(ctx context.Context) (SiteVerify, error) {
 		return nil, errors.Wrap(err, "failed to get credential json")
 	}
 
-	siteVerifyImpl := &SiteVerifyImpl{
+	siteVerifyImpl := &Impl{
 		client:       client,
 		serviceEmail: j["client_email"].(string),
 	}
@@ -114,7 +114,7 @@ func NewSiteVerify(ctx context.Context) (SiteVerify, error) {
 //	domainName := "mock-site-verify.piyuo.com"
 //	token, err := siteverify.GetToken(ctx, domainName)
 //
-func (impl *SiteVerifyImpl) GetToken(ctx context.Context, domainName string) (string, error) {
+func (impl *Impl) GetToken(ctx context.Context, domainName string) (string, error) {
 	webService := siteverification.NewWebResourceService(impl.client)
 	request := &siteverification.SiteVerificationWebResourceGettokenRequest{
 		VerificationMethod: "DNS_TXT",
@@ -145,7 +145,7 @@ func (impl *SiteVerifyImpl) GetToken(ctx context.Context, domainName string) (st
 //	So(err, ShouldBeNil)
 //	So(result, ShouldBeTrue)
 //
-func (impl *SiteVerifyImpl) Verify(ctx context.Context, domainName string) (bool, error) {
+func (impl *Impl) Verify(ctx context.Context, domainName string) (bool, error) {
 	webService := siteverification.NewWebResourceService(impl.client)
 	request := &siteverification.SiteVerificationWebResourceResource{
 		Site: &siteverification.SiteVerificationWebResourceResourceSite{
@@ -181,7 +181,7 @@ func (impl *SiteVerifyImpl) Verify(ctx context.Context, domainName string) (bool
 //	So(err, ShouldBeNil)
 //	So(result, ShouldBeTrue)
 //
-func (impl *SiteVerifyImpl) List(ctx context.Context) ([]*VerifiedSite, error) {
+func (impl *Impl) List(ctx context.Context) ([]*VerifiedSite, error) {
 	webService := siteverification.NewWebResourceService(impl.client)
 	call := webService.List()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*12)

@@ -3,58 +3,47 @@ package siteverify
 import (
 	"context"
 	"testing"
-	"time"
 
 	cloudflare "github.com/piyuo/libsrv/cloudflare"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewSiteVerify(t *testing.T) {
-	Convey("should new SiteVerify", t, func() {
-		storage, err := NewSiteVerify(context.Background())
-		So(err, ShouldBeNil)
-		So(storage, ShouldNotBeNil)
-	})
+	assert := assert.New(t)
+	storage, err := NewSiteVerify(context.Background())
+	assert.Nil(err)
+	assert.NotNil(storage)
 }
 
 func TestVerification(t *testing.T) {
-	Convey("should verify domain", t, func() {
-		ctx := context.Background()
-		siteverify, err := NewSiteVerify(ctx)
-		cflare, err := cloudflare.NewCloudflare(ctx)
-		domainName := "mock-site-verify.piyuo.com"
+	assert := assert.New(t)
+	ctx := context.Background()
+	siteverify, err := NewSiteVerify(ctx)
+	cflare, err := cloudflare.NewCloudflare(ctx)
+	domainName := "mock-site-verify.piyuo.com"
 
-		//clean before test
-		cflare.RemoveTxtRecord(ctx, domainName)
+	//clean before test
+	cflare.RemoveTxtRecord(ctx, domainName)
+	defer cflare.RemoveTxtRecord(ctx, domainName)
 
-		token, err := siteverify.GetToken(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(len(token), ShouldBeGreaterThan, 0)
+	token, err := siteverify.GetToken(ctx, domainName)
+	assert.Nil(err)
+	assert.Greater(len(token), 0)
 
-		//token and token2 should be the same
-		token2, err := siteverify.GetToken(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(token, ShouldEqual, token2)
+	//token and token2 should be the same
+	token2, err := siteverify.GetToken(ctx, domainName)
+	assert.Nil(err)
+	assert.Equal(token, token2)
 
-		exist, err := cflare.IsTxtRecordExist(ctx, domainName)
-		So(err, ShouldBeNil)
-		if !exist {
-			err = cflare.AddTxtRecord(ctx, domainName, token)
-			So(err, ShouldBeNil)
-		}
+	exist, err := cflare.IsTxtRecordExist(ctx, domainName)
+	assert.Nil(err)
+	assert.False(exist)
+	err = cflare.AddTxtRecord(ctx, domainName, token)
+	assert.Nil(err)
 
-		// cause update dns record need time to populate. unmark these test if you want test it manually
-		//result, err = siteverify.Verify(ctx, domainName)
-		//So(err, ShouldBeNil)
-		//So(result, ShouldBeTrue)
-		time.Sleep(60 * time.Second)
-		result, _ := siteverify.Verify(ctx, domainName)
-		So(err, ShouldBeNil)
-		So(result, ShouldBeTrue)
-
-		//clean after test
-		cflare.RemoveTxtRecord(ctx, domainName)
-	})
+	// cause update dns record need time to populate. unmark these test if you want test it manually
+	//result, _ := siteverify.Verify(ctx, domainName)
+	//assert.Nil(err)
+	//assert.True(result)
 
 }
