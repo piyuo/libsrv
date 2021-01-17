@@ -1,42 +1,37 @@
 package identifier
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOrderNumber(t *testing.T) {
+	assert := assert.New(t)
 	rand.Seed(time.Now().UnixNano())
-	Convey("should generate Order Number string", t, func() {
-		num := OrderNumber()
-		str := OrderNumberToString(num)
-		valid := OrderNumberIsValid(str)
-		So(valid, ShouldBeTrue)
-		So(str, ShouldNotBeEmpty)
-		retNum, err := OrderNumberFromString(str)
-		So(err, ShouldBeNil)
-		So(retNum, ShouldEqual, num)
-		fmt.Printf("%v\n", str)
+	num := OrderNumber()
+	str := OrderNumberToString(num)
+	valid := OrderNumberIsValid(str)
+	assert.True(valid)
+	assert.NotEmpty(str)
+	retNum, err := OrderNumberFromString(str)
+	assert.Nil(err)
+	assert.Equal(num, retNum)
+	//fmt.Printf("%v\n", str)
 
-		retNum, err = OrderNumberFromString("a")
-		So(err, ShouldNotBeNil)
-		So(retNum, ShouldEqual, 0)
-		valid = OrderNumberIsValid("aaaa")
-		So(valid, ShouldBeFalse)
-		valid = OrderNumberIsValid("0725-1726-4071-2412")
-		So(valid, ShouldBeFalse)
-	})
+	retNum, err = OrderNumberFromString("a")
+	assert.NotNil(err)
+	assert.Equal(int64(0), retNum)
+	valid = OrderNumberIsValid("aaaa")
+	assert.False(valid)
+	valid = OrderNumberIsValid("0725-1726-4071-2412")
+	assert.False(valid)
 
-	Convey("should generate Order Number", t, func() {
-		num := OrderNumber()
-		So(num > 0, ShouldBeTrue)
-		//fmt.Printf("%v\n", num)
-	})
-
+	num = OrderNumber()
+	assert.True(num > 0)
+	//fmt.Printf("%v\n", num)
 }
 
 func BenchmarkOrderNumber(b *testing.B) {

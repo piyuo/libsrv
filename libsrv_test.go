@@ -3,11 +3,10 @@ package libsrv
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLibsrv(t *testing.T) {
-	Convey("should pass libsrv", t, func() {
-		So(true, ShouldBeTrue)
-	})
+	assert := assert.New(t)
+	assert.True(true)
 }

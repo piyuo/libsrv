@@ -256,14 +256,14 @@ func isLineDuplicate(list []string, currentIndex int) bool {
 
 // extractFilename extract filename from path
 //
-// 	path := "/goconvey@v1.6.4/convey/doc.go:75"
+// 	path := "/@v1.6.4/doc.go:75"
 //	filename := extractFileName(path)
 //	So(filename, ShouldEqual, "doc.go:75")
 //
 func extractFilename(path string) string {
 	index := strings.LastIndex(path, "/")
 	if index != -1 {
-		return path[index+1 : len(path)]
+		return path[index+1:]
 	}
 	return path
 }

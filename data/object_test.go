@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,12 +77,11 @@ func doWork(f func(i int) string) string {
 }
 
 func TestFunctionCallback(t *testing.T) {
+	assert := assert.New(t)
 	text := doWork(func(i int) string {
 		return strconv.Itoa(i)
 	})
-	Convey("doWork return work", t, func() {
-		So(text, ShouldEqual, "1")
-	})
+	assert.Equal("1", text)
 }
 
 var result string

@@ -4,19 +4,17 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBigDataAction(t *testing.T) {
-	Convey("should execute the action and get response", t, func() {
-		action := &BigDataAction{}
-		// action.Name = "hello"
+	assert := assert.New(t)
+	action := &BigDataAction{}
+	// action.Name = "hello"
 
-		response, err := action.Do(context.Background())
-		So(err, ShouldBeNil)
-		So(response, ShouldNotBeNil)
-		//sr := response.(*StringResponse)
-		//So(sr.Text, ShouldEqual, "hi")
-	})
-
+	response, err := action.Do(context.Background())
+	assert.Nil(err)
+	assert.NotNil(response)
+	//sr := response.(*StringResponse)
+	//assert.Equal("hi", sr.Text )
 }

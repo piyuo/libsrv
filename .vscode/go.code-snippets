@@ -6,20 +6,4 @@
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
     // Placeholders with the same ids are connected.
     // Example:
-    "goconvey assertion": {
-        "scope": "go",
-        "prefix": "convey",
-        "body": [
-            "Convey(\"$1\", t, func() {",
-            "    So(err, ShouldBeNil)",
-            "})"
-        ],
-        "description": "goconvey assertion"
-    },
-    "goconvey import": {
-        "scope": "go",
-        "prefix": "convey",
-        "body": ["  . \"github.com/smartystreets/goconvey/convey\""],
-        "description": "goconvey assertion"
-    }
 }

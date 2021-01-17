@@ -11,27 +11,23 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/goodsign/monday v1.0.0
 	github.com/google/uuid v1.1.5
-	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mileusna/useragent v1.0.2
-	github.com/nyaruka/phonenumbers v1.0.60
+	github.com/nyaruka/phonenumbers v1.0.61
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.7.2+incompatible
 	github.com/sfreiberg/gotwilio v0.0.0-20201211181435-c426a3710ab5
 	github.com/sirupsen/logrus v1.7.0 // indirect
-	github.com/smartystreets/assertions v1.2.0 // indirect
-	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/mod v0.4.1 // indirect
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
 	golang.org/x/oauth2 v0.0.0-20210113205817-d3ed898aa8a3
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20210113181707-4bcb84eeeb78 // indirect
 	golang.org/x/text v0.3.5 // indirect
-	golang.org/x/tools v0.0.0-20210114065538-d78b04bdf963 // indirect
+	golang.org/x/tools v0.0.0-20210115202250-e0d201561e39 // indirect
 	google.golang.org/api v0.36.0
 	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f
 	google.golang.org/grpc v1.35.0 // indirect

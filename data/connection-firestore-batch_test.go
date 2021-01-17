@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +31,7 @@ func batchDeleteObjectTest(ctx context.Context, t *testing.T, db SampleDB, table
 
 	count, err := table.Query().Count(ctx)
 	assert.Equal(0, count)
-	assert.False(db.InBatch(), ShouldBeFalse)
+	assert.False(db.InBatch())
 
 	db.BatchBegin()
 	assert.True(db.InBatch())
@@ -85,7 +84,7 @@ func batchDeleteObjectTest(ctx context.Context, t *testing.T, db SampleDB, table
 	assert.Nil(err)
 	count, err = table.Query().Count(ctx)
 	assert.Nil(err)
-	assert.Equal(0, count, ShouldEqual)
+	assert.Equal(0, count)
 }
 
 func batchDeleteTest(ctx context.Context, t *testing.T, db SampleDB, table *Table) {

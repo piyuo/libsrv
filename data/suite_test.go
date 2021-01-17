@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
@@ -16,21 +16,19 @@ func TestMain(m *testing.M) {
 }
 
 func TestCleanTest(t *testing.T) {
-	Convey("should clean global database", t, func() {
-		ctx := context.Background()
-		g, err := NewSampleGlobalDB(ctx)
-		So(err, ShouldBeNil)
-		defer g.Close()
+	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
 
-		counters := g.Counters()
-		counter := counters.SampleCounter()
-		counter.Clear(ctx)
+	counters := g.Counters()
+	counter := counters.SampleCounter()
+	counter.Clear(ctx)
 
-		coders := g.Coders()
-		coder := coders.SampleCoder()
-		coder.Clear(ctx)
+	coders := g.Coders()
+	coder := coders.SampleCoder()
+	coder.Clear(ctx)
 
-		g.SampleTable().Clear(ctx)
-	})
-
+	g.SampleTable().Clear(ctx)
 }
