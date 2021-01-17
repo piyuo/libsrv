@@ -7,96 +7,90 @@ import (
 	"testing"
 	"time"
 
-	util "github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/util"
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSerial(t *testing.T) {
-	Convey("check serial function", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		serialsG, serialsR := createSampleSerials(dbG, dbR)
-
-		serialMustUseWithInTransacton(ctx, serialsG)
-		serialMustUseWithInTransacton(ctx, serialsR)
-
-		serialInTransactionTest(ctx, dbG, serialsG)
-		serialInTransactionTest(ctx, dbR, serialsR)
-
-		testSerialInCanceledCtx(ctx, dbG, serialsG)
-		testSerialInCanceledCtx(ctx, dbR, serialsR)
-
-	})
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	serialsG, _ := createSampleSerials(dbG, dbR)
+	serialMustUseWithInTransacton(ctx, t, serialsG)
+	serialInTransactionTest(ctx, t, dbG, serialsG)
+	testSerialInCanceledCtx(ctx, t, dbG, serialsG)
 }
 
-func testSerialInCanceledCtx(ctx context.Context, db SampleDB, serials *SampleSerials) {
+func testSerialInCanceledCtx(ctx context.Context, t *testing.T, db SampleDB, serials *SampleSerials) {
+	assert := assert.New(t)
 	serial := serials.SampleSerial()
-	So(serial, ShouldNotBeNil)
+	assert.NotNil(serial)
 
 	ctxCanceled := util.CanceledCtx()
 	err := serial.Clear(ctxCanceled)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 }
 
-func serialMustUseWithInTransacton(ctx context.Context, serials *SampleSerials) {
+func serialMustUseWithInTransacton(ctx context.Context, t *testing.T, serials *SampleSerials) {
+	assert := assert.New(t)
 	serial := serials.SampleSerial()
 
 	num, err := serial.NumberRX()
-	So(err, ShouldNotBeNil)
-	So(num, ShouldEqual, 0)
+	assert.NotNil(err)
+	assert.Equal(int64(0), num)
 	err = serial.NumberWX()
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 }
 
-func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSerials) {
+func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, serials *SampleSerials) {
+	assert := assert.New(t)
 	serial := serials.SampleSerial()
 	err := serial.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	defer serial.Clear(ctx)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 1)
+		assert.Nil(err)
+		assert.Equal(int64(1), num)
 		return serial.NumberWX()
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 2)
+		assert.Nil(err)
+		assert.Equal(int64(2), num)
 		err = serial.NumberWX()
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		return errors.New("make fail transaction")
 	})
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 2)
+		assert.Nil(err)
+		assert.Equal(int64(2), num)
 		return serial.NumberWX()
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 3)
+		assert.Nil(err)
+		assert.Equal(int64(3), num)
 		return serial.NumberWX()
 	})
 
 	// reset serial
 	err = serial.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 1)
+		assert.Nil(err)
+		assert.Equal(int64(1), num)
 		return serial.NumberWX()
 	})
 
@@ -107,12 +101,11 @@ func serialInTransactionTest(ctx context.Context, db SampleDB, serials *SampleSe
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 1)
+		assert.Nil(err)
+		assert.Equal(int64(1), num)
 		return serial.NumberWX()
 	})
-
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 }
 
 func TestConcurrentSerial(t *testing.T) {

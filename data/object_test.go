@@ -7,72 +7,70 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestID(t *testing.T) {
-	Convey("id should be empty", t, func() {
-		d := &Sample{}
-		So(d.ID, ShouldBeEmpty)
-		So(d.TimeCreated().IsZero(), ShouldBeTrue)
-		So(d.TimeUpdated().IsZero(), ShouldBeTrue)
-	})
+	assert := assert.New(t)
+	d := &Sample{}
+	assert.Empty(d.ID)
+	assert.True(d.TimeCreated().IsZero())
+	assert.True(d.TimeUpdated().IsZero())
 }
 
 func TestBy(t *testing.T) {
-	Convey("should set/get by", t, func() {
-		d := &Sample{}
-		So(d.GetBy(), ShouldBeEmpty)
-		d.SetBy("user1")
-		So(d.GetBy(), ShouldEqual, "user1")
-	})
+	assert := assert.New(t)
+	d := &Sample{}
+	assert.Empty(d.GetBy())
+	d.SetBy("user1")
+	assert.Equal("user1", d.GetBy())
 }
 
 func TestMap(t *testing.T) {
-	Convey("should set/get map", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		samplesG, samplesR := createSampleTable(dbG, dbR)
-		defer removeSampleTable(samplesG, samplesR)
+	assert := assert.New(t)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	samplesG, samplesR := createSampleTable(dbG, dbR)
+	defer removeSampleTable(samplesG, samplesR)
 
-		sample := &Sample{
-			Name:  "sample",
-			Value: 1,
-			Map: map[string]string{
-				"1": "a",
-				"2": "b",
-			},
-			Array: []string{
-				"a",
-				"b",
-			},
-			Numbers: []int{
-				1,
-				2,
-			},
-		}
+	sample := &Sample{
+		Name:  "sample",
+		Value: 1,
+		Map: map[string]string{
+			"1": "a",
+			"2": "b",
+		},
+		Array: []string{
+			"a",
+			"b",
+		},
+		Numbers: []int{
+			1,
+			2,
+		},
+	}
 
-		sample.Obj = &PlainObject{
-			ID:   "1",
-			Name: "a",
-		}
+	sample.Obj = &PlainObject{
+		ID:   "1",
+		Name: "a",
+	}
 
-		err := samplesG.Set(ctx, sample)
-		So(err, ShouldBeNil)
-		sampleID := sample.ID
-		sample2Obj, err := samplesG.Get(ctx, sampleID)
-		So(err, ShouldBeNil)
-		sample2 := sample2Obj.(*Sample)
-		So(sample2.Map, ShouldNotBeNil)
-		So(sample2.Map["1"], ShouldEqual, "a")
-		So(sample2.Map["2"], ShouldEqual, "b")
-		So(sample2.Array[0], ShouldEqual, "a")
-		So(sample2.Array[1], ShouldEqual, "b")
-		So(sample2.Numbers[0], ShouldEqual, 1)
-		So(sample2.Numbers[1], ShouldEqual, 2)
-		So(sample2.Obj.ID, ShouldEqual, "1")
-		So(sample2.Obj.Name, ShouldEqual, "a")
-	})
+	err := samplesG.Set(ctx, sample)
+	assert.Nil(err)
+	sampleID := sample.ID
+	sample2Obj, err := samplesG.Get(ctx, sampleID)
+	assert.Nil(err)
+	sample2 := sample2Obj.(*Sample)
+	assert.NotNil(sample2.Map)
+	assert.Equal("a", sample2.Map["1"])
+	assert.Equal("b", sample2.Map["2"])
+	assert.Equal("a", sample2.Array[0])
+	assert.Equal("b", sample2.Array[1])
+	assert.Equal(1, sample2.Numbers[0])
+	assert.Equal(2, sample2.Numbers[1])
+	assert.Equal("1", sample2.Obj.ID)
+	assert.Equal("a", sample2.Obj.Name)
 }
 
 func doWork(f func(i int) string) string {

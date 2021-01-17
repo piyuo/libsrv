@@ -8,251 +8,237 @@ import (
 	"time"
 
 	util "github.com/piyuo/libsrv/util"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
-//TODO: refactor test, only need test in global
 func TestCountPeriod(t *testing.T) {
-	Convey("Should init, increment, count on counter", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		countersG, _ := createSampleCounters(dbG, dbR)
-		counter := countersG.SampleCounter()
-		counterFirestore := counter.(*CounterFirestore)
-		err := counter.Clear(ctx)
-		So(err, ShouldBeNil)
-		defer counter.Clear(ctx)
+	assert := assert.New(t)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	countersG, _ := createSampleCounters(dbG, dbR)
+	counter := countersG.SampleCounter()
+	counterFirestore := counter.(*CounterFirestore)
+	err := counter.Clear(ctx)
+	assert.Nil(err)
+	defer counter.Clear(ctx)
 
-		// mock data
-		now := time.Now().UTC()
-		err = dbG.Transaction(ctx, func(ctx context.Context) error {
-			if err := counterFirestore.mock(HierarchyYear, now, 1, 1); err != nil {
-				return err
-			}
-			if err := counterFirestore.mock(HierarchyYear, now.AddDate(-1, 0, 0), 2, 1); err != nil {
-				return err
-			}
-			if err := counterFirestore.mock(HierarchyYear, now.AddDate(-2, 0, 0), 3, 1); err != nil {
-				return err
-			}
-			return nil
-		})
-		So(err, ShouldBeNil)
-
-		from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
-		to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
-		count, err := counter.CountPeriod(ctx, HierarchyYear, from, to)
-		So(err, ShouldBeNil)
-		So(count, ShouldEqual, 2)
-
-		//test DetailPeriod
-		dict, err := counter.DetailPeriod(ctx, HierarchyYear, from, to)
-		So(len(dict), ShouldEqual, 2)
+	// mock data
+	now := time.Now().UTC()
+	err = dbG.Transaction(ctx, func(ctx context.Context) error {
+		if err := counterFirestore.mock(HierarchyYear, now, 1, 1); err != nil {
+			return err
+		}
+		if err := counterFirestore.mock(HierarchyYear, now.AddDate(-1, 0, 0), 2, 1); err != nil {
+			return err
+		}
+		if err := counterFirestore.mock(HierarchyYear, now.AddDate(-2, 0, 0), 3, 1); err != nil {
+			return err
+		}
+		return nil
 	})
+	assert.Nil(err)
+
+	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
+	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
+	count, err := counter.CountPeriod(ctx, HierarchyYear, from, to)
+	assert.Nil(err)
+	assert.Equal(float64(2), count)
+
+	//test DetailPeriod
+	dict, err := counter.DetailPeriod(ctx, HierarchyYear, from, to)
+	assert.Equal(2, len(dict))
 }
 
 func TestCounterFailedIncrement(t *testing.T) {
-	Convey("Should init, increment, count on counter", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		countersG, _ := createSampleCounters(dbG, dbR)
+	assert := assert.New(t)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	countersG, _ := createSampleCounters(dbG, dbR)
 
-		counter := countersG.SampleCounter()
-		counterFirestore := counter.(*CounterFirestore)
+	counter := countersG.SampleCounter()
+	counterFirestore := counter.(*CounterFirestore)
 
-		err := dbG.Transaction(ctx, func(ctx context.Context) error {
-			err := counter.IncrementRX(ctx)
-			So(err, ShouldBeNil)
-			counterFirestore.callRX = false // mock error
-			return counter.IncrementWX(ctx, 1)
-		})
-		So(err, ShouldNotBeNil)
-
-		err = dbG.Transaction(ctx, func(ctx context.Context) error {
-			err := counter.IncrementRX(ctx)
-			So(err, ShouldBeNil)
-			counterFirestore.shardAllExist = true
-			counterFirestore.callRX = false // mock error
-			return counter.IncrementWX(ctx, 1)
-		})
-		So(err, ShouldNotBeNil)
-
+	err := dbG.Transaction(ctx, func(ctx context.Context) error {
+		err := counter.IncrementRX(ctx)
+		assert.Nil(err)
+		counterFirestore.callRX = false // mock error
+		return counter.IncrementWX(ctx, 1)
 	})
+	assert.NotNil(err)
+
+	err = dbG.Transaction(ctx, func(ctx context.Context) error {
+		err := counter.IncrementRX(ctx)
+		assert.Nil(err)
+		counterFirestore.shardAllExist = true
+		counterFirestore.callRX = false // mock error
+		return counter.IncrementWX(ctx, 1)
+	})
+	assert.NotNil(err)
 }
 
 func TestCounterIncrement(t *testing.T) {
-	Convey("Should init, increment, count on counter", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		countersG, _ := createSampleCounters(dbG, dbR)
+	assert := assert.New(t)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	countersG, _ := createSampleCounters(dbG, dbR)
 
-		counter := countersG.Counter("SampleCount", 3, DateHierarchyFull)
-		So(counter, ShouldNotBeNil)
+	counter := countersG.Counter("SampleCount", 3, DateHierarchyFull)
+	assert.NotNil(counter)
 
-		err := counter.Clear(ctx)
-		So(err, ShouldBeNil)
-		defer counter.Clear(ctx)
+	err := counter.Clear(ctx)
+	assert.Nil(err)
+	defer counter.Clear(ctx)
 
-		err = dbG.Transaction(ctx, func(ctx context.Context) error {
-			err := counter.IncrementRX(ctx)
-			So(err, ShouldBeNil)
-			return counter.IncrementWX(ctx, 1)
-		})
-		So(err, ShouldBeNil)
-
-		shardsCount, err := counter.ShardsCount(ctx)
-		So(err, ShouldBeNil)
-		So(shardsCount, ShouldEqual, 5) // 5 shard, all/year/month/day/hour
-
-		count, err := counter.CountAll(ctx)
-		So(err, ShouldBeNil)
-		So(count, ShouldEqual, 1)
-
-		//increment again
-		err = dbG.Transaction(ctx, func(ctx context.Context) error {
-			err := counter.IncrementRX(ctx)
-			So(err, ShouldBeNil)
-			return counter.IncrementWX(ctx, 2)
-		})
-		So(err, ShouldBeNil)
-
-		count, err = counter.CountAll(ctx)
-		So(err, ShouldBeNil)
-		So(count, ShouldEqual, 3)
+	err = dbG.Transaction(ctx, func(ctx context.Context) error {
+		err := counter.IncrementRX(ctx)
+		assert.Nil(err)
+		return counter.IncrementWX(ctx, 1)
 	})
+	assert.Nil(err)
+
+	shardsCount, err := counter.ShardsCount(ctx)
+	assert.Nil(err)
+	assert.Equal(5, shardsCount) // 5 shard, all/year/month/day/hour
+
+	count, err := counter.CountAll(ctx)
+	assert.Nil(err)
+	assert.Equal(float64(1), count)
+
+	//increment again
+	err = dbG.Transaction(ctx, func(ctx context.Context) error {
+		err := counter.IncrementRX(ctx)
+		assert.Nil(err)
+		return counter.IncrementWX(ctx, 2)
+	})
+	assert.Nil(err)
+
+	count, err = counter.CountAll(ctx)
+	assert.Nil(err)
+	assert.Equal(float64(3), count)
 }
 
 func TestCounter(t *testing.T) {
-	Convey("Should init, increment, count on counter", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		countersG, countersR := createSampleCounters(dbG, dbR)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	countersG, _ := createSampleCounters(dbG, dbR)
 
-		incrementMustUseWithInTransacton(ctx, dbG, countersG)
-		incrementMustUseWithInTransacton(ctx, dbR, countersR)
-
-		testCounter(ctx, dbG, countersG)
-		testCounter(ctx, dbR, countersR)
-
-		testCounterClear(ctx, dbG, countersG)
-		testCounterClear(ctx, dbR, countersR)
-
-		testCounterInCanceledCtx(ctx, dbG, countersG)
-		testCounterInCanceledCtx(ctx, dbR, countersR)
-	})
+	incrementMustUseWithInTransacton(ctx, t, dbG, countersG)
+	testCounter(ctx, t, dbG, countersG)
+	testCounterClear(ctx, t, dbG, countersG)
+	testCounterInCanceledCtx(ctx, t, dbG, countersG)
 }
 
-func incrementMustUseWithInTransacton(ctx context.Context, db SampleDB, counters *SampleCounters) {
+func incrementMustUseWithInTransacton(ctx context.Context, t *testing.T, db SampleDB, counters *SampleCounters) {
+	assert := assert.New(t)
 	counter := counters.SampleCounter()
 	err := counter.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	defer counter.Clear(ctx)
 
 	err = counter.IncrementRX(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = counter.IncrementWX(ctx, 1)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 
 	num, err := counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(num, ShouldEqual, 0)
+	assert.Nil(err)
+	assert.Equal(float64(0), num)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementWX(ctx, 1) // should call Increment First error
-		So(err, ShouldNotBeNil)
+		assert.NotNil(err)
 		return err
 	})
-	So(err, ShouldNotBeNil)
-
+	assert.NotNil(err)
 }
 
-func testCounter(ctx context.Context, db SampleDB, counters *SampleCounters) {
+func testCounter(ctx context.Context, t *testing.T, db SampleDB, counters *SampleCounters) {
+	assert := assert.New(t)
 	// create counter
 	counter := counters.SampleCounter()
 
 	err := counter.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	defer counter.Clear(ctx)
 
-	So(counter, ShouldNotBeNil)
-	So((counter.(*CounterFirestore)).errorID(), ShouldNotBeEmpty)
+	assert.NotNil(counter)
+	assert.NotEmpty((counter.(*CounterFirestore)).errorID())
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementRX(ctx)
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		err = counter.IncrementWX(ctx, 1)
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		return err
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	num, err := counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(num, ShouldEqual, 1)
+	assert.Nil(err)
+	assert.Equal(float64(1), num)
 
 	//try again
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementRX(ctx)
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		return counter.IncrementWX(ctx, 5)
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	num, err = counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(num, ShouldEqual, 6)
+	assert.Nil(err)
+	assert.Equal(float64(6), num)
 
 	//try minus
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementRX(ctx)
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		return counter.IncrementWX(ctx, -3)
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	num, err = counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(num, ShouldEqual, 3)
+	assert.Nil(err)
+	assert.Equal(float64(3), num)
 
 	//try count in transaction
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		num, err = counter.CountAll(ctx)
-		So(err, ShouldBeNil)
-		So(num, ShouldEqual, 3)
+		assert.Nil(err)
+		assert.Equal(float64(3), num)
 		return nil
 	})
 
 	//counter minimal shards is 10
 	counter = counters.Counter("minShards", 0, DateHierarchyNone)
-	So(counter, ShouldNotBeNil)
+	assert.NotNil(counter)
 	firestoreCounter := counter.(*CounterFirestore)
-	So(firestoreCounter.numShards, ShouldEqual, 10)
+	assert.Equal(10, firestoreCounter.numShards)
 	err = counter.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 }
 
-func testCounterInCanceledCtx(ctx context.Context, db SampleDB, counters *SampleCounters) {
-
+func testCounterInCanceledCtx(ctx context.Context, t *testing.T, db SampleDB, counters *SampleCounters) {
+	assert := assert.New(t)
 	counter := counters.SampleCounter()
-	So(counter, ShouldNotBeNil)
+	assert.NotNil(counter)
 
 	err := counter.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	defer counter.Clear(ctx)
 
 	ctxCanceled := util.CanceledCtx()
 
 	count, err := counter.CountAll(ctxCanceled)
-	So(err, ShouldNotBeNil)
-	So(count, ShouldEqual, 0)
+	assert.NotNil(err)
+	assert.Equal(float64(0), count)
 
 	err = counter.Clear(ctxCanceled)
-	So(err, ShouldNotBeNil)
-
+	assert.NotNil(err)
 }
 
 func TestConcurrentCounter(t *testing.T) {
@@ -313,29 +299,29 @@ func TestConcurrentCounter(t *testing.T) {
 	}
 }
 
-func testCounterClear(ctx context.Context, db SampleDB, counters *SampleCounters) {
+func testCounterClear(ctx context.Context, t *testing.T, db SampleDB, counters *SampleCounters) {
+	assert := assert.New(t)
 
 	counter := counters.SampleCounter()
-
 	err := counter.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	defer counter.Clear(ctx)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		counter := counters.SampleCounter()
 		err = counter.IncrementRX(ctx)
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		return counter.IncrementWX(ctx, 1)
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	count, err := counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 1)
+	assert.Nil(err)
+	assert.Equal(float64(1), count)
 
 	counter.Clear(ctx)
 
 	count, err = counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 0)
+	assert.Nil(err)
+	assert.Equal(float64(0), count)
 }

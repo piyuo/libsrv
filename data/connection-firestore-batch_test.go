@@ -5,22 +5,22 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBatch(t *testing.T) {
-	Convey("should batch work", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		samplesG, samplesR := createSampleTable(dbG, dbR)
-		defer removeSampleTable(samplesG, samplesR)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	samplesG, samplesR := createSampleTable(dbG, dbR)
+	defer removeSampleTable(samplesG, samplesR)
 
-		batchDeleteObjectTest(ctx, dbG, samplesG)
-		batchDeleteTest(ctx, dbG, samplesG)
-	})
+	batchDeleteObjectTest(ctx, t, dbG, samplesG)
+	batchDeleteTest(ctx, t, dbG, samplesG)
 }
 
-func batchDeleteObjectTest(ctx context.Context, db SampleDB, table *Table) {
+func batchDeleteObjectTest(ctx context.Context, t *testing.T, db SampleDB, table *Table) {
+	assert := assert.New(t)
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -31,19 +31,19 @@ func batchDeleteObjectTest(ctx context.Context, db SampleDB, table *Table) {
 	}
 
 	count, err := table.Query().Count(ctx)
-	So(count, ShouldEqual, 0)
-	So(db.InBatch(), ShouldBeFalse)
+	assert.Equal(0, count)
+	assert.False(db.InBatch(), ShouldBeFalse)
 
 	db.BatchBegin()
-	So(db.InBatch(), ShouldBeTrue)
+	assert.True(db.InBatch())
 	table.Set(ctx, sample1) //batch mode do not return error
 	table.Set(ctx, sample2)
 	err = db.BatchCommit(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	list, err := table.Query().Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So(db.InBatch(), ShouldBeFalse)
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.False(db.InBatch())
 
 	s1 := list[0].(*Sample)
 	s2 := list[1].(*Sample)
@@ -55,40 +55,41 @@ func batchDeleteObjectTest(ctx context.Context, db SampleDB, table *Table) {
 		"Value": 9,
 	})
 	err = db.BatchCommit(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	list, err = table.Query().Where("Value", "==", 9).Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
+	assert.Nil(err)
+	assert.Equal(2, len(list))
 	g1 := list[0].(*Sample)
 	g2 := list[1].(*Sample)
-	So(g1.Value, ShouldEqual, 9)
-	So(g2.Value, ShouldEqual, 9)
+	assert.Equal(9, g1.Value)
+	assert.Equal(9, g2.Value)
 
 	db.BatchBegin()
 	table.Increment(ctx, s1.ID, "Value", 1)
 	table.Increment(ctx, s2.ID, "Value", 1)
 	err = db.BatchCommit(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	list, err = table.Query().Where("Value", "==", 10).Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
+	assert.Nil(err)
+	assert.Equal(2, len(list))
 	i1 := list[0].(*Sample)
 	i2 := list[1].(*Sample)
-	So(i1.Value, ShouldEqual, 10)
-	So(i2.Value, ShouldEqual, 10)
+	assert.Equal(10, i1.Value)
+	assert.Equal(10, i2.Value)
 
 	db.BatchBegin()
 	table.DeleteObject(ctx, sample1) //batch mode do not return error
 	table.DeleteObject(ctx, sample2)
 	err = db.BatchCommit(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	count, err = table.Query().Count(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 0)
+	assert.Nil(err)
+	assert.Equal(0, count, ShouldEqual)
 }
 
-func batchDeleteTest(ctx context.Context, db SampleDB, table *Table) {
+func batchDeleteTest(ctx context.Context, t *testing.T, db SampleDB, table *Table) {
+	assert := assert.New(t)
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -102,18 +103,18 @@ func batchDeleteTest(ctx context.Context, db SampleDB, table *Table) {
 	table.Set(ctx, sample1) //batch mode do not return error
 	table.Set(ctx, sample2)
 	err := db.BatchCommit(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	idList, err := table.Query().GetIDs(ctx)
-	So(err, ShouldBeNil)
-	So(len(idList), ShouldEqual, 2)
+	assert.Nil(err)
+	assert.Equal(2, len(idList))
 
 	db.BatchBegin()
 	table.Delete(ctx, idList[0]) //batch mode do not return error
 	table.Delete(ctx, idList[1])
 	err = db.BatchCommit(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	count, err := table.Query().Count(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 0)
+	assert.Nil(err)
+	assert.Equal(0, count)
 }

@@ -5,39 +5,37 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/session"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTable(t *testing.T) {
-	Convey("should have no error", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		tableG, tableR := createSampleTable(dbG, dbR)
-		defer removeSampleTable(tableG, tableR)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	tableG, tableR := createSampleTable(dbG, dbR)
+	defer removeSampleTable(tableG, tableR)
 
-		noErrorTest(ctx, tableG)
-		noErrorTest(ctx, tableR)
-
-		searchTest(ctx, tableG)
-		firstObjectTest(ctx, tableG)
-	})
+	noErrorTest(ctx, t, tableG)
+	searchTest(ctx, t, tableG)
+	firstObjectTest(ctx, t, tableG)
 }
 
-func noErrorTest(ctx context.Context, table *Table) {
-	So(table.Factory, ShouldNotBeNil)
-	So(table.UUID(), ShouldNotBeEmpty)
+func noErrorTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
+	assert.NotNil(table.Factory)
+	assert.NotEmpty(table.UUID())
 
 	obj := table.NewObject()
-	So(table.TableName, ShouldEqual, "Sample")
-	So(obj, ShouldNotBeNil)
-	So((obj.(*Sample)).Name, ShouldBeEmpty)
+	assert.Equal("Sample", table.TableName)
+	assert.NotNil(obj)
+	assert.Empty((obj.(*Sample)).Name)
 
 	obj2 := table.Factory
-	So(obj2, ShouldNotBeNil)
+	assert.NotNil(obj2)
 }
 
-func firstObjectTest(ctx context.Context, table *Table) {
+func firstObjectTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample1 := &Sample{
 		Name:  "a",
 		Value: 1,
@@ -45,18 +43,19 @@ func firstObjectTest(ctx context.Context, table *Table) {
 	table.Set(ctx, sample1)
 
 	obj, err := table.GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldNotBeNil)
+	assert.Nil(err)
+	assert.NotNil(obj)
 
 	id, err := table.GetFirstID(ctx)
-	So(err, ShouldBeNil)
-	So(id, ShouldNotBeEmpty)
+	assert.Nil(err)
+	assert.NotEmpty(id)
 
 	err = table.Delete(ctx, id)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 }
 
-func searchTest(ctx context.Context, table *Table) {
+func searchTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 
 	sample1 := &Sample{
 		Name:  "a",
@@ -70,41 +69,39 @@ func searchTest(ctx context.Context, table *Table) {
 	table.Set(ctx, sample2)
 
 	list, err := table.SortList(ctx, "Name", "==", "a", "Value", DESC)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
+	assert.Nil(err)
+	assert.Equal(2, len(list))
 	obj1 := list[0].(*Sample)
 	obj2 := list[1].(*Sample)
-	So(obj1.Value, ShouldEqual, 2)
-	So(obj2.Value, ShouldEqual, 1)
+	assert.Equal(2, obj1.Value)
+	assert.Equal(1, obj2.Value)
 
 	list, err = table.SortList(ctx, "Name", "==", "a", "Value", ASC)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
+	assert.Nil(err)
+	assert.Equal(2, len(list))
 	obj1 = list[0].(*Sample)
 	obj2 = list[1].(*Sample)
-	So(obj1.Value, ShouldEqual, 1)
-	So(obj2.Value, ShouldEqual, 2)
+	assert.Equal(1, obj1.Value)
+	assert.Equal(2, obj2.Value)
 	table.Delete(ctx, obj1.ID)
 	table.Delete(ctx, obj2.ID)
 }
 
 func TestChangedBy(t *testing.T) {
-	Convey("should set by which user", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		tableG, tableR := createSampleTable(dbG, dbR)
-		defer removeSampleTable(tableG, tableR)
-		sample := &Sample{
-			Name:  "a",
-			Value: 1,
-		}
-		tableG.Set(ctx, sample)
-		So(sample.GetBy(), ShouldBeEmpty)
+	assert := assert.New(t)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	tableG, tableR := createSampleTable(dbG, dbR)
+	defer removeSampleTable(tableG, tableR)
+	sample := &Sample{
+		Name:  "a",
+		Value: 1,
+	}
+	tableG.Set(ctx, sample)
+	assert.Empty(sample.GetBy())
 
-		ctx = session.SetUserID(ctx, "user1")
-		tableG.Set(ctx, sample)
-		So(sample.GetBy(), ShouldEqual, "user1")
-
-	})
+	ctx = session.SetUserID(ctx, "user1")
+	tableG.Set(ctx, sample)
+	assert.Equal("user1", sample.GetBy())
 }

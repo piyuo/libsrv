@@ -5,84 +5,80 @@ import (
 	"strconv"
 	"testing"
 
-	gcp "github.com/piyuo/libsrv/gcp"
-	util "github.com/piyuo/libsrv/util"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/piyuo/libsrv/gcp"
+	"github.com/piyuo/libsrv/util"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFirestoreNewDB(t *testing.T) {
-	Convey("should create db", t, func() {
-		ctx := context.Background()
-		cred, err := gcp.GlobalCredential(ctx)
-		So(err, ShouldBeNil)
-		db, err := firestoreNewConnection(ctx, cred)
-		defer db.Close()
-		So(err, ShouldBeNil)
-		So(db, ShouldNotBeNil)
-	})
+	assert := assert.New(t)
+	ctx := context.Background()
+	cred, err := gcp.GlobalCredential(ctx)
+	assert.Nil(err)
+	db, err := firestoreNewConnection(ctx, cred)
+	defer db.Close()
+	assert.Nil(err)
+	assert.NotNil(db)
 }
 
 func TestFirestoreGlobalDB(t *testing.T) {
-	Convey("should create global db", t, func() {
-		ctx := context.Background()
-		conn, err := FirestoreGlobalConnection(ctx)
-		defer conn.Close()
-		So(err, ShouldBeNil)
-		So(conn, ShouldNotBeNil)
+	assert := assert.New(t)
+	ctx := context.Background()
+	conn, err := FirestoreGlobalConnection(ctx)
+	defer conn.Close()
+	assert.Nil(err)
+	assert.NotNil(conn)
 
-		firestoreConn := conn.(*ConnectionFirestore)
-		id := firestoreConn.errorID("tablename", "")
-		So(id, ShouldEqual, "tablename")
-		id = firestoreConn.errorID("tablename", "id")
-		So(id, ShouldEqual, "tablename-id")
-	})
+	firestoreConn := conn.(*ConnectionFirestore)
+	id := firestoreConn.errorID("tablename", "")
+	assert.Equal("tablename", id)
+	id = firestoreConn.errorID("tablename", "id")
+	assert.Equal("tablename-id", id)
 }
 
 func TestConnection(t *testing.T) {
-	Convey("test genreal operation on connection", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		samplesG, samplesR := createSampleTable(dbG, dbR)
-		defer removeSampleTable(samplesG, samplesR)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	samplesG, samplesR := createSampleTable(dbG, dbR)
+	defer removeSampleTable(samplesG, samplesR)
 
-		testGroup(ctx, samplesG)
-		testGroup(ctx, samplesR)
-	})
+	testGroup(ctx, t, samplesG)
 }
 
-func testGroup(ctx context.Context, table *Table) {
-	testID(ctx, table)
-	testSetGetExistDelete(ctx, table)
-	testSelectUpdateIncrementDelete(ctx, table)
-	testListQueryFindCountClear(ctx, table)
-	testDelete(ctx, table)
-	testConnectionContextCanceled(table)
-	testSearchCountIsEmpty(ctx, table)
+func testGroup(ctx context.Context, t *testing.T, table *Table) {
+	testID(ctx, t, table)
+	testSetGetExistDelete(ctx, t, table)
+	testSelectUpdateIncrementDelete(ctx, t, table)
+	testListQueryFindCountClear(ctx, t, table)
+	testDelete(ctx, t, table)
+	testConnectionContextCanceled(t, table)
+	testSearchCountIsEmpty(ctx, t, table)
 }
 
-func testID(ctx context.Context, table *Table) {
+func testID(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
 	}
-	So(sample.ID, ShouldBeEmpty)
+	assert.Empty(sample.ID)
 
 	o, err := table.Get(ctx, "")
-	So(err, ShouldBeNil)
-	So(o, ShouldBeNil)
+	assert.Nil(err)
+	assert.Nil(o)
 
 	// auto id
 	err = table.Set(ctx, sample)
-	So(err, ShouldBeNil)
-	So(sample.ID, ShouldNotBeEmpty)
+	assert.Nil(err)
+	assert.NotEmpty(sample.ID)
 
 	sample2, err := table.Get(ctx, sample.ID)
-	So(err, ShouldBeNil)
-	So(sample2, ShouldNotBeNil)
-	So(sample.Name, ShouldEqual, sample2.(*Sample).Name)
-	So(sample2.TimeCreated().IsZero(), ShouldBeFalse)
-	So(sample2.TimeUpdated().IsZero(), ShouldBeFalse)
+	assert.Nil(err)
+	assert.NotNil(sample2)
+	assert.Equal(sample2.(*Sample).Name, sample.Name)
+	assert.False(sample2.TimeCreated().IsZero())
+	assert.False(sample2.TimeUpdated().IsZero())
 
 	// factory has no object return must error
 	bakFactory := table.Factory
@@ -90,27 +86,27 @@ func testID(ctx context.Context, table *Table) {
 		return nil
 	}
 	sampleX, err := table.Get(ctx, sample.ID)
-	So(err, ShouldNotBeNil)
-	So(sampleX, ShouldBeNil)
+	assert.NotNil(err)
+	assert.Nil(sampleX)
 	table.Factory = bakFactory
 
 	// set sample again
 	sample.Name = "modified"
 	err = table.Set(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	m, err := table.Get(ctx, sample.ID)
 	sampleM := m.(*Sample)
-	So(err, ShouldBeNil)
-	So(sampleM, ShouldNotBeNil)
-	So(sampleM.Name, ShouldEqual, "modified")
+	assert.Nil(err)
+	assert.NotNil(sampleM)
+	assert.Equal("modified", sampleM.Name)
 
 	// set nil object
 	err = table.Set(ctx, nil)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 
 	err = table.DeleteObject(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// manual id
 	sample = &Sample{
@@ -119,114 +115,116 @@ func testID(ctx context.Context, table *Table) {
 	}
 	sample.ID = "sample-id"
 	err = table.Set(ctx, sample)
-	So(err, ShouldBeNil)
-	So(sample.ID, ShouldEqual, "sample-id")
+	assert.Nil(err)
+	assert.Equal("sample-id", sample.ID)
 
 	sample3, err := table.Get(ctx, "sample-id")
-	So(err, ShouldBeNil)
-	So(sample3, ShouldNotBeNil)
-	So(sample.Name, ShouldEqual, sample3.(*Sample).Name)
+	assert.Nil(err)
+	assert.NotNil(sample3)
+	assert.Equal(sample3.(*Sample).Name, sample.Name)
 
 	err = table.DeleteObject(ctx, sample3)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 }
 
-func testSetGetExistDelete(ctx context.Context, table *Table) {
+func testSetGetExistDelete(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
 	}
 
 	err := table.Set(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	sampleID := sample.ID
 	sample2, err := table.Get(ctx, sampleID)
-	So(err, ShouldBeNil)
-	So(sample2, ShouldNotBeNil)
-	So(sample.Name, ShouldEqual, sample2.(*Sample).Name)
+	assert.Nil(err)
+	assert.NotNil(sample2)
+	assert.Equal(sample2.(*Sample).Name, sample.Name)
 
 	exist, err := table.Exist(ctx, sampleID)
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeTrue)
+	assert.Nil(err)
+	assert.True(exist)
 
 	exist, err = table.Exist(ctx, "")
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeFalse)
+	assert.Nil(err)
+	assert.False(exist)
 
 	err = table.Delete(ctx, sampleID)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	exist, err = table.Exist(ctx, sampleID)
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeFalse)
+	assert.Nil(err)
+	assert.False(exist)
 
 	sample3, err := table.Get(ctx, sampleID)
-	So(err, ShouldBeNil)
-	So(sample3, ShouldBeNil)
+	assert.Nil(err)
+	assert.Nil(sample3)
 
 	err = table.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 }
 
-func testSelectUpdateIncrementDelete(ctx context.Context, table *Table) {
+func testSelectUpdateIncrementDelete(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample := &Sample{
 		Name:  "sample",
 		Value: 6,
 	}
 	err := table.Set(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	value, err := table.Select(ctx, "NotExistID", "Value")
-	So(err, ShouldBeNil)
-	So(value, ShouldBeNil)
-
+	assert.Nil(err)
+	assert.Nil(value)
 	value, err = table.Select(ctx, sample.ID, "Value")
-	So(err, ShouldBeNil)
-	So(value, ShouldEqual, 6)
+	assert.Nil(err)
+	assert.Equal(int64(6), value)
 
 	err = table.Update(ctx, "NotExistID", map[string]interface{}{
 		"Name":  "sample2",
 		"Value": 2,
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = table.Delete(ctx, "NotExistID")
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = table.Update(ctx, sample.ID, map[string]interface{}{
 		"Name":  "sample2",
 		"Value": 2,
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	name, err := table.Select(ctx, sample.ID, "Name")
-	So(err, ShouldBeNil)
-	So(name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal("sample2", name)
 
 	value, err = table.Select(ctx, sample.ID, "Value")
-	So(err, ShouldBeNil)
-	So(value, ShouldEqual, 2)
+	assert.Nil(err)
+	assert.Equal(int64(2), value)
 
 	err = table.Increment(ctx, "NotExistID", "Value", 3)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 
 	err = table.Delete(ctx, "NotExistID")
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = table.Increment(ctx, sample.ID, "Value", 3)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	value, err = table.Select(ctx, sample.ID, "Value")
-	So(err, ShouldBeNil)
-	So(value, ShouldEqual, 5)
+	assert.Nil(err)
+	assert.Equal(int64(5), value)
 
 	err = table.DeleteObject(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 }
 
-func testListQueryFindCountClear(ctx context.Context, table *Table) {
+func testListQueryFindCountClear(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -236,15 +234,15 @@ func testListQueryFindCountClear(ctx context.Context, table *Table) {
 		Value: 2,
 	}
 	err := table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Set(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	list, err := table.All(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So(list[0].(*Sample).Name, ShouldStartWith, "sample")
-	So(list[1].(*Sample).Name, ShouldStartWith, "sample")
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.Contains(list[0].(*Sample).Name, "sample")
+	assert.Contains(list[1].(*Sample).Name, "sample")
 
 	// factory has no object return must error
 	bakFactory := table.Factory
@@ -252,163 +250,161 @@ func testListQueryFindCountClear(ctx context.Context, table *Table) {
 		return nil
 	}
 	listX, err := table.All(ctx)
-	So(err, ShouldNotBeNil)
-	So(listX, ShouldBeNil)
+	assert.NotNil(err)
+	assert.Nil(listX)
 	table.Factory = bakFactory
 
 	obj, err := table.Find(ctx, "Name", "==", "sample1")
-	So(err, ShouldBeNil)
-	So((obj.(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal("sample1", (obj.(*Sample)).Name)
 
 	list, err = table.Query().OrderBy("Name").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So(list[0].(*Sample).Name, ShouldEqual, sample1.Name)
-	So(list[1].(*Sample).Name, ShouldEqual, sample2.Name)
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.Equal(sample1.Name, list[0].(*Sample).Name)
+	assert.Equal(sample2.Name, list[1].(*Sample).Name)
 
 	obj, err = table.Find(ctx, "Value", "==", 2)
-	So(err, ShouldBeNil)
-	So((obj.(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal("sample2", (obj.(*Sample)).Name)
 
 	err = table.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	obj, err = table.Find(ctx, "Value", "==", 2)
-	So(err, ShouldBeNil)
-	So(obj, ShouldBeNil)
+	assert.Nil(err)
+	assert.Nil(obj)
 }
 
-func testSearchCountIsEmpty(ctx context.Context, table *Table) {
+func testSearchCountIsEmpty(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample := &Sample{
 		Name:  "sample",
 		Value: 0,
 	}
 	err := table.Set(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	objects, err := table.List(ctx, "Name", "==", "sample")
-	So(err, ShouldBeNil)
-	So(len(objects), ShouldEqual, 1)
+	assert.Nil(err)
+	assert.Equal(1, len(objects))
 
 	count, err := table.Count(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 1)
+	assert.Nil(err)
+	assert.Equal(1, count)
 
 	empty, err := table.IsEmpty(ctx)
-	So(err, ShouldBeNil)
-	So(empty, ShouldEqual, false)
+	assert.Nil(err)
+	assert.False(empty)
 
 	err = table.DeleteObject(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 }
 
-func testDelete(ctx context.Context, table *Table) {
+func testDelete(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample := &Sample{
 		Name:  "sample",
 		Value: 0,
 	}
 	err := table.DeleteObject(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Delete(ctx, "NotExistID")
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Delete(ctx, "NotExistID")
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = table.Set(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	exist, err := table.Exist(ctx, sample.ID)
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeTrue)
+	assert.Nil(err)
+	assert.True(exist)
 
 	sample2 := &Sample{}
 	sample2.ID = sample.ID
 	err = table.DeleteObject(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	exist, err = table.Exist(ctx, sample.ID)
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeFalse)
+	assert.Nil(err)
+	assert.False(exist)
 
 	//delete batch
 	//delete empty batch
 	ids := []string{}
 	err = table.DeleteBatch(ctx, ids)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	err = table.Set(ctx, sample)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	exist, err = table.Exist(ctx, sample.ID)
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeTrue)
+	assert.Nil(err)
+	assert.True(exist)
 
 	ids = []string{sample.ID}
 	err = table.DeleteBatch(ctx, ids)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	exist, err = table.Exist(ctx, sample.ID)
-	So(err, ShouldBeNil)
-	So(exist, ShouldBeFalse)
+	assert.Nil(err)
+	assert.False(exist)
 
 }
 
-func testConnectionContextCanceled(table *Table) {
+func testConnectionContextCanceled(t *testing.T, table *Table) {
+	assert := assert.New(t)
 	ctx := util.CanceledCtx()
 	sample := &Sample{}
 
 	err := table.Set(ctx, sample)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.Get(ctx, "notexist")
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.Delete(ctx, "notexist")
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.DeleteObject(ctx, sample)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.DeleteBatch(ctx, []string{})
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.All(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.Exist(ctx, "notexist")
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.Select(ctx, "notexist", "Value")
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.Update(ctx, "notexist", map[string]interface{}{
 		"Name":  "Sample2",
 		"Value": "2",
 	})
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.Clear(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.Query().Execute(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.Find(ctx, "Value", "==", "2")
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.Count(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.Increment(ctx, "notexist", "Value", 2)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.List(ctx, "Name", "==", "1")
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.SortList(ctx, "Name", "==", "1", "", ASC)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.All(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	_, err = table.IsEmpty(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 	err = table.Clear(ctx)
-	So(err, ShouldNotBeNil)
+	assert.NotNil(err)
 }
 
 func BenchmarkPutSpeed(b *testing.B) {
 	ctx := context.Background()
 	dbG, err := NewSampleGlobalDB(ctx)
 	defer dbG.Close()
-	So(err, ShouldBeNil)
-	table := dbG.SampleTable()
-	So(table, ShouldBeNil)
 
+	table := dbG.SampleTable()
 	dbR, err := NewSampleRegionalDB(ctx)
 	defer dbR.Close()
-	samplesR := dbR.SampleTable()
-	So(samplesR, ShouldBeNil)
-	So(err, ShouldBeNil)
 
 	sample := &Sample{}
 	b.ResetTimer()
@@ -426,15 +422,9 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 	ctx := context.Background()
 	dbG, err := NewSampleGlobalDB(ctx)
 	defer dbG.Close()
-	So(err, ShouldBeNil)
 	table := dbG.SampleTable()
-	So(table, ShouldBeNil)
-
 	dbR, err := NewSampleRegionalDB(ctx)
 	defer dbR.Close()
-	samplesR := dbR.SampleTable()
-	So(samplesR, ShouldBeNil)
-	So(err, ShouldBeNil)
 
 	sample := &Sample{}
 	err = table.Set(ctx, sample)

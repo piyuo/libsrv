@@ -5,27 +5,26 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestQuery(t *testing.T) {
-	Convey("should query table", t, func() {
-		ctx := context.Background()
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		tableG, tableR := createSampleTable(dbG, dbR)
-		defer removeSampleTable(tableG, tableR)
+	ctx := context.Background()
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	tableG, tableR := createSampleTable(dbG, dbR)
+	defer removeSampleTable(tableG, tableR)
 
-		createUpdateTimeTest(ctx, tableG)
-		queryNotExistFieldWillNotCauseError(ctx, tableG)
-		executeQueryID(ctx, tableG)
-		getFirstObjectTest(ctx, tableG)
-		listTest(ctx, tableG)
-		queryTest(ctx, tableG)
-	})
+	createUpdateTimeTest(ctx, t, tableG)
+	queryNotExistFieldWillNotCauseError(ctx, t, tableG)
+	executeQueryID(ctx, t, tableG)
+	getFirstObjectTest(ctx, t, tableG)
+	listTest(ctx, t, tableG)
+	queryTest(ctx, t, tableG)
 }
 
-func queryTest(ctx context.Context, table *Table) {
+func queryTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -35,15 +34,15 @@ func queryTest(ctx context.Context, table *Table) {
 		Value: 2,
 	}
 	err := table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Set(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// get full object
 	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample1", (list[0].(*Sample)).Name)
 
 	// factory has no object return must error
 	bakFactory := table.Factory
@@ -51,85 +50,86 @@ func queryTest(ctx context.Context, table *Table) {
 		return nil
 	}
 	listX, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
-	So(err, ShouldNotBeNil)
-	So(listX, ShouldBeNil)
+	assert.NotNil(err)
+	assert.Nil(listX)
 	table.Factory = bakFactory
 
 	list, err = table.Query().Where("Name", "==", "sample2").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample2", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().Where("Value", "==", 1).Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample1", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().Where("Value", "==", 2).Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample2", (list[0].(*Sample)).Name)
 
 	//OrderBy,OrderByDesc
 	list, err = table.Query().OrderBy("Name").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.Equal("sample1", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().OrderByDesc("Name").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.Equal("sample2", (list[0].(*Sample)).Name)
 
 	//limit
 	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample1", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample2", (list[0].(*Sample)).Name)
 
 	//startAt,startAfter,endAt,endBefore
 	list, err = table.Query().OrderBy("Name").StartAt("sample2").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample2", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().OrderBy("Name").StartAfter("sample1").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample2", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().OrderBy("Name").EndAt("sample2").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.Equal("sample1", (list[0].(*Sample)).Name)
 
 	list, err = table.Query().OrderBy("Name").EndBefore("sample2").Execute(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 1)
-	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
+	assert.Nil(err)
+	assert.Equal(1, len(list))
+	assert.Equal("sample1", (list[0].(*Sample)).Name)
 
 	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 1)
+	assert.Nil(err)
+	assert.Equal(1, count)
 
 	isEmpty, err := table.Query().Where("Name", "==", "sample1").IsEmpty(ctx)
-	So(err, ShouldBeNil)
-	So(isEmpty, ShouldBeFalse)
+	assert.Nil(err)
+	assert.False(isEmpty)
 
 	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
-	So(err, ShouldBeNil)
-	So(isExist, ShouldBeTrue)
+	assert.Nil(err)
+	assert.True(isExist)
 
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)
 }
 
-func listTest(ctx context.Context, table *Table) {
+func listTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	sample1 := &Sample{
 		Name:  "sample",
 		Value: 1,
@@ -139,32 +139,32 @@ func listTest(ctx context.Context, table *Table) {
 		Value: 2,
 	}
 	err := table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Set(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// get id only
 	list, err := table.Query().Where("Name", "==", "sample").GetIDs(ctx)
-	So(err, ShouldBeNil)
-	So(len(list), ShouldEqual, 2)
-	So(list[0], ShouldNotBeEmpty)
-	So(list[1], ShouldNotBeEmpty)
-	So(list[0], ShouldNotEqual, list[1])
+	assert.Nil(err)
+	assert.Equal(2, len(list))
+	assert.NotEmpty(list[0])
+	assert.NotEmpty(list[1])
+	assert.NotEqual(list[1], list[0])
 
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)
-
 }
 
-func getFirstObjectTest(ctx context.Context, table *Table) {
+func getFirstObjectTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 
 	obj, err := table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldBeNil)
+	assert.Nil(err)
+	assert.Nil(obj)
 
 	id, err := table.Query().Where("Name", "==", "sample").GetFirstID(ctx)
-	So(err, ShouldBeNil)
-	So(id, ShouldBeEmpty)
+	assert.Nil(err)
+	assert.Empty(id)
 
 	sample1 := &Sample{
 		Name:  "sample",
@@ -175,37 +175,38 @@ func getFirstObjectTest(ctx context.Context, table *Table) {
 		Value: 2,
 	}
 	err = table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Set(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// get top one object only
 	obj, err = table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldNotBeNil)
+	assert.Nil(err)
+	assert.NotNil(obj)
 
 	id, err = table.Query().Where("Name", "==", "sample").GetFirstID(ctx)
-	So(err, ShouldBeNil)
-	So(id, ShouldNotBeEmpty)
+	assert.Nil(err)
+	assert.NotEmpty(id)
 
 	// set limit 2 still get 1 object
 	obj, err = table.Query().Where("Name", "==", "sample").Limit(2).GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldNotBeNil)
+	assert.Nil(err)
+	assert.NotNil(obj)
 
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)
 
 }
 
-func executeQueryID(ctx context.Context, table *Table) {
+func executeQueryID(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 	obj, err := table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldBeNil)
+	assert.Nil(err)
+	assert.Nil(obj)
 
 	id, err := table.Query().Where("Name", "==", "sample").GetFirstID(ctx)
-	So(err, ShouldBeNil)
-	So(id, ShouldBeEmpty)
+	assert.Nil(err)
+	assert.Empty(id)
 
 	sample1 := &Sample{
 		BaseObject: BaseObject{
@@ -222,20 +223,21 @@ func executeQueryID(ctx context.Context, table *Table) {
 		Value: 2,
 	}
 	err = table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	err = table.Set(ctx, sample2)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// get top one object only
 	obj, err = table.Query().Where("ID", "==", "s1").GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldNotBeNil)
+	assert.Nil(err)
+	assert.NotNil(obj)
 
 	table.DeleteObject(ctx, sample1)
 	table.DeleteObject(ctx, sample2)
 }
 
-func queryNotExistFieldWillNotCauseError(ctx context.Context, table *Table) {
+func queryNotExistFieldWillNotCauseError(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 
 	sample1 := &Sample{
 		BaseObject: BaseObject{
@@ -247,15 +249,16 @@ func queryNotExistFieldWillNotCauseError(ctx context.Context, table *Table) {
 	defer table.DeleteObject(ctx, sample1)
 
 	err := table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// get top one object only
 	obj, err := table.Query().Where("notExist", "<", time.Now().UTC()).GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldBeNil)
+	assert.Nil(err)
+	assert.Nil(obj)
 }
 
-func createUpdateTimeTest(ctx context.Context, table *Table) {
+func createUpdateTimeTest(ctx context.Context, t *testing.T, table *Table) {
+	assert := assert.New(t)
 
 	sample1 := &Sample{
 		BaseObject: BaseObject{
@@ -267,10 +270,10 @@ func createUpdateTimeTest(ctx context.Context, table *Table) {
 	defer table.DeleteObject(ctx, sample1)
 
 	err := table.Set(ctx, sample1)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	// get top one object only
 	obj, err := table.Query().Where("Created", "<=", time.Now().UTC()).GetFirstObject(ctx)
-	So(err, ShouldBeNil)
-	So(obj, ShouldNotBeNil)
+	assert.Nil(err)
+	assert.NotNil(obj)
 }

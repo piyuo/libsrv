@@ -4,39 +4,36 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCounters(t *testing.T) {
-	Convey("should check table name & counter name", t, func() {
-		dbG, dbR := createSampleDB()
-		defer removeSampleDB(dbG, dbR)
-		cg, cr := createSampleCounters(dbG, dbR)
+	dbG, dbR := createSampleDB()
+	defer removeSampleDB(dbG, dbR)
+	cg, _ := createSampleCounters(dbG, dbR)
 
-		countersTest(dbG, cg)
-		countersTest(dbR, cr)
-	})
-
+	countersTest(dbG, t, cg)
 }
 
-func countersTest(db SampleDB, counters *SampleCounters) {
+func countersTest(db SampleDB, t *testing.T, counters *SampleCounters) {
+	assert := assert.New(t)
 	ctx := context.Background()
 
 	counter := counters.Counter("SampleCount", 3, DateHierarchyNone)
-	So(counter, ShouldNotBeNil)
+	assert.NotNil(counter)
 
 	err := counter.Clear(ctx)
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 	defer counter.Clear(ctx)
 
 	err = db.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementRX(ctx)
-		So(err, ShouldBeNil)
+		assert.Nil(err)
 		return counter.IncrementWX(ctx, 1)
 	})
-	So(err, ShouldBeNil)
+	assert.Nil(err)
 
 	count, err := counter.CountAll(ctx)
-	So(err, ShouldBeNil)
-	So(count, ShouldEqual, 1)
+	assert.Nil(err)
+	assert.Equal(float64(1), count)
 }
