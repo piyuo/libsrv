@@ -54,8 +54,8 @@ func (s *Server) Start() {
 		return
 	}
 	http.Handle("/", s.newHandler())
-	if s.Map == nil {
-		msg := "server need Map for command pattern, try &Server{Map:yourMap}"
+	if s.Map == nil && s.HTTPHandler == nil {
+		msg := "server need Map for command pattern or custom HTTPHandler , try &Server{Map:yourMap,HTTPHandler: customHTTPHandler}"
 		panic(msg)
 	}
 	s.dispatch = &Dispatch{
