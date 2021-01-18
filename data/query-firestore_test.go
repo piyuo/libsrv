@@ -8,23 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQuery(t *testing.T) {
-	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	tableG, tableR := createSampleTable(dbG, dbR)
-	defer removeSampleTable(tableG, tableR)
-
-	createUpdateTimeTest(ctx, t, tableG)
-	queryNotExistFieldWillNotCauseError(ctx, t, tableG)
-	executeQueryID(ctx, t, tableG)
-	getFirstObjectTest(ctx, t, tableG)
-	listTest(ctx, t, tableG)
-	queryTest(ctx, t, tableG)
-}
-
-func queryTest(ctx context.Context, t *testing.T, table *Table) {
+func TestQueryTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -33,10 +24,13 @@ func queryTest(ctx context.Context, t *testing.T, table *Table) {
 		Name:  "sample2",
 		Value: 2,
 	}
-	err := table.Set(ctx, sample1)
+	err = table.Set(ctx, sample1)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
+
 	err = table.Set(ctx, sample2)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample2)
 
 	// get full object
 	list, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)
@@ -124,12 +118,16 @@ func queryTest(ctx context.Context, t *testing.T, table *Table) {
 	assert.Nil(err)
 	assert.True(isExist)
 
-	table.DeleteObject(ctx, sample1)
-	table.DeleteObject(ctx, sample2)
 }
 
-func listTest(ctx context.Context, t *testing.T, table *Table) {
+func TestList(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample1 := &Sample{
 		Name:  "sample",
 		Value: 1,
@@ -138,10 +136,12 @@ func listTest(ctx context.Context, t *testing.T, table *Table) {
 		Name:  "sample",
 		Value: 2,
 	}
-	err := table.Set(ctx, sample1)
+	err = table.Set(ctx, sample1)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
 	err = table.Set(ctx, sample2)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample2)
 
 	// get id only
 	list, err := table.Query().Where("Name", "==", "sample").GetIDs(ctx)
@@ -151,12 +151,15 @@ func listTest(ctx context.Context, t *testing.T, table *Table) {
 	assert.NotEmpty(list[1])
 	assert.NotEqual(list[1], list[0])
 
-	table.DeleteObject(ctx, sample1)
-	table.DeleteObject(ctx, sample2)
 }
 
-func getFirstObjectTest(ctx context.Context, t *testing.T, table *Table) {
+func TestGetFirstObjectTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
 
 	obj, err := table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
 	assert.Nil(err)
@@ -176,8 +179,10 @@ func getFirstObjectTest(ctx context.Context, t *testing.T, table *Table) {
 	}
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
 	err = table.Set(ctx, sample2)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample2)
 
 	// get top one object only
 	obj, err = table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
@@ -193,13 +198,16 @@ func getFirstObjectTest(ctx context.Context, t *testing.T, table *Table) {
 	assert.Nil(err)
 	assert.NotNil(obj)
 
-	table.DeleteObject(ctx, sample1)
-	table.DeleteObject(ctx, sample2)
-
 }
 
-func executeQueryID(ctx context.Context, t *testing.T, table *Table) {
+func TestExecuteQueryID(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	obj, err := table.Query().Where("Name", "==", "sample").GetFirstObject(ctx)
 	assert.Nil(err)
 	assert.Nil(obj)
@@ -224,20 +232,26 @@ func executeQueryID(ctx context.Context, t *testing.T, table *Table) {
 	}
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
+
 	err = table.Set(ctx, sample2)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample2)
 
 	// get top one object only
 	obj, err = table.Query().Where("ID", "==", "s1").GetFirstObject(ctx)
 	assert.Nil(err)
 	assert.NotNil(obj)
 
-	table.DeleteObject(ctx, sample1)
-	table.DeleteObject(ctx, sample2)
 }
 
-func queryNotExistFieldWillNotCauseError(ctx context.Context, t *testing.T, table *Table) {
+func TestQueryNotExistFieldWillNotCauseError(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
 
 	sample1 := &Sample{
 		BaseObject: BaseObject{
@@ -246,10 +260,10 @@ func queryNotExistFieldWillNotCauseError(ctx context.Context, t *testing.T, tabl
 		Name:  "sample",
 		Value: 1,
 	}
-	defer table.DeleteObject(ctx, sample1)
 
-	err := table.Set(ctx, sample1)
+	err = table.Set(ctx, sample1)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
 
 	// get top one object only
 	obj, err := table.Query().Where("notExist", "<", time.Now().UTC()).GetFirstObject(ctx)
@@ -257,8 +271,13 @@ func queryNotExistFieldWillNotCauseError(ctx context.Context, t *testing.T, tabl
 	assert.Nil(obj)
 }
 
-func createUpdateTimeTest(ctx context.Context, t *testing.T, table *Table) {
+func TestCreateUpdateTimeTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
 
 	sample1 := &Sample{
 		BaseObject: BaseObject{
@@ -267,10 +286,10 @@ func createUpdateTimeTest(ctx context.Context, t *testing.T, table *Table) {
 		Name:  "sample",
 		Value: 1,
 	}
-	defer table.DeleteObject(ctx, sample1)
 
-	err := table.Set(ctx, sample1)
+	err = table.Set(ctx, sample1)
 	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
 
 	// get top one object only
 	obj, err := table.Query().Where("Created", "<=", time.Now().UTC()).GetFirstObject(ctx)

@@ -8,20 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTable(t *testing.T) {
-	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	tableG, tableR := createSampleTable(dbG, dbR)
-	defer removeSampleTable(tableG, tableR)
-
-	noErrorTest(ctx, t, tableG)
-	searchTest(ctx, t, tableG)
-	firstObjectTest(ctx, t, tableG)
-}
-
-func noErrorTest(ctx context.Context, t *testing.T, table *Table) {
+func TestNoErrorTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	assert.NotNil(table.Factory)
 	assert.NotEmpty(table.UUID())
 
@@ -34,8 +28,14 @@ func noErrorTest(ctx context.Context, t *testing.T, table *Table) {
 	assert.NotNil(obj2)
 }
 
-func firstObjectTest(ctx context.Context, t *testing.T, table *Table) {
+func TestFirstObjectTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample1 := &Sample{
 		Name:  "a",
 		Value: 1,
@@ -54,8 +54,13 @@ func firstObjectTest(ctx context.Context, t *testing.T, table *Table) {
 	assert.Nil(err)
 }
 
-func searchTest(ctx context.Context, t *testing.T, table *Table) {
+func TestSearch(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
 
 	sample1 := &Sample{
 		Name:  "a",
@@ -90,18 +95,20 @@ func searchTest(ctx context.Context, t *testing.T, table *Table) {
 func TestChangedBy(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	tableG, tableR := createSampleTable(dbG, dbR)
-	defer removeSampleTable(tableG, tableR)
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample := &Sample{
 		Name:  "a",
 		Value: 1,
 	}
-	tableG.Set(ctx, sample)
+	table.Set(ctx, sample)
+	defer table.DeleteObject(ctx, sample)
 	assert.Empty(sample.GetBy())
 
 	ctx = session.SetUserID(ctx, "user1")
-	tableG.Set(ctx, sample)
+	table.Set(ctx, sample)
 	assert.Equal("user1", sample.GetBy())
 }

@@ -9,19 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTransaction(t *testing.T) {
-	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	samplesG, samplesR := createSampleTable(dbG, dbR)
-	defer removeSampleTable(samplesG, samplesR)
-
-	transactionTest(ctx, t, dbG, samplesG)
-	methodTest(ctx, t, dbG, samplesG, true)
-}
-
-func transactionTest(ctx context.Context, t *testing.T, db SampleDB, table *Table) {
+func TransactionTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -31,10 +26,10 @@ func transactionTest(ctx context.Context, t *testing.T, db SampleDB, table *Tabl
 		Value: 2,
 	}
 
-	assert.False(db.InTransaction())
+	assert.False(g.InTransaction())
 	//success transaction
-	err := db.Transaction(ctx, func(ctx context.Context) error {
-		assert.True(db.InTransaction())
+	err = g.Transaction(ctx, func(ctx context.Context) error {
+		assert.True(g.InTransaction())
 		err := table.Set(ctx, sample1)
 		assert.Nil(err)
 		err = table.Set(ctx, sample2)
@@ -54,7 +49,7 @@ func transactionTest(ctx context.Context, t *testing.T, db SampleDB, table *Tabl
 	assert.Nil(err)
 
 	//fail transaction
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		err = table.Set(ctx, sample1)
 		assert.Nil(err)
 		return errors.New("something wrong")
@@ -65,7 +60,7 @@ func transactionTest(ctx context.Context, t *testing.T, db SampleDB, table *Tabl
 	assert.True(isEmpty)
 
 	// success delete
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		err = table.Set(ctx, sample1)
 		assert.Nil(err)
 		err = table.DeleteObject(ctx, sample1)
@@ -80,7 +75,7 @@ func transactionTest(ctx context.Context, t *testing.T, db SampleDB, table *Tabl
 	assert.Nil(err)
 
 	// failed delete
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		err = table.Set(ctx, sample1)
 		assert.Nil(err)
 		err = table.DeleteObject(ctx, sample1)
@@ -95,8 +90,13 @@ func transactionTest(ctx context.Context, t *testing.T, db SampleDB, table *Tabl
 	assert.Nil(err)
 }
 
-func methodTest(ctx context.Context, t *testing.T, db SampleDB, table *Table, isGlobal bool) {
+func TestMethodTest(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
 
 	sample1 := &Sample{
 		Name:  "sample1",
@@ -108,9 +108,9 @@ func methodTest(ctx context.Context, t *testing.T, db SampleDB, table *Table, is
 	}
 
 	// get & deleteObject
-	err := table.Set(ctx, sample1)
+	err = table.Set(ctx, sample1)
 	assert.Nil(err)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		sample, err := table.Get(ctx, sample1.ID)
 		assert.Nil(err)
 		err = table.DeleteObject(ctx, sample)
@@ -124,7 +124,7 @@ func methodTest(ctx context.Context, t *testing.T, db SampleDB, table *Table, is
 	// exist & list & delete
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		exist, err := table.Exist(ctx, sample1.ID)
 		assert.Nil(err)
 		assert.True(exist)
@@ -142,7 +142,7 @@ func methodTest(ctx context.Context, t *testing.T, db SampleDB, table *Table, is
 	// select & update & Increment
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		name, err := table.Select(ctx, sample1.ID, "Name")
 		assert.Nil(err)
 		assert.Equal("sample1", name.(string))
@@ -170,7 +170,7 @@ func methodTest(ctx context.Context, t *testing.T, db SampleDB, table *Table, is
 	assert.Nil(err)
 	err = table.Set(ctx, sample2)
 	assert.Nil(err)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		obj, err := table.Find(ctx, "Name", "==", "sample1")
 		assert.Nil(err)
 		assert.Equal("sample1", (obj.(*Sample)).Name)
@@ -199,7 +199,7 @@ func methodTest(ctx context.Context, t *testing.T, db SampleDB, table *Table, is
 	// search & count & is empty
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 
 		objects, err := table.List(ctx, "Name", "==", "sample1")
 		assert.Nil(err)

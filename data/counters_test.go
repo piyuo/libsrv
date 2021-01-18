@@ -8,25 +8,16 @@ import (
 )
 
 func TestCounters(t *testing.T) {
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	cg, _ := createSampleCounters(dbG, dbR)
-
-	countersTest(dbG, t, cg)
-}
-
-func countersTest(db SampleDB, t *testing.T, counters *SampleCounters) {
 	assert := assert.New(t)
 	ctx := context.Background()
-
-	counter := counters.Counter("SampleCount", 3, DateHierarchyNone)
-	assert.NotNil(counter)
-
-	err := counter.Clear(ctx)
+	g, err := NewSampleGlobalDB(ctx)
 	assert.Nil(err)
+	defer g.Close()
+
+	counter := g.Counters().Counter("SampleCount", 3, DateHierarchyNone)
 	defer counter.Clear(ctx)
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		err := counter.IncrementRX(ctx)
 		assert.Nil(err)
 		return counter.IncrementWX(ctx, 1)

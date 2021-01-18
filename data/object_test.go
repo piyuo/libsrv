@@ -28,10 +28,10 @@ func TestBy(t *testing.T) {
 func TestMap(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	samplesG, samplesR := createSampleTable(dbG, dbR)
-	defer removeSampleTable(samplesG, samplesR)
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
 
 	sample := &Sample{
 		Name:  "sample",
@@ -55,10 +55,11 @@ func TestMap(t *testing.T) {
 		Name: "a",
 	}
 
-	err := samplesG.Set(ctx, sample)
+	err = table.Set(ctx, sample)
+	defer table.DeleteObject(ctx, sample)
 	assert.Nil(err)
 	sampleID := sample.ID
-	sample2Obj, err := samplesG.Get(ctx, sampleID)
+	sample2Obj, err := table.Get(ctx, sampleID)
 	assert.Nil(err)
 	sample2 := sample2Obj.(*Sample)
 	assert.NotNil(sample2.Map)

@@ -13,13 +13,14 @@ func TestDBInCanceledContext(t *testing.T) {
 	ctx := context.Background()
 	ctxCanceled := util.CanceledCtx()
 
-	dbR, _ := NewSampleRegionalDB(ctx)
-	assert.NotNil(dbR.GetConnection())
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	assert.NotNil(g.GetConnection())
 
-	err := dbR.Transaction(ctxCanceled, func(ctx context.Context) error {
+	err = g.Transaction(ctxCanceled, func(ctx context.Context) error {
 		return nil
 	})
 	assert.NotNil(err)
-	err = dbR.BatchCommit(ctxCanceled)
+	err = g.BatchCommit(ctxCanceled)
 	assert.NotNil(err)
 }

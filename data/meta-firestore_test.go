@@ -11,11 +11,12 @@ import (
 func TestShardsFirestore(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
 
 	shards := MetaFirestore{
-		conn:      dbG.Connection.(*ConnectionFirestore),
+		conn:      g.Connection.(*ConnectionFirestore),
 		id:        "id",
 		tableName: "tablename",
 		numShards: 0,
@@ -25,7 +26,7 @@ func TestShardsFirestore(t *testing.T) {
 
 	//check canceled ctx
 	ctxCanceled := util.CanceledCtx()
-	err := shards.assert(ctxCanceled)
+	err = shards.assert(ctxCanceled)
 	assert.NotNil(err)
 
 	//check empty id

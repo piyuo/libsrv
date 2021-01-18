@@ -36,28 +36,14 @@ func TestFirestoreGlobalDB(t *testing.T) {
 	assert.Equal("tablename-id", id)
 }
 
-func TestConnection(t *testing.T) {
-	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	samplesG, samplesR := createSampleTable(dbG, dbR)
-	defer removeSampleTable(samplesG, samplesR)
-
-	testGroup(ctx, t, samplesG)
-}
-
-func testGroup(ctx context.Context, t *testing.T, table *Table) {
-	testID(ctx, t, table)
-	testSetGetExistDelete(ctx, t, table)
-	testSelectUpdateIncrementDelete(ctx, t, table)
-	testListQueryFindCountClear(ctx, t, table)
-	testDelete(ctx, t, table)
-	testConnectionContextCanceled(t, table)
-	testSearchCountIsEmpty(ctx, t, table)
-}
-
-func testID(ctx context.Context, t *testing.T, table *Table) {
+func TestFirestoreID(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
@@ -128,14 +114,20 @@ func testID(ctx context.Context, t *testing.T, table *Table) {
 
 }
 
-func testSetGetExistDelete(ctx context.Context, t *testing.T, table *Table) {
+func TestSetGetExistDelete(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
 	}
 
-	err := table.Set(ctx, sample)
+	err = table.Set(ctx, sample)
 	assert.Nil(err)
 	sampleID := sample.ID
 	sample2, err := table.Get(ctx, sampleID)
@@ -166,13 +158,19 @@ func testSetGetExistDelete(ctx context.Context, t *testing.T, table *Table) {
 	assert.Nil(err)
 }
 
-func testSelectUpdateIncrementDelete(ctx context.Context, t *testing.T, table *Table) {
+func TestSelectUpdateIncrementDelete(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample := &Sample{
 		Name:  "sample",
 		Value: 6,
 	}
-	err := table.Set(ctx, sample)
+	err = table.Set(ctx, sample)
 	assert.Nil(err)
 
 	value, err := table.Select(ctx, "NotExistID", "Value")
@@ -223,8 +221,14 @@ func testSelectUpdateIncrementDelete(ctx context.Context, t *testing.T, table *T
 
 }
 
-func testListQueryFindCountClear(ctx context.Context, t *testing.T, table *Table) {
+func TestListQueryFindCountClear(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample1 := &Sample{
 		Name:  "sample1",
 		Value: 1,
@@ -233,7 +237,7 @@ func testListQueryFindCountClear(ctx context.Context, t *testing.T, table *Table
 		Name:  "sample2",
 		Value: 2,
 	}
-	err := table.Set(ctx, sample1)
+	err = table.Set(ctx, sample1)
 	assert.Nil(err)
 	err = table.Set(ctx, sample2)
 	assert.Nil(err)
@@ -276,13 +280,19 @@ func testListQueryFindCountClear(ctx context.Context, t *testing.T, table *Table
 	assert.Nil(obj)
 }
 
-func testSearchCountIsEmpty(ctx context.Context, t *testing.T, table *Table) {
+func TestSearchCountIsEmpty(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample := &Sample{
 		Name:  "sample",
 		Value: 0,
 	}
-	err := table.Set(ctx, sample)
+	err = table.Set(ctx, sample)
 	assert.Nil(err)
 
 	objects, err := table.List(ctx, "Name", "==", "sample")
@@ -301,13 +311,19 @@ func testSearchCountIsEmpty(ctx context.Context, t *testing.T, table *Table) {
 	assert.Nil(err)
 }
 
-func testDelete(ctx context.Context, t *testing.T, table *Table) {
+func TestDelete(t *testing.T) {
 	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	sample := &Sample{
 		Name:  "sample",
 		Value: 0,
 	}
-	err := table.DeleteObject(ctx, sample)
+	err = table.DeleteObject(ctx, sample)
 	assert.Nil(err)
 	err = table.Delete(ctx, "NotExistID")
 	assert.Nil(err)
@@ -349,12 +365,17 @@ func testDelete(ctx context.Context, t *testing.T, table *Table) {
 
 }
 
-func testConnectionContextCanceled(t *testing.T, table *Table) {
+func TestConnectionContextCanceled(t *testing.T) {
 	assert := assert.New(t)
+	g, err := NewSampleGlobalDB(context.Background())
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
 	ctx := util.CanceledCtx()
 	sample := &Sample{}
 
-	err := table.Set(ctx, sample)
+	err = table.Set(ctx, sample)
 	assert.NotNil(err)
 	_, err = table.Get(ctx, "notexist")
 	assert.NotNil(err)

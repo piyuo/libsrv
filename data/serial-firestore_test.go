@@ -12,29 +12,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerial(t *testing.T) {
-	ctx := context.Background()
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	serialsG, _ := createSampleSerials(dbG, dbR)
-	serialMustUseWithInTransacton(ctx, t, serialsG)
-	serialInTransactionTest(ctx, t, dbG, serialsG)
-	testSerialInCanceledCtx(ctx, t, dbG, serialsG)
-}
-
-func testSerialInCanceledCtx(ctx context.Context, t *testing.T, db SampleDB, serials *SampleSerials) {
+func TestSerialInCanceledCtx(t *testing.T) {
 	assert := assert.New(t)
-	serial := serials.SampleSerial()
-	assert.NotNil(serial)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	serial := g.Serials().SampleSerial()
 
 	ctxCanceled := util.CanceledCtx()
-	err := serial.Clear(ctxCanceled)
+	err = serial.Clear(ctxCanceled)
 	assert.NotNil(err)
 }
 
-func serialMustUseWithInTransacton(ctx context.Context, t *testing.T, serials *SampleSerials) {
+func TestSerialMustUseWithInTransacton(t *testing.T) {
 	assert := assert.New(t)
-	serial := serials.SampleSerial()
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	serial := g.Serials().SampleSerial()
 
 	num, err := serial.NumberRX()
 	assert.NotNil(err)
@@ -43,14 +40,16 @@ func serialMustUseWithInTransacton(ctx context.Context, t *testing.T, serials *S
 	assert.NotNil(err)
 }
 
-func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, serials *SampleSerials) {
+func TestSerialInTransactionTest(t *testing.T) {
 	assert := assert.New(t)
-	serial := serials.SampleSerial()
-	err := serial.Clear(ctx)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
 	assert.Nil(err)
+	defer g.Close()
+	serial := g.Serials().SampleSerial()
 	defer serial.Clear(ctx)
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
 		assert.Nil(err)
 		assert.Equal(int64(1), num)
@@ -58,7 +57,7 @@ func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, ser
 	})
 	assert.Nil(err)
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
 		assert.Nil(err)
 		assert.Equal(int64(2), num)
@@ -68,7 +67,7 @@ func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, ser
 	})
 	assert.NotNil(err)
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
 		assert.Nil(err)
 		assert.Equal(int64(2), num)
@@ -76,7 +75,7 @@ func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, ser
 	})
 	assert.Nil(err)
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
 		assert.Nil(err)
 		assert.Equal(int64(3), num)
@@ -87,7 +86,7 @@ func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, ser
 	err = serial.Clear(ctx)
 	assert.Nil(err)
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
 		assert.Nil(err)
 		assert.Equal(int64(1), num)
@@ -95,11 +94,11 @@ func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, ser
 	})
 
 	// reset in transaction
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		return serial.Clear(ctx)
 	})
 
-	err = db.Transaction(ctx, func(ctx context.Context) error {
+	err = g.Transaction(ctx, func(ctx context.Context) error {
 		num, err := serial.NumberRX()
 		assert.Nil(err)
 		assert.Equal(int64(1), num)
@@ -111,12 +110,9 @@ func serialInTransactionTest(ctx context.Context, t *testing.T, db SampleDB, ser
 func TestConcurrentSerial(t *testing.T) {
 	ctx := context.Background()
 	rand.Seed(time.Now().UnixNano())
-	dbG, dbR := createSampleDB()
-	defer removeSampleDB(dbG, dbR)
-	serialsG, _ := createSampleSerials(dbG, dbR)
-
-	serial := serialsG.SampleSerial()
-	err := serial.Clear(ctx)
+	g, err := NewSampleGlobalDB(ctx)
+	defer g.Close()
+	serial := g.Serials().SampleSerial()
 	defer serial.Clear(ctx)
 
 	var concurrent = 3
@@ -154,8 +150,8 @@ func TestConcurrentSerial(t *testing.T) {
 	}
 	wg.Wait()
 
-	err = dbG.Transaction(ctx, func(ctx context.Context) error {
-		serial := serialsG.SampleSerial()
+	err = g.Transaction(ctx, func(ctx context.Context) error {
+		serial := g.Serials().SampleSerial()
 		num, err := serial.NumberRX()
 		if err != nil {
 			t.Errorf("err should be nil, got %v", err)
