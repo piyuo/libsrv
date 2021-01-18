@@ -81,7 +81,7 @@ func TestArchive(t *testing.T) {
 	assert.Equal("application/octet-stream", res1.Header.Get("Content-Type"))
 }
 
-func customHTTPHandler(w http.ResponseWriter, r *http.Request) (bool, error) {
+func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
 	w.WriteHeader(http.StatusOK)
 	writeText(w, "hello")
 	return true, nil

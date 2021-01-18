@@ -17,8 +17,9 @@ import (
 
 const here = "command"
 
-//CustomHTTPHandler let you handle http request directly, return true if request is handled, return false let command pattern do the job
-type CustomHTTPHandler func(w http.ResponseWriter, r *http.Request) (bool, error)
+// CustomHTTPHandler let you handle http request directly, return true if request is handled, return false let command pattern do the job
+//
+type CustomHTTPHandler func(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error)
 
 // Server handle http request and call dispatch
 //
@@ -97,7 +98,7 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 
 	// handle by custom http handler ?
 	if s.HTTPHandler != nil {
-		result, err := s.HTTPHandler(w, r)
+		result, err := s.HTTPHandler(ctx, w, r)
 		if err != nil {
 			handleRouteException(ctx, w, err)
 			return
