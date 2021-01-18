@@ -10,7 +10,6 @@ import (
 func TestBigDataAction(t *testing.T) {
 	assert := assert.New(t)
 	action := &BigDataAction{}
-	// action.Name = "hello"
 
 	response, err := action.Do(context.Background())
 	assert.Nil(err)
