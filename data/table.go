@@ -80,8 +80,16 @@ func (c *Table) Set(ctx context.Context, object Object) error {
 	t := time.Now().UTC()
 	object.SetCreateTime(t) // create time will not change if it's not empty
 	object.SetUpdateTime(t)
-	object.SetAccountID(env.GetAccountID(ctx))
-	object.SetUserID(env.GetUserID(ctx))
+
+	accountID := env.GetAccountID(ctx)
+	if accountID != "" {
+		object.SetAccountID(accountID)
+	}
+
+	userID := env.GetUserID(ctx)
+	if userID != "" {
+		object.SetUserID(userID)
+	}
 
 	if err := c.Connection.Set(ctx, c.TableName, object); err != nil {
 		return err

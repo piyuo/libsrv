@@ -115,3 +115,32 @@ func TestObjectUserID(t *testing.T) {
 	assert.Equal("user1", sample.GetUserID())
 	assert.Equal("account1", sample.GetAccountID())
 }
+
+func TestEmptyEnvAccountIDUserID(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
+	sample := &Sample{
+		BaseObject: BaseObject{
+			UserID:    "myUserID",
+			AccountID: "myAccountID",
+		},
+		Name:  "a",
+		Value: 1,
+	}
+	table.Set(ctx, sample)
+	defer table.DeleteObject(ctx, sample)
+
+	assert.Equal("myUserID", sample.GetUserID())
+	assert.Equal("myAccountID", sample.GetAccountID())
+
+	ctx = env.SetUserID(ctx, "")
+	ctx = env.SetAccountID(ctx, "")
+	table.Set(ctx, sample)
+	assert.Equal("myUserID", sample.GetUserID())
+	assert.Equal("myAccountID", sample.GetAccountID())
+}

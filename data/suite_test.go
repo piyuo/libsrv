@@ -22,6 +22,9 @@ func TestCleanTest(t *testing.T) {
 	assert.Nil(err)
 	defer g.Close()
 
+	table := g.SampleTable()
+	table.Clear(ctx)
+
 	counters := g.Counters()
 	counter := counters.SampleCounter()
 	counter.Clear(ctx)
