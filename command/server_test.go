@@ -228,12 +228,12 @@ func TestQuery(t *testing.T) {
 	assert.Nil(err)
 
 	// success
-	ok, value := Query(r, "type")
+	value, ok := Query(r, "type")
 	assert.True(ok)
 	assert.Equal("maintenance", value)
 
 	// failed
-	ok, value = Query(r, "notExist")
+	value, ok = Query(r, "notExist")
 	assert.False(ok)
 	assert.Equal("", value)
 }
