@@ -149,6 +149,10 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 
 // Query return value from query string
 //
+//	value, ok := Query(r, "type")
+//	assert.True(ok)
+//	assert.Equal("maintenance", value)
+//
 func Query(r *http.Request, param string) (string, bool) {
 	params, ok := r.URL.Query()[param]
 	if !ok || len(params[0]) < 1 {
