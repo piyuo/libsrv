@@ -220,3 +220,20 @@ func TestServer(t *testing.T) {
 	}
 	assert.Panics(server.Start)
 }
+
+func TestQuery(t *testing.T) {
+	assert := assert.New(t)
+
+	r, err := http.NewRequest("GET", "/?type=maintenance", nil)
+	assert.Nil(err)
+
+	// success
+	ok, value := Query(r, "type")
+	assert.True(ok)
+	assert.Equal("maintenance", value)
+
+	// failed
+	ok, value = Query(r, "notExist")
+	assert.False(ok)
+	assert.Equal("", value)
+}

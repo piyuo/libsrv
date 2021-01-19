@@ -132,11 +132,10 @@ func (s *Server) Serve(w http.ResponseWriter, r *http.Request) {
 	writeBinary(w, bytes)
 }
 
-//handleRouteException convert error to status code, so client command service know how to deal with it
-//
+// handleRouteException convert error to status code, so client command service know how to deal with it
 //
 func handleRouteException(ctx context.Context, w http.ResponseWriter, err error) {
-	log.Debug(ctx, here, "[solved] "+err.Error())
+	log.Debug(ctx, here, "[logged] "+err.Error())
 
 	if goerrors.Is(err, context.DeadlineExceeded) {
 		errID := log.Error(ctx, here, err)
@@ -146,4 +145,14 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 
 	errID := log.Error(ctx, here, err)
 	writeError(w, err, http.StatusInternalServerError, errID)
+}
+
+// Query return value from query string
+//
+func Query(r *http.Request, param string) (bool, string) {
+	params, ok := r.URL.Query()[param]
+	if !ok || len(params[0]) < 1 {
+		return false, ""
+	}
+	return true, params[0]
 }
