@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/piyuo/libsrv/session"
+	"github.com/piyuo/libsrv/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -71,7 +71,7 @@ func TestGetLocaleFromContext(t *testing.T) {
 	assert.Equal("en_US", GetLocaleFromContext(ctx))
 
 	req.Header.Add("Accept-Language", "zh-cn")
-	ctx = context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx = context.WithValue(context.Background(), env.KeyContextRequest, req)
 	assert.Equal("zh_CN", GetLocaleFromContext(ctx))
 }
 
@@ -79,7 +79,7 @@ func TestResourceKey(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	assert.Equal("name_zh_TW", ResourceKey(ctx, "name"))
 }
 
@@ -87,7 +87,7 @@ func TestResourcePath(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	assert.Equal("assets/i18n/name_zh_TW.json", ResourcePath(ctx, "name"))
 }
 
@@ -95,7 +95,7 @@ func TestResource(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	json, err := Resource(ctx, "mock")
 	assert.Nil(err)
 	assert.Equal("world", json["hello"])
@@ -105,7 +105,7 @@ func TestResourceNotFound(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	json, err := Resource(ctx, "notExist")
 	assert.NotNil(err)
 	assert.Nil(json)

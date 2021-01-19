@@ -3,11 +3,10 @@ package data
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"cloud.google.com/go/firestore"
-	gcp "github.com/piyuo/libsrv/gcp"
-	identifier "github.com/piyuo/libsrv/identifier"
+	"github.com/piyuo/libsrv/gcp"
+	"github.com/piyuo/libsrv/identifier"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
@@ -104,8 +103,6 @@ func (c *ConnectionFirestore) snapshotToObject(tablename string, docRef *firesto
 	}
 	object.SetRef(docRef)
 	object.SetID(docRef.ID)
-	object.setCreated(snapshot.CreateTime)
-	object.setUpdated(snapshot.UpdateTime)
 	return nil
 }
 
@@ -254,10 +251,6 @@ func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object 
 	} else {
 		docRef = object.GetRef().(*firestore.DocumentRef)
 	}
-
-	t := time.Now().UTC()
-	object.setCreated(t)
-	object.setUpdated(t)
 
 	var err error
 	if c.tx != nil {
@@ -498,9 +491,6 @@ func (c *ConnectionFirestore) DeleteObject(ctx context.Context, tablename string
 	}
 	object.SetRef(nil)
 	object.SetID("")
-	t := time.Time{}
-	object.setCreated(t)
-	object.setUpdated(t)
 	return nil
 }
 

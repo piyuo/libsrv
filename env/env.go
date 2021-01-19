@@ -1,4 +1,4 @@
-package session
+package env
 
 import (
 	"context"
@@ -16,22 +16,27 @@ import (
 type KeyContext int
 
 const (
-	// KeyRequest is context key name for request
+	// KeyContextRequest is context key name for request
 	//
-	KeyRequest KeyContext = iota
+	KeyContextRequest KeyContext = iota
 
-	// KeyUserID is context key name for user id
+	// KeyContextUserID is context key name for user id
 	//
-	KeyUserID
+	KeyContextUserID
+
+	// KeyContextAccountID is context key name for account id
+	//
+	KeyContextAccountID
 )
 
 // deadline cache os env COMMAND_DEADLINE value
 //
 var deadline time.Duration = -1
 
-// SetDeadline set context deadline using os.Getenv("DEADLINE")
+// SetDeadline set context deadline using os.Getenv("DEADLINE"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
-//	ctx = SetRequest(ctx,request)
+//	ctx,cancel = SetRequest(ctx,request)
+//	defer cancel()
 //
 func SetDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
 
@@ -54,7 +59,7 @@ func SetDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
 //	request := GetRequest(ctx)
 //
 func GetRequest(ctx context.Context) *http.Request {
-	iRequest := ctx.Value(KeyRequest)
+	iRequest := ctx.Value(KeyContextRequest)
 	if iRequest != nil {
 		return iRequest.(*http.Request)
 	}
@@ -66,27 +71,7 @@ func GetRequest(ctx context.Context) *http.Request {
 //	ctx = SetRequest(ctx,request)
 //
 func SetRequest(ctx context.Context, request *http.Request) context.Context {
-	return context.WithValue(ctx, KeyRequest, request)
-}
-
-// SetUserID set UserID into ctx, this may used in log and data package
-//
-//	ctx = SetUserID(ctx,"user id")
-//
-func SetUserID(ctx context.Context, userID string) context.Context {
-	return context.WithValue(ctx, KeyUserID, userID)
-}
-
-// GetUserID get current user id from context
-//
-//	userID := GetUserID(ctx)
-//
-func GetUserID(ctx context.Context) string {
-	iUserID := ctx.Value(KeyUserID)
-	if iUserID != nil {
-		return iUserID.(string)
-	}
-	return ""
+	return context.WithValue(ctx, KeyContextRequest, request)
 }
 
 // GetIP return ip from current request, return empty if anything wrong
@@ -94,7 +79,7 @@ func GetUserID(ctx context.Context) string {
 //	ip := GetIP(ctx)
 //
 func GetIP(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
+	value := ctx.Value(KeyContextRequest)
 	if value == nil {
 		return ""
 	}
@@ -107,7 +92,7 @@ func GetIP(ctx context.Context) string {
 //	ua := GetUserAgentID(ctx) // "iPhone,iOS,Safari"
 //
 func GetUserAgentID(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
+	value := ctx.Value(KeyContextRequest)
 	if value == nil {
 		return ""
 	}
@@ -120,7 +105,7 @@ func GetUserAgentID(ctx context.Context) string {
 //	ua := GetUserAgentString(ctx) // "iPhone,iOS 7.0,Safari 6.0"
 //
 func GetUserAgentString(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
+	value := ctx.Value(KeyContextRequest)
 	if value == nil {
 		return ""
 	}
@@ -133,10 +118,50 @@ func GetUserAgentString(ctx context.Context) string {
 //	ua := GetUserAgent(ctx) //"Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/546.10 (KHTML, like Gecko) Version/6.0 Mobile/7E18WD Safari/8536.25"
 //
 func GetUserAgent(ctx context.Context) string {
-	value := ctx.Value(KeyRequest)
+	value := ctx.Value(KeyContextRequest)
 	if value == nil {
 		return ""
 	}
 	req := value.(*http.Request)
 	return util.GetUserAgent(req)
+}
+
+// SetUserID set UserID into ctx, this may used in log and data package
+//
+//	ctx = SetUserID(ctx,"user id")
+//
+func SetUserID(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, KeyContextUserID, userID)
+}
+
+// GetUserID return current user id from context
+//
+//	userID := GetUserID(ctx)
+//
+func GetUserID(ctx context.Context) string {
+	iUserID := ctx.Value(KeyContextUserID)
+	if iUserID != nil {
+		return iUserID.(string)
+	}
+	return ""
+}
+
+// SetAccountID set AccountID into ctx, this may used in log and data package
+//
+//	ctx = SetAccountID(ctx,"account id")
+//
+func SetAccountID(ctx context.Context, accountID string) context.Context {
+	return context.WithValue(ctx, KeyContextAccountID, accountID)
+}
+
+// GetAccountID return current user id from context
+//
+//	accountID := GetAccountID(ctx)
+//
+func GetAccountID(ctx context.Context) string {
+	iAccountID := ctx.Value(KeyContextAccountID)
+	if iAccountID != nil {
+		return iAccountID.(string)
+	}
+	return ""
 }

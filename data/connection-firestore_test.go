@@ -63,8 +63,9 @@ func TestFirestoreID(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(sample2)
 	assert.Equal(sample2.(*Sample).Name, sample.Name)
-	assert.False(sample2.TimeCreated().IsZero())
-	assert.False(sample2.TimeUpdated().IsZero())
+	sampleCreateTime := sample2.GetCreateTime()
+	assert.False(sampleCreateTime.IsZero())
+	assert.False(sample2.GetUpdateTime().IsZero())
 
 	// factory has no object return must error
 	bakFactory := table.Factory

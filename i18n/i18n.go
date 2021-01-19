@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/piyuo/libsrv/cache"
+	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/file"
-	"github.com/piyuo/libsrv/session"
 	"github.com/pkg/errors"
 )
 
@@ -35,7 +35,7 @@ func IsPredefined(locale string) (bool, string) {
 //	locale := GetLocale(ctx)
 //
 func GetLocaleFromContext(ctx context.Context) string {
-	value := ctx.Value(session.KeyRequest)
+	value := ctx.Value(env.KeyContextRequest)
 	if value == nil {
 		return "en_US"
 	}

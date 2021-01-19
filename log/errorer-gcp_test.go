@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/session"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func TestGCPErrorer(t *testing.T) {
 	assert := assert.New(t)
 	appName = "error-gcp_test"
 	ctx := context.Background()
-	ctx = session.SetUserID(ctx, "user1")
+	ctx = env.SetUserID(ctx, "user1")
 	errorer, err := NewGCPErrorer(ctx)
 	assert.Nil(err)
 	assert.NotNil(errorer)

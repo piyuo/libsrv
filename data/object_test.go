@@ -13,16 +13,24 @@ func TestID(t *testing.T) {
 	assert := assert.New(t)
 	d := &Sample{}
 	assert.Empty(d.ID)
-	assert.True(d.TimeCreated().IsZero())
-	assert.True(d.TimeUpdated().IsZero())
+	assert.True(d.GetCreateTime().IsZero())
+	assert.True(d.GetUpdateTime().IsZero())
 }
 
-func TestBy(t *testing.T) {
+func TestUserID(t *testing.T) {
 	assert := assert.New(t)
 	d := &Sample{}
-	assert.Empty(d.GetBy())
-	d.SetBy("user1")
-	assert.Equal("user1", d.GetBy())
+	assert.Empty(d.GetUserID())
+	d.SetUserID("user1")
+	assert.Equal("user1", d.GetUserID())
+}
+
+func TestAccountID(t *testing.T) {
+	assert := assert.New(t)
+	d := &Sample{}
+	assert.Empty(d.GetAccountID())
+	d.SetAccountID("account1")
+	assert.Equal("account1", d.GetAccountID())
 }
 
 func TestMap(t *testing.T) {

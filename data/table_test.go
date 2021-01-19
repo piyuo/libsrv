@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/piyuo/libsrv/session"
+	"github.com/piyuo/libsrv/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,7 +92,7 @@ func TestSearch(t *testing.T) {
 	table.Delete(ctx, obj2.ID)
 }
 
-func TestChangedBy(t *testing.T) {
+func TestObjectUserID(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	g, err := NewSampleGlobalDB(ctx)
@@ -106,9 +106,12 @@ func TestChangedBy(t *testing.T) {
 	}
 	table.Set(ctx, sample)
 	defer table.DeleteObject(ctx, sample)
-	assert.Empty(sample.GetBy())
+	assert.Empty(sample.GetUserID())
+	assert.Empty(sample.GetAccountID())
 
-	ctx = session.SetUserID(ctx, "user1")
+	ctx = env.SetUserID(ctx, "user1")
+	ctx = env.SetAccountID(ctx, "account1")
 	table.Set(ctx, sample)
-	assert.Equal("user1", sample.GetBy())
+	assert.Equal("user1", sample.GetUserID())
+	assert.Equal("account1", sample.GetAccountID())
 }

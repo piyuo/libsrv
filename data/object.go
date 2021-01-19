@@ -34,41 +34,53 @@ type Object interface {
 	//
 	SetRef(ref interface{})
 
-	// TimeCreated return object create time
+	// GetCreateTime return object create time
 	//
-	//	t := d.TimeCreated()
+	//	t := d.GetCreateTime()
 	//
-	TimeCreated() time.Time
+	GetCreateTime() time.Time
 
-	// setCreated set object create time
+	// SetCreateTime set object create time, create time will not change if it's not empty
 	//
-	//	d.setCreated(time.Now().UTC())
+	//	d.SetCreateTime(time.Now().UTC())
 	//
-	setCreated(t time.Time)
+	SetCreateTime(t time.Time)
 
-	// TimeUpdated return object latest update time
+	// GetUpdateTime return object last update time
 	//
-	//	t := d.TimeUpdated()
+	//	t := d.GetUpdateTime()
 	//
-	TimeUpdated() time.Time
+	GetUpdateTime() time.Time
 
-	// setUpdated set object latest update time
+	// SetUpdateTime set object latest update time
 	//
-	//	d.setUpdated(time.Now().UTC())
+	//	d.SetUpdateTime(time.Now().UTC())
 	//
-	setUpdated(t time.Time)
+	SetUpdateTime(t time.Time)
 
-	// GetBy get who changed the record
+	// GetAccountID return owner's account id
 	//
-	//	userID := d.GetBy()
+	//	accountID := d.GetAccountID()
 	//
-	GetBy() string
+	GetAccountID() string
 
-	// SetBy set who change the record
+	// SetAccountID set owner's account id
 	//
-	//	d.SetBy(userID)
+	//	d.SetAccountID(userID)
 	//
-	SetBy(userID string)
+	SetAccountID(accountID string)
+
+	// GetAccountID return owner's user id
+	//
+	//	userID := d.GetUserID()
+	//
+	GetUserID() string
+
+	// SetUserID set owner's user id
+	//
+	//	d.SetUserID(userID)
+	//
+	SetUserID(userID string)
 }
 
 // BaseObject represent object stored in document database
@@ -84,17 +96,23 @@ type BaseObject struct {
 	//
 	Ref interface{} `firestore:"-"`
 
-	// By usually is user id, indicate who change the record
+	// CreateTime is object create time
+	// We keep our own create time, cause database provide create time like "snapshot.CreateTime" may not use in query
 	//
-	By string
+	CreateTime time.Time
 
-	// Created is object create time
+	// UpdateTime is object last update time
+	// We keep our own create time, cause database provide update time like "snapshot.UpdateTime" may not use in query
 	//
-	Created time.Time
+	UpdateTime time.Time
 
-	// Updated is object latest update time
+	// UserID is owner's user id
 	//
-	Updated time.Time
+	UserID string
+
+	// AccountID is owner's account id
+	//
+	AccountID string
 }
 
 // GetID return object unique identifier
@@ -115,22 +133,6 @@ func (c *BaseObject) SetID(id string) {
 	c.ID = id
 }
 
-// GetBy get who changed the record
-//
-//	userID := d.GetBy()
-//
-func (c *BaseObject) GetBy() string {
-	return c.By
-}
-
-// SetBy set who change the record
-//
-//	d.SetBy(userID)
-//
-func (c *BaseObject) SetBy(userID string) {
-	c.By = userID
-}
-
 // GetRef return reference which used by db implementation
 //
 //	ref := d.Ref()
@@ -147,36 +149,68 @@ func (c *BaseObject) SetRef(ref interface{}) {
 	c.Ref = ref
 }
 
-// TimeCreated return object create time
+// GetCreateTime return object create time
 //
-//	t := d.TimeCreated()
+//	t := d.GetCreateTime()
 //
-func (c *BaseObject) TimeCreated() time.Time {
-	return c.Created
+func (c *BaseObject) GetCreateTime() time.Time {
+	return c.CreateTime
 }
 
-// setCreated set object create time
+// SetCreateTime set object create time
 //
-//	d.setCreated(time.Now().UTC())
+//	d.SetCreateTime(time.Now().UTC())
 //
-func (c *BaseObject) setCreated(t time.Time) {
-	if c.Created.IsZero() {
-		c.Created = t
+func (c *BaseObject) SetCreateTime(t time.Time) {
+	if c.CreateTime.IsZero() {
+		c.CreateTime = t
 	}
 }
 
-// TimeUpdated return object latest update time
+// GetUpdateTime return object last update time
 //
-//	t := d.TimeUpdated()
+//	t := d.GetUpdateTime()
 //
-func (c *BaseObject) TimeUpdated() time.Time {
-	return c.Updated
+func (c *BaseObject) GetUpdateTime() time.Time {
+	return c.UpdateTime
 }
 
-// setUpdated set object latest update time
+// SetUpdateTime set object latest update time
 //
-//	d.setCreated(time.Now().UTC())
+//	d.SetUpdateTime(time.Now().UTC())
 //
-func (c *BaseObject) setUpdated(t time.Time) {
-	c.Updated = t
+func (c *BaseObject) SetUpdateTime(t time.Time) {
+	c.UpdateTime = t
+}
+
+// GetUserID return owner's user id
+//
+//	userID := d.GetUserID()
+//
+func (c *BaseObject) GetUserID() string {
+	return c.UserID
+}
+
+// SetUserID set owner's user id
+//
+//	d.SetUserID(userID)
+//
+func (c *BaseObject) SetUserID(userID string) {
+	c.UserID = userID
+}
+
+// GetAccountID return owner's account id
+//
+//	accountID := d.GetAccountID()
+//
+func (c *BaseObject) GetAccountID() string {
+	return c.AccountID
+}
+
+// SetAccountID set owner's account id
+//
+//	d.SetAccountID(accountID)
+//
+func (c *BaseObject) SetAccountID(accountID string) {
+	c.AccountID = accountID
 }

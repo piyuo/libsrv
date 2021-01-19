@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/piyuo/libsrv/session"
+	"github.com/piyuo/libsrv/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func TestMail(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 
 	mail, err := NewMail(ctx, "mock-mail")
 	assert.Nil(err)
@@ -69,7 +69,7 @@ func TestSendMail(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	mail, err := NewMail(ctx, "mock-mail")
 	assert.Nil(err)
 	mail.AddTo("p", "a@b.c")
@@ -85,7 +85,7 @@ func TestMockSendMail(t *testing.T) {
 	Mock(true)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
-	ctx := context.WithValue(context.Background(), session.KeyRequest, req)
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	mail, err := NewMail(ctx, "mock-mail")
 	assert.Nil(err)
 	mail.AddTo("p", "a@b.c")

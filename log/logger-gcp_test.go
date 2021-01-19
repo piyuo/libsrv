@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/piyuo/libsrv/session"
+	"github.com/piyuo/libsrv/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +12,7 @@ func TestGCPLogger(t *testing.T) {
 	assert := assert.New(t)
 	appName = "log-gcp_test"
 	ctx := context.Background()
-	ctx = session.SetUserID(ctx, "user1")
+	ctx = env.SetUserID(ctx, "user1")
 	logger, err := NewGCPLogger(ctx)
 	assert.Nil(err)
 	assert.NotNil(logger)

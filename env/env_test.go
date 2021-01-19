@@ -1,4 +1,4 @@
-package session
+package env
 
 import (
 	"context"
@@ -65,7 +65,7 @@ func TestGetIPAndLocale(t *testing.T) {
 
 	req.Header.Add("Accept-Language", "zh-cn")
 	req.RemoteAddr = "[::1]:80"
-	ctx = context.WithValue(context.Background(), KeyRequest, req)
+	ctx = context.WithValue(context.Background(), KeyContextRequest, req)
 	assert.Equal("::1", GetIP(ctx))
 }
 
@@ -81,7 +81,7 @@ func TestUserAgent(t *testing.T) {
 	assert.Empty(GetUserAgent(ctx))
 	assert.Empty(GetUserAgentID(ctx))
 
-	ctx = context.WithValue(context.Background(), KeyRequest, req)
+	ctx = context.WithValue(context.Background(), KeyContextRequest, req)
 
 	ua := GetUserAgent(ctx)
 	assert.NotEmpty(ua)
@@ -99,4 +99,14 @@ func TestUserID(t *testing.T) {
 	ctx = SetUserID(ctx, "id")
 	userID = GetUserID(ctx)
 	assert.Equal("id", userID)
+}
+
+func TestAccountID(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	accountID := GetAccountID(ctx)
+	assert.Empty(accountID)
+	ctx = SetAccountID(ctx, "id")
+	accountID = GetAccountID(ctx)
+	assert.Equal("id", accountID)
 }

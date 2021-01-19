@@ -292,7 +292,7 @@ func TestCreateUpdateTimeTest(t *testing.T) {
 	defer table.DeleteObject(ctx, sample1)
 
 	// get top one object only
-	obj, err := table.Query().Where("Created", "<=", time.Now().UTC()).GetFirstObject(ctx)
+	obj, err := table.Query().Where("CreateTime", "<=", time.Now().UTC()).GetFirstObject(ctx)
 	assert.Nil(err)
 	assert.NotNil(obj)
 }

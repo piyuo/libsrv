@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/session"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +26,7 @@ func TestGetHeader(t *testing.T) {
 	assert := assert.New(t)
 	appName = "test"
 	ctx := context.Background()
-	ctx = session.SetUserID(ctx, "user1")
+	ctx = env.SetUserID(ctx, "user1")
 	header, id := getHeader(ctx, here)
 	assert.Equal("user1@test/log_test: ", header)
 	assert.Equal("user1", id)

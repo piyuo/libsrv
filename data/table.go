@@ -2,9 +2,10 @@ package data
 
 import (
 	"context"
+	"time"
 
-	identifier "github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/session"
+	"github.com/piyuo/libsrv/env"
+	"github.com/piyuo/libsrv/identifier"
 	"github.com/pkg/errors"
 )
 
@@ -76,8 +77,11 @@ func (c *Table) Set(ctx context.Context, object Object) error {
 		return ctx.Err()
 	}
 
-	userID := session.GetUserID(ctx)
-	object.SetBy(userID)
+	t := time.Now().UTC()
+	object.SetCreateTime(t) // create time will not change if it's not empty
+	object.SetUpdateTime(t)
+	object.SetAccountID(env.GetAccountID(ctx))
+	object.SetUserID(env.GetUserID(ctx))
 
 	if err := c.Connection.Set(ctx, c.TableName, object); err != nil {
 		return err
