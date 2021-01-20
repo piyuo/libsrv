@@ -8,10 +8,11 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	shared "github.com/piyuo/libsrv/command/shared"
 	log "github.com/piyuo/libsrv/log"
-	util "github.com/piyuo/libsrv/util"
 
 	"github.com/pkg/errors"
 )
+
+const here = "command"
 
 // Action interface
 type Action interface {
@@ -43,17 +44,17 @@ type Dispatch struct {
 // write http error text if some thing went wrong
 func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	//bytes is command contain [proto,id], id is 2 bytes
-	_, action, err := dp.decodeCommand(bytes)
+	_, action, err := dp.DecodeCommand(bytes)
 	if err != nil {
 		return nil, err
 	}
 	commandLog := fmt.Sprintf("exec %v (%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
-	responseID, response, err := dp.timeExecuteAction(ctx, action)
+	responseID, response, err := dp.runAction(ctx, action)
 	if err != nil {
 		return nil, err
 	}
 	var returnBytes []byte
-	returnBytes, err = dp.encodeCommand(responseID, response)
+	returnBytes, err = dp.EncodeCommand(responseID, response)
 	if err != nil {
 		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
 		commandLog += fmt.Sprintf("failed with %v\n", err.Error())
@@ -85,6 +86,7 @@ func betterResponseName(id uint16, response interface{}) string {
 	return name
 }
 
+/*
 // timeExecuteAction execute action and measure time, log warning if too slow
 func (dp *Dispatch) timeExecuteAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
 	timer := util.NewTimer()
@@ -97,7 +99,7 @@ func (dp *Dispatch) timeExecuteAction(ctx context.Context, action interface{}) (
 	}
 	return responseID, response, err
 }
-
+*/
 //fastAppend provide better performance than append
 func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 	//return append(bytes1[:], bytes2[:]...)
@@ -159,8 +161,9 @@ func (dp *Dispatch) runAction(ctx context.Context, action interface{}) (uint16, 
 	return response.XXX_MapID(), response, nil
 }
 
-// encodeCommand, comand is array contain [protobuf,id]
-func (dp *Dispatch) encodeCommand(id uint16, proto interface{}) ([]byte, error) {
+// EncodeCommand endcode command into byte array
+//
+func (dp *Dispatch) EncodeCommand(id uint16, proto interface{}) ([]byte, error) {
 	bytes, err := dp.protoToBuffer(proto)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert proto to buffer")
@@ -170,8 +173,9 @@ func (dp *Dispatch) encodeCommand(id uint16, proto interface{}) ([]byte, error) 
 	return dp.fastAppend(bytes, idBytes), nil
 }
 
-// decodeCommand, comand is array contain [protobuf,id]
-func (dp *Dispatch) decodeCommand(bytes []byte) (uint16, interface{}, error) {
+// DecodeCommand decode command from byte array
+//
+func (dp *Dispatch) DecodeCommand(bytes []byte) (uint16, interface{}, error) {
 	bytesLen := len(bytes)
 	protoBytes := bytes[:bytesLen-2]
 	idBytes := bytes[bytesLen-2:]

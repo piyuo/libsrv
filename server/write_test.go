@@ -1,4 +1,4 @@
-package command
+package server
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestWriteResponse(t *testing.T) {
@@ -16,12 +15,4 @@ func TestWriteResponse(t *testing.T) {
 	writeText(w, "code")
 	writeError(w, errors.New("error"), 500, "error")
 	writeBadRequest(context.Background(), w, "message")
-}
-
-func TestIsSlow(t *testing.T) {
-	assert := assert.New(t)
-	// 3 seconds execution time is not slow
-	assert.Equal(0, IsSlow(5000))
-	// 20 seconds execution time is really slow
-	assert.Greater(IsSlow(20000000), 5000)
 }

@@ -3,46 +3,10 @@ package env
 import (
 	"context"
 	"net/http"
-	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestDeadline(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	assert.Nil(ctx.Err())
-
-	backup := os.Getenv("DEADLINE")
-	os.Setenv("DEADLINE", "20")
-	ctx, cancel := SetDeadline(ctx)
-	defer cancel()
-
-	assert.Nil(ctx.Err())
-	time.Sleep(time.Duration(31) * time.Millisecond)
-	assert.NotNil(ctx.Err())
-
-	deadline = -1 // remove cache
-	os.Setenv("DEADLINE", backup)
-}
-
-func TestDeadlineNotSet(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	assert.Nil(ctx.Err())
-
-	backup := os.Getenv("DEADLINE")
-	os.Setenv("DEADLINE", "")
-	ctx, cancel := SetDeadline(ctx)
-	defer cancel()
-
-	time.Sleep(time.Duration(21) * time.Millisecond)
-	assert.Nil(ctx.Err()) // default expired is in 20,000ms
-	deadline = -1         // remove cache
-	os.Setenv("DEADLINE", backup)
-}
 
 func TestGetIPLocale(t *testing.T) {
 	assert := assert.New(t)

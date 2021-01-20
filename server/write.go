@@ -1,12 +1,9 @@
-package command
+package server
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strconv"
 
 	"github.com/piyuo/libsrv/log"
 )
@@ -50,24 +47,4 @@ func writeBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusBadRequest)
 	writeText(w, msg)
 	log.Debug(ctx, here, msg)
-}
-
-//IsSlow check execution time is greater than slow definition,if so return slow limit, other return 0
-//
-//	So(IsSlow(5), ShouldBeFalse)
-func IsSlow(executionTime int) int {
-	if commandSlow == -1 {
-		text := os.Getenv("SLOW")
-		var err error
-		commandSlow, err = strconv.Atoi(text)
-		if err != nil {
-			commandSlow = 12000
-			fmt.Print("use default slow detection 12 seconds")
-		}
-	}
-
-	if executionTime > commandSlow {
-		return commandSlow
-	}
-	return 0
 }

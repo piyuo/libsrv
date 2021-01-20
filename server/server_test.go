@@ -1,4 +1,4 @@
-package command
+package server
 
 import (
 	"bytes"
@@ -7,9 +7,11 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/command"
 	"github.com/piyuo/libsrv/command/mock"
 	"github.com/piyuo/libsrv/command/shared"
 	"github.com/stretchr/testify/assert"
@@ -52,12 +54,20 @@ func BenchmarkSmallAction(b *testing.B) {
 }
 
 func newBigDataAction() (*mock.BigDataAction, []byte) {
-	dispatch := &Dispatch{
+	dispatch := &command.Dispatch{
 		Map: &mock.MapXXX{},
 	}
 	act := &mock.BigDataAction{}
-	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
+	actBytes, _ := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	return act, actBytes
+}
+
+func TestPrepare(t *testing.T) {
+	assert := assert.New(t)
+	server := &Server{}
+	port, handler := server.prepare()
+	assert.Equal(":8080", port)
+	assert.NotNil(handler)
 }
 
 func TestArchive(t *testing.T) {
@@ -87,6 +97,7 @@ func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	return true, nil
 }
 
+/*
 func TestHTTPHandler(t *testing.T) {
 	assert := assert.New(t)
 	server := &Server{
@@ -105,8 +116,18 @@ func TestHTTPHandler(t *testing.T) {
 	assert.Equal(200, res1.StatusCode)
 	assert.Equal("hello", bodyString)
 }
+*/
 
-func TestServe(t *testing.T) {
+func okResponse() []byte {
+	dispatch := command.Dispatch{
+		Map: &shared.MapXXX{},
+	}
+	ok := command.OK().(*shared.PbOK)
+	bytes, _ := dispatch.EncodeCommand(ok.XXX_MapID(), ok)
+	return bytes
+}
+
+func TestServeOK(t *testing.T) {
 	assert := assert.New(t)
 	handler := newTestServerHandler()
 	actBytes := newTestAction("Hi")
@@ -139,31 +160,22 @@ func newTestServerHandler() http.Handler {
 	server := &Server{
 		Map: &mock.MapXXX{},
 	}
-	server.dispatch = &Dispatch{
+	server.dispatch = &command.Dispatch{
 		Map: server.Map,
 	}
 
-	return server.newHandler()
+	return server.cmdHandler()
 }
 
 func newTestAction(text string) []byte {
-	dispatch := &Dispatch{
+	dispatch := &command.Dispatch{
 		Map: &mock.MapXXX{},
 	}
 	act := &mock.RespondAction{
 		Text: text,
 	}
-	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
+	actBytes, _ := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	return actBytes
-}
-
-func okResponse() []byte {
-	dispatch := &Dispatch{
-		Map: &shared.MapXXX{},
-	}
-	ok := OK().(*shared.PbOK)
-	bytes, _ := dispatch.encodeCommand(ok.XXX_MapID(), ok)
-	return bytes
 }
 
 func TestContextCanceled(t *testing.T) {
@@ -181,11 +193,11 @@ func TestContextCanceled(t *testing.T) {
 }
 
 func newDeadlineAction() []byte {
-	dispatch := &Dispatch{
+	dispatch := &command.Dispatch{
 		Map: &mock.MapXXX{},
 	}
 	act := &mock.DeadlineAction{}
-	actBytes, _ := dispatch.encodeCommand(act.XXX_MapID(), act)
+	actBytes, _ := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	return actBytes
 }
 
@@ -214,10 +226,7 @@ func TestServer(t *testing.T) {
 			log.Println("panic occurred:", err)
 		}
 	}()
-	server := &Server{
-		Map:         nil,
-		HTTPHandler: customHTTPHandler,
-	}
+	server := &Server{}
 	assert.Panics(server.Start)
 }
 
@@ -236,4 +245,41 @@ func TestQuery(t *testing.T) {
 	value, ok = Query(r, "notExist")
 	assert.False(ok)
 	assert.Equal("", value)
+}
+
+func TestDeadline(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	assert.Nil(ctx.Err())
+
+	backup := os.Getenv("deadline")
+	os.Setenv("deadline", "20")
+	deadline = -1 // remove cache
+
+	ctx, cancel := setDeadline(ctx)
+	defer cancel()
+
+	assert.Nil(ctx.Err())
+	time.Sleep(time.Duration(31) * time.Millisecond)
+	assert.NotNil(ctx.Err())
+
+	deadline = -1 // remove cache
+	os.Setenv("deadline", backup)
+}
+
+func TestCommandDeadlineNotSet(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	assert.Nil(ctx.Err())
+
+	backup := os.Getenv("deadline")
+	os.Setenv("deadline", "")
+	deadline = -1 // remove cache
+	ctx, cancel := setDeadline(ctx)
+	defer cancel()
+
+	time.Sleep(time.Duration(21) * time.Millisecond)
+	assert.Nil(ctx.Err()) // default expired is in 20,000ms
+	deadline = -1         // remove cache
+	os.Setenv("deadline", backup)
 }

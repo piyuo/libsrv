@@ -2,11 +2,7 @@ package env
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"os"
-	"strconv"
-	"time"
 
 	"github.com/piyuo/libsrv/util"
 )
@@ -28,31 +24,6 @@ const (
 	//
 	KeyContextAccountID
 )
-
-// deadline cache os env COMMAND_DEADLINE value
-//
-var deadline time.Duration = -1
-
-// SetDeadline set context deadline using os.Getenv("DEADLINE"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
-//
-//	ctx,cancel = SetRequest(ctx,request)
-//	defer cancel()
-//
-func SetDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
-
-	if deadline == -1 {
-		text := os.Getenv("DEADLINE")
-		var err error
-		ms, err := strconv.Atoi(text)
-		if err != nil {
-			ms = 20000
-			fmt.Print("use default deadline 20 seconds")
-		}
-		deadline = time.Duration(ms)
-	}
-	expired := time.Now().Add(deadline * time.Millisecond)
-	return context.WithDeadline(ctx, expired)
-}
 
 // GetRequest get current request from context
 //
