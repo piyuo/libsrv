@@ -1,11 +1,36 @@
 package server
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/piyuo/libsrv/env"
 )
+
+// cmdDeadline cache os env cmdDeadline value
+//
+var cmdDeadline time.Duration = -1
+
+// setCmdDeadline set context deadline using os.Getenv("cmdDeadline"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
+//
+func setCmdDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
+	if cmdDeadline == -1 {
+		text := os.Getenv("cmdDeadline")
+		ms, err := strconv.Atoi(text)
+		if err != nil {
+			ms = 20000
+			fmt.Print("use default 20 seconds for cmdDeadline")
+		}
+		cmdDeadline = time.Duration(ms) * time.Millisecond
+	}
+	expired := time.Now().Add(cmdDeadline)
+	return context.WithDeadline(ctx, expired)
+}
 
 // cmdHandler create handler for command
 //
@@ -23,7 +48,7 @@ func (s *Server) cmdServe(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	//add deadline to context
-	ctx, cancel := setDeadline(r.Context())
+	ctx, cancel := setCmdDeadline(r.Context())
 	defer cancel()
 
 	//add request to context

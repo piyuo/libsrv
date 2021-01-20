@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/piyuo/libsrv/command"
@@ -122,27 +121,4 @@ func Query(r *http.Request, param string) (string, bool) {
 		return "", false
 	}
 	return params[0], true
-}
-
-// deadline cache os env deadline value
-//
-var deadline time.Duration = -1
-
-// setDeadline set context deadline using os.Getenv("deadline"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
-//
-//	ctx,cancel = setCommandDeadline(ctx,request)
-//	defer cancel()
-//
-func setDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
-	if deadline == -1 {
-		text := os.Getenv("deadline")
-		ms, err := strconv.Atoi(text)
-		if err != nil {
-			ms = 20000
-			fmt.Print("use default 20 seconds for deadline")
-		}
-		deadline = time.Duration(ms) * time.Millisecond
-	}
-	expired := time.Now().Add(deadline)
-	return context.WithDeadline(ctx, expired)
 }

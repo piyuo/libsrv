@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -68,6 +67,9 @@ func TestPrepare(t *testing.T) {
 	port, handler := server.prepare()
 	assert.Equal(":8080", port)
 	assert.NotNil(handler)
+
+	//cleanup http.Handle mapping
+	http.DefaultServeMux = new(http.ServeMux)
 }
 
 func TestArchive(t *testing.T) {
@@ -245,41 +247,4 @@ func TestQuery(t *testing.T) {
 	value, ok = Query(r, "notExist")
 	assert.False(ok)
 	assert.Equal("", value)
-}
-
-func TestDeadline(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	assert.Nil(ctx.Err())
-
-	backup := os.Getenv("deadline")
-	os.Setenv("deadline", "20")
-	deadline = -1 // remove cache
-
-	ctx, cancel := setDeadline(ctx)
-	defer cancel()
-
-	assert.Nil(ctx.Err())
-	time.Sleep(time.Duration(31) * time.Millisecond)
-	assert.NotNil(ctx.Err())
-
-	deadline = -1 // remove cache
-	os.Setenv("deadline", backup)
-}
-
-func TestCommandDeadlineNotSet(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	assert.Nil(ctx.Err())
-
-	backup := os.Getenv("deadline")
-	os.Setenv("deadline", "")
-	deadline = -1 // remove cache
-	ctx, cancel := setDeadline(ctx)
-	defer cancel()
-
-	time.Sleep(time.Duration(21) * time.Millisecond)
-	assert.Nil(ctx.Err()) // default expired is in 20,000ms
-	deadline = -1         // remove cache
-	os.Setenv("deadline", backup)
 }
