@@ -69,9 +69,7 @@ func (c *gcpErrorer) Close() {
 //
 func (c *gcpErrorer) Write(ctx context.Context, where, message, stack, errID string) {
 	header, id := getHeader(ctx, where)
-	if shouldPrint {
-		fmt.Printf("%v%v (%v)\n%v\n", header, message, errID, stack)
-	}
+	fmt.Printf("%v%v (%v)\n%v\n", header, message, errID, stack)
 
 	e := errors.New(header + message + " (" + errID + ")")
 	if stack == "" {

@@ -2,7 +2,6 @@ package log
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -13,14 +12,6 @@ import (
 )
 
 var here = "log_test"
-
-func TestShouldPrintToConsole(t *testing.T) {
-	assert := assert.New(t)
-	os.Setenv("BRANCH", "master")
-	assert.True(shouldPrintToConsole())
-	os.Setenv("BRANCH", "stable")
-	assert.False(shouldPrintToConsole())
-}
 
 func TestGetHeader(t *testing.T) {
 	assert := assert.New(t)
@@ -43,6 +34,11 @@ func TestLog(t *testing.T) {
 	Info(ctx, here, "my info log")
 	Warning(ctx, here, "my warning log")
 	Alert(ctx, here, "my alert log")
+	TestMode = true
+	Info(ctx, here, "my info log")
+	Warning(ctx, here, "my warning log")
+	Alert(ctx, here, "my alert log")
+	TestMode = false
 }
 
 func TestLogWhenContextCanceled(t *testing.T) {
@@ -108,6 +104,14 @@ func TestError(t *testing.T) {
 
 	errID = Error(ctx, here, nil)
 	assert.Empty(errID)
+
+	TestMode = true
+	errID = Error(ctx, here, nil)
+	assert.Empty(errID)
+	errID = Error(ctx, here, errors.New("myError"))
+	assert.Empty(errID)
+
+	TestMode = false
 }
 
 func TestErrorWithRequest(t *testing.T) {

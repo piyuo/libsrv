@@ -63,9 +63,7 @@ func (c *gcpLogger) Write(ctx context.Context, level Level, where, message strin
 		return
 	}
 	header, id := getHeader(ctx, where)
-	if shouldPrint {
-		fmt.Printf("%v%v (logged)\n", header, message)
-	}
+	fmt.Printf("%v%v (logged)\n", header, message)
 
 	severity := logging.Info
 	switch level {

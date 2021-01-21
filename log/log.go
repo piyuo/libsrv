@@ -10,9 +10,9 @@ import (
 	"github.com/piyuo/libsrv/identifier"
 )
 
-// TOKEN is context key that store token
+// TestMode set to true will put log in test mode. it will print log but not write to database
 //
-const TOKEN = "T"
+var TestMode = false
 
 // Level define log level
 //
@@ -37,17 +37,6 @@ const (
 )
 
 var appName = os.Getenv("NAME")
-
-// shouldPrint return false in master branch, cause we don't need print to console in production environment. all message already in log
-//
-var shouldPrint = shouldPrintToConsole()
-
-func shouldPrintToConsole() bool {
-	if os.Getenv("BRANCH") == "stable" {
-		return false
-	}
-	return true
-}
 
 // getHeader return log header and user id for log
 //
@@ -113,6 +102,10 @@ func Alert(ctx context.Context, where, message string) {
 //	Log(ctx, "hello", here, WARNING)
 //
 func Log(ctx context.Context, level Level, where, message string) {
+	if TestMode {
+		fmt.Printf("[TestMode]%v: %v\n", where, message)
+		return
+	}
 	if ctx.Err() != nil {
 		return
 	}
@@ -175,6 +168,12 @@ func WriteError(ctx context.Context, where, message, stack, errID string) {
 //	LogErr(ctx,HERE, err)
 //
 func Error(ctx context.Context, where string, err error) string {
+	if TestMode {
+		if err != nil {
+			fmt.Printf("[TestMode]%v: %v\n", where, err.Error())
+		}
+		return ""
+	}
 	if ctx.Err() != nil {
 		return ""
 	}

@@ -20,10 +20,7 @@ func TestGCPLogger(t *testing.T) {
 
 	logger.Write(ctx, DEBUG, here, "TestGCPLogger")
 
-	shouldPrint = false
-	//empty message will not log
-	logger.Write(ctx, DEBUG, here, "no print console")
-
 	//empty message will not log
 	logger.Write(ctx, DEBUG, here, "")
+
 }
