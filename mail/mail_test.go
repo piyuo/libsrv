@@ -81,8 +81,8 @@ func TestSendMail(t *testing.T) {
 
 func TestMockSendMail(t *testing.T) {
 	assert := assert.New(t)
-	assert.Nil(mockResult)
-	Mock(true)
+	TestModeOutputMail = nil
+	TestMode = true
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
@@ -92,7 +92,7 @@ func TestMockSendMail(t *testing.T) {
 	mail.ReplaceText("%1", "1234")
 	err = mail.Send(ctx)
 	assert.Nil(err)
-	assert.NotNil(MockResult())
-	assert.Equal("p", mockResult.GetTo()[0].Name)
-	assert.Equal("a@b.c", mockResult.GetTo()[0].Address)
+	assert.NotNil(TestModeOutputMail)
+	assert.Equal("p", TestModeOutputMail.GetTo()[0].Name)
+	assert.Equal("a@b.c", TestModeOutputMail.GetTo()[0].Address)
 }

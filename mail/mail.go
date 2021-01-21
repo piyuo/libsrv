@@ -8,23 +8,13 @@ import (
 	"github.com/piyuo/libsrv/i18n"
 )
 
-// for test
-var mock = false
-
-// for test
-var mockResult Mail
-
-// Mock fake send mail by always send success
+// TestMode set to true will put log in test mode. it will print log but not write to database
 //
-func Mock(mockService bool) {
-	mock = mockService
-}
+var TestMode = false
 
-// MockResult mock sent mail
+// TestModeOutputMail is mail sent in test mode
 //
-func MockResult() Mail {
-	return mockResult
-}
+var TestModeOutputMail Mail
 
 type template struct {
 	subject string
