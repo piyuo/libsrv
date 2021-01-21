@@ -68,7 +68,10 @@ func (s *Server) Start() {
 	}
 	port := s.prepare()
 	log.Debug(context.Background(), here, fmt.Sprintf("start listening from http://localhost%v\n", port))
-	http.ListenAndServe(port, nil)
+
+	if err := http.ListenAndServe(port, nil); err != nil {
+		fmt.Printf("Server failed: %s\n", err)
+	}
 }
 
 // prepare server variable and return listening port like :8080
