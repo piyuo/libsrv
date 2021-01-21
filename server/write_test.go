@@ -13,6 +13,6 @@ func TestWriteResponse(t *testing.T) {
 	bytes := newTestAction(textLong)
 	writeBinary(w, bytes)
 	writeText(w, "code")
-	writeError(w, errors.New("error"), 500, "error")
+	writeError(w, 500, "error", errors.New("error"))
 	writeBadRequest(context.Background(), w, "message")
 }

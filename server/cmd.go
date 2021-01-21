@@ -12,29 +12,29 @@ import (
 	"github.com/piyuo/libsrv/env"
 )
 
-// cmdDeadline cache os env cmdDeadline value
+// deadline cache os env deadline value
 //
-var cmdDeadline time.Duration = -1
+var deadline time.Duration = -1
 
-// setCmdDeadline set context deadline using os.Getenv("cmdDeadline"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
+// setDeadline set context deadline using os.Getenv("cmdDeadline"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
-func setCmdDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
-	if cmdDeadline == -1 {
-		text := os.Getenv("cmdDeadline")
+func setDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
+	if deadline == -1 {
+		text := os.Getenv("deadline")
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000
-			fmt.Print("use default 20 seconds for cmdDeadline")
+			fmt.Println("use default 20 seconds for deadline")
 		}
-		cmdDeadline = time.Duration(ms) * time.Millisecond
+		deadline = time.Duration(ms) * time.Millisecond
 	}
-	expired := time.Now().Add(cmdDeadline)
+	expired := time.Now().Add(deadline)
 	return context.WithDeadline(ctx, expired)
 }
 
-// cmdHandler create handler for command
+// createCmdHandler create command handler
 //
-func (s *Server) cmdHandler() http.Handler {
+func (s *Server) createCmdHandler() http.Handler {
 	withoutArchive := http.HandlerFunc(s.cmdServe)
 	withArchive := ArchiveHandler(withoutArchive)
 	return withArchive
@@ -48,7 +48,7 @@ func (s *Server) cmdServe(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	//add deadline to context
-	ctx, cancel := setCmdDeadline(r.Context())
+	ctx, cancel := setDeadline(r.Context())
 	defer cancel()
 
 	//add request to context

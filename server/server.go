@@ -28,13 +28,13 @@ type HTTPHandler func(ctx context.Context, w http.ResponseWriter, r *http.Reques
 type Server struct {
 	dispatch *command.Dispatch
 
-	// Map is command map
+	// Map is command map for command handler
 	//
 	Map command.IMap
 
-	// TaskHandler is for long running task
+	// APIHandler is API handler
 	//
-	TaskHandler HTTPHandler
+	APIHandler HTTPHandler
 }
 
 // Start http server to listen request and serve content, defult port is 8080, you can change use export PORT="8080"
@@ -47,18 +47,18 @@ type Server struct {
 //  }
 //
 func (s *Server) Start() {
-	if s.Map == nil && s.TaskHandler == nil {
-		msg := " Map or TaskHandler is missing, try &Server{Map:yourMap,TaskHandler: yourHandler}"
+	if s.Map == nil && s.APIHandler == nil {
+		msg := " Map or APIHandler is missing, try &Server{Map:yourMap, ApiHandler: yourHandler}"
 		panic(msg)
 	}
-	port, _ := s.prepare()
+	port := s.prepare()
 	log.Debug(context.Background(), here, fmt.Sprintf("start listening from http://localhost%v\n", port))
 	http.ListenAndServe(port, nil)
 }
 
 // prepare server variable and return listening port like :8080
 //
-func (s *Server) prepare() (string, http.Handler) {
+func (s *Server) prepare() string {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -67,15 +67,8 @@ func (s *Server) prepare() (string, http.Handler) {
 		port = "8080"
 	}
 
-	var rootHandler http.Handler
-	if s.Map != nil {
-		rootHandler = s.cmdHandler()
-		http.Handle("/", rootHandler)
-		http.Handle("/task", s.taskHandler())
-	} else {
-		rootHandler = s.taskHandler()
-		http.Handle("/", rootHandler)
-	}
+	http.Handle("/", s.createCmdHandler())
+	http.Handle("/api", s.createAPIHandler())
 
 	// set default map
 	s.dispatch = &command.Dispatch{
@@ -84,13 +77,15 @@ func (s *Server) prepare() (string, http.Handler) {
 	s.Map = nil
 
 	// set default task handler
-	if s.TaskHandler == nil {
-		s.TaskHandler = defaultTaskHandler
+	if s.APIHandler == nil {
+		s.APIHandler = defaultHandler
 	}
-	return ":" + port, rootHandler
+
+	return ":" + port
 }
 
-func defaultTaskHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func defaultHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	writeStatus(w, http.StatusForbidden, "Forbidden")
 	return nil
 }
 
@@ -100,13 +95,12 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 	log.Debug(ctx, here, "[logged] "+err.Error())
 
 	if goerrors.Is(err, context.DeadlineExceeded) {
-		errID := log.Error(ctx, here, err)
-		writeError(w, err, http.StatusGatewayTimeout, errID)
+		writeStatus(w, http.StatusGatewayTimeout, "Deadline Exceeded")
 		return
 	}
 
 	errID := log.Error(ctx, here, err)
-	writeError(w, err, http.StatusInternalServerError, errID)
+	writeError(w, http.StatusInternalServerError, errID, err)
 }
 
 // Query return value from query string

@@ -34,7 +34,16 @@ func writeText(w http.ResponseWriter, text string) {
 //
 //	writeError(w, errors.New("error"), 500, "error")
 //
-func writeError(w http.ResponseWriter, err error, statusCode int, text string) {
+func writeError(w http.ResponseWriter, statusCode int, errID string, err error) {
+	w.WriteHeader(statusCode)
+	writeText(w, errID+"-"+err.Error())
+}
+
+// writeStatus write status code and text response
+//
+//	writeStatus(w, 500, "error")
+//
+func writeStatus(w http.ResponseWriter, statusCode int, text string) {
 	w.WriteHeader(statusCode)
 	writeText(w, text)
 }

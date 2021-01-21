@@ -64,9 +64,8 @@ func newBigDataAction() (*mock.BigDataAction, []byte) {
 func TestPrepare(t *testing.T) {
 	assert := assert.New(t)
 	server := &Server{}
-	port, handler := server.prepare()
+	port := server.prepare()
 	assert.Equal(":8080", port)
-	assert.NotNil(handler)
 
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
@@ -166,7 +165,7 @@ func newTestServerHandler() http.Handler {
 		Map: server.Map,
 	}
 
-	return server.cmdHandler()
+	return server.createCmdHandler()
 }
 
 func newTestAction(text string) []byte {
