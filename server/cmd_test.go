@@ -54,8 +54,9 @@ func TestCmdDeadline(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("deadline")
-	os.Setenv("deadline", "20")
+	backup := os.Getenv("DEADLINE")
+	os.Setenv("DEADLINE", "20")
+	defer os.Setenv("DEADLINE", backup)
 	deadline = -1 // remove cache
 
 	ctx, cancel := setDeadline(ctx)
@@ -66,7 +67,6 @@ func TestCmdDeadline(t *testing.T) {
 	assert.NotNil(ctx.Err())
 
 	deadline = -1 // remove cache
-	os.Setenv("deadline", backup)
 }
 
 func TestCmdDeadlineNotSet(t *testing.T) {
@@ -74,14 +74,15 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("deadline")
-	os.Setenv("deadline", "")
+	backup := os.Getenv("DEADLINE")
+	os.Setenv("DEADLINE", "")
+	defer os.Setenv("DEADLINE", backup)
 	deadline = -1 // remove cache
+
 	ctx, cancel := setDeadline(ctx)
 	defer cancel()
 
 	time.Sleep(time.Duration(21) * time.Millisecond)
 	assert.Nil(ctx.Err()) // default expired is in 20,000ms
 	deadline = -1         // remove cache
-	os.Setenv("deadline", backup)
 }

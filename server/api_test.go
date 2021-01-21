@@ -57,8 +57,9 @@ func TestApiDeadline(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("apiDeadline")
-	os.Setenv("apiDeadline", "20")
+	backup := os.Getenv("API_DEADLINE")
+	os.Setenv("API_DEADLINE", "20")
+	defer os.Setenv("API_DEADLINE", backup)
 	apiDeadline = -1 // remove cache
 
 	ctx, cancel := setAPIDeadline(ctx)
@@ -69,7 +70,6 @@ func TestApiDeadline(t *testing.T) {
 	assert.NotNil(ctx.Err())
 
 	apiDeadline = -1 // remove cache
-	os.Setenv("apiDeadline", backup)
 }
 
 func TestApiDeadlineNotSet(t *testing.T) {
@@ -77,14 +77,15 @@ func TestApiDeadlineNotSet(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("apiDeadline")
-	os.Setenv("apiDeadline", "")
+	backup := os.Getenv("API_DEADLINE")
+	os.Setenv("API_DEADLINE", "")
+	defer os.Setenv("API_DEADLINE", backup)
 	apiDeadline = -1 // remove cache
+
 	ctx, cancel := setAPIDeadline(ctx)
 	defer cancel()
 
 	time.Sleep(time.Duration(21) * time.Millisecond)
 	assert.Nil(ctx.Err()) // default expired is in 20,000ms
 	apiDeadline = -1      // remove cache
-	os.Setenv("apiDeadline", backup)
 }

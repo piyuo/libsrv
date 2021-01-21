@@ -13,11 +13,11 @@ import (
 //
 var apiDeadline time.Duration = -1
 
-// setAPIDeadline set context deadline using os.Getenv("apiDeadline"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
+// setAPIDeadline set context deadline using os.Getenv("API_DEADLINE"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
 func setAPIDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
 	if apiDeadline == -1 {
-		text := os.Getenv("apiDeadline")
+		text := os.Getenv("API_DEADLINE")
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000

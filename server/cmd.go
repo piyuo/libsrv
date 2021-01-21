@@ -16,11 +16,11 @@ import (
 //
 var deadline time.Duration = -1
 
-// setDeadline set context deadline using os.Getenv("cmdDeadline"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
+// setDeadline set context deadline using os.Getenv("DEADLINE"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
 func setDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
 	if deadline == -1 {
-		text := os.Getenv("deadline")
+		text := os.Getenv("DEADLINE")
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000
