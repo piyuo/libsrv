@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -27,7 +28,28 @@ func TestAPIDefaultReturn403(t *testing.T) {
 
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
+}
 
+func mockErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	return errors.New("myError")
+}
+
+func TestAPIHandlerReturnError(t *testing.T) {
+	assert := assert.New(t)
+	server := &Server{
+		APIHandler: mockErrorHandler,
+	}
+	port := server.prepare()
+	assert.Equal(":8080", port)
+
+	req1, _ := http.NewRequest("GET", "/", nil)
+	resp1 := httptest.NewRecorder()
+	server.createAPIHandler().ServeHTTP(resp1, req1)
+	res1 := resp1.Result()
+	assert.Equal(http.StatusInternalServerError, res1.StatusCode)
+
+	//cleanup http.Handle mapping
+	http.DefaultServeMux = new(http.ServeMux)
 }
 
 func TestApiDeadline(t *testing.T) {
