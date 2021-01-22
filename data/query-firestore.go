@@ -285,3 +285,60 @@ func (c *QueryFirestore) IsExist(ctx context.Context) (bool, error) {
 	empty, err := c.IsEmpty(ctx)
 	return !empty, err
 }
+
+// Clear keep delete all object in a query until ctx timeout or all object deleted. it delete 500 documents at a time, return total delete count
+//
+func (c *QueryFirestore) Clear(ctx context.Context) (int, error) {
+	deleteCount := 0
+	if c.conn.tx != nil {
+		c.query.Limit(limitTransactionClear)
+		iter := c.conn.tx.Documents(c.query)
+		defer iter.Stop()
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return deleteCount, errors.Wrap(err, "failed to iterator documents")
+			}
+			c.conn.tx.Delete(doc.Ref)
+			deleteCount++
+		}
+		return deleteCount, nil
+	}
+	for {
+		// keep delete until ctx timeout or all object deleted
+		if ctx.Err() != nil {
+			return deleteCount, ctx.Err()
+		}
+		numDeleted := 0
+		c.query.Limit(limitClear)
+		iter := c.query.Documents(ctx)
+		defer iter.Stop()
+		// Iterate through the documents, adding a delete operation for each one to a WriteBatch.
+		batch := c.conn.client.Batch()
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return deleteCount, errors.Wrap(err, "failed to iterator documents")
+			}
+			batch.Delete(doc.Ref)
+			deleteCount++
+			numDeleted++
+		}
+		if numDeleted > 0 {
+			_, err := batch.Commit(ctx)
+			if err != nil {
+				return deleteCount, errors.Wrap(err, "failed to commit batch")
+			}
+		}
+		if numDeleted < limitClear {
+			break
+		}
+	}
+	return deleteCount, nil
+}

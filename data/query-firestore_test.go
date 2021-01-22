@@ -296,3 +296,83 @@ func TestCreateUpdateTimeTest(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(obj)
 }
+
+func TestQueryClear(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
+	//prepare 2 sample
+	sample1 := &Sample{
+		Name:  "sample",
+		Value: 1,
+	}
+	err = table.Set(ctx, sample1)
+	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
+
+	sample2 := &Sample{
+		Name:  "sample",
+		Value: 2,
+	}
+	err = table.Set(ctx, sample2)
+	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample2)
+
+	count, err := table.Query().Where("Name", "==", "sample").Count(ctx)
+	assert.Nil(err)
+	assert.Equal(2, count)
+
+	deleteCount, err := table.Query().Where("Name", "==", "sample").Clear(ctx)
+	assert.Nil(err)
+	assert.Equal(2, deleteCount)
+
+	count, err = table.Query().Where("Name", "==", "sample").Count(ctx)
+	assert.Nil(err)
+	assert.Zero(count)
+}
+
+func TestQueryClearInTransaction(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	g, err := NewSampleGlobalDB(ctx)
+	assert.Nil(err)
+	defer g.Close()
+	table := g.SampleTable()
+
+	//prepare 2 sample
+	sample1 := &Sample{
+		Name:  "sample",
+		Value: 1,
+	}
+	err = table.Set(ctx, sample1)
+	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample1)
+
+	sample2 := &Sample{
+		Name:  "sample",
+		Value: 2,
+	}
+	err = table.Set(ctx, sample2)
+	assert.Nil(err)
+	defer table.DeleteObject(ctx, sample2)
+
+	count, err := table.Query().Where("Name", "==", "sample").Count(ctx)
+	assert.Nil(err)
+	assert.Equal(2, count)
+
+	err = g.Transaction(ctx, func(ctx context.Context) error {
+
+		deleteCount, err := table.Query().Where("Name", "==", "sample").Clear(ctx)
+		assert.Nil(err)
+		assert.Equal(2, deleteCount)
+		return nil
+	})
+
+	count, err = table.Query().Where("Name", "==", "sample").Count(ctx)
+	assert.Nil(err)
+	assert.Zero(count)
+}

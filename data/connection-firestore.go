@@ -494,7 +494,7 @@ func (c *ConnectionFirestore) DeleteObject(ctx context.Context, tablename string
 	return nil
 }
 
-// Clear delete all object table, 500 documents at a time, if in transaction only 10 documents can be delete
+// Clear keep delete all object in table until ctx timeout or all object deleted. it delete 500 documents at a time, if in transaction only 10 documents can be delete
 //
 //	err := c.Clear(ctx, tablename)
 //
@@ -516,7 +516,7 @@ func (c *ConnectionFirestore) Clear(ctx context.Context, tablename string) error
 		return nil
 	}
 	for {
-		//keep delete until ctx timeout or all object deleted
+		// keep delete until ctx timeout or all object deleted
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
