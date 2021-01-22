@@ -94,7 +94,7 @@ func TestArchive(t *testing.T) {
 
 func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
 	w.WriteHeader(http.StatusOK)
-	writeText(w, "hello")
+	WriteText(w, "hello")
 	return true, nil
 }
 

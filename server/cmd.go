@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/piyuo/libsrv/env"
+	"github.com/piyuo/libsrv/log"
 )
 
 // deadline cache os env deadline value
@@ -55,16 +56,17 @@ func (s *Server) cmdServe(w http.ResponseWriter, r *http.Request) {
 	ctx = env.SetRequest(ctx, r)
 
 	if r.Body == nil {
-		writeBadRequest(ctx, w, "request has no body")
+		WriteStatus(w, http.StatusBadRequest, "no request")
 		return
 	}
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeBadRequest(ctx, w, "bad request, "+err.Error())
+		log.Error(ctx, here, err)
+		WriteStatus(w, http.StatusBadRequest, "failed to read request")
 		return
 	}
 	if len(bytes) == 0 {
-		writeBadRequest(ctx, w, "empty request")
+		WriteStatus(w, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -73,5 +75,5 @@ func (s *Server) cmdServe(w http.ResponseWriter, r *http.Request) {
 		handleRouteException(ctx, w, err)
 		return
 	}
-	writeBinary(w, bytes)
+	WriteBinary(w, bytes)
 }

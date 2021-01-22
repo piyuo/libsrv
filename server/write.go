@@ -1,59 +1,46 @@
 package server
 
 import (
-	"context"
 	"io"
 	"net/http"
-
-	"github.com/piyuo/libsrv/log"
 )
 
 // commandDateline cache os env COMMAND_SLOW value
 //
 var commandSlow int = -1
 
-// writeBinary to response
+// WriteBinary to response
 //
-//	writeBinary(w, bytes)
+//	WriteBinary(w, bytes)
 //
-func writeBinary(w http.ResponseWriter, bytes []byte) {
+func WriteBinary(w http.ResponseWriter, bytes []byte) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Write(bytes)
 }
 
-// writeText to response
+// WriteText to response
 //
-//	writeText(w, "code")
+//	WriteText(w, "code")
 //
-func writeText(w http.ResponseWriter, text string) {
+func WriteText(w http.ResponseWriter, text string) {
 	w.Header().Set("Content-Type", "text/plain")
 	io.WriteString(w, text)
 }
 
-// writeError to response
+// WriteError to response
 //
-//	writeError(w, errors.New("error"), 500, "error")
+//	WriteError(w, errors.New("error"), 500, "error")
 //
-func writeError(w http.ResponseWriter, statusCode int, errID string, err error) {
+func WriteError(w http.ResponseWriter, statusCode int, errID string, err error) {
 	w.WriteHeader(statusCode)
-	writeText(w, errID+"-"+err.Error())
+	WriteText(w, errID+"-"+err.Error())
 }
 
-// writeStatus write status code and text response
+// WriteStatus write status code and text response
 //
-//	writeStatus(w, 500, "error")
+//	WriteStatus(w, 500, "error")
 //
-func writeStatus(w http.ResponseWriter, statusCode int, text string) {
+func WriteStatus(w http.ResponseWriter, statusCode int, text string) {
 	w.WriteHeader(statusCode)
-	writeText(w, text)
-}
-
-// writeBadRequest to response
-//
-//	writeBadRequest(context.Background(), w, "message")
-//
-func writeBadRequest(ctx context.Context, w http.ResponseWriter, msg string) {
-	w.WriteHeader(http.StatusBadRequest)
-	writeText(w, msg)
-	log.Debug(ctx, here, msg)
+	WriteText(w, text)
 }

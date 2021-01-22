@@ -103,7 +103,7 @@ func (s *Server) prepare() string {
 }
 
 func defaultHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	writeStatus(w, http.StatusForbidden, "Forbidden")
+	WriteStatus(w, http.StatusForbidden, "Forbidden")
 	return nil
 }
 
@@ -113,12 +113,12 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 	log.Debug(ctx, here, "[logged] "+err.Error())
 
 	if goerrors.Is(err, context.DeadlineExceeded) {
-		writeStatus(w, http.StatusGatewayTimeout, "Deadline Exceeded")
+		WriteStatus(w, http.StatusGatewayTimeout, "Deadline Exceeded")
 		return
 	}
 
 	errID := log.Error(ctx, here, err)
-	writeError(w, http.StatusInternalServerError, errID, err)
+	WriteError(w, http.StatusInternalServerError, errID, err)
 }
 
 // Query return value from query string
