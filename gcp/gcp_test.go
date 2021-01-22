@@ -49,8 +49,8 @@ func TestDataCredentialByRegion(t *testing.T) {
 
 func TestCredentialWhenContextCanceled(t *testing.T) {
 	assert := assert.New(t)
-	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
-	ctx, cancel := context.WithDeadline(context.Background(), dateline)
+	deadline := time.Now().Add(time.Duration(1) * time.Millisecond)
+	ctx, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
 	time.Sleep(time.Duration(2) * time.Millisecond)
 	_, err := GlobalCredential(ctx)
