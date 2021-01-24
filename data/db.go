@@ -5,7 +5,7 @@ import (
 )
 
 const limitQueryDefault = 10
-const limitTransactionClear = 10
+const limitTransactionClear = 50
 const limitClear = 500
 
 // DB represent DB public method

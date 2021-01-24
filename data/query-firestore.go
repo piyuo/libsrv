@@ -287,6 +287,7 @@ func (c *QueryFirestore) IsExist(ctx context.Context) (bool, error) {
 }
 
 // Clear keep delete all object in a query until ctx timeout or all object deleted. it delete 500 documents at a time, return total delete count
+// it can only delete 50 record in transaction
 //
 func (c *QueryFirestore) Clear(ctx context.Context) (int, error) {
 	deleteCount := 0
