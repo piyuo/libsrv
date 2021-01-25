@@ -128,7 +128,7 @@ type PlainObject struct {
 // Sample
 //
 type Sample struct {
-	BaseObject
+	DomainObject
 	Name    string
 	Value   int
 	Map     map[string]string

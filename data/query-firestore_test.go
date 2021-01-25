@@ -217,19 +217,15 @@ func TestExecuteQueryID(t *testing.T) {
 	assert.Empty(id)
 
 	sample1 := &Sample{
-		BaseObject: BaseObject{
-			ID: "s1",
-		},
 		Name:  "sample",
 		Value: 1,
 	}
+	sample1.SetID("s1")
 	sample2 := &Sample{
-		BaseObject: BaseObject{
-			ID: "s2",
-		},
 		Name:  "sample",
 		Value: 2,
 	}
+	sample2.SetID("s2")
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
 	defer table.DeleteObject(ctx, sample1)
@@ -254,12 +250,10 @@ func TestQueryNotExistFieldWillNotCauseError(t *testing.T) {
 	table := g.SampleTable()
 
 	sample1 := &Sample{
-		BaseObject: BaseObject{
-			ID: "s1",
-		},
 		Name:  "sample",
 		Value: 1,
 	}
+	sample1.SetID("s1")
 
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
@@ -280,12 +274,10 @@ func TestCreateUpdateTimeTest(t *testing.T) {
 	table := g.SampleTable()
 
 	sample1 := &Sample{
-		BaseObject: BaseObject{
-			ID: "s1",
-		},
 		Name:  "sample",
 		Value: 1,
 	}
+	sample1.SetID("s1")
 
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)

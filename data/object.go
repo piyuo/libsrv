@@ -100,19 +100,6 @@ type BaseObject struct {
 	// We keep our own create time, cause database provide create time like "snapshot.CreateTime" may not use in query
 	//
 	CreateTime time.Time
-
-	// UpdateTime is object last update time
-	// We keep our own create time, cause database provide update time like "snapshot.UpdateTime" may not use in query
-	//
-	UpdateTime time.Time
-
-	// UserID is owner's user id
-	//
-	UserID string
-
-	// AccountID is owner's account id
-	//
-	AccountID string
 }
 
 // GetID return object unique identifier
@@ -167,44 +154,21 @@ func (c *BaseObject) SetCreateTime(t time.Time) {
 	}
 }
 
-// GetUpdateTime return object last update time
-//
-//	t := d.GetUpdateTime()
-//
-func (c *BaseObject) GetUpdateTime() time.Time {
-	return c.UpdateTime
-}
-
-// SetUpdateTime set object latest update time
-//
-//	d.SetUpdateTime(time.Now().UTC())
-//
-func (c *BaseObject) SetUpdateTime(t time.Time) {
-	c.UpdateTime = t
-}
-
 // GetUserID return owner's user id
 //
-//	userID := d.GetUserID()
-//
 func (c *BaseObject) GetUserID() string {
-	return c.UserID
+	return ""
 }
 
 // SetUserID set owner's user id
 //
-//	d.SetUserID(userID)
-//
 func (c *BaseObject) SetUserID(userID string) {
-	c.UserID = userID
 }
 
 // GetAccountID return owner's account id
 //
-//	accountID := d.GetAccountID()
-//
 func (c *BaseObject) GetAccountID() string {
-	return c.AccountID
+	return ""
 }
 
 // SetAccountID set owner's account id
@@ -212,5 +176,86 @@ func (c *BaseObject) GetAccountID() string {
 //	d.SetAccountID(accountID)
 //
 func (c *BaseObject) SetAccountID(accountID string) {
+}
+
+// GetUpdateTime return object last update time
+//
+//	t := d.GetUpdateTime()
+//
+func (c *BaseObject) GetUpdateTime() time.Time {
+	return time.Time{}
+}
+
+// SetUpdateTime set object latest update time
+//
+//	d.SetUpdateTime(time.Now().UTC())
+//
+func (c *BaseObject) SetUpdateTime(t time.Time) {
+}
+
+// DomainObject is object with AccountID and UserID
+//
+type DomainObject struct {
+	BaseObject
+
+	// UpdateTime is object last update time
+	// We keep our own update time, cause database provide update time like "snapshot.UpdateTime" may not use in query
+	//
+	UpdateTime time.Time
+
+	// AccountID is owner's account id
+	//
+	AccountID string
+
+	// UserID is owner's user id
+	//
+	UserID string
+}
+
+// GetUserID return owner's user id
+//
+//	userID := d.GetUserID()
+//
+func (c *DomainObject) GetUserID() string {
+	return c.UserID
+}
+
+// SetUserID set owner's user id
+//
+//	d.SetUserID(userID)
+//
+func (c *DomainObject) SetUserID(userID string) {
+	c.UserID = userID
+}
+
+// GetAccountID return owner's account id
+//
+//	accountID := d.GetAccountID()
+//
+func (c *DomainObject) GetAccountID() string {
+	return c.AccountID
+}
+
+// SetAccountID set owner's account id
+//
+//	d.SetAccountID(accountID)
+//
+func (c *DomainObject) SetAccountID(accountID string) {
 	c.AccountID = accountID
+}
+
+// GetUpdateTime return object last update time
+//
+//	t := d.GetUpdateTime()
+//
+func (c *DomainObject) GetUpdateTime() time.Time {
+	return c.UpdateTime
+}
+
+// SetUpdateTime set object latest update time
+//
+//	d.SetUpdateTime(time.Now().UTC())
+//
+func (c *DomainObject) SetUpdateTime(t time.Time) {
+	c.UpdateTime = t
 }

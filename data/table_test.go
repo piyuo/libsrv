@@ -125,7 +125,7 @@ func TestEmptyEnvAccountIDUserID(t *testing.T) {
 	table := g.SampleTable()
 
 	sample := &Sample{
-		BaseObject: BaseObject{
+		DomainObject: DomainObject{
 			UserID:    "myUserID",
 			AccountID: "myAccountID",
 		},
