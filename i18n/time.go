@@ -10,11 +10,22 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// UtcTimestamp create utc timestamp
+// ToUtcTimestamp create utc timestamp from time
 //
-func UtcTimestamp(t time.Time) (*timestamppb.Timestamp, error) {
+func ToUtcTimestamp(t time.Time) (*timestamppb.Timestamp, error) {
 	utcTime := t.UTC()
 	return ptypes.TimestampProto(utcTime)
+}
+
+// FromUtcTimestamp create time form utc timestamp
+//
+func FromUtcTimestamp(t *timestamppb.Timestamp, zone string, offset int) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	loc := time.FixedZone(zone, offset)
+	utcTime := t.AsTime()
+	return utcTime.In(loc)
 }
 
 // UtcToLocal convert utc time to local time
@@ -36,13 +47,13 @@ func LocalToUtc(t time.Time) time.Time {
 	return t.In(time.UTC)
 }
 
-// DateToLocalStr convert utc date to local string
+// DateToStr convert utc date to local string
 //
-//		So(DateToLocalStr(utcTime, "zh_TW"), ShouldEqual, "2021年1月2日")
-//		So(DateToLocalStr(utcTime, "zh_CN"), ShouldEqual, "2021年1月2日")
-//		So(DateToLocalStr(utcTime, "en_US"), ShouldEqual, "Jan 2, 2021")
+//		So(DateToStr(utcTime, "zh_TW"), ShouldEqual, "2021年1月2日")
+//		So(DateToStr(utcTime, "zh_CN"), ShouldEqual, "2021年1月2日")
+//		So(DateToStr(utcTime, "en_US"), ShouldEqual, "Jan 2, 2021")
 //
-func DateToLocalStr(t time.Time, locale string) string {
+func DateToStr(t time.Time, locale string) string {
 	switch locale {
 	case "zh_TW":
 		return t.Format("2006年1月2日")
@@ -52,13 +63,13 @@ func DateToLocalStr(t time.Time, locale string) string {
 	return monday.Format(t, "Jan 2, 2006", "en_US")
 }
 
-// TimeToLocalStr convert utc time to local string
+// TimeToStr convert utc time to local string
 //
-//		So(TimeToLocalStr(utcTime, "en_US"), ShouldEqual, "11:55 PM")
-//		So(TimeToLocalStr(utcTime, "zh_TW"), ShouldEqual, "下午11:55")
-//		So(TimeToLocalStr(utcTime, "zh_CN"), ShouldEqual, "下午11:55")
+//		So(TimeToStr(utcTime, "en_US"), ShouldEqual, "11:55 PM")
+//		So(TimeToStr(utcTime, "zh_TW"), ShouldEqual, "下午11:55")
+//		So(TimeToStr(utcTime, "zh_CN"), ShouldEqual, "下午11:55")
 //
-func TimeToLocalStr(t time.Time, locale string) string {
+func TimeToStr(t time.Time, locale string) string {
 	switch locale {
 	case "zh_TW":
 		result := monday.Format(t, "PM3:04", "en_US")
@@ -74,12 +85,12 @@ func TimeToLocalStr(t time.Time, locale string) string {
 	return monday.Format(t, "3:04 PM", "en_US")
 }
 
-// DateTimeToLocalStr convert utc date time to local string
+// DateTimeToStr convert utc date time to local string
 //
-//		So(DateTimeToLocalStr(utcTime, "zh_TW"), ShouldEqual, "2021年1月2日 下午11:55")
-//		So(DateTimeToLocalStr(utcTime, "zh_CN"), ShouldEqual, "2021年1月2日 下午11:55")
-//		So(DateTimeToLocalStr(utcTime, "en_US"), ShouldEqual, "Jan 2, 2021 11:55 PM")
+//		So(DateTimeToStr(utcTime, "zh_TW"), ShouldEqual, "2021年1月2日 下午11:55")
+//		So(DateTimeToStr(utcTime, "zh_CN"), ShouldEqual, "2021年1月2日 下午11:55")
+//		So(DateTimeToStr(utcTime, "en_US"), ShouldEqual, "Jan 2, 2021 11:55 PM")
 //
-func DateTimeToLocalStr(t time.Time, locale string) string {
-	return DateToLocalStr(t, locale) + " " + TimeToLocalStr(t, locale)
+func DateTimeToStr(t time.Time, locale string) string {
+	return DateToStr(t, locale) + " " + TimeToStr(t, locale)
 }

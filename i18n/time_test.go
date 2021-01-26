@@ -7,11 +7,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestUtc(t *testing.T) {
+	assert := assert.New(t)
+	now := time.Now()
+	zone, offset := now.Zone()
+
+	utcTime := now.UTC()
+	utcAgain := utcTime.UTC()
+	locTime := utcTime.In(time.FixedZone(zone, offset))
+	locAgain := utcAgain.In(time.FixedZone(zone, offset))
+	locThird := locAgain.In(time.FixedZone(zone, offset))
+
+	nowStr := DateTimeToStr(now, "en_US")
+	locStr := DateTimeToStr(locTime, "en_US")
+	againStr := DateTimeToStr(locAgain, "en_US")
+	thirdStr := DateTimeToStr(locThird, "en_US")
+
+	//there is no probelm to do UTC <-> local again and again
+	assert.Equal(nowStr, locStr)
+	assert.Equal(nowStr, againStr)
+	assert.Equal(nowStr, thirdStr)
+}
+
 func TestUtcTimestamp(t *testing.T) {
 	assert := assert.New(t)
-	tt, err := UtcTimestamp(time.Now())
+	now := time.Now()
+	zone, offset := now.Zone()
+
+	timestamp, err := ToUtcTimestamp(now)
 	assert.Nil(err)
-	assert.NotEmpty(tt)
+	assert.NotNil(timestamp)
+
+	locTime := FromUtcTimestamp(timestamp, zone, offset)
+	nowStr := DateTimeToStr(now, "en_US")
+	locStr := DateTimeToStr(locTime, "en_US")
+	assert.Equal(nowStr, locStr)
+
+	//nil timestamp will result empty time
+	locTime = FromUtcTimestamp(nil, zone, offset)
+	assert.True(locTime.IsZero())
 }
 
 func TestUtcToLocal(t *testing.T) {
@@ -35,23 +69,23 @@ func TestUtcToLocal(t *testing.T) {
 func TestDateToLocalStr(t *testing.T) {
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
-	assert.Equal("2021年1月2日", DateToLocalStr(utcTime, "zh_TW"))
-	assert.Equal("2021年1月2日", DateToLocalStr(utcTime, "zh_CN"))
-	assert.Equal("Jan 2, 2021", DateToLocalStr(utcTime, "en_US"))
+	assert.Equal("2021年1月2日", DateToStr(utcTime, "zh_TW"))
+	assert.Equal("2021年1月2日", DateToStr(utcTime, "zh_CN"))
+	assert.Equal("Jan 2, 2021", DateToStr(utcTime, "en_US"))
 }
 
 func TestTimeToLocalStr(t *testing.T) {
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
-	assert.Equal("11:55 PM", TimeToLocalStr(utcTime, "en_US"))
-	assert.Equal("下午11:55", TimeToLocalStr(utcTime, "zh_TW"))
-	assert.Equal("下午11:55", TimeToLocalStr(utcTime, "zh_CN"))
+	assert.Equal("11:55 PM", TimeToStr(utcTime, "en_US"))
+	assert.Equal("下午11:55", TimeToStr(utcTime, "zh_TW"))
+	assert.Equal("下午11:55", TimeToStr(utcTime, "zh_CN"))
 }
 
 func TestDateTimeToLocalStr(t *testing.T) {
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
-	assert.Equal("2021年1月2日 下午11:55", DateTimeToLocalStr(utcTime, "zh_TW"))
-	assert.Equal("2021年1月2日 下午11:55", DateTimeToLocalStr(utcTime, "zh_CN"))
-	assert.Equal("Jan 2, 2021 11:55 PM", DateTimeToLocalStr(utcTime, "en_US"))
+	assert.Equal("2021年1月2日 下午11:55", DateTimeToStr(utcTime, "zh_TW"))
+	assert.Equal("2021年1月2日 下午11:55", DateTimeToStr(utcTime, "zh_CN"))
+	assert.Equal("Jan 2, 2021 11:55 PM", DateTimeToStr(utcTime, "en_US"))
 }
