@@ -7,13 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEmptyTimestamp(t *testing.T) {
-	assert := assert.New(t)
-	timestamp, err := EmptyTimestamp()
-	assert.Nil(err)
-	assert.NotNil(timestamp)
-}
-
 func TestUtc(t *testing.T) {
 	assert := assert.New(t)
 	now := time.Now()

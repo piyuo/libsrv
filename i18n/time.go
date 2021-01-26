@@ -10,12 +10,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// EmptyTimestamp return empty timestamp
-//
-func EmptyTimestamp() (*timestamppb.Timestamp, error) {
-	return ptypes.TimestampProto(time.Time{})
-}
-
 // ToUtcTimestamp create utc timestamp from time
 //
 func ToUtcTimestamp(t time.Time) (*timestamppb.Timestamp, error) {
