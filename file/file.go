@@ -35,7 +35,7 @@ func Read(filename string) ([]byte, error) {
 //	}
 //	So(txt, ShouldEqual, "")
 //
-func ReadText(filename string) (string, error) {
+func ReadText(filename string)  (string, error) {
 	bytes, err := Read(filename)
 	if err != nil {
 		return "", err
