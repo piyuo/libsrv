@@ -74,3 +74,18 @@ func StringHash(str string) uint32 {
 	h.Write([]byte(str))
 	return h.Sum32()
 }
+
+// RemoveEmptyStrings remove empty string values inside an array
+//
+//	ary := []string{"a", "", "b"}
+//	filtered := RemoveEmptyStrings(ary)
+//
+func RemoveEmptyStrings(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
+}

@@ -41,3 +41,11 @@ func TestGetHashcode(t *testing.T) {
 	code2 := StringHash(str)
 	assert.Equal(code, code2)
 }
+
+func TestRemoveEmptyStrings(t *testing.T) {
+	assert := assert.New(t)
+	ary := []string{"a", "", "b"}
+	filtered := RemoveEmptyStrings(ary)
+	assert.Len(filtered, 2)
+	assert.Equal("b", filtered[1])
+}
