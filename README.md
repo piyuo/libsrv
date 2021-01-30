@@ -4,8 +4,13 @@ Library for all GO server project
 
 ## Requirement
 
+we separate source code from gopath so we don't need worried lot of pkg file sync over dropbox
+
 Environment Variables
 
+PATH="$HOME/go/bin":"$GOPATH/bin"
+GO111MODULE=on
+GOPATH="/Users/cc/gopath"
 NAME="dev"
 REGION="US"
 BRANCH="master"
@@ -40,4 +45,12 @@ go get -u ./...
 
 ```bash
 go get golang.org/x/tools/gopls@latest
+```
+
+### Dev
+
+自动下载依赖的 module（同时删除掉无用的）
+
+```bash
+go mod tidy -v
 ```
