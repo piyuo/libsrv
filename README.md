@@ -49,8 +49,8 @@ go get golang.org/x/tools/gopls@latest
 
 ### Dev
 
-自动下载依赖的 module（同时删除掉无用的）
+go clean cache
 
 ```bash
-go mod tidy -v
+go clean -cache -modcache -i -r
 ```
