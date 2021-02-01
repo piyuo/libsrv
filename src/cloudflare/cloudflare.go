@@ -19,7 +19,7 @@ import (
 //
 var testMode = false
 
-// EnableTestMode return error if go is not installed
+// EnableTestMode set to true will let every function run success
 //
 func EnableTestMode(enabled bool) {
 	testMode = enabled
