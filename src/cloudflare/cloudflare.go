@@ -15,6 +15,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TestMode set to true will let every function run success
+//
+var TestMode = false
+
 //	credential return cloudflare credential zon and token
 //
 //	zone,token, err = impl.credential()
@@ -104,6 +108,10 @@ func getDNSRecordID(ctx context.Context, domainName, recType, content string) (s
 //	err = AddDomain(ctx, domainName, false)
 //
 func AddDomain(ctx context.Context, domainName string, proxied bool) error {
+	if TestMode {
+		return nil
+	}
+
 	proxy := "false"
 	if proxied {
 		proxy = "true"
@@ -125,6 +133,10 @@ func AddDomain(ctx context.Context, domainName string, proxied bool) error {
 //	err = RemoveDomain(ctx, domainName)
 //
 func RemoveDomain(ctx context.Context, domainName string) error {
+	if TestMode {
+		return nil
+	}
+
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "ghs.googlehosted.com")
 	if err != nil {
 		return err
@@ -144,6 +156,9 @@ func RemoveDomain(ctx context.Context, domainName string) error {
 //	exist, err := IsDomainExist(ctx, domainName)
 //
 func IsDomainExist(ctx context.Context, domainName string) (bool, error) {
+	if TestMode {
+		return true, nil
+	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "ghs.googlehosted.com")
 	if err != nil {
@@ -157,6 +172,10 @@ func IsDomainExist(ctx context.Context, domainName string) (bool, error) {
 //	err = cflare.AddTxtRecord(ctx, domainName, txt)
 //
 func AddTxtRecord(ctx context.Context, domainName, txt string) error {
+	if TestMode {
+		return nil
+	}
+
 	var requestJSON = []byte(`{"type":"TXT","name":"` + domainName + `","content":"` + txt + `"}`)
 	_, err := sendDNSRequest(ctx, "POST", "", bytes.NewBuffer(requestJSON))
 	if err != nil {
@@ -173,6 +192,10 @@ func AddTxtRecord(ctx context.Context, domainName, txt string) error {
 //	err = RemoveTxtRecord(ctx, domainName, txt)
 //
 func RemoveTxtRecord(ctx context.Context, domainName string) error {
+	if TestMode {
+		return nil
+	}
+
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
 		return err
@@ -192,6 +215,10 @@ func RemoveTxtRecord(ctx context.Context, domainName string) error {
 //	exist, err = IsTxtRecordExist(ctx, domainName, txt)
 //
 func IsTxtRecordExist(ctx context.Context, domainName string) (bool, error) {
+	if TestMode {
+		return true, nil
+	}
+
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
 		return false, err
