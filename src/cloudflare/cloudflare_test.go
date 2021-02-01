@@ -68,7 +68,9 @@ func TestDomain(t *testing.T) {
 	err = RemoveDomain(ctx, domainName)
 	assert.Nil(err)
 
-	TestMode = true
+	EnableTestMode(true)
+	defer EnableTestMode(false)
+
 	err = AddDomain(ctx, domainName, false)
 	assert.Nil(err)
 
@@ -78,8 +80,6 @@ func TestDomain(t *testing.T) {
 
 	err = RemoveDomain(ctx, domainName)
 	assert.Nil(err)
-	TestMode = false
-
 }
 
 func TestTxtRecord(t *testing.T) {
@@ -118,7 +118,9 @@ func TestTxtRecord(t *testing.T) {
 	err = RemoveTxtRecord(ctx, domainName)
 	assert.Nil(err)
 
-	TestMode = true
+	EnableTestMode(true)
+	defer EnableTestMode(false)
+
 	err = AddTxtRecord(ctx, domainName, txt)
 	assert.Nil(err)
 	err = RemoveTxtRecord(ctx, domainName)
@@ -126,6 +128,4 @@ func TestTxtRecord(t *testing.T) {
 	exist, err = IsTxtRecordExist(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
-	TestMode = false
-
 }

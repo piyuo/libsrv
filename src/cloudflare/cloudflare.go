@@ -15,9 +15,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TestMode set to true will let every function run success
+// testMode set to true will let every function run success
 //
-var TestMode = false
+var testMode = false
+
+// EnableTestMode return error if go is not installed
+//
+func EnableTestMode(enabled bool) {
+	testMode = enabled
+}
 
 //	credential return cloudflare credential zon and token
 //
@@ -108,7 +114,7 @@ func getDNSRecordID(ctx context.Context, domainName, recType, content string) (s
 //	err = AddDomain(ctx, domainName, false)
 //
 func AddDomain(ctx context.Context, domainName string, proxied bool) error {
-	if TestMode {
+	if testMode {
 		return nil
 	}
 
@@ -133,7 +139,7 @@ func AddDomain(ctx context.Context, domainName string, proxied bool) error {
 //	err = RemoveDomain(ctx, domainName)
 //
 func RemoveDomain(ctx context.Context, domainName string) error {
-	if TestMode {
+	if testMode {
 		return nil
 	}
 
@@ -156,7 +162,7 @@ func RemoveDomain(ctx context.Context, domainName string) error {
 //	exist, err := IsDomainExist(ctx, domainName)
 //
 func IsDomainExist(ctx context.Context, domainName string) (bool, error) {
-	if TestMode {
+	if testMode {
 		return true, nil
 	}
 
@@ -172,7 +178,7 @@ func IsDomainExist(ctx context.Context, domainName string) (bool, error) {
 //	err = cflare.AddTxtRecord(ctx, domainName, txt)
 //
 func AddTxtRecord(ctx context.Context, domainName, txt string) error {
-	if TestMode {
+	if testMode {
 		return nil
 	}
 
@@ -192,7 +198,7 @@ func AddTxtRecord(ctx context.Context, domainName, txt string) error {
 //	err = RemoveTxtRecord(ctx, domainName, txt)
 //
 func RemoveTxtRecord(ctx context.Context, domainName string) error {
-	if TestMode {
+	if testMode {
 		return nil
 	}
 
@@ -215,7 +221,7 @@ func RemoveTxtRecord(ctx context.Context, domainName string) error {
 //	exist, err = IsTxtRecordExist(ctx, domainName, txt)
 //
 func IsTxtRecordExist(ctx context.Context, domainName string) (bool, error) {
-	if TestMode {
+	if testMode {
 		return true, nil
 	}
 
