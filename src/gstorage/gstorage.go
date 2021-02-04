@@ -1,4 +1,4 @@
-package cloudstorage
+package gstorage
 
 import (
 	"context"
@@ -8,25 +8,27 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/piyuo/libsrv/src/gcp"
 	"github.com/piyuo/libsrv/src/log"
 	"github.com/pkg/errors"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
-const here = "cloudstorage"
+const here = "gstorage"
 
-// Cloudstorage is google cloud storage toolkit
+const timeout = time.Second * 15
+
+// Gstorage is google cloud storage toolkit
 //
 //	before use this toolkit you need verify domain owner ship, please add service account in gclould.key to  https://www.google.com/webmasters/verification
 //
-type Cloudstorage interface {
+type Gstorage interface {
 
 	// AddBucket add cloud storage bucket
 	//
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
+	//	storage, err := NewGstorage(ctx)
 	//	err = storage.AddBucket(ctx, "mock-libsrv.piyuo.com", "US")
 	//
 	AddBucket(ctx context.Context, bucketName, location string) error
@@ -34,7 +36,7 @@ type Cloudstorage interface {
 	// RemoveBucket remove cloud storage bucket
 	//
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
+	//	storage, err := NewGstorage(ctx)
 	//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
 	//
 	RemoveBucket(ctx context.Context, bucketName string) error
@@ -42,46 +44,52 @@ type Cloudstorage interface {
 	// CleanBucket remove all file in bucket
 	//
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
+	//	storage, err := NewGstorage(ctx)
 	//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
 	//
 	CleanBucket(ctx context.Context, bucketName string, timeout time.Duration) error
 
-	// IsBucketExist return true if bucket exist
+	// IsBucketExists return true if bucket exist
 	//
 	//	bucketName := "mock-libsrv.piyuo.com"
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
-	//	exist, err := storage.IsBucketExist(ctx, bucketName)
+	//	storage, err := NewGstorage(ctx)
+	//	exist, err := storage.IsBucketExists(ctx, bucketName)
 	//
-	IsBucketExist(ctx context.Context, bucketName string) (bool, error)
+	IsBucketExists(ctx context.Context, bucketName string) (bool, error)
 
-	// WriteText file to bucket
+	// IsFileExists return true if file exist
 	//
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
+	//	storage, err := NewGstorage(ctx)
+	//	found,err = storage.IsFileExist(ctx, bucketName,"dirName", "fileName")
+	//
+	IsFileExists(ctx context.Context, bucketName, dirName, fileName string) (bool, error)
+
+	// WriteText write text file to bucket
+	//
+	//	ctx := context.Background()
+	//	storage, err := NewGstorage(ctx)
 	//	err = storage.AddBucket(ctx, bucketName, "US")
-	//	So(err, ShouldBeNil)
 	//
 	WriteText(ctx context.Context, bucketName, path, txt string) error
 
 	// ReadText file from bucket
 	//
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
+	//	storage, err := NewGstorage(ctx)
 	//	txt, err := storage.ReadText(ctx, bucketName, path)
-	//	So(err, ShouldBeNil)
 	//	So(txt, ShouldEqual, "hi")
 	//
 	ReadText(ctx context.Context, bucketName, path string) (string, error)
 
-	// Delete file from bucket
+	// DeleteFile file from bucket
 	//
 	//	ctx := context.Background()
-	//	storage, err := NewCloudstorage(ctx)
-	//	err = storage.Delete(ctx, bucketName, path)
+	//	storage, err := NewGstorage(ctx)
+	//	err = storage.DeleteFile(ctx, bucketName, path)
 	//
-	Delete(ctx context.Context, bucketName, path string) error
+	DeleteFile(ctx context.Context, bucketName, path string) error
 
 	//setCors
 }
@@ -89,24 +97,19 @@ type Cloudstorage interface {
 // Implementation is Cloudstorage implementation
 //
 type Implementation struct {
-	Cloudstorage
+	Gstorage
 	client    *storage.Client
 	projectID string
 }
 
-// NewCloudstorage create Cloudstorage
+// NewGstorage create Cloudstorage
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
+//	storage, err := NewGstorage(ctx,cred)
 //
-func NewCloudstorage(ctx context.Context) (Cloudstorage, error) {
+func NewGstorage(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
-	}
-
-	cred, err := gcp.GlobalCredential(ctx)
-	if err != nil {
-		return nil, err
 	}
 
 	client, err := storage.NewClient(ctx, option.WithCredentials(cred))
@@ -124,19 +127,19 @@ func NewCloudstorage(ctx context.Context) (Cloudstorage, error) {
 // AddBucket add cloud storage bucket
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
+//	storage, err := NewGstorage(ctx)
 //	err = storage.AddBucket(ctx, "mock-libsrv.piyuo.com", "US")
 //
 func (impl *Implementation) AddBucket(ctx context.Context, bucketName, location string) error {
 
-	exist, err := impl.IsBucketExist(ctx, bucketName)
+	exist, err := impl.IsBucketExists(ctx, bucketName)
 	if err != nil {
 		return err
 	}
 
 	if !exist {
 		bucket := impl.client.Bucket(bucketName)
-		ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 		if err := bucket.Create(ctx, impl.projectID, &storage.BucketAttrs{
 			Location: location,
@@ -152,19 +155,19 @@ func (impl *Implementation) AddBucket(ctx context.Context, bucketName, location 
 // RemoveBucket remove cloud storage bucket
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
+//	storage, err := NewGstorage(ctx)
 //	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
 //
 func (impl *Implementation) RemoveBucket(ctx context.Context, bucketName string) error {
 
-	exist, err := impl.IsBucketExist(ctx, bucketName)
+	exist, err := impl.IsBucketExists(ctx, bucketName)
 	if err != nil {
 		return err
 	}
 
 	if exist {
 		bucket := impl.client.Bucket(bucketName)
-		ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 		if err := bucket.Delete(ctx); err != nil {
 			return errors.Wrap(err, "failed to remove bucket:"+bucketName)
@@ -175,15 +178,14 @@ func (impl *Implementation) RemoveBucket(ctx context.Context, bucketName string)
 	return nil
 }
 
-// IsBucketExist return true if bucket exist
+// IsBucketExists return true if bucket exist
 //
 //	bucketName := "mock-libsrv.piyuo.com"
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
+//	storage, err := NewGstorage(ctx)
 //	exist, err := storage.IsBucketExist(ctx, bucketName)
 //
-func (impl *Implementation) IsBucketExist(ctx context.Context, bucketName string) (bool, error) {
-
+func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName string) (bool, error) {
 	bucketIterator := impl.client.Buckets(ctx, impl.projectID)
 	for {
 		bucketAttrs, err := bucketIterator.Next()
@@ -201,16 +203,43 @@ func (impl *Implementation) IsBucketExist(ctx context.Context, bucketName string
 	return false, nil
 }
 
+// IsFileExists return true if file exist
+//
+//	ctx := context.Background()
+//	storage, err := NewGstorage(ctx)
+//	found,err = storage.IsFileExist(ctx, bucketName, "dirName", "fileName")
+//
+func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, dirName, fileName string) (bool, error) {
+	bucket := impl.client.Bucket(bucketName)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	query := &storage.Query{Prefix: dirName}
+	it := bucket.Objects(ctx, query)
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return false, err
+		}
+		if attrs.Name == fileName {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // WriteText file to bucket
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
-//	err = storage.AddBucket(ctx, bucketName, "US")
-//	So(err, ShouldBeNil)
+//	storage, err := NewGstorage(ctx)
+//	err = storage.AddBucket(ctx, bucketName, "US"
 //
 func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt string) error {
 	bucket := impl.client.Bucket(bucketName)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	wc := bucket.Object(path).NewWriter(ctx)
@@ -222,21 +251,19 @@ func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt
 	if err := wc.Close(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // ReadText file from bucket
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
-//	txt, err := storage.ReadText(ctx, bucketName, path)
-//	So(err, ShouldBeNil)
+//	storage, err := NewGstorage(ctx)
+//	txt, err := storage.ReadText(ctx, bucketName, path
 //	So(txt, ShouldEqual, "hi")
 //
 func (impl *Implementation) ReadText(ctx context.Context, bucketName, path string) (string, error) {
 	bucket := impl.client.Bucket(bucketName)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	rc, err := bucket.Object(path).NewReader(ctx)
@@ -252,14 +279,14 @@ func (impl *Implementation) ReadText(ctx context.Context, bucketName, path strin
 	return string(data), nil
 }
 
-// Delete file from bucket
+// DeleteFile file from bucket
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
-//	err = storage.Delete(ctx, bucketName, path)
+//	storage, err := NewGstorage(ctx)
+//	err = storage.DeleteFile(ctx, bucketName, path)
 //
-func (impl *Implementation) Delete(ctx context.Context, bucketName, path string) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*12)
+func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path string) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	o := impl.client.Bucket(bucketName).Object(path)
@@ -273,7 +300,7 @@ func (impl *Implementation) Delete(ctx context.Context, bucketName, path string)
 // timeout in ms
 //
 //	ctx := context.Background()
-//	storage, err := NewCloudstorage(ctx)
+//	storage, err := NewGstorage(ctx)
 //	err = storage.Delete(ctx, bucketName, path)
 //
 func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string, timeout time.Duration) error {
@@ -293,10 +320,7 @@ func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string, 
 
 // RemoveObjects remove objects max 1000, return true if object all deleted
 //
-//
-//
 func (impl *Implementation) RemoveObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
-
 	query := &storage.Query{}
 	query.SetAttrSelection([]string{"Name"})
 

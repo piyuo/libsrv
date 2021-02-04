@@ -1,4 +1,4 @@
-package cloudstorage
+package gstorage
 
 import (
 	"context"
@@ -6,74 +6,92 @@ import (
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/src/gcp"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCloudstorage(t *testing.T) {
+func TestNewGstorage(t *testing.T) {
 	assert := assert.New(t)
-	storage, err := NewCloudstorage(context.Background())
+	ctx := context.Background()
+	cred, err := gcp.GlobalCredential(ctx)
+	assert.Nil(err)
+	storage, err := NewGstorage(ctx, cred)
 	assert.Nil(err)
 	assert.NotNil(storage)
 }
 
-func TestBucket(t *testing.T) {
+func TestGstorageBucket(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	storage, err := NewCloudstorage(ctx)
+	cred, err := gcp.GlobalCredential(ctx)
+	assert.Nil(err)
+	storage, err := NewGstorage(ctx, cred)
 
-	bucketName := "mock-libsrv.piyuo.com"
+	bucketName := "gstorage.piyuo.com"
 
 	err = storage.RemoveBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	exist, err := storage.IsBucketExist(ctx, bucketName)
+	exist, err := storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
 	assert.False(exist)
 
 	err = storage.AddBucket(ctx, bucketName, "US")
 	assert.Nil(err)
 
-	exist, err = storage.IsBucketExist(ctx, bucketName)
+	exist, err = storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
 	assert.True(exist)
 
 	err = storage.RemoveBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	exist, err = storage.IsBucketExist(ctx, bucketName)
+	exist, err = storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
 	assert.False(exist)
 }
 
-func TestReadWriteDelete(t *testing.T) {
+func TestGstorageReadWriteDelete(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	storage, err := NewCloudstorage(ctx)
-	bucketName := "mock-libsrv.piyuo.com"
+	cred, err := gcp.GlobalCredential(ctx)
+	assert.Nil(err)
+	storage, err := NewGstorage(ctx, cred)
+	bucketName := "gstorage.piyuo.com"
 	path := "TestReadWriteDelete.txt"
 
 	err = storage.AddBucket(ctx, bucketName, "US")
 	assert.Nil(err)
 
+	found, err := storage.IsFileExists(ctx, bucketName, "", path)
+	assert.Nil(err)
+	assert.False(found)
+
 	err = storage.WriteText(ctx, bucketName, path, "hi")
 	assert.Nil(err)
+
+	found, err = storage.IsFileExists(ctx, bucketName, "", path)
+	assert.Nil(err)
+	assert.True(found)
 
 	txt, err := storage.ReadText(ctx, bucketName, path)
 	assert.Nil(err)
 	assert.Equal("hi", txt)
 
-	err = storage.Delete(ctx, bucketName, path)
+	err = storage.DeleteFile(ctx, bucketName, path)
 	assert.Nil(err)
 
 	err = storage.RemoveBucket(ctx, bucketName)
 	assert.Nil(err)
 }
 
-func TestCleanBucket(t *testing.T) {
+func TestGstorageCleanBucket(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	storage, err := NewCloudstorage(ctx)
-	bucketName := "mock-libsrv.piyuo.com"
+	cred, err := gcp.GlobalCredential(ctx)
+	assert.Nil(err)
+	storage, err := NewGstorage(ctx, cred)
+	bucketName := "gstorage.piyuo.com"
 	path := "TestCleanBucket.txt"
 
 	err = storage.AddBucket(ctx, bucketName, "US")
