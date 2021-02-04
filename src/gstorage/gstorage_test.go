@@ -15,7 +15,7 @@ func TestNewGstorage(t *testing.T) {
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
-	storage, err := NewGstorage(ctx, cred)
+	storage, err := New(ctx, cred)
 	assert.Nil(err)
 	assert.NotNil(storage)
 }
@@ -25,7 +25,7 @@ func TestGstorageBucket(t *testing.T) {
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
-	storage, err := NewGstorage(ctx, cred)
+	storage, err := New(ctx, cred)
 
 	bucketName := "gstorage.piyuo.com"
 
@@ -56,7 +56,7 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
-	storage, err := NewGstorage(ctx, cred)
+	storage, err := New(ctx, cred)
 	bucketName := "gstorage.piyuo.com"
 	path := "TestReadWriteDelete.txt"
 
@@ -90,7 +90,7 @@ func TestGstorageCleanBucket(t *testing.T) {
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
-	storage, err := NewGstorage(ctx, cred)
+	storage, err := New(ctx, cred)
 	bucketName := "gstorage.piyuo.com"
 	path := "TestCleanBucket.txt"
 
