@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/piyuo/libsrv/src/gcp"
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/piyuo/libsrv/src/log"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
@@ -83,7 +83,7 @@ func NewSiteVerify(ctx context.Context) (SiteVerify, error) {
 		return nil, ctx.Err()
 	}
 
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}

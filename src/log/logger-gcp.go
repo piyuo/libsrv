@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/logging"
-	gcp "github.com/piyuo/libsrv/src/gcp"
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	mrpb "google.golang.org/genproto/googleapis/api/monitoredres"
@@ -28,7 +28,7 @@ type gcpLogger struct {
 //	logger, err := NewGCPLogger(ctx)
 //
 func NewGCPLogger(ctx context.Context) (Logger, error) {
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}

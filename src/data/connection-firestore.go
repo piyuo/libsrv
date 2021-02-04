@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
-	"github.com/piyuo/libsrv/src/gcp"
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -38,7 +38,7 @@ type ConnectionFirestore struct {
 //	defer c.Close()
 //
 func FirestoreGlobalConnection(ctx context.Context) (Connection, error) {
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func FirestoreGlobalConnection(ctx context.Context) (Connection, error) {
 //	defer c.Close()
 //
 func FirestoreRegionalConnection(ctx context.Context) (Connection, error) {
-	cred, err := gcp.RegionalCredential(ctx)
+	cred, err := gaccount.RegionalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func FirestoreRegionalConnection(ctx context.Context) (Connection, error) {
 
 // firestoreNewConnection create connection to firestore
 //
-//	cred, err := gcp.RegionalCredential(ctx)
+//	cred, err := gaccount.RegionalCredential(ctx)
 //	return firestoreNewConnection(ctx, cred)
 //
 func firestoreNewConnection(ctx context.Context, cred *google.Credentials) (Connection, error) {

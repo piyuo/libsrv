@@ -6,7 +6,7 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	"github.com/piyuo/libsrv/src/env"
-	"github.com/piyuo/libsrv/src/gcp"
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 )
@@ -24,7 +24,7 @@ type gcpErrorer struct {
 //	logClient, _ := NewGCPLogger(ctx)
 //
 func NewGCPErrorer(ctx context.Context) (Errorer, error) {
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	if err != nil {
 		return nil, err
 	}

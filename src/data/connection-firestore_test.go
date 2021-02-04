@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/piyuo/libsrv/src/gcp"
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +13,7 @@ import (
 func TestFirestoreNewDB(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	db, err := firestoreNewConnection(ctx, cred)
 	defer db.Close()

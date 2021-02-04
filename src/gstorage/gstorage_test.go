@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/src/gcp"
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewGstorage(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := NewGstorage(ctx, cred)
 	assert.Nil(err)
@@ -23,7 +23,7 @@ func TestNewGstorage(t *testing.T) {
 func TestGstorageBucket(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := NewGstorage(ctx, cred)
 
@@ -54,7 +54,7 @@ func TestGstorageBucket(t *testing.T) {
 func TestGstorageReadWriteDelete(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := NewGstorage(ctx, cred)
 	bucketName := "gstorage.piyuo.com"
@@ -88,7 +88,7 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 func TestGstorageCleanBucket(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := gcp.GlobalCredential(ctx)
+	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := NewGstorage(ctx, cred)
 	bucketName := "gstorage.piyuo.com"

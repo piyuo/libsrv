@@ -1,4 +1,4 @@
-package gcp
+package gaccount
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGcpCredential(t *testing.T) {
+func TestGaccountCredential(t *testing.T) {
 	assert := assert.New(t)
 
 	//should create google credential
@@ -29,7 +29,7 @@ func TestGcpCredential(t *testing.T) {
 	assert.NotNil(globalCredential)
 }
 
-func TestGcpCreateCredential(t *testing.T) {
+func TestGaccountCreateCredential(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := CreateCredential(ctx, "gcloud.json")
@@ -40,7 +40,7 @@ func TestGcpCreateCredential(t *testing.T) {
 	assert.Nil(cred)
 }
 
-func TestGcpDataCredentialByRegion(t *testing.T) {
+func TestGaccountDataCredentialByRegion(t *testing.T) {
 	assert := assert.New(t)
 	region.Current = "us"
 	ctx := context.Background()
@@ -59,7 +59,7 @@ func TestGcpDataCredentialByRegion(t *testing.T) {
 	assert.NotNil(cred)
 }
 
-func TestGcpCredentialWhenContextCanceled(t *testing.T) {
+func TestGaccountCredentialWhenContextCanceled(t *testing.T) {
 	assert := assert.New(t)
 	deadline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), deadline)
