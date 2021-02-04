@@ -14,6 +14,26 @@ import (
 //
 var globalCredential *google.Credentials
 
+// CreateCredential create credential from key
+//
+//	cred, err := CreateCredential(ctx,"master/gcloud.json")
+//
+func CreateCredential(ctx context.Context, keyName string) (*google.Credentials, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	bytes, err := key.BytesWithoutCache(keyName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get keys/"+keyName)
+	}
+	cred, err := makeCredential(ctx, bytes)
+	if err != nil {
+		return nil, err
+	}
+	return cred, nil
+}
+
 // GlobalCredential provide google credential for project
 //
 //	cred, err := GlobalCredential(context.Background())
@@ -28,7 +48,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get keys/gcloud.json")
 		}
-		cred, err := createCredential(ctx, bytes)
+		cred, err := makeCredential(ctx, bytes)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +75,7 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get keys/region/"+region.Current+".json")
 		}
-		cred, err := createCredential(ctx, bytes)
+		cred, err := makeCredential(ctx, bytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create credential, check keys/region/"+region.Current+".json format is correct")
 		}
@@ -65,11 +85,11 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	return cred, nil
 }
 
-// createCredential create google credential from json bytes
+// makeCredential create google credential from json bytes
 //
-//	cred, err := createCredential(context.Background(),bytes)
+//	cred, err := makeCredential(context.Background(),bytes)
 //
-func createCredential(ctx context.Context, bytes []byte) (*google.Credentials, error) {
+func makeCredential(ctx context.Context, bytes []byte) (*google.Credentials, error) {
 
 	creds, err := google.CredentialsFromJSON(ctx, bytes,
 		"https://www.googleapis.com/auth/siteverification",        // log, error
