@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/stretchr/testify/assert"
@@ -101,7 +100,7 @@ func TestGstorageCleanBucket(t *testing.T) {
 		err = storage.WriteText(ctx, bucketName, fmt.Sprintf("%v%v", path, i), fmt.Sprintf("hi %v", i))
 		//fmt.Printf("add object:%v\n", i)
 	}
-	err = storage.CleanBucket(ctx, bucketName, 25*time.Second)
+	err = storage.CleanBucket(ctx, bucketName)
 	assert.Nil(err)
 	err = storage.RemoveBucket(ctx, bucketName)
 	assert.Nil(err)
