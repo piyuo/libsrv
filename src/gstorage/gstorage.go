@@ -22,21 +22,21 @@ const here = "gstorage"
 //
 type Gstorage interface {
 
-	// AddBucket add cloud storage bucket
+	// CreateBucket add cloud storage bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.AddBucket(ctx, "mock-libsrv.piyuo.com", "US")
+	//	err = storage.CreateBucket(ctx, "mock-libsrv.piyuo.com","us-central1","region")
 	//
-	AddBucket(ctx context.Context, bucketName, location string) error
+	CreateBucket(ctx context.Context, bucketName, location, locationType string) error
 
-	// RemoveBucket remove cloud storage bucket
+	// DeleteBucket remove cloud storage bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
+	//	err = storage.DeleteBucket(ctx, "mock-libsrv.piyuo.com")
 	//
-	RemoveBucket(ctx context.Context, bucketName string) error
+	DeleteBucket(ctx context.Context, bucketName string) error
 
 	// CleanBucket remove all file in bucket
 	//
@@ -121,13 +121,13 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 	return cloudstorage, nil
 }
 
-// AddBucket add cloud storage bucket
+// CreateBucket add cloud storage bucket
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.AddBucket(ctx, "mock-libsrv.piyuo.com", "US")
+//	err = storage.CreateBucket(ctx, "mock-libsrv.piyuo.com","us-central1","region")
 //
-func (impl *Implementation) AddBucket(ctx context.Context, bucketName, location string) error {
+func (impl *Implementation) CreateBucket(ctx context.Context, bucketName, location, locationType string) error {
 
 	exist, err := impl.IsBucketExists(ctx, bucketName)
 	if err != nil {
@@ -137,23 +137,23 @@ func (impl *Implementation) AddBucket(ctx context.Context, bucketName, location 
 	if !exist {
 		bucket := impl.client.Bucket(bucketName)
 		if err := bucket.Create(ctx, impl.projectID, &storage.BucketAttrs{
-			Location: location,
+			Location:     "us-central1",
+			LocationType: "region",
 		}); err != nil {
 			return errors.Wrap(err, "failed to add bucket:"+bucketName)
 		}
-
 		log.Info(ctx, here, bucketName+" Bucket created")
 	}
 	return nil
 }
 
-// RemoveBucket remove cloud storage bucket
+// DeleteBucket remove cloud storage bucket
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
+//	err = storage.DeleteBucket(ctx, "mock-libsrv.piyuo.com")
 //
-func (impl *Implementation) RemoveBucket(ctx context.Context, bucketName string) error {
+func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string) error {
 
 	exist, err := impl.IsBucketExists(ctx, bucketName)
 	if err != nil {
