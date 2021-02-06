@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"time"
 
+	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
 	"github.com/piyuo/libsrv/src/log"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	iampb "google.golang.org/genproto/googleapis/iam/v1"
 )
 
 const here = "gstorage"
@@ -26,7 +29,7 @@ type Gstorage interface {
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.CreateBucketIfNotExist(ctx, "mock-libsrv.piyuo.com","us-central1","region")
+	//	err = storage.CreateBucketIfNotExist(ctx, "my-bucket","us-central1","region")
 	//
 	CreateBucketIfNotExist(ctx context.Context, bucketName, location, locationType string) error
 
@@ -34,21 +37,37 @@ type Gstorage interface {
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.DeleteBucket(ctx, "mock-libsrv.piyuo.com")
+	//	err = storage.DeleteBucket(ctx, "my-bucket")
 	//
 	DeleteBucket(ctx context.Context, bucketName string) error
+
+	// PublicBucket make bucket public
+	//
+	//	ctx := context.Background()
+	//	storage, err := New(ctx)
+	//	err = storage.PublicBucket(ctx, "my-bucket")
+	//
+	PublicBucket(ctx context.Context, bucketName string) error
+
+	// MakeBucketWebsite set bucket CORS configuration
+	//
+	//	ctx := context.Background()
+	//	storage, err := New(ctx)
+	//	err = storage.MakeBucketWebsite(ctx, "my-bucket",time.Hour,[]string{"GET"},[]string{"some-origin.com"},[]string{"Content-Type"})
+	//
+	MakeBucketWebsite(ctx context.Context, bucketName string, maxAge time.Duration, methods, origins, responseHeaders []string) error
 
 	// CleanBucket remove all file in bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.RemoveBucket(ctx, "mock-libsrv.piyuo.com")
+	//	err = storage.RemoveBucket(ctx, "my-bucket")
 	//
 	CleanBucket(ctx context.Context, bucketName string) error
 
 	// IsBucketExists return true if bucket exist
 	//
-	//	bucketName := "mock-libsrv.piyuo.com"
+	//	bucketName := "my-bucket"
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	exist, err := storage.IsBucketExists(ctx, bucketName)
@@ -87,8 +106,6 @@ type Gstorage interface {
 	//	err = storage.DeleteFile(ctx, bucketName, path)
 	//
 	DeleteFile(ctx context.Context, bucketName, path string) error
-
-	//setCors
 }
 
 // Implementation is Cloudstorage implementation
@@ -125,7 +142,7 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.CreateBucketIfNotExist(ctx, "mock-libsrv.piyuo.com","us-central1","region")
+//	err = storage.CreateBucketIfNotExist(ctx, "my-bucket","us-central1","region")
 //
 func (impl *Implementation) CreateBucketIfNotExist(ctx context.Context, bucketName, location, locationType string) error {
 
@@ -151,7 +168,7 @@ func (impl *Implementation) CreateBucketIfNotExist(ctx context.Context, bucketNa
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.DeleteBucket(ctx, "mock-libsrv.piyuo.com")
+//	err = storage.DeleteBucket(ctx, "my-bucket")
 //
 func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string) error {
 
@@ -175,9 +192,59 @@ func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string)
 	return nil
 }
 
+// PublicBucket make bucket public
+//
+//	ctx := context.Background()
+//	storage, err := New(ctx)
+//	err = storage.PublicBucket(ctx, "my-bucket")
+//
+func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string) error {
+	bucket := impl.client.Bucket(bucketName)
+	policy, err := bucket.IAM().V3().Policy(ctx)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to get Bucket(%q).IAM().V3().Policy", bucketName))
+	}
+	role := "roles/storage.objectViewer"
+	policy.Bindings = append(policy.Bindings, &iampb.Binding{
+		Role:    role,
+		Members: []string{iam.AllUsers},
+	})
+	if err := bucket.IAM().V3().SetPolicy(ctx, policy); err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to set Bucket(%q).IAM().SetPolicy", bucketName))
+	}
+	return nil
+}
+
+// MakeBucketWebsite set bucket WEB & CORS configuration, let it be static website
+//
+//	ctx := context.Background()
+//	storage, err := New(ctx)
+//	err = storage.MakeBucketWebsite(ctx, "my-bucket",time.Hour,[]string{"GET"},[]string{"some-origin.com"},[]string{"Content-Type"})
+//
+func (impl *Implementation) MakeBucketWebsite(ctx context.Context, bucketName string, maxAge time.Duration, methods, origins, responseHeaders []string) error {
+	bucket := impl.client.Bucket(bucketName)
+	bucketAttrsToUpdate := storage.BucketAttrsToUpdate{
+		Website: &storage.BucketWebsite{
+			MainPageSuffix: "index.html",
+			NotFoundPage:   "404.html",
+		},
+		CORS: []storage.CORS{
+			{
+				MaxAge:          maxAge,
+				Methods:         methods,
+				Origins:         origins,
+				ResponseHeaders: responseHeaders,
+			}},
+	}
+	if _, err := bucket.Update(ctx, bucketAttrsToUpdate); err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to exec Bucket(%q).Update", bucketName))
+	}
+	return nil
+}
+
 // IsBucketExists return true if bucket exist
 //
-//	bucketName := "mock-libsrv.piyuo.com"
+//	bucketName := "my-bucket"
 //	ctx := context.Background()
 //	storage, err := New(ctx)
 //	exist, err := storage.IsBucketExist(ctx, bucketName)

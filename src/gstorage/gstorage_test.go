@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/stretchr/testify/assert"
@@ -41,6 +42,12 @@ func TestGstorageBucket(t *testing.T) {
 	exist, err = storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
 	assert.True(exist)
+
+	err = storage.PublicBucket(ctx, bucketName)
+	assert.Nil(err)
+
+	err = storage.MakeBucketWebsite(ctx, bucketName, time.Hour*24*365, []string{"GET", "POST"}, []string{"*"}, []string{""})
+	assert.Nil(err)
 
 	err = storage.DeleteBucket(ctx, bucketName)
 	assert.Nil(err)
