@@ -25,13 +25,13 @@ const here = "gstorage"
 //
 type Gstorage interface {
 
-	// CreateBucketIfNotExist add cloud storage bucket
+	// CreateBucket add cloud storage bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.CreateBucketIfNotExist(ctx, "my-bucket","us-central1","region")
+	//	err = storage.CreateBucket(ctx, "my-bucket","us-central1","region")
 	//
-	CreateBucketIfNotExist(ctx context.Context, bucketName, location, locationType string) error
+	CreateBucket(ctx context.Context, bucketName, location, locationType string) error
 
 	// DeleteBucket remove cloud storage bucket
 	//
@@ -138,29 +138,22 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 	return cloudstorage, nil
 }
 
-// CreateBucketIfNotExist add cloud storage bucket
+// CreateBucket add cloud storage bucket
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.CreateBucketIfNotExist(ctx, "my-bucket","us-central1","region")
+//	err = storage.CreateBucket(ctx, "my-bucket","us-central1","region")
 //
-func (impl *Implementation) CreateBucketIfNotExist(ctx context.Context, bucketName, location, locationType string) error {
+func (impl *Implementation) CreateBucket(ctx context.Context, bucketName, location, locationType string) error {
 
-	exist, err := impl.IsBucketExists(ctx, bucketName)
-	if err != nil {
-		return err
+	bucket := impl.client.Bucket(bucketName)
+	if err := bucket.Create(ctx, impl.projectID, &storage.BucketAttrs{
+		Location:     "us-central1",
+		LocationType: "region",
+	}); err != nil {
+		return errors.Wrap(err, "failed to add bucket:"+bucketName)
 	}
-
-	if !exist {
-		bucket := impl.client.Bucket(bucketName)
-		if err := bucket.Create(ctx, impl.projectID, &storage.BucketAttrs{
-			Location:     "us-central1",
-			LocationType: "region",
-		}); err != nil {
-			return errors.Wrap(err, "failed to add bucket:"+bucketName)
-		}
-		log.Info(ctx, here, bucketName+" Bucket created")
-	}
+	log.Info(ctx, here, bucketName+" Bucket created")
 	return nil
 }
 
@@ -172,23 +165,16 @@ func (impl *Implementation) CreateBucketIfNotExist(ctx context.Context, bucketNa
 //
 func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string) error {
 
-	exist, err := impl.IsBucketExists(ctx, bucketName)
-	if err != nil {
-		return err
+	bucket := impl.client.Bucket(bucketName)
+
+	if err := impl.CleanBucket(ctx, bucketName); err != nil {
+		return errors.Wrap(err, "failed to clean bucket before remove:"+bucketName)
 	}
 
-	if exist {
-		bucket := impl.client.Bucket(bucketName)
-
-		if err := impl.CleanBucket(ctx, bucketName); err != nil {
-			return errors.Wrap(err, "failed to clean bucket before remove:"+bucketName)
-		}
-
-		if err := bucket.Delete(ctx); err != nil {
-			return errors.Wrap(err, "failed to remove bucket:"+bucketName)
-		}
-		log.Info(ctx, here, bucketName+" Bucket deleted")
+	if err := bucket.Delete(ctx); err != nil {
+		return errors.Wrap(err, "failed to remove bucket:"+bucketName)
 	}
+	log.Info(ctx, here, bucketName+" Bucket deleted")
 	return nil
 }
 
