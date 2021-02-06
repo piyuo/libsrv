@@ -22,13 +22,13 @@ const here = "gstorage"
 //
 type Gstorage interface {
 
-	// CreateBucket add cloud storage bucket
+	// CreateBucketIfNotExist add cloud storage bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.CreateBucket(ctx, "mock-libsrv.piyuo.com","us-central1","region")
+	//	err = storage.CreateBucketIfNotExist(ctx, "mock-libsrv.piyuo.com","us-central1","region")
 	//
-	CreateBucket(ctx context.Context, bucketName, location, locationType string) error
+	CreateBucketIfNotExist(ctx context.Context, bucketName, location, locationType string) error
 
 	// DeleteBucket remove cloud storage bucket
 	//
@@ -121,13 +121,13 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 	return cloudstorage, nil
 }
 
-// CreateBucket add cloud storage bucket
+// CreateBucketIfNotExist add cloud storage bucket
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.CreateBucket(ctx, "mock-libsrv.piyuo.com","us-central1","region")
+//	err = storage.CreateBucketIfNotExist(ctx, "mock-libsrv.piyuo.com","us-central1","region")
 //
-func (impl *Implementation) CreateBucket(ctx context.Context, bucketName, location, locationType string) error {
+func (impl *Implementation) CreateBucketIfNotExist(ctx context.Context, bucketName, location, locationType string) error {
 
 	exist, err := impl.IsBucketExists(ctx, bucketName)
 	if err != nil {

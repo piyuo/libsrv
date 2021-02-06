@@ -35,7 +35,7 @@ func TestGstorageBucket(t *testing.T) {
 	assert.Nil(err)
 	assert.False(exist)
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucketIfNotExist(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
 
 	exist, err = storage.IsBucketExists(ctx, bucketName)
@@ -59,7 +59,7 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	bucketName := "gstorage.piyuo.com"
 	path := "TestReadWriteDelete.txt"
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucketIfNotExist(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
 
 	found, err := storage.IsFileExists(ctx, bucketName, "", path)
@@ -93,7 +93,7 @@ func TestGstorageCleanBucket(t *testing.T) {
 	bucketName := "gstorage.piyuo.com"
 	path := "TestCleanBucket.txt"
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucketIfNotExist(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
 
 	for i := 0; i < 1; i++ {
