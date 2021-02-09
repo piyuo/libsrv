@@ -83,6 +83,10 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal("hi", txt)
 
+	files, err := storage.ListFiles(ctx, bucketName, "", "")
+	assert.Nil(err)
+	assert.Equal(len(files), 1)
+
 	err = storage.DeleteFile(ctx, bucketName, path)
 	assert.Nil(err)
 

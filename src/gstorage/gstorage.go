@@ -82,6 +82,10 @@ type Gstorage interface {
 	//
 	IsFileExists(ctx context.Context, bucketName, dirName, fileName string) (bool, error)
 
+	// ListFiles list bucket files base on prefix and delimiters
+	//
+	ListFiles(ctx context.Context, bucketName, prefix, delim string) ([]string, error)
+
 	// WriteText write text file to bucket
 	//
 	//	ctx := context.Background()
@@ -321,6 +325,28 @@ func (impl *Implementation) ReadText(ctx context.Context, bucketName, path strin
 		return "", err
 	}
 	return string(data), nil
+}
+
+// ListFiles list all files
+//
+func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, delim string) ([]string, error) {
+	files := []string{}
+	bucket := impl.client.Bucket(bucketName)
+	query := &storage.Query{Prefix: prefix, Delimiter: delim}
+	query.SetAttrSelection([]string{"Name"})
+
+	it := bucket.Objects(ctx, query)
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, attrs.Name)
+	}
+	return files, nil
 }
 
 // DeleteFile file from bucket
