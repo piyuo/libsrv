@@ -63,35 +63,46 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
 	bucketName := "gstorage.piyuo.com"
-	path := "TestReadWriteDelete.txt"
+	filename := "a/b.txt"
+	prefix := "a"
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
+	defer storage.DeleteBucket(ctx, bucketName)
 
-	found, err := storage.IsFileExists(ctx, bucketName, "", path)
+	found, err := storage.IsFileExists(ctx, bucketName, "", filename)
 	assert.Nil(err)
 	assert.False(found)
 
-	err = storage.WriteText(ctx, bucketName, path, "hi")
+	err = storage.WriteText(ctx, bucketName, filename, "hi")
 	assert.Nil(err)
 
-	found, err = storage.IsFileExists(ctx, bucketName, "", path)
+	found, err = storage.IsFileExists(ctx, bucketName, "", filename)
 	assert.Nil(err)
 	assert.True(found)
 
-	txt, err := storage.ReadText(ctx, bucketName, path)
+	txt, err := storage.ReadText(ctx, bucketName, filename)
 	assert.Nil(err)
 	assert.Equal("hi", txt)
 
-	files, err := storage.ListFiles(ctx, bucketName, "", "")
+	err = storage.DeleteFile(ctx, bucketName, filename)
+	assert.Nil(err)
+
+	// test delete files in dir
+	err = storage.WriteText(ctx, bucketName, filename, "hi")
+	assert.Nil(err)
+
+	files, err := storage.ListFiles(ctx, bucketName, prefix, "")
 	assert.Nil(err)
 	assert.Equal(len(files), 1)
 
-	err = storage.DeleteFile(ctx, bucketName, path)
+	err = storage.DeleteFiles(ctx, bucketName, prefix)
 	assert.Nil(err)
 
-	err = storage.DeleteBucket(ctx, bucketName)
+	files, err = storage.ListFiles(ctx, bucketName, prefix, "")
 	assert.Nil(err)
+	assert.Equal(len(files), 0)
+
 }
 
 func TestGstorageCleanBucket(t *testing.T) {

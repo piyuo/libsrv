@@ -86,20 +86,27 @@ type Gstorage interface {
 	//
 	ListFiles(ctx context.Context, bucketName, prefix, delim string) ([]string, error)
 
+	// DeleteFiles delete files in prefix
+	//
+	//	ctx := context.Background()
+	//	storage, err := New(ctx)
+	//	err = storage.DeleteFiles(ctx, bucketName, "assets")
+	//
+	DeleteFiles(ctx context.Context, bucketName, prefix string) error
+
 	// WriteText write text file to bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.AddBucket(ctx, bucketName, "US")
+	//	err = storage.AddBucket(ctx, bucketName, "a/b.txt")
 	//
-	WriteText(ctx context.Context, bucketName, path, txt string) error
+	WriteText(ctx context.Context, bucketName, filename, txt string) error
 
 	// ReadText file from bucket
 	//
 	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	txt, err := storage.ReadText(ctx, bucketName, path)
-	//	So(txt, ShouldEqual, "hi")
+	//	txt, err := storage.ReadText(ctx, bucketName, "a/b.txt")
 	//
 	ReadText(ctx context.Context, bucketName, path string) (string, error)
 
@@ -287,7 +294,7 @@ func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, dirNam
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	err = storage.AddBucket(ctx, bucketName, "US"
+//	err = storage.AddBucket(ctx, bucketName, "a/b.txt")
 //
 func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt string) error {
 	bucket := impl.client.Bucket(bucketName)
@@ -308,8 +315,7 @@ func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt
 //
 //	ctx := context.Background()
 //	storage, err := New(ctx)
-//	txt, err := storage.ReadText(ctx, bucketName, path
-//	So(txt, ShouldEqual, "hi")
+//	txt, err := storage.ReadText(ctx, bucketName, "a/b.txt")
 //
 func (impl *Implementation) ReadText(ctx context.Context, bucketName, path string) (string, error) {
 	bucket := impl.client.Bucket(bucketName)
@@ -349,6 +355,32 @@ func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, d
 	return files, nil
 }
 
+// DeleteFiles delete files in prefix
+//
+//	ctx := context.Background()
+//	storage, err := New(ctx)
+//	err = storage.DeleteFiles(ctx, bucketName, "assets")
+//
+func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix string) error {
+	query := &storage.Query{Prefix: prefix}
+	query.SetAttrSelection([]string{"Name"})
+	it := impl.client.Bucket(bucketName).Objects(ctx, query)
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		obj := impl.client.Bucket(bucketName).Object(attrs.Name)
+		if err := obj.Delete(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // DeleteFile file from bucket
 //
 //	ctx := context.Background()
@@ -374,7 +406,7 @@ func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path str
 func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string) error {
 	bucket := impl.client.Bucket(bucketName)
 	for {
-		result, err := impl.RemoveObjects(ctx, bucket)
+		result, err := impl.removeObjects(ctx, bucket)
 		if err != nil {
 			return err
 		}
@@ -384,9 +416,9 @@ func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string) 
 	}
 }
 
-// RemoveObjects remove objects max 1000, return true if object all deleted
+// removeObjects remove objects max 1000, return true if object all deleted
 //
-func (impl *Implementation) RemoveObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
+func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
 	query := &storage.Query{}
 	query.SetAttrSelection([]string{"Name"})
 
