@@ -64,6 +64,7 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	storage, err := New(ctx, cred)
 	bucketName := "gstorage.piyuo.com"
 	filename := "a/b.txt"
+	jsonname := "a/b.json"
 	prefix := "a"
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
@@ -86,6 +87,20 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	assert.Equal("hi", txt)
 
 	err = storage.DeleteFile(ctx, bucketName, filename)
+	assert.Nil(err)
+
+	// test json
+	json := map[string]interface{}{
+		"a": time.Now().UTC(),
+	}
+	err = storage.WriteJSON(ctx, bucketName, jsonname, json)
+	assert.Nil(err)
+
+	json, err = storage.ReadJSON(ctx, bucketName, jsonname)
+	assert.Nil(err)
+	assert.NotNil(json["a"])
+
+	err = storage.DeleteFile(ctx, bucketName, jsonname)
 	assert.Nil(err)
 
 	// test delete files in dir

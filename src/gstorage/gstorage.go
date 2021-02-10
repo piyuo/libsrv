@@ -2,6 +2,7 @@ package gstorage
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,7 +28,6 @@ type Gstorage interface {
 
 	// CreateBucket add cloud storage bucket
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.CreateBucket(ctx, "my-bucket","us-central1","region")
 	//
@@ -35,7 +35,6 @@ type Gstorage interface {
 
 	// DeleteBucket remove cloud storage bucket
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.DeleteBucket(ctx, "my-bucket")
 	//
@@ -43,7 +42,6 @@ type Gstorage interface {
 
 	// PublicBucket make bucket public
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.PublicBucket(ctx, "my-bucket")
 	//
@@ -51,7 +49,6 @@ type Gstorage interface {
 
 	// MakeBucketWebsite set bucket CORS configuration
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.MakeBucketWebsite(ctx, "my-bucket",time.Hour,[]string{"GET"},[]string{"some-origin.com"},[]string{"Content-Type"})
 	//
@@ -59,7 +56,6 @@ type Gstorage interface {
 
 	// CleanBucket remove all file in bucket
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.RemoveBucket(ctx, "my-bucket")
 	//
@@ -68,7 +64,6 @@ type Gstorage interface {
 	// IsBucketExists return true if bucket exist
 	//
 	//	bucketName := "my-bucket"
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	exist, err := storage.IsBucketExists(ctx, bucketName)
 	//
@@ -76,7 +71,6 @@ type Gstorage interface {
 
 	// IsFileExists return true if file exist
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	found,err = storage.IsFileExist(ctx, bucketName,"dirName", "fileName")
 	//
@@ -88,7 +82,6 @@ type Gstorage interface {
 
 	// DeleteFiles delete files in prefix
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.DeleteFiles(ctx, bucketName, "assets")
 	//
@@ -96,23 +89,34 @@ type Gstorage interface {
 
 	// WriteText write text file to bucket
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
-	//	err = storage.AddBucket(ctx, bucketName, "a/b.txt")
+	//	err = storage.WriteText(ctx, bucketName, "a/b.txt")
 	//
 	WriteText(ctx context.Context, bucketName, filename, txt string) error
 
+	// WriteJSON write json file to bucket
+	//
+	//	storage, err := New(ctx)
+	//	err = storage.WriteJSON(ctx, bucketName, "a/b.json")
+	//
+	WriteJSON(ctx context.Context, bucketName, filename string, context map[string]interface{}) error
+
 	// ReadText file from bucket
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	txt, err := storage.ReadText(ctx, bucketName, "a/b.txt")
 	//
 	ReadText(ctx context.Context, bucketName, path string) (string, error)
 
+	// ReadJSON read json file from bucket
+	//
+	//	storage, err := New(ctx)
+	//	txt, err := storage.ReadJSON(ctx, bucketName, "a/b.json")
+	//
+	ReadJSON(ctx context.Context, bucketName, path string) (map[string]interface{}, error)
+
 	// DeleteFile file from bucket
 	//
-	//	ctx := context.Background()
 	//	storage, err := New(ctx)
 	//	err = storage.DeleteFile(ctx, bucketName, path)
 	//
@@ -129,7 +133,6 @@ type Implementation struct {
 
 // New create Cloudstorage
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx,cred)
 //
 func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
@@ -151,7 +154,6 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 
 // CreateBucket add cloud storage bucket
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.CreateBucket(ctx, "my-bucket","us-central1","region")
 //
@@ -170,7 +172,6 @@ func (impl *Implementation) CreateBucket(ctx context.Context, bucketName, locati
 
 // DeleteBucket remove cloud storage bucket
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.DeleteBucket(ctx, "my-bucket")
 //
@@ -191,7 +192,6 @@ func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string)
 
 // PublicBucket make bucket public
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.PublicBucket(ctx, "my-bucket")
 //
@@ -214,7 +214,6 @@ func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string)
 
 // MakeBucketWebsite set bucket WEB & CORS configuration, let it be static website
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.MakeBucketWebsite(ctx, "my-bucket",time.Hour,[]string{"GET"},[]string{"some-origin.com"},[]string{"Content-Type"})
 //
@@ -241,8 +240,7 @@ func (impl *Implementation) MakeBucketWebsite(ctx context.Context, bucketName st
 
 // IsBucketExists return true if bucket exist
 //
-//	bucketName := "my-bucket"
-//	ctx := context.Background()
+//	bucketName := "my-bucket
 //	storage, err := New(ctx)
 //	exist, err := storage.IsBucketExist(ctx, bucketName)
 //
@@ -266,7 +264,6 @@ func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName strin
 
 // IsFileExists return true if file exist
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	found,err = storage.IsFileExist(ctx, bucketName, "dirName", "fileName")
 //
@@ -292,9 +289,7 @@ func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, dirNam
 
 // WriteText file to bucket
 //
-//	ctx := context.Background()
-//	storage, err := New(ctx)
-//	err = storage.AddBucket(ctx, bucketName, "a/b.txt")
+//	err = storage.WriteText(ctx, bucketName, "a/b.txt")
 //
 func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt string) error {
 	bucket := impl.client.Bucket(bucketName)
@@ -313,8 +308,6 @@ func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt
 
 // ReadText file from bucket
 //
-//	ctx := context.Background()
-//	storage, err := New(ctx)
 //	txt, err := storage.ReadText(ctx, bucketName, "a/b.txt")
 //
 func (impl *Implementation) ReadText(ctx context.Context, bucketName, path string) (string, error) {
@@ -333,7 +326,40 @@ func (impl *Implementation) ReadText(ctx context.Context, bucketName, path strin
 	return string(data), nil
 }
 
+// WriteJSON write json file to bucket
+//
+//	err = storage.WriteJSON(ctx, bucketName, "a/b.json")
+//
+func (impl *Implementation) WriteJSON(ctx context.Context, bucketName, path string, content map[string]interface{}) error {
+	bytes, err := json.Marshal(content)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal version control to json")
+	}
+	if err = impl.WriteText(ctx, bucketName, path, string(bytes)); err != nil {
+		return errors.Wrap(err, "failed to write verstion control to bucket")
+	}
+	return nil
+}
+
+// ReadJSON read json file from bucket. it will return empty json if file not exist
+//
+//	txt, err := storage.ReadJSON(ctx, bucketName, "a/b.json")
+//
+func (impl *Implementation) ReadJSON(ctx context.Context, bucketName, path string) (map[string]interface{}, error) {
+	var control map[string]interface{}
+	text, err := impl.ReadText(ctx, bucketName, path)
+	if err == nil {
+		json.Unmarshal([]byte(text), &control)
+	}
+	if control == nil {
+		control = map[string]interface{}{}
+	}
+	return control, nil
+}
+
 // ListFiles list all files
+//
+//	files, err := storage.ListFiles(ctx, bucketName, "", "")
 //
 func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, delim string) ([]string, error) {
 	files := []string{}
@@ -357,7 +383,6 @@ func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, d
 
 // DeleteFiles delete files in prefix
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.DeleteFiles(ctx, bucketName, "assets")
 //
@@ -383,7 +408,6 @@ func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix 
 
 // DeleteFile file from bucket
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.DeleteFile(ctx, bucketName, path)
 //
@@ -399,7 +423,6 @@ func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path str
 // CleanBucket remove all files in bucket, return true if still have file in bucket
 // timeout in ms
 //
-//	ctx := context.Background()
 //	storage, err := New(ctx)
 //	err = storage.Delete(ctx, bucketName, path)
 //
