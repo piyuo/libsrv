@@ -110,13 +110,35 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	files, err := storage.ListFiles(ctx, bucketName, prefix, "")
 	assert.Nil(err)
 	assert.Equal(len(files), 1)
+}
 
-	err = storage.DeleteFiles(ctx, bucketName, prefix)
+func TestGstorageDeleteFiles(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	cred, err := gaccount.GlobalCredential(ctx)
+	assert.Nil(err)
+	storage, err := New(ctx, cred)
+	bucketName := "gs-delete-files.piyuo.com"
+
+	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	assert.Nil(err)
+	defer storage.DeleteBucket(ctx, bucketName)
+
+	err = storage.WriteText(ctx, bucketName, "a/b/c.txt", "hi")
+	assert.Nil(err)
+	err = storage.WriteText(ctx, bucketName, "c.txt", "hi")
 	assert.Nil(err)
 
-	files, err = storage.ListFiles(ctx, bucketName, prefix, "")
+	err = storage.DeleteFiles(ctx, bucketName, "a/b")
 	assert.Nil(err)
-	assert.Equal(len(files), 0)
+
+	found, err := storage.IsFileExists(ctx, bucketName, "a/b/c.txt")
+	assert.Nil(err)
+	assert.False(found)
+
+	found, err = storage.IsFileExists(ctx, bucketName, "c.txt")
+	assert.Nil(err)
+	assert.True(found)
 
 }
 
