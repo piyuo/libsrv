@@ -47,11 +47,11 @@ func MapFromString(str string) map[string]string {
 	return m
 }
 
-// GetString get string value from map, return default value if not exist
+// MapGetString get string value from map, return default value if not exist
 //
-//	str := GetString(Map,"hello")
+//	str := MapGetString(Map,"hello")
 //
-func GetString(mapping map[string]interface{}, key, defaultValue string) string {
+func MapGetString(mapping map[string]interface{}, key, defaultValue string) string {
 	value := mapping[key]
 	if value == nil {
 		return defaultValue
@@ -59,11 +59,11 @@ func GetString(mapping map[string]interface{}, key, defaultValue string) string 
 	return fmt.Sprint(value)
 }
 
-// GetFloat64 get float64 value from map, return default value if not exist
+// MapGetFloat64 get float64 value from map, return default value if not exist
 //
-//	str := GetFloat64(Map,0)
+//	str := MapGetFloat64(Map,0)
 //
-func GetFloat64(mapping map[string]interface{}, key string, defaultValue float64) float64 {
+func MapGetFloat64(mapping map[string]interface{}, key string, defaultValue float64) float64 {
 	value := mapping[key]
 	if value == nil {
 		return defaultValue
@@ -81,4 +81,15 @@ func GetFloat64(mapping map[string]interface{}, key string, defaultValue float64
 		return float64(i)
 	}
 	return defaultValue
+}
+
+// MapInsert insert json object to array
+//
+func MapInsert(a []map[string]interface{}, index int, value map[string]interface{}) []map[string]interface{} {
+	if len(a) == index { // nil or empty slice or after last element
+		return append(a, value)
+	}
+	a = append(a[:index+1], a[index:]...) // index < len(a)
+	a[index] = value
+	return a
 }
