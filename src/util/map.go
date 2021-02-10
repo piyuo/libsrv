@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // MapToString convert map to string using key value pair
@@ -83,9 +84,32 @@ func MapGetFloat64(mapping map[string]interface{}, key string, defaultValue floa
 	return defaultValue
 }
 
+// MapGetTime get time value from map, return default value if not exist or wrong time type
+//
+//	str := MapGetFloat64(Map,time.Now())
+//
+func MapGetTime(mapping map[string]interface{}, key string, defaultValue time.Time) time.Time {
+	value := mapping[key]
+	if value == nil {
+		return defaultValue
+	}
+	switch i := value.(type) {
+	case string:
+		layout := "2006-01-02T15:04:05Z"
+		t, err := time.Parse(layout, string(i))
+		if err != nil {
+			return defaultValue
+		}
+		return t
+	case time.Time:
+		return time.Time(i)
+	}
+	return defaultValue
+}
+
 // MapInsert insert json object to array
 //
-func MapInsert(a []map[string]interface{}, index int, value map[string]interface{}) []map[string]interface{} {
+func MapInsert(a []interface{}, index int, value map[string]interface{}) []interface{} {
 	if len(a) == index { // nil or empty slice or after last element
 		return append(a, value)
 	}

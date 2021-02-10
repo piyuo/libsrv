@@ -1,7 +1,9 @@
 package util
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -66,9 +68,45 @@ func TestMapInsert(t *testing.T) {
 	assert := assert.New(t)
 	m1 := map[string]interface{}{"a": 1}
 	m2 := map[string]interface{}{"a": 2}
-	list := []map[string]interface{}{}
+	list := []interface{}{}
 	list = MapInsert(list, 0, m1)
 	list = MapInsert(list, 0, m2)
-	assert.Equal(2, list[0]["a"])
-	assert.Equal(1, list[1]["a"])
+	assert.Equal(2, list[0].(map[string]interface{})["a"])
+	assert.Equal(1, list[1].(map[string]interface{})["a"])
+}
+
+func TestMapGetTime(t *testing.T) {
+	assert := assert.New(t)
+	j := map[string]interface{}{
+		"a": time.Date(2020, time.April, 11, 21, 34, 01, 0, time.UTC)}
+
+	//test return time directly
+	d := MapGetTime(j, "a", time.Time{})
+	assert.Equal(2020, d.Year())
+	assert.Equal(11, d.Day())
+
+	// test time after marshal
+	bytes, err := json.Marshal(j)
+	assert.Nil(err)
+	err = json.Unmarshal(bytes, &j)
+	assert.Nil(err)
+
+	d = MapGetTime(j, "a", time.Time{})
+	assert.Equal(2020, d.Year())
+	assert.Equal(11, d.Day())
+
+	//test not exist
+	d = MapGetTime(j, "b", time.Time{})
+	assert.True(d.IsZero())
+
+	//test time string in wrong format
+	j["a"] = "not-time-format"
+	d = MapGetTime(j, "a", time.Time{})
+	assert.True(d.IsZero())
+
+	//test time string in wrong data type
+	j["a"] = 123
+	d = MapGetTime(j, "a", time.Time{})
+	assert.True(d.IsZero())
+
 }
