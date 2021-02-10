@@ -459,7 +459,7 @@ func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.B
 		if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 			return false, err
 		}
-		log.Debug(ctx, here, fmt.Sprintf("delete object:%v, i=%v", attrs.Name, i))
+		log.Debug(ctx, here, fmt.Sprintf("clean object:%v, i=%v", attrs.Name, i))
 		i++
 		if i >= 1000 {
 			return false, nil
