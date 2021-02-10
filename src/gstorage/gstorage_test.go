@@ -126,6 +126,8 @@ func TestGstorageDeleteFiles(t *testing.T) {
 
 	err = storage.WriteText(ctx, bucketName, "a/b/c.txt", "hi")
 	assert.Nil(err)
+	err = storage.WriteText(ctx, bucketName, "a/b/c/d.txt", "hi")
+	assert.Nil(err)
 	err = storage.WriteText(ctx, bucketName, "c.txt", "hi")
 	assert.Nil(err)
 
@@ -133,6 +135,9 @@ func TestGstorageDeleteFiles(t *testing.T) {
 	assert.Nil(err)
 
 	found, err := storage.IsFileExists(ctx, bucketName, "a/b/c.txt")
+	assert.Nil(err)
+	assert.False(found)
+	found, err = storage.IsFileExists(ctx, bucketName, "a/b/c/d.txt")
 	assert.Nil(err)
 	assert.False(found)
 

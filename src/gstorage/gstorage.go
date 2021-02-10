@@ -401,6 +401,7 @@ func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix 
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}
+		log.Debug(ctx, here, fmt.Sprintf("delete object:%v", attrs.Name))
 	}
 	return nil
 }
@@ -416,6 +417,7 @@ func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path str
 	if err := o.Delete(ctx); err != nil {
 		return err
 	}
+	log.Debug(ctx, here, fmt.Sprintf("delete object:%v", path))
 	return nil
 }
 
@@ -454,10 +456,10 @@ func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.B
 		if err != nil {
 			return false, err
 		}
-		fmt.Printf("delete object:%v\n", i)
 		if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 			return false, err
 		}
+		log.Debug(ctx, here, fmt.Sprintf("delete object:%v, i=%v", attrs.Name, i))
 		i++
 		if i >= 1000 {
 			return false, nil
