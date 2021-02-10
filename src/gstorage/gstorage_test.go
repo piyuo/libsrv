@@ -71,14 +71,14 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	assert.Nil(err)
 	defer storage.DeleteBucket(ctx, bucketName)
 
-	found, err := storage.IsFileExists(ctx, bucketName, "", filename)
+	found, err := storage.IsFileExists(ctx, bucketName, filename)
 	assert.Nil(err)
 	assert.False(found)
 
 	err = storage.WriteText(ctx, bucketName, filename, "hi")
 	assert.Nil(err)
 
-	found, err = storage.IsFileExists(ctx, bucketName, "", filename)
+	found, err = storage.IsFileExists(ctx, bucketName, filename)
 	assert.Nil(err)
 	assert.True(found)
 

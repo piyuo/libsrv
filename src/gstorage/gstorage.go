@@ -72,9 +72,9 @@ type Gstorage interface {
 	// IsFileExists return true if file exist
 	//
 	//	storage, err := New(ctx)
-	//	found,err = storage.IsFileExist(ctx, bucketName,"dirName", "fileName")
+	//	found,err = storage.IsFileExist(ctx, bucketName,"fileName")
 	//
-	IsFileExists(ctx context.Context, bucketName, dirName, fileName string) (bool, error)
+	IsFileExists(ctx context.Context, bucketName, fileName string) (bool, error)
 
 	// ListFiles list bucket files base on prefix and delimiters
 	//
@@ -265,12 +265,11 @@ func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName strin
 // IsFileExists return true if file exist
 //
 //	storage, err := New(ctx)
-//	found,err = storage.IsFileExist(ctx, bucketName, "dirName", "fileName")
+//	found,err = storage.IsFileExist(ctx, bucketName, "fileName")
 //
-func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, dirName, fileName string) (bool, error) {
+func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, path string) (bool, error) {
 	bucket := impl.client.Bucket(bucketName)
-
-	query := &storage.Query{Prefix: dirName}
+	query := &storage.Query{}
 	it := bucket.Objects(ctx, query)
 	for {
 		attrs, err := it.Next()
@@ -280,7 +279,7 @@ func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, dirNam
 		if err != nil {
 			return false, err
 		}
-		if attrs.Name == fileName {
+		if attrs.Name == path {
 			return true, nil
 		}
 	}
