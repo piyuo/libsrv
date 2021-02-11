@@ -47,12 +47,12 @@ type Gstorage interface {
 	//
 	PublicBucket(ctx context.Context, bucketName string) error
 
-	// MakeBucketWebsite set bucket CORS configuration
+	// SetPageAndCORS set bucket CORS configuration
 	//
 	//	storage, err := New(ctx)
-	//	err = storage.MakeBucketWebsite(ctx, "my-bucket",time.Hour,[]string{"GET"},[]string{"some-origin.com"},[]string{"Content-Type"})
+	//	err = storage.SetPageAndCORS(ctx, "my-bucket","some-origin.com")
 	//
-	MakeBucketWebsite(ctx context.Context, bucketName string, maxAge time.Duration, methods, origins, responseHeaders []string) error
+	SetPageAndCORS(ctx context.Context, bucketName, originDomain string) error
 
 	// CleanBucket remove all file in bucket
 	//
@@ -212,12 +212,12 @@ func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string)
 	return nil
 }
 
-// MakeBucketWebsite set bucket WEB & CORS configuration, let it be static website
+// SetPageAndCORS set bucket WEB & CORS configuration, let it be static website
 //
 //	storage, err := New(ctx)
-//	err = storage.MakeBucketWebsite(ctx, "my-bucket",time.Hour,[]string{"GET"},[]string{"some-origin.com"},[]string{"Content-Type"})
+//	err = storage.SetPageAndCORS(ctx, "my-bucket","some-origin.com")
 //
-func (impl *Implementation) MakeBucketWebsite(ctx context.Context, bucketName string, maxAge time.Duration, methods, origins, responseHeaders []string) error {
+func (impl *Implementation) SetPageAndCORS(ctx context.Context, bucketName, originDomain string) error {
 	bucket := impl.client.Bucket(bucketName)
 	bucketAttrsToUpdate := storage.BucketAttrsToUpdate{
 		Website: &storage.BucketWebsite{
@@ -226,10 +226,9 @@ func (impl *Implementation) MakeBucketWebsite(ctx context.Context, bucketName st
 		},
 		CORS: []storage.CORS{
 			{
-				MaxAge:          maxAge,
-				Methods:         methods,
-				Origins:         origins,
-				ResponseHeaders: responseHeaders,
+				MaxAge:  time.Second * 86400, //Maximum number of seconds the results can be cached, we use 24 hours
+				Methods: []string{"GET", "POST"},
+				Origins: []string{originDomain}, //[]string{"*"},
 			}},
 	}
 	if _, err := bucket.Update(ctx, bucketAttrsToUpdate); err != nil {

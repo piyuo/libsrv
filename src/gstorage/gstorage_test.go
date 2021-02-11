@@ -45,7 +45,7 @@ func TestGstorageBucket(t *testing.T) {
 	err = storage.PublicBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	err = storage.MakeBucketWebsite(ctx, bucketName, time.Hour*24*365, []string{"GET", "POST"}, []string{"*"}, []string{""})
+	err = storage.SetPageAndCORS(ctx, bucketName, "*")
 	assert.Nil(err)
 
 	err = storage.DeleteBucket(ctx, bucketName)
