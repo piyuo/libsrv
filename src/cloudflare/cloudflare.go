@@ -114,7 +114,7 @@ func getDNSRecordID(ctx context.Context, domainName, recType, content string) (s
 //	err = CreateCloudRunCNAME(ctx, domainName)
 //
 func CreateCloudRunCNAME(ctx context.Context, domainName string) error {
-	return CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
+	return CreateCNAME(ctx, domainName, "ghs.googlehosted.com", true)
 }
 
 // CreateStorageCNAME add domain cname record point to google storage backend
