@@ -68,19 +68,6 @@ func TestCloudflareCNAME(t *testing.T) {
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
-	EnableTestMode(true)
-	defer EnableTestMode(false)
-
-	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
-	assert.Nil(err)
-
-	exist, err = IsCNAMEExists(ctx, domainName)
-	assert.Nil(err)
-	assert.True(exist)
-
-	err = DeleteCNAME(ctx, domainName)
-	assert.Nil(err)
-
 	// cloud run
 	err = CreateCloudRunCNAME(ctx, domainName)
 	assert.Nil(err)
@@ -96,6 +83,19 @@ func TestCloudflareCNAME(t *testing.T) {
 	exist, err = IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
+	err = DeleteCNAME(ctx, domainName)
+	assert.Nil(err)
+
+	EnableTestMode(true)
+	defer EnableTestMode(false)
+
+	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
+	assert.Nil(err)
+
+	exist, err = IsCNAMEExists(ctx, domainName)
+	assert.Nil(err)
+	assert.True(exist)
+
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
