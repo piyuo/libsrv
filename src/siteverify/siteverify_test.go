@@ -22,8 +22,8 @@ func TestVerification(t *testing.T) {
 	domainName := "mock-site-verify.piyuo.com"
 
 	//clean before test
-	cloudflare.RemoveTxtRecord(ctx, domainName)
-	defer cloudflare.RemoveTxtRecord(ctx, domainName)
+	cloudflare.RemoveTXT(ctx, domainName)
+	defer cloudflare.RemoveTXT(ctx, domainName)
 
 	token, err := siteverify.GetToken(ctx, domainName)
 	assert.Nil(err)
@@ -34,10 +34,10 @@ func TestVerification(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(token, token2)
 
-	exist, err := cloudflare.IsTxtRecordExist(ctx, domainName)
+	exist, err := cloudflare.IsTXTExists(ctx, domainName)
 	assert.Nil(err)
 	assert.False(exist)
-	err = cloudflare.AddTxtRecord(ctx, domainName, token)
+	err = cloudflare.CreateTXT(ctx, domainName, token)
 	assert.Nil(err)
 
 	// cause update dns record need time to populate. unmark these test if you want test it manually

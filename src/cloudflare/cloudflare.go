@@ -109,11 +109,27 @@ func getDNSRecordID(ctx context.Context, domainName, recType, content string) (s
 	return rec["id"].(string), nil
 }
 
-// AddDomain add domain cname record
+// CreateCloudRunCNAME add domain cname record point to google cloud run backend
 //
-//	err = AddDomain(ctx, domainName, false)
+//	err = CreateCloudRunCNAME(ctx, domainName)
 //
-func AddDomain(ctx context.Context, domainName string, proxied bool) error {
+func CreateCloudRunCNAME(ctx context.Context, domainName string) error {
+	return CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
+}
+
+// CreateStorageCNAME add domain cname record point to google storage backend
+//
+//	err = CreateStorageCNAME(ctx, domainName)
+//
+func CreateStorageCNAME(ctx context.Context, domainName string) error {
+	return CreateCNAME(ctx, domainName, "c.storage.googleapis.com", true)
+}
+
+// CreateCNAME create domain CNAME record
+//
+//	err = AddCNAME(ctx, domainName, false)
+//
+func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) error {
 	if testMode {
 		return nil
 	}
@@ -123,7 +139,7 @@ func AddDomain(ctx context.Context, domainName string, proxied bool) error {
 		proxy = "true"
 	}
 
-	var requestJSON = []byte(`{"type":"CNAME","name":"` + domainName + `","content":"ghs.googlehosted.com","ttl":1,"priority":10,"proxied":` + proxy + `}`)
+	var requestJSON = []byte(`{"type":"CNAME","name":"` + domainName + `","content":"` + target + `","ttl":1,"priority":10,"proxied":` + proxy + `}`)
 	_, err := sendDNSRequest(ctx, "POST", "", bytes.NewBuffer(requestJSON))
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
@@ -134,16 +150,16 @@ func AddDomain(ctx context.Context, domainName string, proxied bool) error {
 	return nil
 }
 
-// RemoveDomain remove sub domain cname record
+// DeleteCNAME remove sub domain cname record
 //
-//	err = RemoveDomain(ctx, domainName)
+//	err = DeleteCNAME(ctx, domainName)
 //
-func RemoveDomain(ctx context.Context, domainName string) error {
+func DeleteCNAME(ctx context.Context, domainName string) error {
 	if testMode {
 		return nil
 	}
 
-	id, err := getDNSRecordID(ctx, domainName, "CNAME", "ghs.googlehosted.com")
+	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
 	if err != nil {
 		return err
 	}
@@ -157,27 +173,27 @@ func RemoveDomain(ctx context.Context, domainName string) error {
 	return nil
 }
 
-// IsDomainExist return true if domain exist
+// IsCNAMEExists return true if CNAME exist
 //
-//	exist, err := IsDomainExist(ctx, domainName)
+//	exist, err := IsCNAMEExists(ctx, domainName)
 //
-func IsDomainExist(ctx context.Context, domainName string) (bool, error) {
+func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 	if testMode {
 		return true, nil
 	}
 
-	id, err := getDNSRecordID(ctx, domainName, "CNAME", "ghs.googlehosted.com")
+	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
 	if err != nil {
 		return false, err
 	}
 	return id != "", nil
 }
 
-// AddTxtRecord add TXT record to dns
+// CreateTXT add TXT record to dns
 //
-//	err = cflare.AddTxtRecord(ctx, domainName, txt)
+//	err = cflare.CreateTXT(ctx, domainName, txt)
 //
-func AddTxtRecord(ctx context.Context, domainName, txt string) error {
+func CreateTXT(ctx context.Context, domainName, txt string) error {
 	if testMode {
 		return nil
 	}
@@ -193,11 +209,11 @@ func AddTxtRecord(ctx context.Context, domainName, txt string) error {
 	return nil
 }
 
-// RemoveTxtRecord remove txt record from dns
+// RemoveTXT remove txt record from dns
 //
-//	err = RemoveTxtRecord(ctx, domainName, txt)
+//	err = RemoveTXT(ctx, domainName, txt)
 //
-func RemoveTxtRecord(ctx context.Context, domainName string) error {
+func RemoveTXT(ctx context.Context, domainName string) error {
 	if testMode {
 		return nil
 	}
@@ -216,11 +232,11 @@ func RemoveTxtRecord(ctx context.Context, domainName string) error {
 	return nil
 }
 
-// IsTxtRecordExist return true if txt record exist
+// IsTXTExists return true if txt record exist
 //
-//	exist, err = IsTxtRecordExist(ctx, domainName, txt)
+//	exist, err = IsTXTExists(ctx, domainName, txt)
 //
-func IsTxtRecordExist(ctx context.Context, domainName string) (bool, error) {
+func IsTXTExists(ctx context.Context, domainName string) (bool, error) {
 	if testMode {
 		return true, nil
 	}

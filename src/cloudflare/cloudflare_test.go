@@ -33,53 +33,72 @@ func TestCloudflareGetDNSRecordID(t *testing.T) {
 	assert.NotEmpty(id)
 }
 
-func TestDomain(t *testing.T) {
+func TestCloudflareCNAME(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	subDomain := "mock-libsrv"
 	domainName := subDomain + ".piyuo.com"
 
 	//remove sample domain
-	RemoveDomain(ctx, domainName)
+	DeleteCNAME(ctx, domainName)
 
-	exist, err := IsDomainExist(ctx, domainName)
+	exist, err := IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.False(exist)
 
-	err = AddDomain(ctx, domainName, false)
+	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
 
-	exist, err = IsDomainExist(ctx, domainName)
+	exist, err = IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
 
 	// add domain that already exist should not error
-	err = AddDomain(ctx, domainName, false)
+	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
 
-	err = RemoveDomain(ctx, domainName)
+	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
-	exist, err = IsDomainExist(ctx, domainName)
+	exist, err = IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.False(exist)
 
 	// remove domain second time should not error
-	err = RemoveDomain(ctx, domainName)
+	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
 	EnableTestMode(true)
 	defer EnableTestMode(false)
 
-	err = AddDomain(ctx, domainName, false)
+	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
 
-	exist, err = IsDomainExist(ctx, domainName)
+	exist, err = IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
 
-	err = RemoveDomain(ctx, domainName)
+	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
+
+	// cloud run
+	err = CreateCloudRunCNAME(ctx, domainName)
+	assert.Nil(err)
+	exist, err = IsCNAMEExists(ctx, domainName)
+	assert.Nil(err)
+	assert.True(exist)
+	err = DeleteCNAME(ctx, domainName)
+	assert.Nil(err)
+
+	// google storage
+	err = CreateStorageCNAME(ctx, domainName)
+	assert.Nil(err)
+	exist, err = IsCNAMEExists(ctx, domainName)
+	assert.Nil(err)
+	assert.True(exist)
+	err = DeleteCNAME(ctx, domainName)
+	assert.Nil(err)
+
 }
 
 func TestTxtRecord(t *testing.T) {
@@ -90,42 +109,42 @@ func TestTxtRecord(t *testing.T) {
 	domainName := subDomain + ".piyuo.com"
 	txt := "hi"
 	//remove sample record
-	RemoveTxtRecord(ctx, domainName)
+	RemoveTXT(ctx, domainName)
 
-	exist, err := IsTxtRecordExist(ctx, domainName)
+	exist, err := IsTXTExists(ctx, domainName)
 	assert.Nil(err)
 	assert.False(exist)
 
-	err = AddTxtRecord(ctx, domainName, txt)
+	err = CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
 
-	exist, err = IsTxtRecordExist(ctx, domainName)
+	exist, err = IsTXTExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
 
 	// add txt record that already exist should not error
-	err = AddTxtRecord(ctx, domainName, txt)
+	err = CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
 
-	err = RemoveTxtRecord(ctx, domainName)
+	err = RemoveTXT(ctx, domainName)
 	assert.Nil(err)
 
-	exist, err = IsTxtRecordExist(ctx, domainName)
+	exist, err = IsTXTExists(ctx, domainName)
 	assert.Nil(err)
 	assert.False(exist)
 
 	// remove txt record second time should not error
-	err = RemoveTxtRecord(ctx, domainName)
+	err = RemoveTXT(ctx, domainName)
 	assert.Nil(err)
 
 	EnableTestMode(true)
 	defer EnableTestMode(false)
 
-	err = AddTxtRecord(ctx, domainName, txt)
+	err = CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
-	err = RemoveTxtRecord(ctx, domainName)
+	err = RemoveTXT(ctx, domainName)
 	assert.Nil(err)
-	exist, err = IsTxtRecordExist(ctx, domainName)
+	exist, err = IsTXTExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
 }
