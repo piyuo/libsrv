@@ -7,6 +7,8 @@ import (
 
 // StringBetween Get substring between two strings
 //
+//	assert.Equal("2", StringBetween("123", "1", "3"))
+//
 func StringBetween(value string, a string, b string) string {
 	posFirst := strings.Index(value, a)
 	if posFirst == -1 {
@@ -25,6 +27,8 @@ func StringBetween(value string, a string, b string) string {
 
 // StringBefore Get substring before a string
 //
+//	assert.Equal("1", StringBefore("123", "2"))
+//
 func StringBefore(value string, a string) string {
 	pos := strings.Index(value, a)
 	if pos == -1 {
@@ -34,6 +38,8 @@ func StringBefore(value string, a string) string {
 }
 
 // StringAfter Get substring after a string
+//
+//	assert.Equal("3", StringAfter("123", "2"))
 //
 func StringAfter(value string, a string) string {
 	pos := strings.LastIndex(value, a)
@@ -47,13 +53,13 @@ func StringAfter(value string, a string) string {
 	return value[adjustedPos:]
 }
 
-// ArrayToString convert list of string to string
+// StringFromArray convert list of string to string
 //
 //	array := []string{"1", "2", "3"}
-//	str := ArrayToString(array) //1,2,3
+//	str := StringFromArray(array) //1,2,3
 //	ary := StringToArray(str)
 //
-func ArrayToString(stringArray []string) string {
+func StringFromArray(stringArray []string) string {
 	return strings.Join(stringArray, ",")
 }
 
@@ -69,23 +75,38 @@ func StringToArray(str string) []string {
 
 // StringHash Get hash code for string
 //
+//	code := StringHash(str)
+//
 func StringHash(str string) uint32 {
 	h := fnv.New32a()
 	h.Write([]byte(str))
 	return h.Sum32()
 }
 
-// RemoveEmptyStrings remove empty string values inside an array
+// StringsRemove remove value from string array
 //
 //	ary := []string{"a", "", "b"}
-//	filtered := RemoveEmptyStrings(ary)
+//	filtered := StringsRemove(ary,"")
 //
-func RemoveEmptyStrings(s []string) []string {
+func StringsRemove(s []string, value string) []string {
 	var r []string
 	for _, str := range s {
-		if str != "" {
+		if str != value {
 			r = append(r, str)
 		}
 	}
 	return r
+}
+
+// StringsContain takes a slice and looks for an element in it, return true if exist otherwise it will return false
+//
+//	exist :=StringsContain(ary, "a")
+//
+func StringsContain(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
 }

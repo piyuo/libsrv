@@ -24,7 +24,7 @@ func TestFindInString(t *testing.T) {
 func TestStringSplit(t *testing.T) {
 	assert := assert.New(t)
 	array := []string{"1", "2", "3"}
-	str := ArrayToString(array)
+	str := StringFromArray(array)
 	assert.NotEmpty(str)
 	ary := StringToArray(str)
 	assert.Equal(3, len(ary))
@@ -33,7 +33,7 @@ func TestStringSplit(t *testing.T) {
 	assert.Equal("3", ary[2])
 }
 
-func TestGetHashcode(t *testing.T) {
+func TestStringHashcode(t *testing.T) {
 	assert := assert.New(t)
 	str := "hi"
 	code := StringHash(str)
@@ -42,10 +42,18 @@ func TestGetHashcode(t *testing.T) {
 	assert.Equal(code, code2)
 }
 
-func TestRemoveEmptyStrings(t *testing.T) {
+func TestRemoveStringsRemove(t *testing.T) {
 	assert := assert.New(t)
 	ary := []string{"a", "", "b"}
-	filtered := RemoveEmptyStrings(ary)
+	filtered := StringsRemove(ary, "")
 	assert.Len(filtered, 2)
 	assert.Equal("b", filtered[1])
+}
+
+func TestStringsContain(t *testing.T) {
+	assert := assert.New(t)
+	ary := []string{"a", "", "b"}
+	assert.True(StringsContain(ary, "a"))
+	assert.False(StringsContain(ary, "z"))
+	assert.True(StringsContain(ary, ""))
 }
