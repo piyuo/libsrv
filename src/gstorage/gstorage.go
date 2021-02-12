@@ -512,7 +512,7 @@ func (impl *Implementation) Sync(ctx context.Context, bucketName string, shouldD
 			if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 				return err
 			}
-			log.Debug(ctx, here, fmt.Sprintf("delete object:%v", attrs.Name))
+			log.Debug(ctx, here, fmt.Sprintf("sync delete object:%v", attrs.Name))
 		}
 	}
 	return nil
