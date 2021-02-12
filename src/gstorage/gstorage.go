@@ -121,6 +121,16 @@ type Gstorage interface {
 	//	err = storage.DeleteFile(ctx, bucketName, path)
 	//
 	DeleteFile(ctx context.Context, bucketName, path string) error
+
+	// Sync bucket to dir, remove bucket files not exist in dir
+	//
+	//	shouldDeleteFile := func(filename string) (bool, error) {
+	//		return true, nil
+	//	}
+	//	storage, err := New(ctx)
+	//	err = storage.Sync(ctx, bucketName, dir)
+	//
+	Sync(ctx context.Context, bucketName string, shouldDeleteFile ShouldDeleteFile) error
 }
 
 // Implementation is Cloudstorage implementation
@@ -465,4 +475,45 @@ func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.B
 		}
 	}
 	return true, nil
+}
+
+// ShouldDeleteFile use in SyncDir to determine a file should be delete
+//
+type ShouldDeleteFile func(filename string) (bool, error)
+
+// Sync bucket to dir, remove bucket files not exist in dir
+//
+//	shouldDeleteFile := func(filename string) (bool, error) {
+//		return true, nil
+//	}
+//	storage, err := New(ctx)
+//	err = storage.Sync(ctx, bucketName, dir)
+//
+func (impl *Implementation) Sync(ctx context.Context, bucketName string, shouldDeleteFile ShouldDeleteFile) error {
+
+	bucket := impl.client.Bucket(bucketName)
+	query := &storage.Query{}
+	query.SetAttrSelection([]string{"Name"})
+
+	it := bucket.Objects(ctx, query)
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		delete, err := shouldDeleteFile(attrs.Name)
+		if err != nil {
+			return err
+		}
+		if delete {
+			if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
+				return err
+			}
+			log.Debug(ctx, here, fmt.Sprintf("delete object:%v", attrs.Name))
+		}
+	}
+	return nil
 }

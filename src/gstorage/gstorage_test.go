@@ -144,7 +144,6 @@ func TestGstorageDeleteFiles(t *testing.T) {
 	found, err = storage.IsFileExists(ctx, bucketName, "c.txt")
 	assert.Nil(err)
 	assert.True(found)
-
 }
 
 func TestGstorageCleanBucket(t *testing.T) {
@@ -167,4 +166,34 @@ func TestGstorageCleanBucket(t *testing.T) {
 	assert.Nil(err)
 	err = storage.DeleteBucket(ctx, bucketName)
 	assert.Nil(err)
+}
+
+func TestGstorageSyncDir(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+	cred, err := gaccount.GlobalCredential(ctx)
+	assert.Nil(err)
+	storage, err := New(ctx, cred)
+	bucketName := "gstorage-syncdir.piyuo.com"
+
+	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	assert.Nil(err)
+	defer storage.DeleteBucket(ctx, bucketName)
+
+	err = storage.WriteText(ctx, bucketName, "a/b/c.txt", "hi")
+	assert.Nil(err)
+	err = storage.WriteText(ctx, bucketName, "a/b/c/d.txt", "hi")
+	assert.Nil(err)
+	err = storage.WriteText(ctx, bucketName, "c.txt", "hi")
+	assert.Nil(err)
+
+	list := []string{}
+	shouldDeleteFile := func(filename string) (bool, error) {
+		list = append(list, filename)
+		return true, nil
+	}
+	err = storage.Sync(ctx, bucketName, shouldDeleteFile)
+	assert.Equal("a/b/c.txt", list[0])
+	assert.Equal("a/b/c/d.txt", list[1])
+	assert.Equal("c.txt", list[2])
 }
