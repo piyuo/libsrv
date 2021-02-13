@@ -1,7 +1,6 @@
 package identifier
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,7 +43,13 @@ func TestRandomNumber(t *testing.T) {
 	id := RandomNumber(6)
 	assert.NotEmpty(id)
 	assert.Equal(6, len(id))
-	fmt.Printf("%v, %v\n", id, len(id))
+}
+
+func TestRandomString(t *testing.T) {
+	assert := assert.New(t)
+	id := RandomString(3)
+	assert.NotEmpty(id)
+	assert.Equal(3, len(id))
 }
 
 func TestIdenticalNumberString(t *testing.T) {
@@ -65,6 +70,12 @@ func TestIdenticalNumberString(t *testing.T) {
 func BenchmarkRandomNumber(b *testing.B) {
 	for i := 0; i < 10000; i++ {
 		RandomNumber(6)
+	}
+}
+
+func BenchmarkRandomString(b *testing.B) {
+	for i := 0; i < 10000; i++ {
+		RandomString(6)
 	}
 }
 

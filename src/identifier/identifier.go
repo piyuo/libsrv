@@ -61,14 +61,14 @@ func SerialID64(i uint64) string {
 
 var randSrc rand.Source
 
-const letterBytes = "1234567890"
+const numberBytes = "1234567890"
 const (
-	letterIdxBits = 4                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	numberIdxBits = 4                    // 6 bits to represent a letter index
+	numberIdxMask = 1<<numberIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	numberIdxMax  = 63 / numberIdxBits   // # of letter indices fitting in 63 bits
 )
 
-// RandomNumber return number string by given digit
+// RandomNumber return number string on given digit
 //
 //	id := RandomNumber(6) //062448
 //
@@ -80,15 +80,15 @@ func RandomNumber(digit int) string {
 	sb := strings.Builder{}
 	sb.Grow(digit)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := digit-1, randSrc.Int63(), letterIdxMax; i >= 0; {
+	for i, cache, remain := digit-1, randSrc.Int63(), numberIdxMax; i >= 0; {
 		if remain == 0 {
-			cache, remain = randSrc.Int63(), letterIdxMax
+			cache, remain = randSrc.Int63(), numberIdxMax
 		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			sb.WriteByte(letterBytes[idx])
+		if idx := int(cache & numberIdxMask); idx < len(numberBytes) {
+			sb.WriteByte(numberBytes[idx])
 			i--
 		}
-		cache >>= letterIdxBits
+		cache >>= numberIdxBits
 		remain--
 	}
 	return sb.String()
@@ -125,6 +125,41 @@ func IsNumberStringIdentical(str string) bool {
 		c = str[i]
 	}
 	return diffCount <= 1
+}
+
+// letterBytes use in RandomString
+//
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+// RandomString return random string on given digit
+//
+//	id := RandomString(2) //Ax
+//
+func RandomString(n int) string {
+	if randSrc == nil {
+		randSrc = rand.NewSource(time.Now().UnixNano())
+	}
+
+	sb := strings.Builder{}
+	sb.Grow(n)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := n-1, randSrc.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = randSrc.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			sb.WriteByte(letterBytes[idx])
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+	return sb.String()
 }
 
 // MapID generate unique serial id in map
