@@ -48,6 +48,22 @@ func MapFromString(str string) map[string]string {
 	return m
 }
 
+// MapGetMap get string value from map, return default value if not exist
+//
+//	m := MapGetMap(Map,"submap")
+//
+func MapGetMap(mapping map[string]interface{}, key string) map[string]interface{} {
+	value := mapping[key]
+	if value == nil {
+		return map[string]interface{}{}
+	}
+	switch value.(type) {
+	case map[string]interface{}:
+		return value.(map[string]interface{})
+	}
+	return map[string]interface{}{}
+}
+
 // MapGetString get string value from map, return default value if not exist
 //
 //	str := MapGetString(Map,"hello")

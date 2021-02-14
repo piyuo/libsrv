@@ -38,6 +38,19 @@ func TestMapFromString(t *testing.T) {
 	assert.Equal(0, len(m))
 }
 
+func TestMapGetMap(t *testing.T) {
+	assert := assert.New(t)
+	m := map[string]interface{}{"a": map[string]interface{}{"c": "d"}, "b": 1}
+	a := MapGetMap(m, "a")
+	assert.Equal("d", MapGetString(a, "c", ""))
+	//map not exists
+	aNil := MapGetMap(m, "x")
+	assert.Empty(aNil)
+	//wrong data type
+	b := MapGetMap(m, "b")
+	assert.Empty(b)
+}
+
 func TestMapGetString(t *testing.T) {
 	assert := assert.New(t)
 	m := map[string]interface{}{"a": "b", "c": 1}
