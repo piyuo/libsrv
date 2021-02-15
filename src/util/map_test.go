@@ -123,3 +123,12 @@ func TestMapGetTime(t *testing.T) {
 	assert.True(d.IsZero())
 
 }
+
+func TestMapGetList(t *testing.T) {
+	assert := assert.New(t)
+	j := map[string]interface{}{
+		"a": []interface{}{"b", "c"},
+	}
+	list := j["a"].([]interface{})
+	assert.Len(list, 2)
+}
