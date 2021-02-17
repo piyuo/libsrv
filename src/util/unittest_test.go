@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnitTestInUnitTest(t *testing.T) {
+func TestUnitTestIsUnitTest(t *testing.T) {
 	assert := assert.New(t)
-	assert.True(InUnitTest())
+	assert.True(IsUnitTest())
 }

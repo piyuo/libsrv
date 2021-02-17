@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// InUnitTest return true if is in go unit test
+// IsUnitTest return true if is in go unit test
 //
-func InUnitTest() bool {
+func IsUnitTest() bool {
 	return strings.HasSuffix(os.Args[0], ".test")
 }
