@@ -46,6 +46,9 @@ func (s *Server) createCmdHandler() http.Handler {
 //	Cross origin access enabled
 //
 func (s *Server) cmdServe(w http.ResponseWriter, r *http.Request) {
+	if s.Map == nil {
+		WriteStatus(w, http.StatusBadRequest, "this server don't have map to accept command")
+	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	//add deadline to context

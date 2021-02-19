@@ -47,21 +47,6 @@ type Server struct {
 //  }
 //
 func (s *Server) Start() {
-	name := os.Getenv("NAME")
-	if name == "" {
-		panic("missing environment variable: NAME, try set NAME=\"serviceName\"")
-	}
-
-	region := os.Getenv("REGION")
-	if region == "" {
-		panic("missing environment variable: REGION, try set REGION=\"US\"")
-	}
-
-	branch := os.Getenv("BRANCH")
-	if branch == "" {
-		panic("missing environment variable: BRANCH, try set BRANCH=\"master\"")
-	}
-
 	if s.Map == nil && s.APIHandler == nil {
 		msg := " Map or APIHandler is missing, try &Server{Map:yourMap, ApiHandler: yourHandler}"
 		panic(msg)
