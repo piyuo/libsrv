@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func mockHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	WriteStatus(w, http.StatusForbidden, "Forbidden")
+	return nil
+}
+
 func TestAPIDefaultReturn403(t *testing.T) {
 	assert := assert.New(t)
-	server := &Server{
-		APIHandler: defaultHandler,
-	}
-	port := server.prepare()
-	assert.Equal(":8080", port)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
 	resp1 := httptest.NewRecorder()
-	server.createAPIHandler().ServeHTTP(resp1, req1)
+	HTTPCreateFunc(mockHTTPHandler).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusForbidden, res1.StatusCode)
 
@@ -36,15 +36,10 @@ func mockErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Reques
 
 func TestAPIHandlerReturnError(t *testing.T) {
 	assert := assert.New(t)
-	server := &Server{
-		APIHandler: mockErrorHandler,
-	}
-	port := server.prepare()
-	assert.Equal(":8080", port)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
 	resp1 := httptest.NewRecorder()
-	server.createAPIHandler().ServeHTTP(resp1, req1)
+	HTTPCreateFunc(mockErrorHandler).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusInternalServerError, res1.StatusCode)
 
@@ -57,19 +52,19 @@ func TestApiDeadline(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("API_DEADLINE")
-	os.Setenv("API_DEADLINE", "20")
-	defer os.Setenv("API_DEADLINE", backup)
-	apiDeadline = -1 // remove cache
+	backup := os.Getenv("DEADLINE_HTTP")
+	os.Setenv("DEADLINE_HTTP", "20")
+	defer os.Setenv("DEADLINE_HTTP", backup)
+	deadlineHTTP = -1 // remove cache
 
-	ctx, cancel := setAPIDeadline(ctx)
+	ctx, cancel := setDeadlineHTTP(ctx)
 	defer cancel()
 
 	assert.Nil(ctx.Err())
 	time.Sleep(time.Duration(31) * time.Millisecond)
 	assert.NotNil(ctx.Err())
 
-	apiDeadline = -1 // remove cache
+	deadlineHTTP = -1 // remove cache
 }
 
 func TestApiDeadlineNotSet(t *testing.T) {
@@ -77,15 +72,15 @@ func TestApiDeadlineNotSet(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("API_DEADLINE")
-	os.Setenv("API_DEADLINE", "")
-	defer os.Setenv("API_DEADLINE", backup)
-	apiDeadline = -1 // remove cache
+	backup := os.Getenv("DEADLINE_HTTP")
+	os.Setenv("DEADLINE_HTTP", "")
+	defer os.Setenv("DEADLINE_HTTP", backup)
+	deadlineHTTP = -1 // remove cache
 
-	ctx, cancel := setAPIDeadline(ctx)
+	ctx, cancel := setDeadlineHTTP(ctx)
 	defer cancel()
 
 	time.Sleep(time.Duration(21) * time.Millisecond)
 	assert.Nil(ctx.Err()) // default expired is in 20,000ms
-	apiDeadline = -1      // remove cache
+	deadlineHTTP = -1     // remove cache
 }

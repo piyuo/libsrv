@@ -21,75 +21,73 @@ type HTTPHandler func(ctx context.Context, w http.ResponseWriter, r *http.Reques
 
 // Server handle http request and call dispatch
 //
-//      server := &Server{
-//		    Map: &TestMap{},
-//	    }
+//	server := &Server{
+//		CommandHandlers: map[string]command.IMap{"/": &mock.MapXXX{}},
+//		HTTPHandlers:    map[string]HTTPHandler{"/api": httpHandler},
+//	}
 //
 type Server struct {
-	dispatch *command.Dispatch
+	//	dispatch *command.Dispatch
 
-	// Map is command map for command handler
+	// CommandHandlers is command map for handle command request
 	//
-	Map command.IMap
+	CommandHandlers map[string]command.IMap
 
-	// APIHandler is API handler
+	// HTTPHandlers is http handler map to handle http request
 	//
-	APIHandler HTTPHandler
+	HTTPHandlers map[string]HTTPHandler
 }
 
 // Start http server to listen request and serve content, defult port is 8080, you can change use export PORT="8080"
 //
-//	var server = &command.Server{
-//  	Map: &commands.MapXXX{},
-//  }
+//	server := &Server{
+//		CommandHandlers: map[string]command.IMap{"/": &mock.MapXXX{}},
+//		HTTPHandlers:    map[string]HTTPHandler{"/api": httpHandler},
+//	}
 //  func main() {
 //      server.Start()
 //  }
 //
 func (s *Server) Start() {
-	if s.Map == nil && s.APIHandler == nil {
-		msg := " Map or APIHandler is missing, try &Server{Map:yourMap, ApiHandler: yourHandler}"
+	ctx := context.Background()
+	if s.CommandHandlers == nil && s.HTTPHandlers == nil {
+		msg := "CommandHandlers or HTTPHandlers is missing, try add &Server{CommandHandlers:yourCommandHandler, HTTPHandlers: yourHttpHandler}"
 		panic(msg)
 	}
-	port := s.prepare()
-	log.Debug(context.Background(), here, fmt.Sprintf("start listening from http://localhost%v\n", port))
 
-	if err := http.ListenAndServe(port, nil); err != nil {
-		fmt.Printf("Server failed: %s\n", err)
+	if err := http.ListenAndServe(s.ready(ctx), nil); err != nil {
+		log.Error(ctx, here, err)
 	}
 }
 
-// prepare server variable and return listening port like :8080
+// ready server variable and return listening port like :8080
 //
-func (s *Server) prepare() string {
-
+func (s *Server) ready(ctx context.Context) string {
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	if s.CommandHandlers != nil {
+		for pattern, cmdMap := range s.CommandHandlers {
+			http.Handle(pattern, CMDCreateFunc(cmdMap))
+			break // only allow one command handler for now
+		}
+		//realease command handlers, don't need anymore
+		s.CommandHandlers = nil
+	}
+
+	if s.HTTPHandlers != nil {
+		for pattern, httpHandler := range s.HTTPHandlers {
+			http.Handle(pattern, HTTPCreateFunc(httpHandler))
+		}
+		//realease http handlers, don't need anymore
+		s.HTTPHandlers = nil
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-
-	http.Handle("/", s.createCmdHandler())
-	http.Handle("/api", s.createAPIHandler())
-
-	// set default map
-	s.dispatch = &command.Dispatch{
-		Map: s.Map,
-	}
-	s.Map = nil
-
-	// set default task handler
-	if s.APIHandler == nil {
-		s.APIHandler = defaultHandler
-	}
-
+	log.Debug(ctx, here, fmt.Sprintf("start listening from http://localhost%v\n", port))
 	return ":" + port
-}
-
-func defaultHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	WriteStatus(w, http.StatusForbidden, "Forbidden")
-	return nil
 }
 
 // handleRouteException convert error to status code, so client command service know how to deal with it

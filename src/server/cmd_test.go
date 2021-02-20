@@ -13,17 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNilBodyWillReturnBadRequest(t *testing.T) {
+func TestServerNilBodyWillReturnBadRequest(t *testing.T) {
 	assert := assert.New(t)
-	server := &Server{
-		Map: &mock.MapXXX{},
-	}
-	port := server.prepare()
-	assert.Equal(":8080", port)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
 	resp1 := httptest.NewRecorder()
-	server.createCmdHandler().ServeHTTP(resp1, req1)
+	CMDCreateFunc(&mock.MapXXX{}).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusBadRequest, res1.StatusCode)
 
@@ -31,17 +26,12 @@ func TestNilBodyWillReturnBadRequest(t *testing.T) {
 	http.DefaultServeMux = new(http.ServeMux)
 }
 
-func TestEmptyRequestWillReturnBadRequest(t *testing.T) {
+func TestServerEmptyRequestWillReturnBadRequest(t *testing.T) {
 	assert := assert.New(t)
-	server := &Server{
-		Map: &mock.MapXXX{},
-	}
-	port := server.prepare()
-	assert.Equal(":8080", port)
 
 	req1, _ := http.NewRequest("GET", "/", strings.NewReader(""))
 	resp1 := httptest.NewRecorder()
-	server.createCmdHandler().ServeHTTP(resp1, req1)
+	CMDCreateFunc(&mock.MapXXX{}).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusBadRequest, res1.StatusCode)
 
@@ -54,19 +44,19 @@ func TestCmdDeadline(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("DEADLINE")
-	os.Setenv("DEADLINE", "20")
-	defer os.Setenv("DEADLINE", backup)
-	deadline = -1 // remove cache
+	backup := os.Getenv("DEADLINE_CMD")
+	os.Setenv("DEADLINE_CMD", "20")
+	defer os.Setenv("DEADLINE_CMD", backup)
+	deadlineCMD = -1 // remove cache
 
-	ctx, cancel := setDeadline(ctx)
+	ctx, cancel := setDeadlineCMD(ctx)
 	defer cancel()
 
 	assert.Nil(ctx.Err())
 	time.Sleep(time.Duration(31) * time.Millisecond)
 	assert.NotNil(ctx.Err())
 
-	deadline = -1 // remove cache
+	deadlineCMD = -1 // remove cache
 }
 
 func TestCmdDeadlineNotSet(t *testing.T) {
@@ -74,15 +64,15 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
 
-	backup := os.Getenv("DEADLINE")
-	os.Setenv("DEADLINE", "")
-	defer os.Setenv("DEADLINE", backup)
-	deadline = -1 // remove cache
+	backup := os.Getenv("DEADLINE_CMD")
+	os.Setenv("DEADLINE_CMD", "")
+	defer os.Setenv("DEADLINE_CMD", backup)
+	deadlineCMD = -1 // remove cache
 
-	ctx, cancel := setDeadline(ctx)
+	ctx, cancel := setDeadlineCMD(ctx)
 	defer cancel()
 
 	time.Sleep(time.Duration(21) * time.Millisecond)
 	assert.Nil(ctx.Err()) // default expired is in 20,000ms
-	deadline = -1         // remove cache
+	deadlineCMD = -1      // remove cache
 }

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ var textLong = `{
     "phone": "+1 (915) 479-2908"
    `
 
-func BenchmarkBigArchive(b *testing.B) {
+func BenchmarkServerBigArchive(b *testing.B) {
 	handler := newTestServerHandler()
 	actBytes := newTestAction(textLong)
 	req1, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
@@ -38,7 +39,7 @@ func BenchmarkBigArchive(b *testing.B) {
 	}
 }
 
-func BenchmarkSmallAction(b *testing.B) {
+func BenchmarkServerSmallAction(b *testing.B) {
 	handler := newTestServerHandler()
 	actBytes := newTestAction("Hi")
 	req1, _ := http.NewRequest("GET", "/", bytes.NewReader(actBytes))
@@ -61,17 +62,26 @@ func newBigDataAction() (*mock.BigDataAction, []byte) {
 	return act, actBytes
 }
 
-func TestPrepare(t *testing.T) {
+func TestServerReady(t *testing.T) {
 	assert := assert.New(t)
-	server := &Server{}
-	port := server.prepare()
+	server := &Server{
+		CommandHandlers: map[string]command.IMap{"/cmd": &mock.MapXXX{}},
+		HTTPHandlers:    map[string]HTTPHandler{"/http": mockHTTPHandler},
+	}
+	port := server.ready(context.Background())
 	assert.Equal(":8080", port)
 
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
+
+	//test empty PORT
+	os.Setenv("PORT", "")
+	port = server.ready(context.Background())
+	assert.Equal(":8080", port)
+	os.Setenv("PORT", "8080")
 }
 
-func TestArchive(t *testing.T) {
+func TestServerArchive(t *testing.T) {
 	assert := assert.New(t)
 	handler := newTestServerHandler()
 
@@ -97,27 +107,6 @@ func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	WriteText(w, "hello")
 	return true, nil
 }
-
-/*
-func TestHTTPHandler(t *testing.T) {
-	assert := assert.New(t)
-	server := &Server{
-		Map:         &mock.MapXXX{},
-		HTTPHandler: customHTTPHandler,
-	}
-	handler := server.newHandler()
-
-	req1, _ := http.NewRequest("GET", "/", nil)
-	req1.Header.Set("Accept-Encoding", "gzip")
-	resp1 := httptest.NewRecorder()
-	handler.ServeHTTP(resp1, req1)
-	res1 := resp1.Result()
-	returnBytes := resp1.Body.Bytes()
-	bodyString := string(returnBytes)
-	assert.Equal(200, res1.StatusCode)
-	assert.Equal("hello", bodyString)
-}
-*/
 
 func okResponse() []byte {
 	dispatch := command.Dispatch{
@@ -158,14 +147,7 @@ func TestServe404(t *testing.T) {
 }
 
 func newTestServerHandler() http.Handler {
-	server := &Server{
-		Map: &mock.MapXXX{},
-	}
-	server.dispatch = &command.Dispatch{
-		Map: server.Map,
-	}
-
-	return server.createCmdHandler()
+	return CMDCreateFunc(&mock.MapXXX{})
 }
 
 func newTestAction(text string) []byte {
@@ -179,7 +161,7 @@ func newTestAction(text string) []byte {
 	return actBytes
 }
 
-func TestContextCanceled(t *testing.T) {
+func TestServerContextCanceled(t *testing.T) {
 	assert := assert.New(t)
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
@@ -213,7 +195,7 @@ func TestServeWhenContextCanceled(t *testing.T) {
 	assert.Equal(504, res.StatusCode)
 }
 
-func TestHandleRouteException(t *testing.T) {
+func TestServerHandleRouteException(t *testing.T) {
 	//r, _ := http.NewRequest("POST", "/", nil)
 	w := httptest.NewRecorder()
 	handleRouteException(context.Background(), w, context.DeadlineExceeded)
@@ -231,7 +213,7 @@ func TestServer(t *testing.T) {
 	assert.Panics(server.Start)
 }
 
-func TestQuery(t *testing.T) {
+func TestServerQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	r, err := http.NewRequest("GET", "/?type=maintenance", nil)
