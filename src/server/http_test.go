@@ -17,7 +17,7 @@ func mockHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func TestAPIDefaultReturn403(t *testing.T) {
+func TestServerHttpDefaultReturn403(t *testing.T) {
 	assert := assert.New(t)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
@@ -34,7 +34,7 @@ func mockErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	return errors.New("myError")
 }
 
-func TestAPIHandlerReturnError(t *testing.T) {
+func TestServerHttpHandlerReturnError(t *testing.T) {
 	assert := assert.New(t)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
@@ -47,7 +47,7 @@ func TestAPIHandlerReturnError(t *testing.T) {
 	http.DefaultServeMux = new(http.ServeMux)
 }
 
-func TestApiDeadline(t *testing.T) {
+func TestServerHttpDeadline(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
@@ -67,7 +67,7 @@ func TestApiDeadline(t *testing.T) {
 	deadlineHTTP = -1 // remove cache
 }
 
-func TestApiDeadlineNotSet(t *testing.T) {
+func TestServerHttpDeadlineNotSet(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())

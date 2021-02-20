@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -26,7 +25,7 @@ func setDeadlineCMD(ctx context.Context) (context.Context, context.CancelFunc) {
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000
-			fmt.Println("use default 20 seconds for deadline")
+			log.Debug(ctx, "cmd", "use default 20 seconds for DEADLINE_CMD")
 		}
 		deadlineCMD = time.Duration(ms) * time.Millisecond
 	}
