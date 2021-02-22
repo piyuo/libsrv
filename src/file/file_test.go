@@ -1,6 +1,7 @@
 package file
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,7 +36,18 @@ func TestFile(t *testing.T) {
 	assert.Nil(json)
 }
 
-func TestFind(t *testing.T) {
+func TestFileReadWrite(t *testing.T) {
+	assert := assert.New(t)
+	filename := "test.txt"
+	err := WriteText(filename, "hello")
+	assert.Nil(err)
+	text, err := ReadText(filename)
+	assert.Nil(err)
+	assert.Equal("hello", text)
+	defer os.Remove(filename)
+}
+
+func TestFileFind(t *testing.T) {
 	assert := assert.New(t)
 	dir, found := Find("assets")
 	assert.True(found)

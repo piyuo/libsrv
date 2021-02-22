@@ -13,10 +13,6 @@ import (
 // Read binary data from file, filename can be relative path
 //
 //	bytes, err := file.Read("mock/mock.json")
-//	if( err != nil){
-//		return err
-//	}
-//	So(len(bytes), ShouldBeGreaterThan, 0)
 //
 func Read(filename string) ([]byte, error) {
 	osFile, err := os.Open(filename)
@@ -30,12 +26,8 @@ func Read(filename string) ([]byte, error) {
 // ReadText read text from file, filename can be relative path
 //
 //	txt, err := file.ReadText("mock/mock.json")
-//	if( err != nil){
-//		return err
-//	}
-//	So(txt, ShouldEqual, "")
 //
-func ReadText(filename string)  (string, error) {
+func ReadText(filename string) (string, error) {
 	bytes, err := Read(filename)
 	if err != nil {
 		return "", err
@@ -43,13 +35,18 @@ func ReadText(filename string)  (string, error) {
 	return string(bytes), nil
 }
 
+// WriteText write text to file, filename can be relative path
+//
+//	txt, err := file.WriteText("hello.txt","hello")
+//
+func WriteText(filename, text string) error {
+	bytes := []byte(text)
+	return ioutil.WriteFile(filename, bytes, 0644)
+}
+
 // ReadJSON read json object from file, filename can be relative path
 //
 //	f, err := file.ReadJSON("mock/mock.json")
-//	if( err != nil){
-//		return err
-//	}
-//	So(json["project_id"], ShouldEqual, "piyuo-beta")
 //
 func ReadJSON(filename string) (map[string]interface{}, error) {
 	bytes, err := Read(filename)
@@ -92,6 +89,6 @@ func Find(name string) (string, bool) {
 	}
 
 	filepath = path.Join(curdir, name)
-	fmt.Printf("failed to find %v\n", filepath)
+	fmt.Printf("failed to find %v in %v or parent dir\n", name, curdir)
 	return "", false
 }
