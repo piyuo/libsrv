@@ -67,7 +67,6 @@ func JSON(name string) (map[string]interface{}, error) {
 //	json, err := key.JSONWithoutCache("log.json")
 //
 func JSONWithoutCache(name string) (map[string]interface{}, error) {
-
 	keypath, found := file.Find("keys/" + name)
 	if !found {
 		return nil, errors.New("keys/" + name + " not found")
