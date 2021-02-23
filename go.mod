@@ -3,7 +3,7 @@ module github.com/piyuo/libsrv
 go 1.15
 
 require (
-	cloud.google.com/go v0.77.0
+	cloud.google.com/go v0.78.0
 	cloud.google.com/go/firestore v1.4.0
 	cloud.google.com/go/logging v1.2.0
 	cloud.google.com/go/storage v1.13.0
@@ -23,12 +23,12 @@ require (
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.opencensus.io v0.22.6 // indirect
-	golang.org/x/net v0.0.0-20210220033124-5f55cee0dc0d // indirect
+	golang.org/x/net v0.0.0-20210222171744-9060382bd457 // indirect
 	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210220050731-9a76102bfb43 // indirect
+	golang.org/x/sys v0.0.0-20210223212115-eede4237b368 // indirect
 	google.golang.org/api v0.40.0
-	google.golang.org/genproto v0.0.0-20210219173056-d891e3cb3b5b
+	google.golang.org/genproto v0.0.0-20210223151946-22b48be4551b
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
