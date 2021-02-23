@@ -136,18 +136,18 @@ func TestSetGetExistDelete(t *testing.T) {
 	assert.NotNil(sample2)
 	assert.Equal(sample2.(*Sample).Name, sample.Name)
 
-	exist, err := table.Exist(ctx, sampleID)
+	exist, err := table.IsExists(ctx, sampleID)
 	assert.Nil(err)
 	assert.True(exist)
 
-	exist, err = table.Exist(ctx, "")
+	exist, err = table.IsExists(ctx, "")
 	assert.Nil(err)
 	assert.False(exist)
 
 	err = table.Delete(ctx, sampleID)
 	assert.Nil(err)
 
-	exist, err = table.Exist(ctx, sampleID)
+	exist, err = table.IsExists(ctx, sampleID)
 	assert.Nil(err)
 	assert.False(exist)
 
@@ -333,7 +333,7 @@ func TestDelete(t *testing.T) {
 
 	err = table.Set(ctx, sample)
 	assert.Nil(err)
-	exist, err := table.Exist(ctx, sample.ID)
+	exist, err := table.IsExists(ctx, sample.ID)
 	assert.Nil(err)
 	assert.True(exist)
 
@@ -341,7 +341,7 @@ func TestDelete(t *testing.T) {
 	sample2.ID = sample.ID
 	err = table.DeleteObject(ctx, sample2)
 	assert.Nil(err)
-	exist, err = table.Exist(ctx, sample.ID)
+	exist, err = table.IsExists(ctx, sample.ID)
 	assert.Nil(err)
 	assert.False(exist)
 
@@ -353,14 +353,14 @@ func TestDelete(t *testing.T) {
 
 	err = table.Set(ctx, sample)
 	assert.Nil(err)
-	exist, err = table.Exist(ctx, sample.ID)
+	exist, err = table.IsExists(ctx, sample.ID)
 	assert.Nil(err)
 	assert.True(exist)
 
 	ids = []string{sample.ID}
 	err = table.DeleteBatch(ctx, ids)
 	assert.Nil(err)
-	exist, err = table.Exist(ctx, sample.ID)
+	exist, err = table.IsExists(ctx, sample.ID)
 	assert.Nil(err)
 	assert.False(exist)
 
@@ -388,7 +388,7 @@ func TestConnectionContextCanceled(t *testing.T) {
 	assert.NotNil(err)
 	_, err = table.All(ctx)
 	assert.NotNil(err)
-	_, err = table.Exist(ctx, "notexist")
+	_, err = table.IsExists(ctx, "notexist")
 	assert.NotNil(err)
 	_, err = table.Select(ctx, "notexist", "Value")
 	assert.NotNil(err)

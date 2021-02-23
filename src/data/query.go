@@ -120,12 +120,12 @@ type Query interface {
 	//
 	IsEmpty(ctx context.Context) (bool, error)
 
-	// IsExist execute query and return true if object exist
+	// IsExists execute query and return true if object exist
 	//
-	//	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
+	//	isExist, err := table.Query().Where("Name", "==", "sample1").IsExists(ctx)
 	//	So(isExist, ShouldBeFalse)
 	//
-	IsExist(ctx context.Context) (bool, error)
+	IsExists(ctx context.Context) (bool, error)
 
 	// Clear keep delete all object in a query until ctx timeout or all object deleted. it delete 500 documents at a time
 	//

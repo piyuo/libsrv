@@ -97,18 +97,18 @@ func (c *Table) Set(ctx context.Context, object Object) error {
 	return nil
 }
 
-// Exist return true if object with id exist
+// IsExists return true if object with id exist
 //
-//	exist, err := table.Exist(ctx, sample.ID)
+//	exist, err := table.IsExists(ctx, sample.ID)
 //	if exist {
 //		fmt.Printf("object exist")
 //	}
 //
-func (c *Table) Exist(ctx context.Context, id string) (bool, error) {
+func (c *Table) IsExists(ctx context.Context, id string) (bool, error) {
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
-	return c.Connection.Exist(ctx, c.TableName, id)
+	return c.Connection.IsExists(ctx, c.TableName, id)
 }
 
 // All return objects in table, max 10 object, if you need more! using query instead

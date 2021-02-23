@@ -28,7 +28,6 @@ type QueryFirestore struct {
 // Where set filter, if path == "ID" mean using document id in as filter
 //
 //	list, err := table.Query().Where("ID", "==", "sample1").Execute(ctx)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 //
 func (c *QueryFirestore) Where(path, op string, value interface{}) Query {
 	if path == "ID" {
@@ -42,7 +41,6 @@ func (c *QueryFirestore) Where(path, op string, value interface{}) Query {
 // OrderBy set query order by asc
 //
 //	list, err = table.Query().OrderBy("Name").Execute(ctx)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "sample1")
 //
 func (c *QueryFirestore) OrderBy(path string) Query {
 	c.query = c.query.OrderBy(path, firestore.Asc)
@@ -52,7 +50,6 @@ func (c *QueryFirestore) OrderBy(path string) Query {
 // OrderByDesc set query order by desc
 //
 //	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 //
 func (c *QueryFirestore) OrderByDesc(path string) Query {
 	c.query = c.query.OrderBy(path, firestore.Desc)
@@ -62,7 +59,6 @@ func (c *QueryFirestore) OrderByDesc(path string) Query {
 // Limit set query limit
 //
 //	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
-//	So(len(list), ShouldEqual, 1)
 //
 func (c *QueryFirestore) Limit(n int) Query {
 	c.limit = n
@@ -73,8 +69,6 @@ func (c *QueryFirestore) Limit(n int) Query {
 // StartAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
 //	list, err = table.Query().OrderBy("Name").StartAt("irvine city").Execute(ctx)
-//	So(len(list), ShouldEqual, 1)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 //
 func (c *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query {
 	c.query = c.query.StartAt(docSnapshotOrFieldValues...)
@@ -84,7 +78,6 @@ func (c *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query 
 // StartAfter implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
 //	list, err = table.Query().OrderBy("Name").StartAfter("santa ana city").Execute(ctx)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 //
 func (c *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Query {
 	c.query = c.query.StartAfter(docSnapshotOrFieldValues...)
@@ -94,7 +87,6 @@ func (c *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Que
 // EndAt implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
 //	list, err = table.Query().OrderBy("Name").EndAt("irvine city").Execute(ctx)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "irvine city")
 //
 func (c *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
 	c.query = c.query.EndAt(docSnapshotOrFieldValues...)
@@ -104,7 +96,6 @@ func (c *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
 // EndBefore implement Paginate on firestore, please be aware not use index but fieldValue to do the trick, see sample
 //
 //	list, err = table.Query().OrderBy("Name").EndBefore("irvine city").Execute(ctx)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "santa ana city")
 //
 func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Query {
 	c.query = c.query.EndBefore(docSnapshotOrFieldValues...)
@@ -115,7 +106,6 @@ func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Quer
 //
 //	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetFirstObject(ctx)
 //	greet := obj.(*Greet)
-//	So(greet.From, ShouldEqual, "b city")
 //
 func (c *QueryFirestore) GetFirstObject(ctx context.Context) (Object, error) {
 	list, err := c.Limit(1).Execute(ctx)
@@ -131,7 +121,6 @@ func (c *QueryFirestore) GetFirstObject(ctx context.Context) (Object, error) {
 // GetFirstID execute query return first object id in result
 //
 //	id, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetFirstID(ctx)
-//	So(id, ShouldEqual, "city1")
 //
 func (c *QueryFirestore) GetFirstID(ctx context.Context) (string, error) {
 	list, err := c.Limit(1).Execute(ctx)
@@ -147,8 +136,6 @@ func (c *QueryFirestore) GetFirstID(ctx context.Context) (string, error) {
 // Execute query with default limit to 10 object, use Limit() to override default limit, return nil if anything wrong
 //
 //	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
-//	So(len(list), ShouldEqual, 1)
-//	So((list[0].(*Sample)).Name, ShouldEqual, "sample2")
 //
 func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 	if c.limit == 0 {
@@ -190,7 +177,6 @@ func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 // GetIDs query with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 //
 //	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetIDs(ctx)
-//	So(len(idList), ShouldEqual, 1)
 //
 func (c *QueryFirestore) GetIDs(ctx context.Context) ([]string, error) {
 	if c.limit == 0 {
@@ -223,7 +209,6 @@ func (c *QueryFirestore) GetIDs(ctx context.Context) ([]string, error) {
 // Count execute query and return max 10 count
 //
 //	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)
-//	So(count, ShouldEqual, 1)
 //
 func (c *QueryFirestore) Count(ctx context.Context) (int, error) {
 	if c.limit == 0 {
@@ -254,7 +239,6 @@ func (c *QueryFirestore) Count(ctx context.Context) (int, error) {
 // IsEmpty execute query and return false if object exist
 //
 //	isEmpty, err := table.Query().Where("Name", "==", "sample1").IsEmpty(ctx)
-//	So(isEmpty, ShouldBeFalse)
 //
 func (c *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
 	c.Limit(1)
@@ -276,12 +260,11 @@ func (c *QueryFirestore) IsEmpty(ctx context.Context) (bool, error) {
 	return false, nil
 }
 
-// IsExist execute query and return true if object exist
+// IsExists execute query and return true if object exist
 //
-//	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
-//	So(isExist, ShouldBeFalse)
+//	isExists, err := table.Query().Where("Name", "==", "sample1").IsExists(ctx)
 //
-func (c *QueryFirestore) IsExist(ctx context.Context) (bool, error) {
+func (c *QueryFirestore) IsExists(ctx context.Context) (bool, error) {
 	empty, err := c.IsEmpty(ctx)
 	return !empty, err
 }

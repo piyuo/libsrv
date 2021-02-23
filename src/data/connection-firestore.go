@@ -266,11 +266,11 @@ func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object 
 	return nil
 }
 
-// Exist return true if object with id exist
+// IsExists return true if object with id exist
 //
-//	return c.Exist(ctx, tablename, id)
+//	return c.IsExists(ctx, tablename, id)
 //
-func (c *ConnectionFirestore) Exist(ctx context.Context, tablename, id string) (bool, error) {
+func (c *ConnectionFirestore) IsExists(ctx context.Context, tablename, id string) (bool, error) {
 	if id == "" {
 		return false, nil
 	}

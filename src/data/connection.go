@@ -28,11 +28,11 @@ type Connection interface {
 	//	}
 	//
 	Set(ctx context.Context, tablename string, object Object) error
-	// Exist return true if object with id exist
+	// IsExists return true if object with id exist
 	//
-	//	return conn.Exist(ctx, tablename, id)
+	//	return conn.IsExists(ctx, tablename, id)
 	//
-	Exist(ctx context.Context, tablename, id string) (bool, error)
+	IsExists(ctx context.Context, tablename, id string) (bool, error)
 
 	// All return max 10 object, if you need more! using query instead
 	//

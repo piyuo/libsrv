@@ -125,7 +125,7 @@ func TestMethodTest(t *testing.T) {
 	err = table.Set(ctx, sample1)
 	assert.Nil(err)
 	err = g.Transaction(ctx, func(ctx context.Context) error {
-		exist, err := table.Exist(ctx, sample1.ID)
+		exist, err := table.IsExists(ctx, sample1.ID)
 		assert.Nil(err)
 		assert.True(exist)
 		objects, err := table.All(ctx)

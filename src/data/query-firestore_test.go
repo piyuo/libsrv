@@ -114,7 +114,7 @@ func TestQueryTest(t *testing.T) {
 	assert.Nil(err)
 	assert.False(isEmpty)
 
-	isExist, err := table.Query().Where("Name", "==", "sample1").IsExist(ctx)
+	isExist, err := table.Query().Where("Name", "==", "sample1").IsExists(ctx)
 	assert.Nil(err)
 	assert.True(isExist)
 

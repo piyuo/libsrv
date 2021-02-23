@@ -22,17 +22,17 @@ func TestShouldGetKeyContent(t *testing.T) {
 	assert.NotEmpty(json["project_id"])
 }
 
-func TestReturnErrorWhenKeyNotExist(t *testing.T) {
+func TestReturnErrorWhenKeyNotExists(t *testing.T) {
 	assert := assert.New(t)
-	content, err := Text("not exist")
+	content, err := Text("not exists")
 	assert.NotNil(err)
 	assert.Empty(content)
 
-	json, err := JSON("not exist")
+	json, err := JSON("not exists")
 	assert.NotNil(err)
 	assert.Nil(json)
 
-	bytes, err := Bytes("not exist")
+	bytes, err := Bytes("not exists")
 	assert.NotNil(err)
 	assert.Nil(bytes)
 

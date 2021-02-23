@@ -40,9 +40,9 @@ type CounterFirestore struct {
 	shardHourExist bool
 }
 
-// isShardExist return true if shard already exist
+// isShardExists return true if shard already exist
 //
-func (c *CounterFirestore) isShardExist(ctx context.Context, ref *firestore.DocumentRef) (bool, error) {
+func (c *CounterFirestore) isShardExists(ctx context.Context, ref *firestore.DocumentRef) (bool, error) {
 	snapshot, err := c.conn.tx.Get(ref)
 	if snapshot != nil && !snapshot.Exists() {
 		return false, nil
@@ -85,7 +85,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context) error {
 		dayRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"_"+c.pickedShard)
 		hourRef := c.conn.getDocRef(c.tableName, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.pickedShard)
 
-		c.shardHourExist, err = c.isShardExist(ctx, hourRef)
+		c.shardHourExist, err = c.isShardExists(ctx, hourRef)
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context) error {
 			return nil
 		}
 
-		c.shardDayExist, err = c.isShardExist(ctx, dayRef)
+		c.shardDayExist, err = c.isShardExists(ctx, dayRef)
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context) error {
 			return nil
 		}
 
-		c.shardMonthExist, err = c.isShardExist(ctx, monthRef)
+		c.shardMonthExist, err = c.isShardExists(ctx, monthRef)
 		if err != nil {
 			return err
 		}
@@ -118,7 +118,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context) error {
 			return nil
 		}
 
-		c.shardYearExist, err = c.isShardExist(ctx, yearRef)
+		c.shardYearExist, err = c.isShardExists(ctx, yearRef)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context) error {
 		}
 	}
 
-	c.shardAllExist, err = c.isShardExist(ctx, c.shardAllRef())
+	c.shardAllExist, err = c.isShardExists(ctx, c.shardAllRef())
 	if err != nil {
 		return err
 	}

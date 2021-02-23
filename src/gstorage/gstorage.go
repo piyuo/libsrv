@@ -72,7 +72,7 @@ type Gstorage interface {
 	// IsFileExists return true if file exist
 	//
 	//	storage, err := New(ctx)
-	//	found,err = storage.IsFileExist(ctx, bucketName,"fileName")
+	//	found,err = storage.IsFileExists(ctx, bucketName,"fileName")
 	//
 	IsFileExists(ctx context.Context, bucketName, fileName string) (bool, error)
 
@@ -251,7 +251,7 @@ func (impl *Implementation) SetPageAndCORS(ctx context.Context, bucketName, orig
 //
 //	bucketName := "my-bucket
 //	storage, err := New(ctx)
-//	exist, err := storage.IsBucketExist(ctx, bucketName)
+//	exist, err := storage.IsBucketExists(ctx, bucketName)
 //
 func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName string) (bool, error) {
 	bucketIterator := impl.client.Buckets(ctx, impl.projectID)
@@ -274,7 +274,7 @@ func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName strin
 // IsFileExists return true if file exist
 //
 //	storage, err := New(ctx)
-//	found,err = storage.IsFileExist(ctx, bucketName, "fileName")
+//	found,err = storage.IsFileExists(ctx, bucketName, "fileName")
 //
 func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, path string) (bool, error) {
 	bucket := impl.client.Bucket(bucketName)
