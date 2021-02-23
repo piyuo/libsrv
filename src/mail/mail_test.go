@@ -37,6 +37,12 @@ func TestMail(t *testing.T) {
 	mail.ReplaceHTML("ok", "1")
 	assert.Equal("1", mail.GetHTML())
 
+	mail.SetHTML("1")
+	mail.SetText("1")
+	mail.ReplaceContent("1", "2")
+	assert.Equal("2", mail.GetHTML())
+	assert.Equal("2", mail.GetText())
+
 	name, address := mail.GetFrom()
 	assert.NotEmpty(name)
 	assert.NotEmpty(address)

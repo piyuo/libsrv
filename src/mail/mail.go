@@ -86,6 +86,12 @@ type Mail interface {
 	//
 	ReplaceSubject(replaceFrom, replaceTo string) *BaseMail
 
+	// ReplaceContent replace string in mail text and html content
+	//
+	//	mail.ReplaceContent("%1","hello")
+	//
+	ReplaceContent(replaceFrom, replaceTo string) *BaseMail
+
 	// ReplaceText replace string in mail text content
 	//
 	//	mail.ReplaceText("%1","hello")

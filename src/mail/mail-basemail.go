@@ -130,6 +130,16 @@ func (c *BaseMail) ReplaceHTML(replaceFrom, replaceTo string) *BaseMail {
 	return c
 }
 
+// ReplaceContent replace string in mail text and html content
+//
+//	mail.ReplaceContnet("%1","hello")
+//
+func (c *BaseMail) ReplaceContent(replaceFrom, replaceTo string) *BaseMail {
+	c.Text = strings.ReplaceAll(c.Text, replaceFrom, replaceTo)
+	c.HTML = strings.ReplaceAll(c.HTML, replaceFrom, replaceTo)
+	return c
+}
+
 // GetTo get email to
 //
 //	to := mail.GetTo()
