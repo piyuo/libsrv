@@ -8,9 +8,15 @@ import (
 	"github.com/piyuo/libsrv/src/i18n"
 )
 
-// TestMode set to true will put log in test mode. it will print log but not write to database
+// testMode set to true will put log in test mode. it will print log but not write to database
 //
-var TestMode = false
+var testMode = false
+
+// EnableTestMode set to true will let every function run success
+//
+func EnableTestMode(enabled bool) {
+	testMode = enabled
+}
 
 // TestModeOutputMail is mail sent in test mode
 //
