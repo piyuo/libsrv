@@ -114,9 +114,6 @@ func (c *Table) IsExists(ctx context.Context, id string) (bool, error) {
 // All return objects in table, max 10 object, if you need more! using query instead
 //
 //	list, err := table.All(ctx)
-//	So(len(list), ShouldEqual, 2)
-//	So(list[0].(*Sample).Name, ShouldStartWith, "sample")
-//	So(list[1].(*Sample).Name, ShouldStartWith, "sample")
 //
 func (c *Table) All(ctx context.Context) ([]Object, error) {
 	if ctx.Err() != nil {
@@ -128,7 +125,6 @@ func (c *Table) All(ctx context.Context) ([]Object, error) {
 // Select return object specific field from database
 //
 //	name, err := table.Select(ctx, sample.ID, "Name")
-//	So(name, ShouldEqual, "sample")
 //
 func (c *Table) Select(ctx context.Context, id, field string) (interface{}, error) {
 	if ctx.Err() != nil {
