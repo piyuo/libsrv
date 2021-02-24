@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/piyuo/libsrv/src/i18n"
+	"github.com/piyuo/libsrv/src/mapping"
 )
 
 // testMode set to true will put log in test mode. it will print log but not write to database
@@ -179,11 +180,11 @@ func getTemplate(ctx context.Context, name string) (*template, error) {
 	}
 
 	template := &template{
-		subject:     json["subject"].(string),
-		text:        json["text"].(string),
-		html:        json["html"].(string),
-		fromName:    json["fromName"].(string),
-		fromAddress: json["fromAddress"].(string),
+		subject:     mapping.GetString(json, "subject", ""),
+		text:        mapping.GetString(json, "text", ""),
+		html:        mapping.GetString(json, "html", ""),
+		fromName:    mapping.GetString(json, "fromName", ""),
+		fromAddress: mapping.GetString(json, "fromAddress", ""),
 	}
 	return template, nil
 }

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	crypto "github.com/piyuo/libsrv/src/crypto"
-	util "github.com/piyuo/libsrv/src/util"
+	"github.com/piyuo/libsrv/src/mapping"
 	"github.com/pkg/errors"
 )
 
@@ -61,7 +61,7 @@ func FromString(str string) (Token, bool, error) {
 	if err != nil {
 		return nil, false, errors.Wrap(err, "failed to decrypt str:"+str)
 	}
-	content := util.MapFromString(everything)
+	content := mapping.FromString(everything)
 	expired := content[keyExpired]
 	if isExpired(expired) {
 		return nil, true, nil
@@ -80,7 +80,7 @@ func FromString(str string) (Token, bool, error) {
 //
 func (c *BaseToken) ToString(expired time.Time) (string, error) {
 	c.content[keyExpired] = expired.Format(expiredFormat)
-	everything := util.MapToString(c.content)
+	everything := mapping.ToString(c.content)
 	crypted, err := crypto.Encrypt(everything)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to encrypt tokens")
