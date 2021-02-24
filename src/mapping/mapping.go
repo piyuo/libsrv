@@ -1,4 +1,4 @@
-package util
+package mapping
 
 import (
 	"bytes"
@@ -7,16 +7,16 @@ import (
 	"time"
 )
 
-// MapToString convert map to string using key value pair
+// ToString convert map to string using key value pair
 //
 //	m := map[string]string{
 //		"a": "1",
 //		"b": "2",
 //	}
-//	s := MapToString(m)
+//	s := ToString(m)
 //
 //
-func MapToString(m map[string]string) string {
+func ToString(m map[string]string) string {
 	if len(m) == 0 {
 		return ""
 	}
@@ -30,11 +30,11 @@ func MapToString(m map[string]string) string {
 	return str
 }
 
-// MapFromString convert key value pair string to map
+// FromString convert key value pair string to map
 //
-//	m2 := MapFromString(s)
+//	m2 := FromString(s)
 //
-func MapFromString(str string) map[string]string {
+func FromString(str string) map[string]string {
 	ss := strings.Split(str, "&")
 	m := make(map[string]string)
 	for _, pair := range ss {
@@ -48,11 +48,11 @@ func MapFromString(str string) map[string]string {
 	return m
 }
 
-// MapGetMap get string value from map, return default value if not exist
+// GetMap get string value from map, return default value if not exist
 //
-//	m := MapGetMap(Map,"submap")
+//	m := GetMap(Map,"submap")
 //
-func MapGetMap(mapping map[string]interface{}, key string) map[string]interface{} {
+func GetMap(mapping map[string]interface{}, key string) map[string]interface{} {
 	value := mapping[key]
 	if value == nil {
 		return map[string]interface{}{}
@@ -64,11 +64,11 @@ func MapGetMap(mapping map[string]interface{}, key string) map[string]interface{
 	return map[string]interface{}{}
 }
 
-// MapGetString get string value from map, return default value if not exist
+// GetString get string value from map, return default value if not exist
 //
-//	str := MapGetString(Map,"hello")
+//	str := GetString(Map,"hello")
 //
-func MapGetString(mapping map[string]interface{}, key, defaultValue string) string {
+func GetString(mapping map[string]interface{}, key, defaultValue string) string {
 	value := mapping[key]
 	if value == nil {
 		return defaultValue
@@ -76,11 +76,11 @@ func MapGetString(mapping map[string]interface{}, key, defaultValue string) stri
 	return fmt.Sprint(value)
 }
 
-// MapGetFloat64 get float64 value from map, return default value if not exist
+// GetFloat64 get float64 value from map, return default value if not exist
 //
-//	str := MapGetFloat64(Map,0)
+//	str := GetFloat64(Map,0)
 //
-func MapGetFloat64(mapping map[string]interface{}, key string, defaultValue float64) float64 {
+func GetFloat64(mapping map[string]interface{}, key string, defaultValue float64) float64 {
 	value := mapping[key]
 	if value == nil {
 		return defaultValue
@@ -100,11 +100,11 @@ func MapGetFloat64(mapping map[string]interface{}, key string, defaultValue floa
 	return defaultValue
 }
 
-// MapGetTime get time value from map, return default value if not exist or wrong time type
+// GetTime get time value from map, return default value if not exist or wrong time type
 //
 //	str := MapGetFloat64(Map,time.Now())
 //
-func MapGetTime(mapping map[string]interface{}, key string, defaultValue time.Time) time.Time {
+func GetTime(mapping map[string]interface{}, key string, defaultValue time.Time) time.Time {
 	value := mapping[key]
 	if value == nil {
 		return defaultValue
@@ -123,9 +123,9 @@ func MapGetTime(mapping map[string]interface{}, key string, defaultValue time.Ti
 	return defaultValue
 }
 
-// MapInsert insert json object to array
+// Insert insert json object to array
 //
-func MapInsert(a []interface{}, index int, value map[string]interface{}) []interface{} {
+func Insert(a []interface{}, index int, value map[string]interface{}) []interface{} {
 	if len(a) == index { // nil or empty slice or after last element
 		return append(a, value)
 	}
