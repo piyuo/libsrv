@@ -3,6 +3,7 @@ package gcloud
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
 	"github.com/pkg/errors"
@@ -18,6 +19,10 @@ const here = "gcloud"
 //	err = gcloud.CreateHTTPTask(ctx, "my-project","us-central1","my-queue",url,body)
 //
 func CreateHTTPTask(ctx context.Context, cred *google.Credentials, projectID, locationID, queueID, url string, body []byte) error {
+
+	//gcloud won't allow context deadline over 30 seconds
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20) // cloud flare dns call must completed in 15 seconds
+	defer cancel()
 
 	client, err := cloudtasks.NewClient(ctx, option.WithCredentials(cred))
 	if err != nil {
