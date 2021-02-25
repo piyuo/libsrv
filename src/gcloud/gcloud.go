@@ -3,23 +3,21 @@ package gcloud
 import (
 	"context"
 	"fmt"
-	"time"
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	tasks "google.golang.org/genproto/googleapis/cloud/tasks/v2"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const here = "gcloud"
 
-// CreateHTTPTask create http task on google cloud task with schedule time
+// CreateHTTPTask create http task on google cloud task
 //
-//	err = gcloud.CreateHTTPTask(ctx, "my-project","us-central1","my-queue",3*time.Seconds,url,body)
+//	err = gcloud.CreateHTTPTask(ctx, "my-project","us-central1","my-queue",url,body)
 //
-func CreateHTTPTask(ctx context.Context, cred *google.Credentials, projectID, locationID, queueID, url string, schedule time.Time, body []byte) error {
+func CreateHTTPTask(ctx context.Context, cred *google.Credentials, projectID, locationID, queueID, url string, body []byte) error {
 
 	client, err := cloudtasks.NewClient(ctx, option.WithCredentials(cred))
 	if err != nil {
@@ -39,7 +37,6 @@ func CreateHTTPTask(ctx context.Context, cred *google.Credentials, projectID, lo
 					Url:        url,
 				},
 			},
-			ScheduleTime: &timestamppb.Timestamp{Seconds: schedule.Unix()},
 		},
 	}
 
