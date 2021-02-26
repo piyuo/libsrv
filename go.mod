@@ -1,6 +1,6 @@
 module github.com/piyuo/libsrv
 
-go 1.15
+go 1.16
 
 require (
 	cloud.google.com/go v0.78.0
