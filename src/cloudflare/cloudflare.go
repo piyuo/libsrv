@@ -109,12 +109,12 @@ func getDNSRecordID(ctx context.Context, domainName, recType, content string) (s
 	return rec["id"].(string), nil
 }
 
-// CreateCloudRunCNAME add domain cname record point to google cloud run backend
+// CreateCloudRunCNAME add domain cname record point to google cloud run backend, it will create not proxied CNAME and after manually add cloud run mapping you should manually set proxied=true on cloudflare
 //
 //	err = CreateCloudRunCNAME(ctx, domainName)
 //
 func CreateCloudRunCNAME(ctx context.Context, domainName string) error {
-	return CreateCNAME(ctx, domainName, "ghs.googlehosted.com", true)
+	return CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 }
 
 // CreateStorageCNAME add domain cname record point to google storage backend
