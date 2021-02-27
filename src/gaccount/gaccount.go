@@ -44,9 +44,10 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 
 	if globalCredential == nil {
-		bytes, err := key.BytesWithoutCache("gcloud.json")
+		keyFile := "gcloud.json"
+		bytes, err := key.BytesWithoutCache(keyFile)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/gcloud.json")
+			return nil, errors.Wrap(err, "failed to get keys/"+keyFile)
 		}
 		cred, err := makeCredential(ctx, bytes)
 		if err != nil {
@@ -71,13 +72,14 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 	var cred = regionalCredentials[region.Current]
 	if regionalCredentials[region.Current] == nil {
-		bytes, err := key.BytesWithoutCache("region/" + region.Current + ".json")
+		keyFile := "gcloud-" + region.Current + ".json"
+		bytes, err := key.BytesWithoutCache(keyFile)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/region/"+region.Current+".json")
+			return nil, errors.Wrap(err, "failed to get keys/"+keyFile)
 		}
 		cred, err := makeCredential(ctx, bytes)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check keys/region/"+region.Current+".json format is correct")
+			return nil, errors.Wrap(err, "failed to create credential, check format on:"+keyFile)
 		}
 		regionalCredentials[region.Current] = cred
 		return cred, nil
