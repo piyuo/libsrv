@@ -2,6 +2,7 @@ package key
 
 import (
 	"errors"
+	"path"
 
 	cache "github.com/piyuo/libsrv/src/cache"
 	file "github.com/piyuo/libsrv/src/file"
@@ -30,9 +31,10 @@ func Text(name string) (string, error) {
 //	text, err := key.TextWithoutCache("log.json")
 //
 func TextWithoutCache(name string) (string, error) {
-	keypath, found := file.Find("keys/" + name)
+	keyFile := path.Join("keys", name)
+	keypath, found := file.Find(keyFile)
 	if !found {
-		return "", errors.New("keys/" + name + " not found")
+		return "", errors.New(keyFile + " not found")
 	}
 
 	text, err := file.ReadText(keypath)
@@ -67,9 +69,10 @@ func JSON(name string) (map[string]interface{}, error) {
 //	json, err := key.JSONWithoutCache("log.json")
 //
 func JSONWithoutCache(name string) (map[string]interface{}, error) {
-	keypath, found := file.Find("keys/" + name)
+	keyFile := path.Join("keys", name)
+	keypath, found := file.Find(keyFile)
 	if !found {
-		return nil, errors.New("keys/" + name + " not found")
+		return nil, errors.New(keyFile + " not found")
 	}
 
 	json, err := file.ReadJSON(keypath)
@@ -104,10 +107,10 @@ func Bytes(name string) ([]byte, error) {
 //	bytes, err := key.BytesWithoutCache("log.json")
 //
 func BytesWithoutCache(name string) ([]byte, error) {
-
-	keypath, found := file.Find("keys/" + name)
+	keyFile := path.Join("keys", name)
+	keypath, found := file.Find(keyFile)
 	if !found {
-		return nil, errors.New("keys/" + name + " not found")
+		return nil, errors.New(keyFile + " not found")
 	}
 
 	bytes, err := file.Read(keypath)
