@@ -3,6 +3,7 @@ package gaccount
 import (
 	"context"
 
+	"github.com/piyuo/libsrv/src/file"
 	"github.com/piyuo/libsrv/src/key"
 	"github.com/piyuo/libsrv/src/region"
 
@@ -44,7 +45,7 @@ func CreateCredential(ctx context.Context, keyName string) (*google.Credentials,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get keys/"+keyName)
 	}
-	cred, err := makeCredential(ctx, bytes)
+	cred, err := MakeCredential(ctx, bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get keys/"+keyFile)
 		}
-		cred, err := makeCredential(ctx, bytes)
+		cred, err := MakeCredential(ctx, bytes)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +103,7 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get keys/"+keyFile)
 		}
-		cred, err := makeCredential(ctx, bytes)
+		cred, err := MakeCredential(ctx, bytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create credential, check format on:"+keyFile)
 		}
@@ -112,12 +113,11 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	return cred, nil
 }
 
-// makeCredential create google credential from json bytes
+// MakeCredential create google credential from json bytes
 //
-//	cred, err := makeCredential(context.Background(),bytes)
+//	cred, err := MakeCredential(context.Background(),bytes)
 //
-func makeCredential(ctx context.Context, bytes []byte) (*google.Credentials, error) {
-
+func MakeCredential(ctx context.Context, bytes []byte) (*google.Credentials, error) {
 	creds, err := google.CredentialsFromJSON(ctx, bytes,
 		"https://www.googleapis.com/auth/siteverification",        // log, error
 		"https://www.googleapis.com/auth/cloud-platform",          // log, error
@@ -127,4 +127,24 @@ func makeCredential(ctx context.Context, bytes []byte) (*google.Credentials, err
 		return nil, err
 	}
 	return creds, nil
+}
+
+// CredentialFromFile get credential from key json
+//
+//	cred, err := CredentialFromFile(ctx,jsonFile)
+//
+func CredentialFromFile(ctx context.Context, jsonFile string) (*google.Credentials, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	bytes, err := file.Read(jsonFile)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get json file:"+jsonFile)
+	}
+	cred, err := MakeCredential(ctx, bytes)
+	if err != nil {
+		return nil, err
+	}
+	return cred, nil
 }

@@ -17,7 +17,7 @@ func TestGaccountCredential(t *testing.T) {
 	bytes, err := key.BytesWithoutCache("gcloud.json")
 	assert.Nil(err)
 	ctx := context.Background()
-	cred, err := makeCredential(ctx, bytes)
+	cred, err := MakeCredential(ctx, bytes)
 	assert.Nil(err)
 	assert.NotNil(cred)
 
@@ -85,4 +85,12 @@ func TestGaccountTestMode(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(cred.ProjectID, cred2.ProjectID)
+}
+
+func TestGaccountCredentialFromFile(t *testing.T) {
+	ctx := context.Background()
+	assert := assert.New(t)
+	cred, err := CredentialFromFile(ctx, "notExists")
+	assert.NotNil(err)
+	assert.Nil(cred)
 }
