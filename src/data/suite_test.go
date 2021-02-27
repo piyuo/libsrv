@@ -5,14 +5,23 @@ import (
 	"os"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
-	//	setup()
+	setup()
 	code := m.Run()
-	//	shutdown()
+	shutdown()
 	os.Exit(code)
+}
+
+func setup() {
+	gaccount.TestMode(true)
+}
+
+func shutdown() {
+	gaccount.TestMode(false)
 }
 
 func TestCleanTest(t *testing.T) {
