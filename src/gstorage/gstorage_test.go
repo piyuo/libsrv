@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var bucketName = "test-gstorage-1"
+
 func TestNewGstorage(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -26,8 +28,6 @@ func TestGstorageBucket(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
-
-	bucketName := "gstorage.piyuo.com"
 
 	storage.DeleteBucket(ctx, bucketName)
 
@@ -62,7 +62,6 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
-	bucketName := "gstorage.piyuo.com"
 	filename := "a/b.txt"
 	jsonname := "a/b.json"
 	prefix := "a"
@@ -118,7 +117,6 @@ func TestGstorageDeleteFiles(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
-	bucketName := "gs-delete-files.piyuo.com"
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
@@ -152,7 +150,6 @@ func TestGstorageCleanBucket(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
-	bucketName := "gstorage.piyuo.com"
 	path := "TestCleanBucket.txt"
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
@@ -174,7 +171,6 @@ func TestGstorageSyncDir(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
-	bucketName := "gstorage-syncdir.piyuo.com"
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
