@@ -70,3 +70,19 @@ func TestGaccountCredentialWhenContextCanceled(t *testing.T) {
 	_, err = RegionalCredential(ctx)
 	assert.NotNil(err)
 }
+
+func TestGaccountTestMode(t *testing.T) {
+	ctx := context.Background()
+	assert := assert.New(t)
+	ClearCache()
+	TestMode(true)
+	defer TestMode(false)
+
+	cred, err := GlobalCredential(ctx)
+	assert.Nil(err)
+
+	cred2, err := RegionalCredential(ctx)
+	assert.Nil(err)
+
+	assert.Equal(cred.ProjectID, cred2.ProjectID)
+}
