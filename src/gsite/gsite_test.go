@@ -1,4 +1,4 @@
-package siteverify
+package gsite
 
 import (
 	"context"
