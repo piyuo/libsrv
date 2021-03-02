@@ -95,7 +95,9 @@ func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *
 	}
 
 	// Add a payload message if one is present.
-	req.Task.GetHttpRequest().Body = body
+	if body != nil {
+		req.Task.GetHttpRequest().Body = body
+	}
 
 	_, err = client.CreateTask(ctx, req)
 	if err != nil {
