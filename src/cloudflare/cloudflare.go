@@ -19,9 +19,9 @@ import (
 //
 var testMode = false
 
-// EnableTestMode set to true will let every function run success
+// TestMode set to true will let every function run success
 //
-func EnableTestMode(enabled bool) {
+func TestMode(enabled bool) {
 	testMode = enabled
 }
 

@@ -86,8 +86,8 @@ func TestCloudflareCNAME(t *testing.T) {
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
-	EnableTestMode(true)
-	defer EnableTestMode(false)
+	TestMode(true)
+	defer TestMode(false)
 
 	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
@@ -137,8 +137,8 @@ func TestTxtRecord(t *testing.T) {
 	err = RemoveTXT(ctx, domainName)
 	assert.Nil(err)
 
-	EnableTestMode(true)
-	defer EnableTestMode(false)
+	TestMode(true)
+	defer TestMode(false)
 
 	err = CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
