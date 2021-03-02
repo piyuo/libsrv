@@ -15,14 +15,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-// testMode set to true will let every function run success
+// testMode is true should return success, false return error, otherwise behave normal
 //
-var testMode = false
+var testMode *bool
 
-// TestMode set to true will let every function run success
+// TestModeAlwaySuccess will let every function success
 //
-func TestMode(enabled bool) {
-	testMode = enabled
+func TestModeAlwaySuccess() {
+	t := true
+	testMode = &t
+}
+
+// TestModeAlwayFail will let every function fail
+//
+func TestModeAlwayFail() {
+	f := false
+	testMode = &f
+}
+
+// TestModeBackNormal stop test mode and back to normal
+//
+func TestModeBackNormal() {
+	testMode = nil
 }
 
 //	credential return cloudflare credential zon and token
@@ -130,8 +144,11 @@ func CreateStorageCNAME(ctx context.Context, domainName string) error {
 //	err = AddCNAME(ctx, domainName, false)
 //
 func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) error {
-	if testMode {
-		return nil
+	if testMode != nil {
+		if *testMode {
+			return nil
+		}
+		return errors.New("failed always")
 	}
 
 	proxy := "false"
@@ -155,8 +172,11 @@ func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) e
 //	err = DeleteCNAME(ctx, domainName)
 //
 func DeleteCNAME(ctx context.Context, domainName string) error {
-	if testMode {
-		return nil
+	if testMode != nil {
+		if *testMode {
+			return nil
+		}
+		return errors.New("failed always")
 	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
@@ -178,8 +198,11 @@ func DeleteCNAME(ctx context.Context, domainName string) error {
 //	exist, err := IsCNAMEExists(ctx, domainName)
 //
 func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
-	if testMode {
-		return true, nil
+	if testMode != nil {
+		if *testMode {
+			return true, nil
+		}
+		return false, errors.New("failed always")
 	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
@@ -194,10 +217,12 @@ func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 //	err = cflare.CreateTXT(ctx, domainName, txt)
 //
 func CreateTXT(ctx context.Context, domainName, txt string) error {
-	if testMode {
-		return nil
+	if testMode != nil {
+		if *testMode {
+			return nil
+		}
+		return errors.New("failed always")
 	}
-
 	var requestJSON = []byte(`{"type":"TXT","name":"` + domainName + `","content":"` + txt + `"}`)
 	_, err := sendDNSRequest(ctx, "POST", "", bytes.NewBuffer(requestJSON))
 	if err != nil {
@@ -214,10 +239,12 @@ func CreateTXT(ctx context.Context, domainName, txt string) error {
 //	err = RemoveTXT(ctx, domainName, txt)
 //
 func RemoveTXT(ctx context.Context, domainName string) error {
-	if testMode {
-		return nil
+	if testMode != nil {
+		if *testMode {
+			return nil
+		}
+		return errors.New("failed always")
 	}
-
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
 		return err
@@ -237,10 +264,12 @@ func RemoveTXT(ctx context.Context, domainName string) error {
 //	exist, err = IsTXTExists(ctx, domainName, txt)
 //
 func IsTXTExists(ctx context.Context, domainName string) (bool, error) {
-	if testMode {
-		return true, nil
+	if testMode != nil {
+		if *testMode {
+			return true, nil
+		}
+		return false, errors.New("failed always")
 	}
-
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
 		return false, err

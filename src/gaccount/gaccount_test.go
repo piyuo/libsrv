@@ -75,8 +75,8 @@ func TestGaccountTestMode(t *testing.T) {
 	ctx := context.Background()
 	assert := assert.New(t)
 	ClearCache()
-	TestMode(true)
-	defer TestMode(false)
+	UseTestCredential(true)
+	defer UseTestCredential(false)
 
 	cred, err := GlobalCredential(ctx)
 	assert.Nil(err)

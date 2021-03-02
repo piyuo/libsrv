@@ -10,9 +10,29 @@ import (
 	"github.com/piyuo/libsrv/src/identifier"
 )
 
-// TestMode set to true will put log in test mode. it will print log but not write to database
+// testMode is true should return success, false return error, otherwise behave normal
 //
-var TestMode = false
+var testMode *bool
+
+// TestModeAlwaySuccess will let every function success
+//
+func TestModeAlwaySuccess() {
+	t := true
+	testMode = &t
+}
+
+// TestModeAlwayFail will let every function fail
+//
+func TestModeAlwayFail() {
+	f := false
+	testMode = &f
+}
+
+// TestModeBackNormal stop test mode and back to normal
+//
+func TestModeBackNormal() {
+	testMode = nil
+}
 
 // Level define log level
 //
@@ -102,7 +122,7 @@ func Alert(ctx context.Context, where, message string) {
 //	Log(ctx, "hello", here, WARNING)
 //
 func Log(ctx context.Context, level Level, where, message string) {
-	if TestMode {
+	if testMode != nil {
 		fmt.Printf("[TestMode]%v: %v\n", where, message)
 		return
 	}
@@ -167,24 +187,22 @@ func WriteError(ctx context.Context, where, message, stack, errID string) {
 //	HERE := "log_test"
 //	LogErr(ctx,HERE, err)
 //
-func Error(ctx context.Context, where string, err error) string {
-	if TestMode {
+func Error(ctx context.Context, where string, err error) {
+	if testMode != nil {
 		if err != nil {
 			fmt.Printf("[TestMode]%v: %v\n", where, err.Error())
 		}
-		return ""
 	}
 	if ctx.Err() != nil {
-		return ""
+		return
 	}
 	if err == nil {
-		return ""
+		return
 	}
 	message := err.Error()
 	stack := beautyStack(err)
 	errID := identifier.UUID()
 	WriteError(ctx, where, message, stack, errID)
-	return errID
 }
 
 // NewErrorer return errorer

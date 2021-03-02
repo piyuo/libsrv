@@ -10,12 +10,16 @@ import (
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
-	//	shutdown()
+	shutdown()
 	os.Exit(code)
 }
 
 func setup() {
-	log.TestMode = true
+	log.TestModeAlwaySuccess()
+}
+
+func shutdown() {
+	log.TestModeBackNormal()
 }
 
 func TestClean(t *testing.T) {

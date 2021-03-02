@@ -100,8 +100,8 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 		return
 	}
 
-	errID := log.Error(ctx, here, err)
-	WriteError(w, http.StatusInternalServerError, errID, err)
+	log.Error(ctx, here, err)
+	WriteError(w, http.StatusInternalServerError, err)
 }
 
 // Query return value from query string

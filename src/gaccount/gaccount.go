@@ -11,14 +11,14 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-// testMode set to true will force gaccount use gcloud-test.json as key
+// useTestCredential set to true will force using gcloud-test.json as credential
 //
-var testMode = false
+var useTestCredential = false
 
-// TestMode set to true will let every function run success
+// UseTestCredential set to true will force using gcloud-test.json as credential
 //
-func TestMode(enabled bool) {
-	testMode = enabled
+func UseTestCredential(value bool) {
+	useTestCredential = value
 }
 
 // ClearCache clear credential cache
@@ -63,7 +63,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 
 	if globalCredential == nil {
 		keyFile := "gcloud.json"
-		if testMode {
+		if useTestCredential {
 			keyFile = "gcloud-test.json"
 		}
 
@@ -95,7 +95,7 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	var cred = regionalCredentials[region.Current]
 	if regionalCredentials[region.Current] == nil {
 		keyFile := "gcloud-" + region.Current + ".json"
-		if testMode {
+		if useTestCredential {
 			keyFile = "gcloud-test.json"
 		}
 

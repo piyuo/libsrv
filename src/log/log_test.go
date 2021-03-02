@@ -34,11 +34,11 @@ func TestLog(t *testing.T) {
 	Info(ctx, here, "my info log")
 	Warning(ctx, here, "my warning log")
 	Alert(ctx, here, "my alert log")
-	TestMode = true
+	TestModeAlwaySuccess()
+	defer TestModeBackNormal()
 	Info(ctx, here, "my info log")
 	Warning(ctx, here, "my warning log")
 	Alert(ctx, here, "my alert log")
-	TestMode = false
 }
 
 func TestLogWhenContextCanceled(t *testing.T) {
@@ -53,8 +53,7 @@ func TestLogWhenContextCanceled(t *testing.T) {
 
 	Log(ctx, DEBUG, here, "")
 	WriteError(ctx, here, "", "", "")
-	errID := Error(ctx, here, nil)
-	assert.Empty(errID)
+	Error(ctx, here, nil)
 	Info(ctx, here, "my info log canceled")
 
 	errorer, err := NewErrorer(ctx)
@@ -96,30 +95,19 @@ func TestIsLineDuplicate(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	assert := assert.New(t)
 	ctx := context.Background()
 	err := errors.New("mock error happening in go")
-	errID := Error(ctx, here, err)
-	assert.NotEmpty(errID)
+	Error(ctx, here, err)
 
-	errID = Error(ctx, here, nil)
-	assert.Empty(errID)
-
-	TestMode = true
-	errID = Error(ctx, here, nil)
-	assert.Empty(errID)
-	errID = Error(ctx, here, errors.New("myError"))
-	assert.Empty(errID)
-
-	TestMode = false
+	TestModeAlwaySuccess()
+	defer TestModeBackNormal()
+	Error(ctx, here, nil)
 }
 
 func TestErrorWithRequest(t *testing.T) {
-	assert := assert.New(t)
 	ctx := context.Background()
 	err := errors.New("mock error happening in go with request")
-	errID := Error(ctx, here, err)
-	assert.NotEmpty(errID)
+	Error(ctx, here, err)
 }
 
 func TestCustomError(t *testing.T) {
