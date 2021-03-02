@@ -9,14 +9,29 @@ import (
 	"github.com/piyuo/libsrv/src/mapping"
 )
 
-// testMode set to true will put log in test mode. it will print log but not write to database
+// testMode is true should return success, false return error, otherwise behave normal
 //
-var testMode = false
+var testMode *bool
 
-// TestMode set to true will let every function run success
+// TestModeAlwaySuccess will let every function success
 //
-func TestMode(enabled bool) {
-	testMode = enabled
+func TestModeAlwaySuccess() {
+	t := true
+	testMode = &t
+}
+
+// TestModeAlwayFail will let every function fail
+//
+func TestModeAlwayFail() {
+	f := false
+	testMode = &f
+}
+
+// TestModeBackNormal stop test mode and back to normal
+//
+func TestModeBackNormal() {
+	testMode = nil
+	TestModeOutputMail = nil
 }
 
 // TestModeOutputMail is mail sent in test mode

@@ -88,7 +88,8 @@ func TestSendMail(t *testing.T) {
 func TestMockSendMail(t *testing.T) {
 	assert := assert.New(t)
 	TestModeOutputMail = nil
-	testMode = true
+	TestModeAlwaySuccess()
+	defer TestModeBackNormal()
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
