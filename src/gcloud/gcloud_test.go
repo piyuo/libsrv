@@ -13,4 +13,14 @@ func TestGcloudCreateHTTPTask(t *testing.T) {
 
 	err := CreateHTTPTask(ctx, "http://notExist", []byte{}, nil)
 	assert.Nil(err)
+
+	TestModeAlwaySuccess()
+	err = CreateHTTPTask(ctx, "http://notExist", []byte{}, nil)
+	assert.Nil(err)
+
+	TestModeAlwayFail()
+	err = CreateHTTPTask(ctx, "http://notExist", []byte{}, nil)
+	assert.NotNil(err)
+
+	TestModeBackNormal()
 }

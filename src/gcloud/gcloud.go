@@ -19,11 +19,41 @@ const defaultQueueID = "tasks"
 
 const defaultLocationID = "us-central1"
 
+// testMode is true should return success, false return error, otherwise behave normal
+//
+var testMode *bool
+
+// TestModeAlwaySuccess will let every function success
+//
+func TestModeAlwaySuccess() {
+	t := true
+	testMode = &t
+}
+
+// TestModeAlwayFail will let every function fail
+//
+func TestModeAlwayFail() {
+	f := false
+	testMode = &f
+}
+
+// TestModeBackNormal stop test mode and back to normal
+//
+func TestModeBackNormal() {
+	testMode = nil
+}
+
 // CreateHTTPTask create google cloud task, if scheduleTime is nil mean now
 //
 //	err = gcloud.CreateHTTPTask(ctx, url,body,nil)
 //
 func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *timestamppb.Timestamp) error {
+	if testMode != nil {
+		if *testMode {
+			return nil
+		}
+		return errors.New("failed always")
+	}
 
 	//gcloud won't allow context deadline over 30 seconds
 	ctx, cancel := context.WithTimeout(ctx, time.Second*20) // cloud flare dns call must completed in 15 seconds
