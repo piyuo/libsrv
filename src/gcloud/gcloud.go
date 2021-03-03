@@ -15,7 +15,7 @@ import (
 
 const here = "gcloud"
 
-const defaultQueueID = "tasks"
+const defaultQueueID = "task"
 
 const defaultLocationID = "us-central1"
 
