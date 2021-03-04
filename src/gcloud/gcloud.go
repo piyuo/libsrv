@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	tasks "google.golang.org/genproto/googleapis/cloud/tasks/v2"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -55,7 +56,7 @@ func TestModeBackNormal() {
 //
 //	err = gcloud.CreateHTTPTask(ctx, url,body,nil)
 //
-func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *timestamppb.Timestamp) error {
+func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *timestamppb.Timestamp, deadline time.Duration) error {
 	if testMode != nil {
 		if *testMode {
 			return nil
@@ -84,7 +85,8 @@ func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *
 	req := &tasks.CreateTaskRequest{
 		Parent: queuePath,
 		Task: &tasks.Task{
-			ScheduleTime: scheduleTime,
+			ScheduleTime:     scheduleTime,
+			DispatchDeadline: durationpb.New(deadline),
 			MessageType: &tasks.Task_HttpRequest{
 				HttpRequest: &tasks.HttpRequest{
 					HttpMethod: tasks.HttpMethod_POST,
