@@ -64,14 +64,14 @@ func TestLogWhenContextCanceled(t *testing.T) {
 	assert.Nil(logger)
 }
 
-func TestBeautyStack(t *testing.T) {
+func TestLogBeautyStack(t *testing.T) {
 	assert := assert.New(t)
 	err := errors.New("beauty stack")
 	stack := beautyStack(err)
 	assert.NotEmpty(stack)
 }
 
-func TestExtractFilename(t *testing.T) {
+func TestLogExtractFilename(t *testing.T) {
 	assert := assert.New(t)
 	path := "/convey/doc.go:75"
 	filename := extractFilename(path)
@@ -81,39 +81,55 @@ func TestExtractFilename(t *testing.T) {
 	assert.Equal("doc.go:75", filename)
 }
 
-func TestIsLineUsable(t *testing.T) {
+func TestLogIsLineUsable(t *testing.T) {
 	assert := assert.New(t)
 	line := "/smartystreets/convey/doc.go:75"
 	assert.False(isLineUsable(line))
 }
 
-func TestIsLineDuplicate(t *testing.T) {
+func TestLogIsLineDuplicate(t *testing.T) {
 	assert := assert.New(t)
 	list := []string{"/doc.go:75", "/doc.go:75"}
 	assert.False(isLineDuplicate(list, 0))
 	assert.True(isLineDuplicate(list, 1))
 }
 
-func TestError(t *testing.T) {
+func TestLogError(t *testing.T) {
 	ctx := context.Background()
 	err := errors.New("mock error happening in go")
 	Error(ctx, here, err)
 
 	TestModeAlwaySuccess()
 	defer TestModeBackNormal()
-	Error(ctx, here, nil)
+	Error(ctx, here, err)
 }
 
-func TestErrorWithRequest(t *testing.T) {
+func TestLogErrorWithRequest(t *testing.T) {
 	ctx := context.Background()
 	err := errors.New("mock error happening in go with request")
 	Error(ctx, here, err)
 }
 
-func TestCustomError(t *testing.T) {
+func TestLogCustomError(t *testing.T) {
 	ctx := context.Background()
 	message := "mock error happening in flutter"
 	stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
 	id := identifier.UUID()
 	WriteError(ctx, here, message, stack, id)
+}
+
+func TestLogHistory(t *testing.T) {
+	ctx := context.Background()
+	assert := assert.New(t)
+
+	KeepHistory(true)
+	Print(ctx, "here", "hi")
+	assert.Contains(History(), "hi")
+
+	ResetHistory()
+	assert.NotContains(History(), "hi")
+
+	KeepHistory(false)
+	Print(ctx, "here", "hi")
+	assert.Empty(History())
 }

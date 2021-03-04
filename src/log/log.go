@@ -10,6 +10,10 @@ import (
 	"github.com/piyuo/libsrv/src/identifier"
 )
 
+// history keep all printed log. !Be careful this is global history include all thread log
+//
+var history *strings.Builder
+
 // testMode is true should return success, false return error, otherwise behave normal
 //
 var testMode *bool
@@ -88,6 +92,40 @@ func Print(ctx context.Context, where, format string, a ...interface{}) {
 	header, _ := getHeader(ctx, where)
 	message := fmt.Sprintf(format, a...)
 	fmt.Printf("%v%v\n", header, message)
+	if history != nil {
+		history.WriteString(fmt.Sprintf("%v%v\n", header, message))
+	}
+}
+
+// KeepHistory keep all printed log into history
+//
+//	KeepHistory(true)
+//
+func KeepHistory(flag bool) {
+	if flag {
+		history = &strings.Builder{}
+		return
+	}
+	history = nil
+}
+
+// ResetHistory reset history
+//
+//	ResetHistory()
+//
+func ResetHistory() {
+	history.Reset()
+}
+
+// History get log history in string
+//
+//	History()
+//
+func History() string {
+	if history != nil {
+		return history.String()
+	}
+	return ""
 }
 
 // Info as Normal but significant events, such as start up, shut down, or a configuration change.
