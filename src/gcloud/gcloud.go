@@ -52,7 +52,7 @@ func TestModeBackNormal() {
 	testMode = nil
 }
 
-// CreateHTTPTask create google cloud task, if scheduleTime is nil mean now
+// CreateHTTPTask create google cloud task, if scheduleTime is nil mean now, deadline default use 10 minutes
 //
 //	err = gcloud.CreateHTTPTask(ctx, url,body,nil)
 //
