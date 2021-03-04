@@ -410,7 +410,7 @@ func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix 
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}
-		log.Debug(ctx, here, fmt.Sprintf("delete object:%v", attrs.Name))
+		log.Print(ctx, here, fmt.Sprintf("delete object:%v", attrs.Name))
 	}
 	return nil
 }
@@ -426,7 +426,7 @@ func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path str
 	if err := o.Delete(ctx); err != nil {
 		return err
 	}
-	log.Debug(ctx, here, fmt.Sprintf("delete object:%v", path))
+	log.Print(ctx, here, fmt.Sprintf("delete object:%v", path))
 	return nil
 }
 
@@ -468,7 +468,7 @@ func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.B
 		if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 			return false, err
 		}
-		log.Debug(ctx, here, fmt.Sprintf("clean object:%v, i=%v", attrs.Name, i))
+		log.Print(ctx, here, fmt.Sprintf("clean object:%v, i=%v", attrs.Name, i))
 		i++
 		if i >= 1000 {
 			return false, nil
@@ -512,7 +512,7 @@ func (impl *Implementation) Sync(ctx context.Context, bucketName string, shouldD
 			if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 				return err
 			}
-			log.Debug(ctx, here, fmt.Sprintf("sync delete object:%v", attrs.Name))
+			log.Print(ctx, here, fmt.Sprintf("sync delete object:%v", attrs.Name))
 		}
 	}
 	return nil

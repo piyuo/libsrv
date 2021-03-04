@@ -86,14 +86,14 @@ func (s *Server) ready(ctx context.Context) string {
 	if port == "" {
 		port = "8080"
 	}
-	log.Debug(ctx, here, fmt.Sprintf("start listening from http://localhost%v\n", port))
+	log.Print(ctx, here, fmt.Sprintf("start listening from http://localhost%v\n", port))
 	return ":" + port
 }
 
 // handleRouteException convert error to status code, so client command service know how to deal with it
 //
 func handleRouteException(ctx context.Context, w http.ResponseWriter, err error) {
-	log.Debug(ctx, here, "[logged] "+err.Error())
+	log.Print(ctx, here, "[logged] "+err.Error())
 
 	if goerrors.Is(err, context.DeadlineExceeded) {
 		WriteStatus(w, http.StatusGatewayTimeout, "Deadline Exceeded")

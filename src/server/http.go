@@ -22,7 +22,7 @@ func setDeadlineHTTP(ctx context.Context) (context.Context, context.CancelFunc) 
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000
-			log.Debug(ctx, "http", "use default 20 seconds for DEADLINE_HTTP")
+			log.Print(ctx, "http", "use default 20 seconds for DEADLINE_HTTP")
 		}
 		deadlineHTTP = time.Duration(ms) * time.Millisecond
 	}

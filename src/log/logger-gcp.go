@@ -62,8 +62,7 @@ func (c *gcpLogger) Write(ctx context.Context, level Level, where, message strin
 	if message == "" {
 		return
 	}
-	header, id := getHeader(ctx, where)
-	fmt.Printf("%v%v (logged)\n", header, message)
+	Print(ctx, where, "%v (logged)", message)
 
 	severity := logging.Info
 	switch level {
@@ -75,6 +74,7 @@ func (c *gcpLogger) Write(ctx context.Context, level Level, where, message strin
 		severity = logging.Debug
 	}
 
+	header, id := getHeader(ctx, where)
 	entry := logging.Entry{
 		Payload: header + message,
 		Resource: &mrpb.MonitoredResource{

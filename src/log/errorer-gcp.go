@@ -68,9 +68,9 @@ func (c *gcpErrorer) Close() {
 //	Write(ctx, "nil pointer", "app", stack, "AAA")
 //
 func (c *gcpErrorer) Write(ctx context.Context, where, message, stack, errID string) {
-	header, id := getHeader(ctx, where)
-	fmt.Printf("%v%v (%v)\n%v\n", header, message, errID, stack)
+	Print(ctx, where, "%v (%v)\n%v", message, errID, stack)
 
+	header, id := getHeader(ctx, where)
 	e := errors.New(header + message + " (" + errID + ")")
 	if stack == "" {
 		c.client.Report(errorreporting.Entry{

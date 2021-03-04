@@ -79,13 +79,14 @@ func getLocation(where string) string {
 	return appName + "/" + where
 }
 
-// Debug as Routine information, such as ongoing status or performance.
+// Print to local console, only check this log in application console log
 //
-//	HERE := "log_test"
-//	Debug(ctx,HERE,"hello")
+//	here := "log_test"
+//	Print(ctx,here,"hello")
 //
-func Debug(ctx context.Context, where, message string) {
+func Print(ctx context.Context, where, format string, a ...interface{}) {
 	header, _ := getHeader(ctx, where)
+	message := fmt.Sprintf(format, a...)
 	fmt.Printf("%v%v\n", header, message)
 }
 
@@ -123,10 +124,10 @@ func Alert(ctx context.Context, where, message string) {
 //
 func Log(ctx context.Context, level Level, where, message string) {
 	if testMode != nil {
-		fmt.Printf("[TestMode]%v: %v\n", where, message)
+		Print(ctx, where, "%v - [TestMode]", message)
 		return
 	}
-	if ctx.Err() != nil {
+	if ctx.Err() != nil { // deadline error
 		return
 	}
 	logger, err := NewLogger(ctx)
@@ -188,15 +189,14 @@ func WriteError(ctx context.Context, where, message, stack, errID string) {
 //	LogErr(ctx,HERE, err)
 //
 func Error(ctx context.Context, where string, err error) {
-	if testMode != nil {
-		if err != nil {
-			fmt.Printf("[TestMode]%v: %v\n", where, err.Error())
-		}
-	}
-	if ctx.Err() != nil {
+	if ctx.Err() != nil { // deadline error
 		return
 	}
 	if err == nil {
+		return
+	}
+	if testMode != nil {
+		Print(ctx, where, "%v - [TestMode]", err.Error())
 		return
 	}
 	message := err.Error()

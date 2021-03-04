@@ -25,7 +25,7 @@ func setDeadlineCMD(ctx context.Context) (context.Context, context.CancelFunc) {
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000
-			log.Debug(ctx, "cmd", "use default 20 seconds for DEADLINE_CMD")
+			log.Print(ctx, "cmd", "use default 20 seconds for DEADLINE_CMD")
 		}
 		deadlineCMD = time.Duration(ms) * time.Millisecond
 	}

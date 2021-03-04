@@ -13,7 +13,7 @@ import (
 
 var here = "log_test"
 
-func TestGetHeader(t *testing.T) {
+func TestLogGetHeader(t *testing.T) {
 	assert := assert.New(t)
 	appName = "test"
 	ctx := context.Background()
@@ -23,22 +23,22 @@ func TestGetHeader(t *testing.T) {
 	assert.Equal("user1", id)
 }
 
-func TestDebug(t *testing.T) {
+func TestLogPrint(t *testing.T) {
 	ctx := context.Background()
-	Debug(ctx, here, "debug...")
+	Print(ctx, here, "info ...")
 }
 
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	ctx := context.Background()
-	Info(ctx, here, "my info log")
-	Warning(ctx, here, "my warning log")
-	Alert(ctx, here, "my alert log")
+	Info(ctx, here, "my info")
+	Warning(ctx, here, "my warning")
+	Alert(ctx, here, "my alert")
 	TestModeAlwaySuccess()
 	defer TestModeBackNormal()
-	Info(ctx, here, "my info log")
-	Warning(ctx, here, "my warning log")
-	Alert(ctx, here, "my alert log")
+	Info(ctx, here, "my info")
+	Warning(ctx, here, "my warning")
+	Alert(ctx, here, "my alert")
 }
 
 func TestLogWhenContextCanceled(t *testing.T) {
