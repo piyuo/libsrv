@@ -10,13 +10,10 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	tasks "google.golang.org/genproto/googleapis/cloud/tasks/v2"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const here = "gcloud"
-
-const defaultQueueID = "task"
 
 const defaultLocationID = "us-central1"
 
@@ -52,11 +49,11 @@ func TestModeBackNormal() {
 	testMode = nil
 }
 
-// CreateHTTPTask create google cloud task, if scheduleTime is nil mean now, deadline default use 10 minutes
+// CreateHTTPTask create task in us-central1, if scheduleTime is nil mean now, default deadline is 10 mins.
 //
-//	err = gcloud.CreateHTTPTask(ctx, url,body,nil)
+//	err = gcloud.CreateHTTPTask(ctx,"my-queue", url,body,nil)
 //
-func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *timestamppb.Timestamp, deadline time.Duration) error {
+func CreateHTTPTask(ctx context.Context, queueID, url string, body []byte, scheduleTime *timestamppb.Timestamp) error {
 	if testMode != nil {
 		if *testMode {
 			return nil
@@ -65,7 +62,7 @@ func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *
 	}
 
 	//gcloud won't allow context deadline over 30 seconds
-	ctx, cancel := context.WithTimeout(ctx, time.Second*20) // cloud flare dns call must completed in 15 seconds
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
 	cred, err := gaccount.GlobalCredential(ctx)
@@ -79,14 +76,14 @@ func CreateHTTPTask(ctx context.Context, url string, body []byte, scheduleTime *
 	}
 
 	// Build the Task queue path.
-	queuePath := fmt.Sprintf("projects/%s/locations/%s/queues/%s", cred.ProjectID, defaultLocationID, defaultQueueID)
+	queuePath := fmt.Sprintf("projects/%s/locations/%s/queues/%s", cred.ProjectID, defaultLocationID, queueID)
 
 	// Build the Task payload.
 	req := &tasks.CreateTaskRequest{
 		Parent: queuePath,
 		Task: &tasks.Task{
-			ScheduleTime:     scheduleTime,
-			DispatchDeadline: durationpb.New(deadline),
+			ScheduleTime: scheduleTime,
+			//			DispatchDeadline: durationpb.New(deadline), // use default deadline 10 mins.
 			MessageType: &tasks.Task_HttpRequest{
 				HttpRequest: &tasks.HttpRequest{
 					HttpMethod: tasks.HttpMethod_POST,
