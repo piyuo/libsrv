@@ -63,10 +63,12 @@ func newBigDataAction() (*mock.BigDataAction, []byte) {
 }
 
 func TestServerReady(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	server := &Server{
 		CommandHandlers: map[string]command.IMap{"/cmd": &mock.MapXXX{}},
 		HTTPHandlers:    map[string]HTTPHandler{"/http": mockHTTPHandler},
+		TaskHandlers:    map[string]TaskHandler{"/task": mockTaskHandler},
 	}
 	port := server.ready(context.Background())
 	assert.Equal(":8080", port)
@@ -82,6 +84,7 @@ func TestServerReady(t *testing.T) {
 }
 
 func TestServerArchive(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	handler := newTestServerHandler()
 
@@ -118,6 +121,7 @@ func okResponse() []byte {
 }
 
 func TestServeOK(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	handler := newTestServerHandler()
 	actBytes := newTestAction("Hi")
@@ -137,6 +141,7 @@ func TestServeOK(t *testing.T) {
 }
 
 func TestServe404(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	handler := newTestServerHandler()
 	req1, _ := http.NewRequest("GET", "/favicon.ico", nil)
@@ -162,6 +167,7 @@ func newTestAction(text string) []byte {
 }
 
 func TestServerContextCanceled(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
@@ -185,6 +191,7 @@ func newDeadlineAction() []byte {
 }
 
 func TestServeWhenContextCanceled(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	handler := newTestServerHandler()
 	actBytes := newDeadlineAction()
@@ -196,6 +203,7 @@ func TestServeWhenContextCanceled(t *testing.T) {
 }
 
 func TestServerHandleRouteException(t *testing.T) {
+	t.Parallel()
 	//r, _ := http.NewRequest("POST", "/", nil)
 	w := httptest.NewRecorder()
 	handleRouteException(context.Background(), w, context.DeadlineExceeded)
@@ -203,6 +211,7 @@ func TestServerHandleRouteException(t *testing.T) {
 }
 
 func TestServer(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	defer func() {
 		if err := recover(); err != nil {
@@ -214,6 +223,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestServerQuery(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	r, err := http.NewRequest("GET", "/?type=maintenance", nil)

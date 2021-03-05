@@ -14,6 +14,7 @@ import (
 )
 
 func TestServerNilBodyWillReturnBadRequest(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
@@ -27,6 +28,7 @@ func TestServerNilBodyWillReturnBadRequest(t *testing.T) {
 }
 
 func TestServerEmptyRequestWillReturnBadRequest(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	req1, _ := http.NewRequest("GET", "/", strings.NewReader(""))
@@ -72,7 +74,7 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	ctx, cancel := setDeadlineCMD(ctx)
 	defer cancel()
 
-	time.Sleep(time.Duration(21) * time.Millisecond)
-	assert.Nil(ctx.Err()) // default expired is in 20,000ms
-	deadlineCMD = -1      // remove cache
+	ms := deadlineCMD.Milliseconds()
+	assert.Equal(int64(20000), ms)
+	deadlineCMD = -1 // remove cache
 }

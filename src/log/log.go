@@ -259,7 +259,6 @@ func NewErrorer(ctx context.Context) (Errorer, error) {
 //	formatedStackFromError(err)
 //
 func beautyStack(err error) string {
-	//debug.PrintStack()
 	var sb strings.Builder
 	stack := fmt.Sprintf("%+v", err)
 	stackFormated := strings.ReplaceAll(stack, "\n\t", "|")

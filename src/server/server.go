@@ -15,9 +15,14 @@ import (
 
 const here = "server"
 
-// HTTPHandler let you handle http request directly, return true if request is handled successfully, return false will result  404 bad request
+// HTTPHandler let you handle http request,  return error will result InternalServerError
 //
 type HTTPHandler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
+
+// TaskHandler let you handle task request, return true if task need retry
+// ! task execution time is 15 mins, can be retry 2 times after that it will abort
+//
+type TaskHandler func(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error)
 
 // Server handle http request and call dispatch
 //
@@ -36,6 +41,10 @@ type Server struct {
 	// HTTPHandlers is http handler map to handle http request
 	//
 	HTTPHandlers map[string]HTTPHandler
+
+	// TaskHandlers is task handler map to handle http request
+	//
+	TaskHandlers map[string]TaskHandler
 }
 
 // Start http server to listen request and serve content, defult port is 8080, you can change use export PORT="8080"
@@ -50,8 +59,8 @@ type Server struct {
 //
 func (s *Server) Start() {
 	ctx := context.Background()
-	if s.CommandHandlers == nil && s.HTTPHandlers == nil {
-		msg := "CommandHandlers or HTTPHandlers is missing, try add &Server{CommandHandlers:yourCommandHandler, HTTPHandlers: yourHttpHandler}"
+	if s.CommandHandlers == nil && s.HTTPHandlers == nil && s.TaskHandlers == nil {
+		msg := "CommandHandlers or HTTPHandlers is missing, try add &Server{CommandHandlers:yourCommandHandler, HTTPHandlers: yourHttpHandler, TaskHandlers: yourTaskHandler}"
 		panic(msg)
 	}
 
@@ -82,18 +91,25 @@ func (s *Server) ready(ctx context.Context) string {
 		s.HTTPHandlers = nil
 	}
 
+	if s.TaskHandlers != nil {
+		for pattern, taskHandler := range s.TaskHandlers {
+			http.Handle(pattern, TaskCreateFunc(taskHandler))
+		}
+		//realease task handlers, don't need anymore
+		s.TaskHandlers = nil
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Print(ctx, here, fmt.Sprintf("start listening from http://localhost%v\n", port))
+	log.Print(ctx, here, fmt.Sprintf("start listening from http://localhost%v", port))
 	return ":" + port
 }
 
 // handleRouteException convert error to status code, so client command service know how to deal with it
 //
 func handleRouteException(ctx context.Context, w http.ResponseWriter, err error) {
-	log.Print(ctx, here, "[logged] "+err.Error())
 
 	if goerrors.Is(err, context.DeadlineExceeded) {
 		WriteStatus(w, http.StatusGatewayTimeout, "Deadline Exceeded")

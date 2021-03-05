@@ -17,7 +17,12 @@ func mockHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
+func mockErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	return errors.New("myError")
+}
+
 func TestServerHttpDefaultReturn403(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
@@ -30,11 +35,8 @@ func TestServerHttpDefaultReturn403(t *testing.T) {
 	http.DefaultServeMux = new(http.ServeMux)
 }
 
-func mockErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	return errors.New("myError")
-}
-
 func TestServerHttpHandlerReturnError(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	req1, _ := http.NewRequest("GET", "/", nil)
@@ -80,7 +82,7 @@ func TestServerHttpDeadlineNotSet(t *testing.T) {
 	ctx, cancel := setDeadlineHTTP(ctx)
 	defer cancel()
 
-	time.Sleep(time.Duration(21) * time.Millisecond)
-	assert.Nil(ctx.Err()) // default expired is in 20,000ms
-	deadlineHTTP = -1     // remove cache
+	ms := deadlineHTTP.Milliseconds()
+	assert.Equal(int64(30000), ms)
+	deadlineHTTP = -1 // remove cache
 }
