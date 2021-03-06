@@ -7,6 +7,7 @@ import (
 )
 
 func TestFindInString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	assert.Equal("2", StringBetween("123", "1", "3"))
@@ -22,6 +23,7 @@ func TestFindInString(t *testing.T) {
 }
 
 func TestStringSplit(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	array := []string{"1", "2", "3"}
 	str := StringFromArray(array)
@@ -34,6 +36,7 @@ func TestStringSplit(t *testing.T) {
 }
 
 func TestStringHashcode(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	str := "hi"
 	code := StringHash(str)
@@ -43,6 +46,7 @@ func TestStringHashcode(t *testing.T) {
 }
 
 func TestRemoveStringsRemove(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ary := []string{"a", "", "b"}
 	filtered := StringsRemove(ary, "")
@@ -51,6 +55,7 @@ func TestRemoveStringsRemove(t *testing.T) {
 }
 
 func TestStringsContain(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ary := []string{"a", "", "b"}
 	assert.True(StringsContain(ary, "a"))

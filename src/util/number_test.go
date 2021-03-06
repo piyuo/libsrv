@@ -7,6 +7,7 @@ import (
 )
 
 func TestShouldConvertInterfaceToInt(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	num, err := ToInt(2)
 	assert.Nil(err)
@@ -41,6 +42,7 @@ func TestShouldConvertInterfaceToInt(t *testing.T) {
 }
 
 func TestShouldConvertInterfaceToFloat64(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	num, err := ToFloat64(2)
 	assert.Nil(err)
@@ -80,6 +82,7 @@ func TestShouldConvertInterfaceToFloat64(t *testing.T) {
 }
 
 func TestShouldConvertInterfaceToUint32(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	num, err := ToUint32(2)
 	assert.Nil(err)

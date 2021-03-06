@@ -8,6 +8,7 @@ import (
 )
 
 func TestExpiredToken(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	tt := time.Now().UTC().Add(60 * time.Second)
 	txt := tt.Format(expiredFormat)
@@ -23,6 +24,7 @@ func TestExpiredToken(t *testing.T) {
 }
 
 func TestGetSetDeleteToken(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	token := NewToken()
@@ -40,6 +42,7 @@ func TestGetSetDeleteToken(t *testing.T) {
 }
 
 func TestTokenFromToString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	token := NewToken()
 	token.Set("a", "1")
@@ -57,6 +60,7 @@ func TestTokenFromToString(t *testing.T) {
 }
 
 func TestTokenExpired(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	token := NewToken()
 	token.Set("a", "1")
@@ -73,6 +77,7 @@ func TestTokenExpired(t *testing.T) {
 }
 
 func TestInvalidToken(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	token, expired, err := FromString("")
 	assert.NotNil(err)
@@ -86,6 +91,7 @@ func TestInvalidToken(t *testing.T) {
 }
 
 func TestIsExpired(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	result := isExpired("a")
 	assert.True(result)

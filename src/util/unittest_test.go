@@ -7,6 +7,7 @@ import (
 )
 
 func TestUnitTestIsUnitTest(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	assert.True(IsUnitTest())
 }

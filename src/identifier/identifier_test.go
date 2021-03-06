@@ -7,6 +7,7 @@ import (
 )
 
 func TestUUID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	id := UUID()
 	assert.NotEmpty(id)
@@ -14,6 +15,7 @@ func TestUUID(t *testing.T) {
 }
 
 func TestSerialID16(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	id := SerialID16(uint16(42))
 	assert.NotEmpty(id)
@@ -21,6 +23,7 @@ func TestSerialID16(t *testing.T) {
 }
 
 func TestSerialID32(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	//		for i := 0; i < 10000; i++ {
 	id := SerialID32(uint32(42))
@@ -30,6 +33,7 @@ func TestSerialID32(t *testing.T) {
 }
 
 func TestSerialID64(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	//for i := 0; i < 10000; i++ {
 	id := SerialID64(uint64(42))
@@ -39,6 +43,7 @@ func TestSerialID64(t *testing.T) {
 }
 
 func TestRandomNumber(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	id := RandomNumber(6)
 	assert.NotEmpty(id)
@@ -46,6 +51,7 @@ func TestRandomNumber(t *testing.T) {
 }
 
 func TestRandomString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	id := RandomString(3)
 	assert.NotEmpty(id)
@@ -53,6 +59,7 @@ func TestRandomString(t *testing.T) {
 }
 
 func TestIdenticalNumberString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	//should be Identical
 	assert.True(IsNumberStringIdentical("111111"))
@@ -86,6 +93,7 @@ func BenchmarkNotIdenticalRandomNumber(b *testing.B) {
 }
 
 func TestMapID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	m := map[string]string{}
 	id, err := MapID(m)

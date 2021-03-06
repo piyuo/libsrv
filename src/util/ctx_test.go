@@ -7,6 +7,7 @@ import (
 )
 
 func TestShouldReturnErrorOnCanceledContext(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := CanceledCtx()
 	assert.NotNil(ctx.Err())

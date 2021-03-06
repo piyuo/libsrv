@@ -8,6 +8,7 @@ import (
 )
 
 func TestTimer(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	timer := NewTimer()
 	timer.Start()
