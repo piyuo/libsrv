@@ -85,6 +85,6 @@ func TestServerHttpDeadlineNotSet(t *testing.T) {
 	defer cancel()
 
 	ms := deadlineHTTP.Milliseconds()
-	assert.Equal(int64(30000), ms)
+	assert.NotZero(ms)
 	deadlineHTTP = -1 // remove cache
 }
