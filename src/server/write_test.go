@@ -9,6 +9,7 @@ import (
 )
 
 func TestWriteResponse(t *testing.T) {
+	t.Parallel()
 	w := httptest.NewRecorder()
 	bytes := newTestAction(textLong)
 	WriteBinary(w, bytes)

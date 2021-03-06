@@ -60,7 +60,6 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 }
 
 func TestServerTaskHandlerReturnError(t *testing.T) {
-	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/?TaskID=testTaskError", nil)
 
@@ -93,6 +92,7 @@ func TestServerTaskDeadline(t *testing.T) {
 }
 
 func TestServerTaskDeadlineNotSet(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())

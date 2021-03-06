@@ -9,12 +9,13 @@ import (
 )
 
 func TestServerTaskLock(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	db, err := New(ctx)
 	assert.Nil(err)
 	defer db.Close()
-	lockID := "testLock"
+	lockID := "testLock1"
 
 	err = db.CreateTaskLock(ctx, lockID)
 	assert.Nil(err)
@@ -34,12 +35,13 @@ func TestServerTaskLock(t *testing.T) {
 }
 
 func TestServerLockTask(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	db, err := New(ctx)
 	assert.Nil(err)
 	defer db.Close()
-	lockID := "testLock"
+	lockID := "testLock2"
 
 	// when task lock not exists
 	ready, err := db.LockTask(ctx, lockID, 15*time.Minute)

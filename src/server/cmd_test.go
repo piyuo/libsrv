@@ -42,6 +42,7 @@ func TestServerEmptyRequestWillReturnBadRequest(t *testing.T) {
 }
 
 func TestCmdDeadline(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
@@ -62,6 +63,7 @@ func TestCmdDeadline(t *testing.T) {
 }
 
 func TestCmdDeadlineNotSet(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())

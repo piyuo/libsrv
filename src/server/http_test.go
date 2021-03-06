@@ -50,6 +50,7 @@ func TestServerHttpHandlerReturnError(t *testing.T) {
 }
 
 func TestServerHttpDeadline(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
@@ -70,6 +71,7 @@ func TestServerHttpDeadline(t *testing.T) {
 }
 
 func TestServerHttpDeadlineNotSet(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())

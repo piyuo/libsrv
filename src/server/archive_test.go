@@ -22,6 +22,7 @@ const (
 )
 
 func TestParseEncodings(t *testing.T) {
+	t.Parallel()
 	examples := map[string]codings{
 
 		// Examples from RFC 2616
@@ -43,6 +44,7 @@ func TestParseEncodings(t *testing.T) {
 }
 
 func TestArchiveHandler(t *testing.T) {
+	t.Parallel()
 	// This just exists to provide something for ArchiveHandler to wrap.
 	handler := newTestHandler(testBody)
 
@@ -82,6 +84,7 @@ func TestArchiveHandler(t *testing.T) {
 }
 
 func TestArchiveHandlerSmallBodyNoCompression(t *testing.T) {
+	t.Parallel()
 	handler := newTestHandler(smallTestBody)
 
 	req, _ := http.NewRequest("GET", "/whatever", nil)
@@ -100,6 +103,7 @@ func TestArchiveHandlerSmallBodyNoCompression(t *testing.T) {
 }
 
 func TestArchiveHandlerAlreadyCompressed(t *testing.T) {
+	t.Parallel()
 	handler := newTestHandler(testBody)
 
 	req, _ := http.NewRequest("GET", "/gzipped", nil)
@@ -111,6 +115,7 @@ func TestArchiveHandlerAlreadyCompressed(t *testing.T) {
 }
 
 func TestNewGzipLevelHandler(t *testing.T) {
+	t.Parallel()
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, testBody)
@@ -136,6 +141,7 @@ func TestNewGzipLevelHandler(t *testing.T) {
 }
 
 func TestNewGzipLevelHandlerReturnsErrorForInvalidLevels(t *testing.T) {
+	t.Parallel()
 	var err error
 	_, err = NewGzipLevelHandler(-42)
 	assert.NotNil(t, err)
@@ -145,6 +151,7 @@ func TestNewGzipLevelHandlerReturnsErrorForInvalidLevels(t *testing.T) {
 }
 
 func TestMustNewGzipLevelHandlerWillPanic(t *testing.T) {
+	t.Parallel()
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("panic was not called")
@@ -155,6 +162,7 @@ func TestMustNewGzipLevelHandlerWillPanic(t *testing.T) {
 }
 
 func TestArchiveHandlerNoBody(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		statusCode      int
 		contentEncoding string
@@ -209,6 +217,7 @@ func TestArchiveHandlerNoBody(t *testing.T) {
 }
 
 func TestArchiveHandlerContentLength(t *testing.T) {
+	t.Parallel()
 	testBodyBytes := []byte(testBody)
 	tests := []struct {
 		bodyLen   int
@@ -280,11 +289,13 @@ func TestArchiveHandlerContentLength(t *testing.T) {
 }
 
 func TestArchiveHandlerMinSizeMustBePositive(t *testing.T) {
+	t.Parallel()
 	_, err := NewGzipLevelAndMinSize(gzip.DefaultCompression, -1)
 	assert.Error(t, err)
 }
 
 func TestArchiveHandlerMinSize(t *testing.T) {
+	t.Parallel()
 	responseLength := 0
 	b := []byte{'x'}
 
@@ -322,6 +333,7 @@ func TestArchiveHandlerMinSize(t *testing.T) {
 }
 
 func TestGzipDoubleClose(t *testing.T) {
+	t.Parallel()
 	// reset the pool for the default compression so we can make sure duplicates
 	// aren't added back by double close
 	addLevelPool(gzip.DefaultCompression)
@@ -360,6 +372,7 @@ func (w *panicOnSecondWriteHeaderWriter) WriteHeader(s int) {
 }
 
 func TestArchiveHandlerDoubleWriteHeader(t *testing.T) {
+	t.Parallel()
 	handler := ArchiveHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Length", "15000")
 		// Specifically write the header here
@@ -399,6 +412,7 @@ func TestArchiveHandlerDoubleWriteHeader(t *testing.T) {
 }
 
 func TestStatusCodes(t *testing.T) {
+	t.Parallel()
 	handler := ArchiveHandler(http.NotFoundHandler())
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Set("Accept-Encoding", "gzip")
@@ -412,6 +426,7 @@ func TestStatusCodes(t *testing.T) {
 }
 
 func TestFlushBeforeWrite(t *testing.T) {
+	t.Parallel()
 	b := []byte(testBody)
 	handler := ArchiveHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusNotFound)
@@ -430,6 +445,7 @@ func TestFlushBeforeWrite(t *testing.T) {
 }
 
 func TestImplementCloseNotifier(t *testing.T) {
+	t.Parallel()
 	request := httptest.NewRequest(http.MethodGet, "/", nil)
 	request.Header.Set(acceptEncoding, "gzip")
 	ArchiveHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -439,6 +455,7 @@ func TestImplementCloseNotifier(t *testing.T) {
 }
 
 func TestImplementFlusherAndCloseNotifier(t *testing.T) {
+	t.Parallel()
 	request := httptest.NewRequest(http.MethodGet, "/", nil)
 	request.Header.Set(acceptEncoding, "gzip")
 	ArchiveHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -450,6 +467,7 @@ func TestImplementFlusherAndCloseNotifier(t *testing.T) {
 }
 
 func TestNotImplementCloseNotifier(t *testing.T) {
+	t.Parallel()
 	request := httptest.NewRequest(http.MethodGet, "/", nil)
 	request.Header.Set(acceptEncoding, "gzip")
 	ArchiveHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -477,6 +495,7 @@ func (m *mockRWCloseNotify) WriteHeader(int) {
 }
 
 func TestIgnoreSubsequentWriteHeader(t *testing.T) {
+	t.Parallel()
 	handler := ArchiveHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		w.WriteHeader(404)
@@ -493,6 +512,7 @@ func TestIgnoreSubsequentWriteHeader(t *testing.T) {
 }
 
 func TestDontWriteWhenNotWrittenTo(t *testing.T) {
+	t.Parallel()
 	// When using gzip as middleware without ANY writes in the handler,
 	// ensure the gzip middleware doesn't touch the actual ResponseWriter
 	// either.
@@ -579,6 +599,7 @@ var contentTypeTests = []struct {
 }
 
 func TestContentTypes(t *testing.T) {
+	t.Parallel()
 	for _, tt := range contentTypeTests {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -661,6 +682,7 @@ func runBenchmark(b *testing.B, req *http.Request, handler http.Handler) {
 }
 
 func TestSetAcceptEncodingForPushOptionsWithoutHeaders(t *testing.T) {
+	t.Parallel()
 	var opts *http.PushOptions
 	opts = setAcceptEncodingForPushOptions(opts)
 
@@ -687,6 +709,7 @@ func TestSetAcceptEncodingForPushOptionsWithoutHeaders(t *testing.T) {
 }
 
 func TestSetAcceptEncodingForPushOptionsWithHeaders(t *testing.T) {
+	t.Parallel()
 	opts := &http.PushOptions{
 		Header: http.Header{
 			"User-Agent": []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36"},
