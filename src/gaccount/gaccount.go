@@ -11,6 +11,14 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+//globalCredential keep global data credential to reuse in the future
+//
+var globalCredential *google.Credentials
+
+//regionalCredentials keep regional credential to reuse in the future
+//
+var regionalCredentials map[string]*google.Credentials = make(map[string]*google.Credentials)
+
 // useTestCredential set to true will force using gcloud-test.json as credential
 //
 var useTestCredential = false
@@ -27,10 +35,6 @@ func ClearCache() {
 	globalCredential = nil
 	regionalCredentials = make(map[string]*google.Credentials)
 }
-
-//globalCredential keep global data credential to reuse in the future
-//
-var globalCredential *google.Credentials
 
 // CreateCredential create credential from key
 //
@@ -79,10 +83,6 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 	return globalCredential, nil
 }
-
-//regionalCredentials keep regional credential to reuse in the future
-//
-var regionalCredentials map[string]*google.Credentials = make(map[string]*google.Credentials)
 
 // RegionalCredential provide google credential for regional database, region is set by os.Getenv("REGION")
 //
