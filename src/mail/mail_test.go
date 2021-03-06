@@ -10,6 +10,7 @@ import (
 )
 
 func TestMail(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
@@ -72,6 +73,7 @@ func TestMail(t *testing.T) {
 }
 
 func TestSendMail(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
@@ -86,6 +88,7 @@ func TestSendMail(t *testing.T) {
 }
 
 func TestMockSendMail(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	TestModeOutputMail = nil
 	TestModeAlwaySuccess()
