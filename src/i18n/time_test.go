@@ -8,6 +8,7 @@ import (
 )
 
 func TestUtc(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	now := time.Now()
 	zone, offset := now.Zone()
@@ -30,6 +31,7 @@ func TestUtc(t *testing.T) {
 }
 
 func TestUtcTimestamp(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	now := time.Now()
 	zone, offset := now.Zone()
@@ -49,6 +51,7 @@ func TestUtcTimestamp(t *testing.T) {
 }
 
 func TestUtcToLocal(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
 	locTime := UtcToLocal(utcTime, "PDT", -25200)
@@ -67,6 +70,7 @@ func TestUtcToLocal(t *testing.T) {
 }
 
 func TestDateToLocalStr(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
 	assert.Equal("2021年1月2日", DateToStr(utcTime, "zh_TW"))
@@ -75,6 +79,7 @@ func TestDateToLocalStr(t *testing.T) {
 }
 
 func TestTimeToLocalStr(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
 	assert.Equal("11:55 PM", TimeToStr(utcTime, "en_US"))
@@ -83,6 +88,7 @@ func TestTimeToLocalStr(t *testing.T) {
 }
 
 func TestDateTimeToLocalStr(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	utcTime := time.Date(2021, time.January, 2, 23, 55, 0, 0, time.UTC)
 	assert.Equal("2021年1月2日 下午11:55", DateTimeToStr(utcTime, "zh_TW"))

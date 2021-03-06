@@ -10,6 +10,7 @@ import (
 )
 
 func TestIsPredefined(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	exist, predefine := IsPredefined("en-us")
@@ -26,6 +27,7 @@ func TestIsPredefined(t *testing.T) {
 }
 
 func TestAcceptLanguage(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	locale := acceptLanguage("")
 	assert.Equal("en_US", locale)
@@ -44,6 +46,7 @@ func TestAcceptLanguage(t *testing.T) {
 }
 
 func TestGetLocaleFromRequest(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/whatever", nil)
 	req.Header.Add("Accept-Language", "da, en-xx;q=0.8, en;q=0.7")
@@ -65,6 +68,7 @@ func TestGetLocaleFromRequest(t *testing.T) {
 }
 
 func TestGetLocaleFromContext(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	ctx := context.Background()
@@ -76,6 +80,7 @@ func TestGetLocaleFromContext(t *testing.T) {
 }
 
 func TestResourceKey(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
@@ -84,6 +89,7 @@ func TestResourceKey(t *testing.T) {
 }
 
 func TestResourcePath(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
@@ -92,6 +98,7 @@ func TestResourcePath(t *testing.T) {
 }
 
 func TestResource(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
@@ -102,6 +109,7 @@ func TestResource(t *testing.T) {
 }
 
 func TestResourceNotFound(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
