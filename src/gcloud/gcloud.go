@@ -3,10 +3,12 @@ package gcloud
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
 	"github.com/piyuo/libsrv/src/gaccount"
+	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	tasks "google.golang.org/genproto/googleapis/cloud/tasks/v2"
@@ -74,6 +76,13 @@ func CreateHTTPTask(ctx context.Context, queueID, url string, body []byte, sched
 	if err != nil {
 		return errors.Wrap(err, "failed to create cloud tasks client")
 	}
+	taskID := identifier.UUID()
+	if strings.Contains(url, "?") {
+		url += "&"
+	} else {
+		url += "?"
+	}
+	url += "TaskID=" + taskID
 
 	// Build the Task queue path.
 	queuePath := fmt.Sprintf("projects/%s/locations/%s/queues/%s", cred.ProjectID, defaultLocationID, queueID)
