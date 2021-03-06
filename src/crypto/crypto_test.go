@@ -10,6 +10,7 @@ import (
 )
 
 func TestCrypto(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	crypted, err := Encrypt("hello")
 	assert.Nil(err)
@@ -30,6 +31,7 @@ func TestCrypto(t *testing.T) {
 }
 
 func TestShouldReturnErrorDecryptWrongString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	_, err := Decrypt("")
 	assert.NotNil(err)
@@ -38,6 +40,7 @@ func TestShouldReturnErrorDecryptWrongString(t *testing.T) {
 }
 
 func TestConcurrentCrypto(t *testing.T) {
+	t.Parallel()
 	var concurrent = 20
 	var wg sync.WaitGroup
 	wg.Add(concurrent)
