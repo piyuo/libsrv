@@ -14,6 +14,7 @@ import (
 var here = "log_test"
 
 func TestLogGetHeader(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	appName = "test"
 	ctx := context.Background()
@@ -24,12 +25,14 @@ func TestLogGetHeader(t *testing.T) {
 }
 
 func TestLogPrint(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	Print(ctx, here, "info ...")
 }
 
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	Info(ctx, here, "my info")
 	Warning(ctx, here, "my warning")
@@ -42,6 +45,7 @@ func TestLog(t *testing.T) {
 }
 
 func TestLogWhenContextCanceled(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
@@ -65,6 +69,7 @@ func TestLogWhenContextCanceled(t *testing.T) {
 }
 
 func TestLogBeautyStack(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	err := errors.New("beauty stack")
 	stack := beautyStack(err)
@@ -72,6 +77,7 @@ func TestLogBeautyStack(t *testing.T) {
 }
 
 func TestLogExtractFilename(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	path := "/convey/doc.go:75"
 	filename := extractFilename(path)
@@ -82,12 +88,14 @@ func TestLogExtractFilename(t *testing.T) {
 }
 
 func TestLogIsLineUsable(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	line := "/smartystreets/convey/doc.go:75"
 	assert.False(isLineUsable(line))
 }
 
 func TestLogIsLineDuplicate(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	list := []string{"/doc.go:75", "/doc.go:75"}
 	assert.False(isLineDuplicate(list, 0))
@@ -95,6 +103,7 @@ func TestLogIsLineDuplicate(t *testing.T) {
 }
 
 func TestLogError(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	err := errors.New("mock error happening in go")
 	Error(ctx, here, err)
@@ -105,12 +114,14 @@ func TestLogError(t *testing.T) {
 }
 
 func TestLogErrorWithRequest(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	err := errors.New("mock error happening in go with request")
 	Error(ctx, here, err)
 }
 
 func TestLogCustomError(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	message := "mock error happening in flutter"
 	stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
@@ -119,6 +130,7 @@ func TestLogCustomError(t *testing.T) {
 }
 
 func TestLogHistory(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	assert := assert.New(t)
 

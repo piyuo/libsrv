@@ -9,6 +9,7 @@ import (
 )
 
 func TestGCPLogger(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	appName = "log-gcp_test"
 	ctx := context.Background()

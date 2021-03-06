@@ -10,6 +10,7 @@ import (
 )
 
 func TestGCPErrorer(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	appName = "error-gcp_test"
 	ctx := context.Background()
@@ -24,6 +25,7 @@ func TestGCPErrorer(t *testing.T) {
 }
 
 func TestGCPEmptyStack(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	appName = "error-gcp_test"
 	ctx := context.Background()
