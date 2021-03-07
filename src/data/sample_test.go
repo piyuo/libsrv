@@ -19,7 +19,7 @@ type SampleGlobalDB struct {
 }
 
 func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
-	conn, err := FirestoreGlobalConnection(ctx)
+	conn, err := ConnectGlobalFirestore(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ type SampleRegionalDB struct {
 }
 
 func NewSampleRegionalDB(ctx context.Context) (*SampleRegionalDB, error) {
-	conn, err := FirestoreRegionalConnection(ctx)
+	conn, err := ConnectRegionalFirestore(ctx)
 	if err != nil {
 		return nil, err
 	}

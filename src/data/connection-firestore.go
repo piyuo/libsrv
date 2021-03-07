@@ -13,6 +13,14 @@ import (
 	"google.golang.org/api/option"
 )
 
+// firestoreGlobalConnection keep global connection to reuse in the future
+//
+var firestoreGlobalConnection Connection
+
+// firestoreRegionalConnection keep regional connection to reuse in the future
+//
+var firestoreRegionalConnection Connection
+
 // ConnectionFirestore implement firestore connection
 //
 type ConnectionFirestore struct {
@@ -31,41 +39,60 @@ type ConnectionFirestore struct {
 	batch *firestore.WriteBatch
 }
 
-// FirestoreGlobalConnection create global firestore connection
+// ConnectGlobalFirestore create global firestore connection
 //
-//	ctx := context.Background()
-//	conn, err := FirestoreGlobalConnection(ctx)
+//	conn, err := ConnectGlobalFirestore(ctx)
 //	defer c.Close()
 //
-func FirestoreGlobalConnection(ctx context.Context) (Connection, error) {
-	cred, err := gaccount.GlobalCredential(ctx)
-	if err != nil {
-		return nil, err
+func ConnectGlobalFirestore(ctx context.Context) (Connection, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
-	return firestoreNewConnection(ctx, cred)
+
+	if firestoreGlobalConnection == nil {
+		cred, err := gaccount.GlobalCredential(ctx)
+		if err != nil {
+			return nil, err
+		}
+		firestoreGlobalConnection, err = firestoreCreateConnection(cred)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create global database connection")
+		}
+	}
+	return firestoreGlobalConnection, nil
 }
 
-// FirestoreRegionalConnection create regional database instance
+// ConnectRegionalFirestore create regional database instance
 //
-//	ctx := context.Background()
-//	conn, err := FirestoreRegionalConnection(ctx)
-//	defer c.Close()
+//	conn, err := ConnectRegionalFirestore(ctx)
+//	defer conn.Close()
 //
-func FirestoreRegionalConnection(ctx context.Context) (Connection, error) {
-	cred, err := gaccount.RegionalCredential(ctx)
-	if err != nil {
-		return nil, err
+func ConnectRegionalFirestore(ctx context.Context) (Connection, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
-	return firestoreNewConnection(ctx, cred)
+
+	if firestoreRegionalConnection == nil {
+		cred, err := gaccount.RegionalCredential(ctx)
+		if err != nil {
+			return nil, err
+		}
+		firestoreRegionalConnection, err = firestoreCreateConnection(cred)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create regional database connection")
+		}
+	}
+	return firestoreRegionalConnection, nil
 }
 
-// firestoreNewConnection create connection to firestore
+// firestoreCreateConnection create connection to firestore
 //
 //	cred, err := gaccount.RegionalCredential(ctx)
-//	return firestoreNewConnection(ctx, cred)
+//	return firestoreCreateConnection(cred)
 //
-func firestoreNewConnection(ctx context.Context, cred *google.Credentials) (Connection, error) {
-	client, err := firestore.NewClient(ctx, cred.ProjectID, option.WithCredentials(cred))
+func firestoreCreateConnection(cred *google.Credentials) (Connection, error) {
+	//use context.Background() cause client will be reuse
+	client, err := firestore.NewClient(context.Background(), cred.ProjectID, option.WithCredentials(cred))
 	if err != nil {
 		return nil, err
 	}
@@ -113,11 +140,11 @@ func (c *ConnectionFirestore) snapshotToObject(tablename string, docRef *firesto
 //	defer c.Close()
 //
 func (c *ConnectionFirestore) Close() {
-	c.tx = nil
-	if c.client != nil {
-		c.client.Close()
-		c.client = nil
-	}
+	//c.tx = nil
+	//	if c.client != nil {
+	//		c.client.Close()
+	//		c.client = nil
+	//	}
 }
 
 // BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch

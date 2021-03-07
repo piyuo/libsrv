@@ -47,7 +47,7 @@ func New(ctx context.Context) (*Database, error) {
 		return nil, ctx.Err()
 	}
 
-	conn, err := data.FirestoreGlobalConnection(ctx)
+	conn, err := data.ConnectGlobalFirestore(ctx)
 	if err != nil {
 		return nil, err
 	}

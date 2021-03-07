@@ -15,7 +15,7 @@ func TestFirestoreNewDB(t *testing.T) {
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
-	db, err := firestoreNewConnection(ctx, cred)
+	db, err := firestoreCreateConnection(cred)
 	defer db.Close()
 	assert.Nil(err)
 	assert.NotNil(db)
@@ -24,7 +24,7 @@ func TestFirestoreNewDB(t *testing.T) {
 func TestFirestoreGlobalDB(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	conn, err := FirestoreGlobalConnection(ctx)
+	conn, err := ConnectGlobalFirestore(ctx)
 	defer conn.Close()
 	assert.Nil(err)
 	assert.NotNil(conn)
