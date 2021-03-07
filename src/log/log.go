@@ -114,7 +114,9 @@ func KeepHistory(flag bool) {
 //	ResetHistory()
 //
 func ResetHistory() {
-	history.Reset()
+	if history != nil {
+		history.Reset()
+	}
 }
 
 // History get log history in string
