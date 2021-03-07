@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -144,4 +145,22 @@ func TestLogHistory(t *testing.T) {
 	KeepHistory(false)
 	Print(ctx, "here", "hi")
 	assert.Empty(History())
+}
+
+func TestLogErrorWrap(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	err := bar(ctx, 1)
+	fmt.Printf("%v\n", err.Error())
+	fmt.Printf("%+v\n", err)
+}
+
+func bar(ctx context.Context, n int) (err error) {
+	//	defer errors.Wrapf(err, "bar(ctx, %d)", n)
+	err = errors.New("network error")
+	err = errors.WithMessagef(err, "bar(ctx, %d)", n)
+	if err != nil {
+		return err
+	}
+	return nil
 }
