@@ -1,9 +1,10 @@
-package data
+package gstore
 
 import (
 	"context"
 
 	"cloud.google.com/go/firestore"
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
@@ -31,7 +32,7 @@ type MetaFirestore struct {
 }
 
 func (c *MetaFirestore) errorID() string {
-	return c.conn.errorID(c.tableName, c.id)
+	return errorID(c.tableName, c.id)
 }
 
 // assert check ctx, table name, id are valid
@@ -58,7 +59,7 @@ func (c *MetaFirestore) clear(ctx context.Context) error {
 		return err
 	}
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Documents(ctx)
+	shards := tableRef.Where(data.MetaID, "==", c.id).Documents(ctx)
 
 	batch := c.conn.client.Batch()
 	var deleted = false
@@ -88,7 +89,7 @@ func (c *MetaFirestore) clear(ctx context.Context) error {
 //
 func (c *MetaFirestore) shardsCount(ctx context.Context) (int, error) {
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Documents(ctx)
+	shards := tableRef.Where(data.MetaID, "==", c.id).Documents(ctx)
 	defer shards.Stop()
 	count := 0
 	for {
@@ -120,7 +121,7 @@ func (c *MetaFirestore) countValue(shards *firestore.DocumentIterator) (float64,
 			return 0, errors.Wrap(err, "failed to iterator shards: "+c.errorID())
 		}
 
-		iTotal := snotshot.Data()[MetaValue]
+		iTotal := snotshot.Data()[data.MetaValue]
 		shardCount, err := util.ToFloat64(iTotal)
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to get value on shards, invalid dataType %T, want float64: "+c.errorID(), iTotal)
@@ -133,7 +134,7 @@ func (c *MetaFirestore) countValue(shards *firestore.DocumentIterator) (float64,
 // createShard create a shard
 //
 func (c *MetaFirestore) createShard(ref *firestore.DocumentRef, shard map[string]interface{}) error {
-	if shard[MetaValue] == nil {
+	if shard[data.MetaValue] == nil {
 		return errors.New("value can not be nil when create shard: " + c.errorID())
 	}
 
@@ -152,7 +153,7 @@ func (c *MetaFirestore) incrementShard(ref *firestore.DocumentRef, value interfa
 	}
 
 	err := c.conn.tx.Update(ref, []firestore.Update{
-		{Path: MetaValue, Value: firestore.Increment(value)},
+		{Path: data.MetaValue, Value: firestore.Increment(value)},
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to increment shard: "+c.errorID())

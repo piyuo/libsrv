@@ -1,9 +1,10 @@
-package data
+package gstore
 
 import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/piyuo/libsrv/src/env"
 	"github.com/stretchr/testify/assert"
 )
@@ -134,7 +135,7 @@ func TestEmptyEnvAccountIDUserID(t *testing.T) {
 	table := g.SampleTable()
 
 	sample := &Sample{
-		DomainObject: DomainObject{
+		DomainObject: data.DomainObject{
 			UserID:    "myUserID",
 			AccountID: "myAccountID",
 		},

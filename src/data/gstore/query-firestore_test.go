@@ -1,10 +1,11 @@
-package data
+package gstore
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,7 +41,7 @@ func TestQueryTest(t *testing.T) {
 
 	// factory has no object return must error
 	bakFactory := table.Factory
-	table.Factory = func() Object {
+	table.Factory = func() data.Object {
 		return nil
 	}
 	listX, err := table.Query().Where("Name", "==", "sample1").Execute(ctx)

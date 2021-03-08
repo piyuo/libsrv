@@ -1,16 +1,17 @@
-package data
+package gstore
 
 import (
 	"context"
 
 	"cloud.google.com/go/firestore"
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
 
 // QueryFirestore implement google firestore
 type QueryFirestore struct {
-	BaseQuery
+	data.BaseQuery
 
 	// conn is current firestore connection
 	//
@@ -29,7 +30,7 @@ type QueryFirestore struct {
 //
 //	list, err := table.Query().Where("ID", "==", "sample1").Execute(ctx)
 //
-func (c *QueryFirestore) Where(path, op string, value interface{}) Query {
+func (c *QueryFirestore) Where(path, op string, value interface{}) data.Query {
 	if path == "ID" {
 		path = firestore.DocumentID
 		value = c.conn.client.Collection(c.tablename).Doc(value.(string))
@@ -42,7 +43,7 @@ func (c *QueryFirestore) Where(path, op string, value interface{}) Query {
 //
 //	list, err = table.Query().OrderBy("Name").Execute(ctx)
 //
-func (c *QueryFirestore) OrderBy(path string) Query {
+func (c *QueryFirestore) OrderBy(path string) data.Query {
 	c.query = c.query.OrderBy(path, firestore.Asc)
 	return c
 }
@@ -51,7 +52,7 @@ func (c *QueryFirestore) OrderBy(path string) Query {
 //
 //	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
 //
-func (c *QueryFirestore) OrderByDesc(path string) Query {
+func (c *QueryFirestore) OrderByDesc(path string) data.Query {
 	c.query = c.query.OrderBy(path, firestore.Desc)
 	return c
 }
@@ -60,8 +61,8 @@ func (c *QueryFirestore) OrderByDesc(path string) Query {
 //
 //	list, err = table.Query().OrderBy("Name").Limit(1).Execute(ctx)
 //
-func (c *QueryFirestore) Limit(n int) Query {
-	c.limit = n
+func (c *QueryFirestore) Limit(n int) data.Query {
+	c.LengthLimit = n
 	c.query = c.query.Limit(n)
 	return c
 }
@@ -70,7 +71,7 @@ func (c *QueryFirestore) Limit(n int) Query {
 //
 //	list, err = table.Query().OrderBy("Name").StartAt("irvine city").Execute(ctx)
 //
-func (c *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query {
+func (c *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) data.Query {
 	c.query = c.query.StartAt(docSnapshotOrFieldValues...)
 	return c
 }
@@ -79,7 +80,7 @@ func (c *QueryFirestore) StartAt(docSnapshotOrFieldValues ...interface{}) Query 
 //
 //	list, err = table.Query().OrderBy("Name").StartAfter("santa ana city").Execute(ctx)
 //
-func (c *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Query {
+func (c *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) data.Query {
 	c.query = c.query.StartAfter(docSnapshotOrFieldValues...)
 	return c
 }
@@ -88,7 +89,7 @@ func (c *QueryFirestore) StartAfter(docSnapshotOrFieldValues ...interface{}) Que
 //
 //	list, err = table.Query().OrderBy("Name").EndAt("irvine city").Execute(ctx)
 //
-func (c *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
+func (c *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) data.Query {
 	c.query = c.query.EndAt(docSnapshotOrFieldValues...)
 	return c
 }
@@ -97,7 +98,7 @@ func (c *QueryFirestore) EndAt(docSnapshotOrFieldValues ...interface{}) Query {
 //
 //	list, err = table.Query().OrderBy("Name").EndBefore("irvine city").Execute(ctx)
 //
-func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Query {
+func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) data.Query {
 	c.query = c.query.EndBefore(docSnapshotOrFieldValues...)
 	return c
 }
@@ -107,7 +108,7 @@ func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) Quer
 //	obj, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetFirstObject(ctx)
 //	greet := obj.(*Greet)
 //
-func (c *QueryFirestore) GetFirstObject(ctx context.Context) (Object, error) {
+func (c *QueryFirestore) GetFirstObject(ctx context.Context) (data.Object, error) {
 	list, err := c.Limit(1).Execute(ctx)
 	if err != nil {
 		return nil, err
@@ -137,11 +138,11 @@ func (c *QueryFirestore) GetFirstID(ctx context.Context) (string, error) {
 //
 //	list, err = table.Query().OrderByDesc("Name").Limit(1).Execute(ctx)
 //
-func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
-	if c.limit == 0 {
-		c.Limit(limitQueryDefault)
+func (c *QueryFirestore) Execute(ctx context.Context) ([]data.Object, error) {
+	if c.LengthLimit == 0 {
+		c.Limit(data.LimitQueryDefault)
 	}
-	result := []Object{}
+	result := []data.Object{}
 	var iter *firestore.DocumentIterator
 	if c.conn.tx != nil {
 		iter = c.conn.tx.Documents(c.query)
@@ -158,7 +159,7 @@ func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 		if err != nil {
 			return nil, err
 		}
-		object := c.factory()
+		object := c.Factory()
 		if object == nil {
 			return nil, errors.New("failed to create object from factory")
 		}
@@ -179,8 +180,8 @@ func (c *QueryFirestore) Execute(ctx context.Context) ([]Object, error) {
 //	idList, err := db.Select(ctx, GreetFactory).OrderBy("From").Limit(1).StartAt("b city").GetIDs(ctx)
 //
 func (c *QueryFirestore) GetIDs(ctx context.Context) ([]string, error) {
-	if c.limit == 0 {
-		c.Limit(limitQueryDefault)
+	if c.LengthLimit == 0 {
+		c.Limit(data.LimitQueryDefault)
 	}
 	var result []string
 
@@ -211,8 +212,8 @@ func (c *QueryFirestore) GetIDs(ctx context.Context) ([]string, error) {
 //	count, err := table.Query().Where("Name", "==", "sample1").Count(ctx)
 //
 func (c *QueryFirestore) Count(ctx context.Context) (int, error) {
-	if c.limit == 0 {
-		c.Limit(limitQueryDefault)
+	if c.LengthLimit == 0 {
+		c.Limit(data.LimitQueryDefault)
 	}
 	var iter *firestore.DocumentIterator
 	if c.conn.tx != nil {
@@ -275,7 +276,7 @@ func (c *QueryFirestore) IsExists(ctx context.Context) (bool, error) {
 func (c *QueryFirestore) Clear(ctx context.Context) (int, error) {
 	deleteCount := 0
 	if c.conn.tx != nil {
-		c.query.Limit(limitTransactionClear)
+		c.query.Limit(data.LimitTransactionClear)
 		iter := c.conn.tx.Documents(c.query)
 		defer iter.Stop()
 		for {
@@ -297,7 +298,7 @@ func (c *QueryFirestore) Clear(ctx context.Context) (int, error) {
 			return deleteCount, ctx.Err()
 		}
 		numDeleted := 0
-		c.query.Limit(limitClear)
+		c.query.Limit(data.LimitClear)
 		iter := c.query.Documents(ctx)
 		defer iter.Stop()
 		// Iterate through the documents, adding a delete operation for each one to a WriteBatch.
@@ -320,7 +321,7 @@ func (c *QueryFirestore) Clear(ctx context.Context) (int, error) {
 				return deleteCount, errors.Wrap(err, "failed to commit batch")
 			}
 		}
-		if numDeleted < limitClear {
+		if numDeleted < data.LimitClear {
 			break
 		}
 	}

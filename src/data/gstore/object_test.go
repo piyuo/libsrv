@@ -1,4 +1,4 @@
-package data
+package gstore
 
 import (
 	"context"

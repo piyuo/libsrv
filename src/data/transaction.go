@@ -4,14 +4,9 @@ import (
 	"context"
 )
 
-// Connection define how to connect and manipulate database
+// Transaction define transaction operation
 //
-type Connection interface {
-	// Close database connection
-	//
-	//	conn.Close()
-	//
-	Close()
+type Transaction interface {
 
 	// Get data object from data store, return nil if object does not exist
 	//
@@ -85,60 +80,23 @@ type Connection interface {
 	//
 	Query(tablename string, factory func() Object) Query
 
-	// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
+	// Begin a transaction
 	//
-	//	err := conn.BatchBegin()
-	//
-	BatchBegin()
-
-	// InBatch return true if connection is in batch mode
-	//
-	//	inBatch := conn.InBatch()
-	//
-	InBatch() bool
-
-	// BatchCommit commit batch operation
-	//
-	//	err := conn.BatchCommit(ctx)
-	//
-	BatchCommit(ctx context.Context) error
-
-	// Transaction start a transaction
-	//
-	//	err := conn.Transaction(ctx, func(ctx context.Context) error {
+	//	err := transaction.Begin(ctx, func(ctx context.Context) error {
 	//		return nil
 	//	})
 	//
-	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
+	Begin(ctx context.Context, callback func(ctx context.Context) error) error
 
-	// InTransaction return true if connection is in transaction
+	// IsBegin return true if connection is in transaction
 	//
-	//	inTx := conn.InTransaction()
+	//	begin := conn.InTransaction()
 	//
-	InTransaction() bool
+	IsBegin() bool
 
 	// Increment value on object field, return error if object does not exist
 	//
 	//	err := conn.Increment(ctx,"", GreetModelName, greet.ID(), "Value", 2)
 	//
 	Increment(ctx context.Context, tablename, id, field string, value int) error
-
-	// CreateCoder return coder from database, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
-	//
-	//	productCoder,err = conn.CreateCoder("tableName","coderName",100)
-	//
-	CreateCoder(tableName, coderName string, numshards int) Coder
-
-	// Counter return counter from database, create one if not exist, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
-	// if keepDateHierarchy is true, counter will automatically generate year/month/day/hour hierarchy in utc timezone
-	//
-	//	orderCountCounter,err = conn.CreateCounter("tableName","coderName",100,true)
-	//
-	CreateCounter(tableName, counterName string, numshards int, hierarchy DateHierarchy) Counter
-
-	// Serial return serial from database, create one if not exist, please be aware Serial can only generate 1 number per second, use serial with high frequency will cause too much retention error
-	//
-	//	productNo,err = conn.CreateSerial("tableName","serialName")
-	//
-	CreateSerial(tableName, serialName string) Serial
 }

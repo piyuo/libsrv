@@ -1,4 +1,4 @@
-package data
+package gstore
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
@@ -15,7 +16,7 @@ import (
 // CounterFirestore implement Counter
 //
 type CounterFirestore struct {
-	Counter `firestore:"-"`
+	data.Counter `firestore:"-"`
 
 	MetaFirestore `firestore:"-"`
 
@@ -56,7 +57,7 @@ func (c *CounterFirestore) isShardExists(ctx context.Context, ref *firestore.Doc
 // shardAllRef return picked all period ref
 //
 func (c *CounterFirestore) shardAllRef() *firestore.DocumentRef {
-	return c.conn.getDocRef(c.tableName, c.id+string(HierarchyTotal)+"_"+c.pickedShard)
+	return c.conn.getDocRef(c.tableName, c.id+string(data.HierarchyTotal)+"_"+c.pickedShard)
 }
 
 // IncrementRX increments a randomly picked shard. must used it in transaction with IncrementWX()
@@ -149,9 +150,9 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 
 	utcNow := time.Now().UTC()
 	shard := map[string]interface{}{
-		MetaID:      c.id,
-		MetaValue:   value,
-		CounterTime: utcNow,
+		data.MetaID:      c.id,
+		data.MetaValue:   value,
+		data.CounterTime: utcNow,
 	}
 	if c.keepDateHierarchy {
 		year := strconv.Itoa(utcNow.Year())
@@ -168,7 +169,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 				return errors.Wrap(err, "Failed to increment shard hour")
 			}
 		} else {
-			shard[CounterDateLevel] = HierarchyHour
+			shard[data.CounterDateLevel] = data.HierarchyHour
 			if err := c.createShard(hourRef, shard); err != nil {
 				return errors.Wrap(err, "Failed to create shard hour")
 			}
@@ -179,7 +180,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 				return errors.Wrap(err, "Failed to increment shard day")
 			}
 		} else {
-			shard[CounterDateLevel] = HierarchyDay
+			shard[data.CounterDateLevel] = data.HierarchyDay
 			if err := c.createShard(dayRef, shard); err != nil {
 				return errors.Wrap(err, "Failed to create shard day")
 			}
@@ -190,7 +191,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 				return errors.Wrap(err, "Failed to increment shard month")
 			}
 		} else {
-			shard[CounterDateLevel] = HierarchyMonth
+			shard[data.CounterDateLevel] = data.HierarchyMonth
 			if err := c.createShard(monthRef, shard); err != nil {
 				return errors.Wrap(err, "Failed to create shard month")
 			}
@@ -201,7 +202,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 				return errors.Wrap(err, "Failed to increment shard year")
 			}
 		} else {
-			shard[CounterDateLevel] = HierarchyYear
+			shard[data.CounterDateLevel] = data.HierarchyYear
 			if err := c.createShard(yearRef, shard); err != nil {
 				return errors.Wrap(err, "Failed to create shard year")
 			}
@@ -213,7 +214,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 			return errors.Wrap(err, "Failed to increment shard all")
 		}
 	} else {
-		shard[CounterDateLevel] = HierarchyTotal
+		shard[data.CounterDateLevel] = data.HierarchyTotal
 		if err := c.createShard(c.shardAllRef(), shard); err != nil {
 			return errors.Wrap(err, "Failed to create shard all")
 		}
@@ -230,14 +231,14 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, value interface{}) e
 
 // mock create mock data
 //
-func (c *CounterFirestore) mock(hierarchy Hierarchy, date time.Time, pick int, value interface{}) error {
+func (c *CounterFirestore) mock(hierarchy data.Hierarchy, date time.Time, pick int, value interface{}) error {
 
 	c.pickedShard = strconv.Itoa(pick)
 	shard := map[string]interface{}{
-		MetaID:           c.id,
-		MetaValue:        value,
-		CounterDateLevel: hierarchy,
-		CounterTime:      date,
+		data.MetaID:           c.id,
+		data.MetaValue:        value,
+		data.CounterDateLevel: hierarchy,
+		data.CounterTime:      date,
 	}
 	if err := c.createShard(c.shardAllRef(), shard); err != nil {
 		return errors.Wrap(err, "Failed to create shard at mock")
@@ -251,7 +252,7 @@ func (c *CounterFirestore) mock(hierarchy Hierarchy, date time.Time, pick int, v
 //
 func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterDateLevel, "==", HierarchyTotal).Documents(ctx)
+	shards := tableRef.Where(data.MetaID, "==", c.id).Where(data.CounterDateLevel, "==", data.HierarchyTotal).Documents(ctx)
 	return c.countValue(shards)
 }
 
@@ -261,9 +262,9 @@ func (c *CounterFirestore) CountAll(ctx context.Context) (float64, error) {
 //	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
 //	count, err := counter.CountPeriod(ctx, HierarchyYear, from, to)
 //
-func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (float64, error) {
+func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy data.Hierarchy, from, to time.Time) (float64, error) {
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterDateLevel, "==", string(hierarchy)).Where(CounterTime, ">=", from).Where(CounterTime, "<=", to).Documents(ctx)
+	shards := tableRef.Where(data.MetaID, "==", c.id).Where(data.CounterDateLevel, "==", string(hierarchy)).Where(data.CounterTime, ">=", from).Where(data.CounterTime, "<=", to).Documents(ctx)
 	return c.countValue(shards)
 }
 
@@ -271,11 +272,11 @@ func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy Hierarchy,
 //
 //	dict, err = counter.DetailPeriod(ctx)
 //
-func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (map[time.Time]float64, error) {
+func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy data.Hierarchy, from, to time.Time) (map[time.Time]float64, error) {
 	result := map[time.Time]float64{}
 
 	tableRef := c.conn.getCollectionRef(c.tableName)
-	shards := tableRef.Where(MetaID, "==", c.id).Where(CounterDateLevel, "==", string(hierarchy)).Where(CounterTime, ">=", from).Where(CounterTime, "<=", to).Documents(ctx)
+	shards := tableRef.Where(data.MetaID, "==", c.id).Where(data.CounterDateLevel, "==", string(hierarchy)).Where(data.CounterTime, ">=", from).Where(data.CounterTime, "<=", to).Documents(ctx)
 	defer shards.Stop()
 	for {
 		snotshot, err := shards.Next()
@@ -287,12 +288,12 @@ func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy Hierarchy
 		}
 
 		obj := snotshot.Data()
-		iValue := obj[MetaValue]
+		iValue := obj[data.MetaValue]
 		value, err := util.ToFloat64(iValue)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get value on shards, invalid dataType %T, want float64: "+c.errorID(), iValue)
 		}
-		iDate := obj[CounterTime]
+		iDate := obj[data.CounterTime]
 		date := iDate.(time.Time)
 
 		if val, ok := result[date]; ok {

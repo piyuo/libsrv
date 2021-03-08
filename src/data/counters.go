@@ -24,24 +24,3 @@ const (
 	DateHierarchyFull = 2
 )
 
-// Counter return counter from database, create one if not exist, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
-// if keepDateHierarchy is true, counter will automatically generate year/month/day/hour hierarchy in utc timezone
-//
-//	counters := db.Counters()
-//	orderCountCounter,err = counters.Counter("order-count",100,true) // utc timezone
-//
-func (c *Counters) Counter(name string, numshards int, hierarchy DateHierarchy) Counter {
-	if numshards <= 0 {
-		numshards = 10
-	}
-
-	return &CounterFirestore{
-		MetaFirestore: MetaFirestore{
-			conn:      c.Connection.(*ConnectionFirestore),
-			tableName: c.TableName,
-			id:        name,
-			numShards: numshards,
-		},
-		keepDateHierarchy: hierarchy == DateHierarchyFull,
-	}
-}

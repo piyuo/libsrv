@@ -137,11 +137,11 @@ type Query interface {
 type BaseQuery struct {
 	Query
 
-	// factor use to create object
+	// Factor use to create object
 	//
-	factory func() Object
+	Factory func() Object
 
-	// limit remember if query set limit, if not we will give default limit (10) to avoid return too may document
+	// LengthLimit remember if query set limit, if not we will give default limit (10) to avoid return too may document
 	//
-	limit int
+	LengthLimit int
 }

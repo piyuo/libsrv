@@ -1,9 +1,10 @@
-package data
+package gstore
 
 import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +15,7 @@ func TestCounters(t *testing.T) {
 	assert.Nil(err)
 	defer g.Close()
 
-	counter := g.Counters().Counter("SampleCount", 3, DateHierarchyNone)
+	counter := g.Counters().Connection.CreateCounter(g.Counters().TableName, "SampleCount", 3, data.DateHierarchyNone)
 	defer counter.Clear(ctx)
 
 	err = g.Transaction(ctx, func(ctx context.Context) error {

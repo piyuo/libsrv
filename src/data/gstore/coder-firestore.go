@@ -1,4 +1,4 @@
-package data
+package gstore
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
+	"github.com/piyuo/libsrv/src/data"
 	identifier "github.com/piyuo/libsrv/src/identifier"
 	"github.com/pkg/errors"
 )
@@ -13,7 +14,7 @@ import (
 // CoderFirestore generate code from firestore
 //
 type CoderFirestore struct {
-	Coder `firestore:"-"`
+	data.Coder `firestore:"-"`
 
 	MetaFirestore `firestore:"-"`
 
@@ -160,7 +161,7 @@ func (c *CoderFirestore) pickShard(ctx context.Context) (bool, int64, error) {
 		return false, 0, err
 	}
 
-	idRef, err := snapshot.DataAt(MetaValue)
+	idRef, err := snapshot.DataAt(data.MetaValue)
 	if err != nil {
 		return false, 0, errors.Wrap(err, "failed to get value from number: "+c.errorID())
 	}
@@ -192,8 +193,8 @@ func (c *CoderFirestore) NumberWX(ctx context.Context) error {
 		}
 	} else {
 		shard := map[string]interface{}{
-			MetaID:    c.id,
-			MetaValue: 1,
+			data.MetaID:    c.id,
+			data.MetaValue: 1,
 		}
 		if err := c.createShard(c.getPickedRef(), shard); err != nil {
 			return err
@@ -220,3 +221,4 @@ func (c *CoderFirestore) Clear(ctx context.Context) error {
 func (c *CoderFirestore) ShardsCount(ctx context.Context) (int, error) {
 	return c.shardsCount(ctx)
 }
+

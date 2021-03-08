@@ -1,4 +1,4 @@
-package data
+package gstore
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/src/data"
 	util "github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,13 +27,13 @@ func TestCountPeriod(t *testing.T) {
 	// mock data
 	now := time.Now().UTC()
 	err = g.Transaction(ctx, func(ctx context.Context) error {
-		if err := counterFirestore.mock(HierarchyYear, now, 1, 1); err != nil {
+		if err := counterFirestore.mock(data.HierarchyYear, now, 1, 1); err != nil {
 			return err
 		}
-		if err := counterFirestore.mock(HierarchyYear, now.AddDate(-1, 0, 0), 2, 1); err != nil {
+		if err := counterFirestore.mock(data.HierarchyYear, now.AddDate(-1, 0, 0), 2, 1); err != nil {
 			return err
 		}
-		if err := counterFirestore.mock(HierarchyYear, now.AddDate(-2, 0, 0), 3, 1); err != nil {
+		if err := counterFirestore.mock(data.HierarchyYear, now.AddDate(-2, 0, 0), 3, 1); err != nil {
 			return err
 		}
 		return nil
@@ -90,7 +91,7 @@ func TestCounterIncrement(t *testing.T) {
 	assert.Nil(err)
 	defer g.Close()
 
-	counter := g.Counters().Counter("SampleCount", 3, DateHierarchyFull)
+	counter := g.Counters().Connection.CreateCounter(g.Counters().TableName, "SampleCount", 3, data.DateHierarchyFull)
 	defer counter.Clear(ctx)
 	assert.NotNil(counter)
 
@@ -207,7 +208,7 @@ func TestCounter(t *testing.T) {
 	})
 
 	//counter minimal shards is 10
-	counter = g.Counters().Counter("minShards", 0, DateHierarchyNone)
+	counter = g.Counters().Connection.CreateCounter(g.Counters().TableName, "minShards", 0, data.DateHierarchyNone)
 	assert.NotNil(counter)
 	firestoreCounter := counter.(*CounterFirestore)
 	assert.Equal(10, firestoreCounter.numShards)

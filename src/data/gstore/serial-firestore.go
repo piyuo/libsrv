@@ -1,16 +1,17 @@
-package data
+package gstore
 
 import (
 	"context"
 
 	"cloud.google.com/go/firestore"
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/pkg/errors"
 )
 
 // SerialFirestore generial serial from firestore
 //
 type SerialFirestore struct {
-	Serial `firestore:"-"`
+	data.Serial `firestore:"-"`
 
 	MetaFirestore `firestore:"-"`
 
@@ -50,7 +51,7 @@ func (c *SerialFirestore) NumberRX() (int64, error) {
 		return 0, errors.Wrap(err, "failed to get serial: "+c.errorID())
 	}
 
-	idRef, err := snapshot.DataAt(MetaValue)
+	idRef, err := snapshot.DataAt(data.MetaValue)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get value from serial: "+c.errorID())
 	}
@@ -82,8 +83,8 @@ func (c *SerialFirestore) NumberWX() error {
 		}
 	} else {
 		shard := map[string]interface{}{
-			MetaID:    c.id,
-			MetaValue: 1,
+			data.MetaID:    c.id,
+			data.MetaValue: 1,
 		}
 		if err := c.createShard(c.getRef(), shard); err != nil {
 			return err

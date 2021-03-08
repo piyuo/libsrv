@@ -4,9 +4,17 @@ import (
 	"context"
 )
 
-const limitQueryDefault = 10
-const limitTransactionClear = 50
-const limitClear = 500
+// LimitQueryDefault limit query return item
+//
+const LimitQueryDefault = 10
+
+// LimitTransactionClear limit transaction clear count
+//
+const LimitTransactionClear = 50
+
+// LimitClear limit clear count
+//
+const LimitClear = 500
 
 // DB represent DB public method
 //

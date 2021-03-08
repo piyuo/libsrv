@@ -1,10 +1,11 @@
-package data
+package gstore
 
 import (
 	"context"
 	"strconv"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/data"
 	"github.com/piyuo/libsrv/src/gaccount"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
@@ -29,10 +30,9 @@ func TestFirestoreGlobalDB(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(conn)
 
-	firestoreConn := conn.(*ConnectionFirestore)
-	id := firestoreConn.errorID("tablename", "")
+	id := errorID("tablename", "")
 	assert.Equal("tablename", id)
-	id = firestoreConn.errorID("tablename", "id")
+	id = errorID("tablename", "id")
 	assert.Equal("tablename-id", id)
 }
 
@@ -69,7 +69,7 @@ func TestFirestoreID(t *testing.T) {
 
 	// factory has no object return must error
 	bakFactory := table.Factory
-	table.Factory = func() Object {
+	table.Factory = func() data.Object {
 		return nil
 	}
 	sampleX, err := table.Get(ctx, sample.ID)
@@ -251,7 +251,7 @@ func TestListQueryFindCountClear(t *testing.T) {
 
 	// factory has no object return must error
 	bakFactory := table.Factory
-	table.Factory = func() Object {
+	table.Factory = func() data.Object {
 		return nil
 	}
 	listX, err := table.All(ctx)
@@ -409,7 +409,7 @@ func TestConnectionContextCanceled(t *testing.T) {
 	assert.NotNil(err)
 	_, err = table.List(ctx, "Name", "==", "1")
 	assert.NotNil(err)
-	_, err = table.SortList(ctx, "Name", "==", "1", "", ASC)
+	_, err = table.SortList(ctx, "Name", "==", "1", "", data.ASC)
 	assert.NotNil(err)
 	_, err = table.All(ctx)
 	assert.NotNil(err)

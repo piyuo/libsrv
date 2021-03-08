@@ -1,12 +1,14 @@
-package data
+package gstore
 
 import (
 	"context"
+
+	"github.com/piyuo/libsrv/src/data"
 )
 
 type SampleDB interface {
-	DB
-	SampleTable() *Table
+	data.DB
+	SampleTable() *data.Table
 	Counters() *SampleCounters
 	Serials() *SampleSerials
 	Coders() *SampleCoders
@@ -15,7 +17,7 @@ type SampleDB interface {
 // global connection
 //
 type SampleGlobalDB struct {
-	BaseDB
+	data.BaseDB
 }
 
 func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
@@ -24,16 +26,16 @@ func NewSampleGlobalDB(ctx context.Context) (*SampleGlobalDB, error) {
 		return nil, err
 	}
 	db := &SampleGlobalDB{
-		BaseDB: BaseDB{Connection: conn},
+		BaseDB: data.BaseDB{Connection: conn},
 	}
 	return db, nil
 }
 
-func (db *SampleGlobalDB) SampleTable() *Table {
-	return &Table{
+func (db *SampleGlobalDB) SampleTable() *data.Table {
+	return &data.Table{
 		Connection: db.Connection,
 		TableName:  "Sample",
-		Factory: func() Object {
+		Factory: func() data.Object {
 			return &Sample{}
 		},
 	}
@@ -41,7 +43,7 @@ func (db *SampleGlobalDB) SampleTable() *Table {
 
 func (db *SampleGlobalDB) Counters() *SampleCounters {
 	return &SampleCounters{
-		Counters: Counters{
+		Counters: data.Counters{
 			Connection: db.Connection,
 			TableName:  "Count",
 		},
@@ -50,7 +52,7 @@ func (db *SampleGlobalDB) Counters() *SampleCounters {
 
 func (db *SampleGlobalDB) Serials() *SampleSerials {
 	return &SampleSerials{
-		Serials: Serials{
+		Serials: data.Serials{
 			Connection: db.Connection,
 			TableName:  "Serial",
 		},
@@ -59,7 +61,7 @@ func (db *SampleGlobalDB) Serials() *SampleSerials {
 
 func (db *SampleGlobalDB) Coders() *SampleCoders {
 	return &SampleCoders{
-		Coders: Coders{
+		Coders: data.Coders{
 			Connection: db.Connection,
 			TableName:  "Code",
 		},
@@ -69,7 +71,7 @@ func (db *SampleGlobalDB) Coders() *SampleCoders {
 // regional connection
 //
 type SampleRegionalDB struct {
-	BaseDB
+	data.BaseDB
 }
 
 func NewSampleRegionalDB(ctx context.Context) (*SampleRegionalDB, error) {
@@ -78,16 +80,16 @@ func NewSampleRegionalDB(ctx context.Context) (*SampleRegionalDB, error) {
 		return nil, err
 	}
 	db := &SampleRegionalDB{
-		BaseDB: BaseDB{Connection: conn},
+		BaseDB: data.BaseDB{Connection: conn},
 	}
 	return db, nil
 }
 
-func (db *SampleRegionalDB) SampleTable() *Table {
-	return &Table{
+func (db *SampleRegionalDB) SampleTable() *data.Table {
+	return &data.Table{
 		Connection: db.Connection,
 		TableName:  "Sample",
-		Factory: func() Object {
+		Factory: func() data.Object {
 			return &Sample{}
 		},
 	}
@@ -95,7 +97,7 @@ func (db *SampleRegionalDB) SampleTable() *Table {
 
 func (db *SampleRegionalDB) Counters() *SampleCounters {
 	return &SampleCounters{
-		Counters: Counters{
+		Counters: data.Counters{
 			Connection: db.Connection,
 			TableName:  "Count",
 		},
@@ -104,7 +106,7 @@ func (db *SampleRegionalDB) Counters() *SampleCounters {
 
 func (db *SampleRegionalDB) Serials() *SampleSerials {
 	return &SampleSerials{
-		Serials: Serials{
+		Serials: data.Serials{
 			Connection: db.Connection,
 			TableName:  "Serial",
 		},
@@ -113,7 +115,7 @@ func (db *SampleRegionalDB) Serials() *SampleSerials {
 
 func (db *SampleRegionalDB) Coders() *SampleCoders {
 	return &SampleCoders{
-		Coders: Coders{
+		Coders: data.Coders{
 			Connection: db.Connection,
 			TableName:  "Code",
 		},
@@ -128,7 +130,7 @@ type PlainObject struct {
 // Sample
 //
 type Sample struct {
-	DomainObject
+	data.DomainObject
 	Name    string
 	Value   int
 	Map     map[string]string
@@ -140,45 +142,45 @@ type Sample struct {
 // SampleCoders  represent collection of code
 //
 type SampleCoders struct {
-	Coders `firestore:"-"`
+	data.Coders `firestore:"-"`
 }
 
 // SampleCoder return sample code
 //
-func (ss *SampleCoders) SampleCoder() Coder {
-	return ss.Coder("SampleCode", 10)
+func (ss *SampleCoders) SampleCoder() data.Coder {
+	return ss.Connection.CreateCoder(ss.TableName, "SampleCode", 10)
 }
 
 // SampleCoder100 return sample code with 100 shards
 //
-func (ss *SampleCoders) SampleCoder1000() Coder {
-	return ss.Coder("SampleCode", 1000)
+func (ss *SampleCoders) SampleCoder1000() data.Coder {
+	return ss.Connection.CreateCoder(ss.TableName, "SampleCode", 1000)
 }
 
 // SampleSerials  represent collection of serial
 //
 type SampleSerials struct {
-	Serials `firestore:"-"`
+	data.Serials `firestore:"-"`
 }
 
-func (ss *SampleSerials) SampleSerial() Serial {
-	return ss.Serial("SampleSerial")
+func (ss *SampleSerials) SampleSerial() data.Serial {
+	return ss.Connection.CreateSerial(ss.TableName, "SampleSerial")
 }
 
 // SampleCounters represent collection of counter
 //
 type SampleCounters struct {
-	Counters `firestore:"-"`
+	data.Counters `firestore:"-"`
 }
 
 // SampleCounter return sample counter
 //
-func (scs *SampleCounters) SampleCounter() Counter {
-	return scs.Counter("SampleCount", 3, DateHierarchyNone)
+func (scs *SampleCounters) SampleCounter() data.Counter {
+	return scs.Connection.CreateCounter(scs.TableName, "SampleCount", 3, data.DateHierarchyNone)
 }
 
 // SampleCounter100 return sample counter with 100 shards
 //
-func (scs *SampleCounters) SampleCounter1000() Counter {
-	return scs.Counter("SampleCount", 1000, DateHierarchyNone)
+func (scs *SampleCounters) SampleCounter1000() data.Counter {
+	return scs.Connection.CreateCounter(scs.TableName, "SampleCount", 1000, data.DateHierarchyNone)
 }
