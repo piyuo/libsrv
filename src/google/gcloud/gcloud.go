@@ -7,7 +7,7 @@ import (
 	"time"
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
-	"github.com/piyuo/libsrv/src/gaccount"
+	"github.com/piyuo/libsrv/src/google/gaccount"
 	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"

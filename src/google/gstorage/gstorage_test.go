@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/src/gaccount"
+	"github.com/piyuo/libsrv/src/google/gaccount"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/piyuo/libsrv/src/gaccount"
+	"github.com/piyuo/libsrv/src/google/gaccount"
 	"github.com/piyuo/libsrv/src/log"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"

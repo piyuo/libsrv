@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/piyuo/libsrv/src/gaccount"
+	"github.com/piyuo/libsrv/src/google/gaccount"
 )
 
 func TestMain(m *testing.M) {
