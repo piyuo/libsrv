@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
