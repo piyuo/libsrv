@@ -15,30 +15,28 @@ type Connection interface {
 
 	// Get data object from data store, return nil if object does not exist
 	//
-	//	object, err := conn.Get(ctx, tablename, id, factory)
+	//	object, err := Get(ctx, &Sample{}, "id")
 	//
-	Get(ctx context.Context, tablename, id string, factory func() Object) (Object, error)
+	Get(ctx context.Context, obj Object, id string) (Object, error)
 
 	// Set object into data store, If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data,
-	//
 	// if object does not have id, it will created using UUID
 	//
-	//	if err := conn.Set(ctx, tablename, object); err != nil {
-	//		return err
-	//	}
+	//	 err := Set(ctx, object)
 	//
-	Set(ctx context.Context, tablename string, object Object) error
-	// IsExists return true if object with id exist
+	Set(ctx context.Context, obj Object) error
+
+	// Exists return true if object with id exist
 	//
-	//	return conn.IsExists(ctx, tablename, id)
+	//	found,err := Exists(ctx, &Sample{}, "id")
 	//
-	IsExists(ctx context.Context, tablename, id string) (bool, error)
+	Exists(ctx context.Context, obj Object, id string) (bool, error)
 
 	// All return max 10 object, if you need more! using query instead
 	//
-	//	return conn.All(ctx, tablename, factory)
+	//	list,err := All(ctx, &Sample{})
 	//
-	All(ctx context.Context, tablename string, factory func() Object) ([]Object, error)
+	All(ctx context.Context, obj Object) ([]Object, error)
 
 	// Select return object field from data store, return nil if object does not exist
 	//
@@ -85,43 +83,19 @@ type Connection interface {
 	//
 	Query(tablename string, factory func() Object) Query
 
-	// BatchBegin put connection into batch mode. Set/Update/Delete will hold operation until CommitBatch
-	//
-	//	err := conn.BatchBegin()
-	//
-	BatchBegin()
-
-	// InBatch return true if connection is in batch mode
-	//
-	//	inBatch := conn.InBatch()
-	//
-	InBatch() bool
-
-	// BatchCommit commit batch operation
-	//
-	//	err := conn.BatchCommit(ctx)
-	//
-	BatchCommit(ctx context.Context) error
-
-	// Transaction start a transaction
-	//
-	//	err := conn.Transaction(ctx, func(ctx context.Context) error {
-	//		return nil
-	//	})
-	//
-	Transaction(ctx context.Context, callback func(ctx context.Context) error) error
-
-	// InTransaction return true if connection is in transaction
-	//
-	//	inTx := conn.InTransaction()
-	//
-	InTransaction() bool
-
 	// Increment value on object field, return error if object does not exist
 	//
 	//	err := conn.Increment(ctx,"", GreetModelName, greet.ID(), "Value", 2)
 	//
 	Increment(ctx context.Context, tablename, id, field string, value int) error
+
+	// CreateTransaction create transaction
+	//
+	CreateTransaction() Transaction
+
+	// CreateBatch create batch
+	//
+	CreateBatch() Batch
 
 	// CreateCoder return coder from database, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
 	//

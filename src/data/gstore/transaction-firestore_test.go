@@ -26,7 +26,6 @@ func TransactionTest(t *testing.T) {
 		Value: 2,
 	}
 
-	assert.False(g.InTransaction())
 	//success transaction
 	err = g.Transaction(ctx, func(ctx context.Context) error {
 		assert.True(g.InTransaction())

@@ -2,71 +2,38 @@ package log
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/src/env"
-	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
-
-var here = "log_test"
-
-func TestLogGetHeader(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	appName = "test"
-	ctx := context.Background()
-	ctx = env.SetUserID(ctx, "user1")
-	header, id := getHeader(ctx, here)
-	assert.Equal("user1@test/log_test: ", header)
-	assert.Equal("user1", id)
-}
-
-func TestLogPrint(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	Print(ctx, here, "info ...")
-}
 
 //TestLog is a production test, it will write log to google cloud platform under log viewer "Google Project, project name"
 func TestLog(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	Info(ctx, here, "my info")
-	Warning(ctx, here, "my warning")
-	Alert(ctx, here, "my alert")
+	Debug(ctx, "my debug")
+	Info(ctx, "my info")
+	Warn(ctx, "my warn")
 	TestModeAlwaySuccess()
 	defer TestModeBackNormal()
-	Info(ctx, here, "my info")
-	Warning(ctx, here, "my warning")
-	Alert(ctx, here, "my alert")
+	Debug(ctx, "my debug")
+	Info(ctx, "my info")
+	Warn(ctx, "my warn")
 }
 
-func TestLogWhenContextCanceled(t *testing.T) {
+func TestLogContextCanceled(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
 	defer cancel()
 	time.Sleep(time.Duration(2) * time.Millisecond)
-	logger, err := NewLogger(ctx)
-	assert.NotNil(err)
-	assert.Nil(logger)
 
-	Log(ctx, DEBUG, here, "")
-	WriteError(ctx, here, "", "", "")
-	Error(ctx, here, nil)
-	Info(ctx, here, "my info log canceled")
-
-	errorer, err := NewErrorer(ctx)
-	assert.NotNil(err)
-	assert.Nil(errorer)
-	logger, err = NewLogger(ctx)
-	assert.NotNil(err)
-	assert.Nil(logger)
+	Debug(ctx, "cancel debug")
+	Info(ctx, "cancel info")
+	Warn(ctx, "cancel warn")
+	Error(ctx, errors.New("my error"))
 }
 
 func TestLogBeautyStack(t *testing.T) {
@@ -91,7 +58,7 @@ func TestLogExtractFilename(t *testing.T) {
 func TestLogIsLineUsable(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	line := "/smartystreets/convey/doc.go:75"
+	line := "/jtolds/doc.go:75"
 	assert.False(isLineUsable(line))
 }
 
@@ -106,19 +73,23 @@ func TestLogIsLineDuplicate(t *testing.T) {
 func TestLogError(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	err := errors.New("mock error happening in go")
-	Error(ctx, here, err)
+	err := errors.New("my error")
+	Error(ctx, err)
+
+	// nil error
+	Error(ctx, nil)
 
 	TestModeAlwaySuccess()
+	TestModeAlwayFail()
 	defer TestModeBackNormal()
-	Error(ctx, here, err)
+	Error(ctx, err)
 }
 
 func TestLogErrorWithRequest(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	err := errors.New("mock error happening in go with request")
-	Error(ctx, here, err)
+	err := errors.New("my error with request")
+	Error(ctx, err)
 }
 
 func TestLogCustomError(t *testing.T) {
@@ -126,8 +97,7 @@ func TestLogCustomError(t *testing.T) {
 	ctx := context.Background()
 	message := "mock error happening in flutter"
 	stack := "at firstLine (a.js:3)\nat secondLine (b.js:3)"
-	id := identifier.UUID()
-	WriteError(ctx, here, message, stack, id)
+	CustomError(ctx, message, stack)
 }
 
 func TestLogHistory(t *testing.T) {
@@ -136,14 +106,14 @@ func TestLogHistory(t *testing.T) {
 	assert := assert.New(t)
 
 	KeepHistory(true)
-	Print(ctx, "here", "hi")
+	Info(ctx, "hi")
 	assert.Contains(History(), "hi")
 
 	ResetHistory()
 	assert.NotContains(History(), "hi")
 
 	KeepHistory(false)
-	Print(ctx, "here", "hi")
+	Info(ctx, "hi")
 	assert.Empty(History())
 }
 
@@ -151,14 +121,13 @@ func TestLogErrorWrap(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	err := bar(ctx, 1)
-	fmt.Printf("%v\n", err.Error())
-	fmt.Printf("%+v\n", err)
+	Error(ctx, err)
+	Info(ctx, "server start")
 }
 
 func bar(ctx context.Context, n int) (err error) {
-	//	defer errors.Wrapf(err, "bar(ctx, %d)", n)
 	err = errors.New("network error")
-	err = errors.WithMessagef(err, "bar(ctx, %d)", n)
+	err = errors.Wrapf(err, "wrap(%d)", n)
 	if err != nil {
 		return err
 	}

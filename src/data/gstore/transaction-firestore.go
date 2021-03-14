@@ -2,6 +2,7 @@ package gstore
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"cloud.google.com/go/firestore"
@@ -14,7 +15,7 @@ import (
 // TransactionFirestore implement firestore transaction
 //
 type TransactionFirestore struct {
-	data.Connection
+	data.Transaction
 
 	// conn is firestore connection
 	//
@@ -53,75 +54,59 @@ func (c *TransactionFirestore) IsBegin() bool {
 
 // Get data object from table, return nil if object does not exist
 //
-//	factory := func() Object {
-//		return &Sample{}
-//	}
-//	object, err := c.Get(ctx, "sample", id, factory)
+//	object, err := Get(ctx, &Sample{}, "id")
 //
-func (c *TransactionFirestore) Get(ctx context.Context, tablename, id string, factory func() data.Object) (data.Object, error) {
+func (c *TransactionFirestore) Get(ctx context.Context, obj data.Object, id string) (data.Object, error) {
+	if obj == nil {
+		return nil, errors.New(fmt.Sprintf("obj must not nil %v", id))
+	}
 	if id == "" {
-		return nil, nil
+		return nil, errors.New(fmt.Sprintf("id must not empty %v", obj.TableName()))
 	}
-	docRef := c.conn.getDocRef(tablename, id)
+	docRef := c.conn.getDocRef(obj.TableName(), id)
 	snapshot, err := c.tx.Get(docRef)
-
-	if snapshot != nil && !snapshot.Exists() {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get document: "+errorID(tablename, id))
-	}
-
-	object := factory()
-	if object == nil {
-		return nil, errors.New("failed to create object from factory: " + errorID(tablename, id))
-	}
-
-	err = c.conn.snapshotToObject(tablename, docRef, snapshot, object)
-	if err != nil {
-		return nil, err
-	}
-	return object, nil
+	return snapshotToObject(obj, id, docRef, snapshot, err)
 }
 
 // Set object into table, If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, if object does not have id, it will created using UUID
 //
-//	if err := c.Set(ctx, tablename, object); err != nil {
-//		return err
-//	}
+//	 err := Set(ctx, object)
 //
-func (c *TransactionFirestore) Set(ctx context.Context, tablename string, object data.Object) error {
-	if object == nil {
-		return errors.New("object can not be nil: " + errorID(tablename, ""))
+func (c *TransactionFirestore) Set(ctx context.Context, obj data.Object) error {
+	if obj == nil {
+		return errors.New("Set() obj must not nil")
 	}
 	var docRef *firestore.DocumentRef
-	if object.GetRef() == nil { // this is new object
-		if object.GetID() == "" {
-			object.SetID(identifier.UUID())
+	if obj.Ref() == nil { // new object
+		if obj.ID() == "" {
+			obj.SetID(identifier.UUID())
 		}
-		docRef = c.conn.getDocRef(tablename, object.GetID())
-		object.SetRef(docRef)
-	} else {
-		docRef = object.GetRef().(*firestore.DocumentRef)
+		docRef = c.conn.getDocRef(obj.TableName(), obj.ID())
+		obj.SetRef(docRef)
+	} else { // object already exist
+		docRef = obj.Ref().(*firestore.DocumentRef)
 	}
 
-	err := c.tx.Set(docRef, object)
+	err := c.tx.Set(docRef, obj)
 
 	if err != nil {
-		return errors.Wrap(err, "failed to set object: "+errorID(tablename, object.GetID()))
+		return errors.Wrapf(err, "Set(%v,%v)", errorID(obj.TableName(), obj.ID()))
 	}
 	return nil
 }
 
-// IsExists return true if object with id exist
+// Exists return true if object with id exist
 //
-//	return c.IsExists(ctx, tablename, id)
+//	found,err := Exists(ctx, &Sample{}, "id")
 //
-func (c *TransactionFirestore) IsExists(ctx context.Context, tablename, id string) (bool, error) {
-	if id == "" {
-		return false, nil
+func (c *TransactionFirestore) Exists(ctx context.Context, obj data.Object, id string) (bool, error) {
+	if obj == nil {
+		return false, errors.New("Exists() obj must not nil")
 	}
-	docRef := c.conn.getDocRef(tablename, id)
+	if id == "" {
+		return false, errors.New(fmt.Sprintf("Exists(%v) id must not empty", obj.TableName()))
+	}
+	docRef := c.conn.getDocRef(obj.TableName(), id)
 	snapshot, err := c.tx.Get(docRef)
 
 	if snapshot != nil && !snapshot.Exists() {
@@ -135,10 +120,10 @@ func (c *TransactionFirestore) IsExists(ctx context.Context, tablename, id strin
 
 // All return max 10 object, if you need more! using query instead
 //
-//	return c.All(ctx, tablename, factory)
+//	list,err := All(ctx, &Sample{})
 //
-func (c *TransactionFirestore) All(ctx context.Context, tablename string, factory func() data.Object) ([]data.Object, error) {
-	collectionRef := c.conn.getCollectionRef(tablename)
+func (c *TransactionFirestore) All(ctx context.Context, obj data.Object) ([]data.Object, error) {
+	collectionRef := c.conn.getCollectionRef(obj.TableName())
 	list := []data.Object{}
 	iter := c.tx.Documents(collectionRef.Query.Limit(data.LimitQueryDefault))
 	defer iter.Stop()
@@ -148,18 +133,17 @@ func (c *TransactionFirestore) All(ctx context.Context, tablename string, factor
 		if err == iterator.Done {
 			break
 		} else if err != nil {
-			return nil, errors.Wrap(err, "failed to iterator documents: "+errorID(tablename, ""))
+			return nil, errors.Wrapf(err, "iter(%v)", obj.TableName())
 		}
-		object := factory()
+		object := obj.Factory()
 		if object == nil {
-			return nil, errors.New("failed to create object from factory: " + errorID(tablename, ""))
+			return nil, errors.New(fmt.Sprint("%v not implement Factory()", obj.TableName()))
 		}
 
-		err = snapshot.DataTo(object)
+		_, err = snapshotToObject(object, snapshot.Ref.ID, snapshot.Ref, snapshot, err)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to convert document to object: "+errorID(tablename, ""))
+			return nil, errors.WithMessagef(err, "iter snapshotToObject(%v,%v)", obj.TableName(), snapshot.Ref.ID)
 		}
-		c.conn.snapshotToObject(tablename, snapshot.Ref, snapshot, object)
 		list = append(list, object)
 	}
 	return list, nil
@@ -234,19 +218,19 @@ func (c *TransactionFirestore) Delete(ctx context.Context, tablename, id string)
 //	c.DeleteObject(ctx, "sample", object)
 //
 func (c *TransactionFirestore) DeleteObject(ctx context.Context, tablename string, object data.Object) error {
-	if object == nil || object.GetID() == "" {
+	if object == nil || object.ID() == "" {
 		return nil
 	}
 	var docRef *firestore.DocumentRef
-	if object.GetRef() == nil {
-		docRef = c.conn.getDocRef(tablename, object.GetID())
+	if object.Ref() == nil {
+		docRef = c.conn.getDocRef(tablename, object.ID())
 	} else {
-		docRef = object.GetRef().(*firestore.DocumentRef)
+		docRef = object.Ref().(*firestore.DocumentRef)
 	}
 
 	err := c.tx.Delete(docRef)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete in transaction: "+errorID(tablename, object.GetID()))
+		return errors.Wrap(err, "failed to delete in transaction: "+errorID(tablename, object.ID()))
 	}
 	object.SetRef(nil)
 	object.SetID("")

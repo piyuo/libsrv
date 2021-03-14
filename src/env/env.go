@@ -3,9 +3,14 @@ package env
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/piyuo/libsrv/src/util"
 )
+
+var AppName = os.Getenv("NAME")
+
+var Debug = os.Getenv("DEBUG") != ""
 
 // KeyContext define key used in ctx
 //

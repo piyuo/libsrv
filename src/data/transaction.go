@@ -10,30 +10,28 @@ type Transaction interface {
 
 	// Get data object from data store, return nil if object does not exist
 	//
-	//	object, err := conn.Get(ctx, tablename, id, factory)
+	//	object, err := Get(ctx, &Sample{}, "id")
 	//
-	Get(ctx context.Context, tablename, id string, factory func() Object) (Object, error)
+	Get(ctx context.Context, obj Object, id string) (Object, error)
 
 	// Set object into data store, If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data,
-	//
 	// if object does not have id, it will created using UUID
 	//
-	//	if err := conn.Set(ctx, tablename, object); err != nil {
-	//		return err
-	//	}
+	//	object, err := Get(ctx, &Sample{}, "id")
 	//
-	Set(ctx context.Context, tablename string, object Object) error
-	// IsExists return true if object with id exist
+	Set(ctx context.Context, obj Object) error
+
+	// Exists return true if object with id exist
 	//
-	//	return conn.IsExists(ctx, tablename, id)
+	//	found,err := Exists(ctx, &Sample{}, "id")
 	//
-	IsExists(ctx context.Context, tablename, id string) (bool, error)
+	Exists(ctx context.Context, obj Object, id string) (bool, error)
 
 	// All return max 10 object, if you need more! using query instead
 	//
-	//	return conn.All(ctx, tablename, factory)
+	//	list,err := All(ctx, &Sample{})
 	//
-	All(ctx context.Context, tablename string, factory func() Object) ([]Object, error)
+	All(ctx context.Context, obj Object) ([]Object, error)
 
 	// Select return object field from data store, return nil if object does not exist
 	//
@@ -73,12 +71,6 @@ type Transaction interface {
 	//	err := conn.Clear(ctx, tablename)
 	//
 	Clear(ctx context.Context, tablename string) error
-
-	// Query create query
-	//
-	//	conn.Query(ctx, tablename, factory)
-	//
-	Query(tablename string, factory func() Object) Query
 
 	// Begin a transaction
 	//

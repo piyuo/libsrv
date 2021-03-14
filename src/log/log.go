@@ -3,11 +3,11 @@ package log
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/piyuo/libsrv/src/env"
-	"github.com/piyuo/libsrv/src/identifier"
+	"github.com/piyuo/libsrv/src/google/gerror"
+	"github.com/piyuo/libsrv/src/log/logger"
+	"github.com/pkg/errors"
 )
 
 // history keep all printed log. !Be careful this is global history include all thread log
@@ -38,63 +38,58 @@ func TestModeBackNormal() {
 	testMode = nil
 }
 
-// Level define log level
+// prepare write message to history and return information logger need
 //
-type Level int
-
-const (
-	// DEBUG print to console
-	//
-	DEBUG Level = iota
-
-	// INFO Normal but significant events, such as start up, shut down, or a configuration change.
-	//
-	INFO
-
-	// WARNING events might cause problems.
-	//
-	WARNING
-
-	// ALERT A person must take an action immediately
-	//
-	ALERT
-)
-
-var appName = os.Getenv("NAME")
-
-// getHeader return log header and user id for log
+//	message, fields := prepare(ctx, format, a...)
 //
-//	header,id := getHeader(ctx,"mail") // user-store@piyuo-m-us-sys/mail:,user-store
-//
-func getHeader(ctx context.Context, where string) (string, string) {
-	header := getLocation(where)
-	id := env.GetUserID(ctx)
-	if id != "" {
-		header = id + "@" + header
-	}
-	return header + ": ", id
-}
-
-// getLocation return the location where log happen
-//
-//	loc := getLocation("mail") // piyuo-m-us-sys/mail
-//
-func getLocation(where string) string {
-	return appName + "/" + where
-}
-
-// Print to local console, only check this log in application console log
-//
-//	here := "log_test"
-//	Print(ctx,here,"hello")
-//
-func Print(ctx context.Context, where, format string, a ...interface{}) {
-	header, _ := getHeader(ctx, where)
+func initMessage(ctx context.Context, format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	fmt.Printf("%v%v\n", header, message)
 	if history != nil {
-		history.WriteString(fmt.Sprintf("%v%v\n", header, message))
+		history.WriteString(message + "\n")
 	}
+	return message
+}
+
+// Debug only print message when os.Getenv("DEBUG") is define
+//
+//	Debug(ctx,"server start")
+//
+func Debug(ctx context.Context, format string, a ...interface{}) {
+	if testMode != nil {
+		return
+	}
+	if ctx.Err() != nil { // deadline error
+		return
+	}
+	logger.Debug(ctx, initMessage(ctx, format, a...))
+}
+
+// Info as Normal but significant events, such as start up, shut down, or a configuration change.
+//
+//	Info(ctx,"server start")
+//
+func Info(ctx context.Context, format string, a ...interface{}) {
+	if testMode != nil {
+		return
+	}
+	if ctx.Err() != nil { // deadline error
+		return
+	}
+	logger.Info(ctx, initMessage(ctx, format, a...))
+}
+
+// Warn as Warning events might cause problems.
+//
+//	Warning(ctx,"hi")
+//
+func Warn(ctx context.Context, format string, a ...interface{}) {
+	if testMode != nil {
+		return
+	}
+	if ctx.Err() != nil { // deadline error
+		return
+	}
+	logger.Warn(ctx, initMessage(ctx, format, a...))
 }
 
 // KeepHistory keep all printed log into history
@@ -130,105 +125,15 @@ func History() string {
 	return ""
 }
 
-// Info as Normal but significant events, such as start up, shut down, or a configuration change.
-//
-//	HERE := "log_test"
-//	Info(ctx,HERE,"hi")
-//
-func Info(ctx context.Context, where, message string) {
-	Log(ctx, INFO, where, message)
-}
-
-// Warning as Warning events might cause problems.
-//
-//	HERE := "log_test"
-//	Warning(ctx,HERE,"hi")
-//
-func Warning(ctx context.Context, where, message string) {
-	Log(ctx, WARNING, where, message)
-}
-
-// Alert A person must take an action immediately
-//
-//	HERE := "log_test"
-//	Critical(ctx,HERE,"hi")
-//
-func Alert(ctx context.Context, where, message string) {
-	Log(ctx, ALERT, where, message)
-}
-
-// Log message and level to server
-//
-//	here := "log_test"
-//	Log(ctx, "hello", here, WARNING)
-//
-func Log(ctx context.Context, level Level, where, message string) {
-	if testMode != nil {
-		Print(ctx, where, "%v - [TestMode]", message)
-		return
-	}
-	if ctx.Err() != nil { // deadline error
-		return
-	}
-	logger, err := NewLogger(ctx)
-	if err != nil {
-		return
-	}
-	defer logger.Close()
-	logger.Write(ctx, level, where, message)
-}
-
-// NewLogger return logger
-//
-//	logger, err := NewLogger(ctx)
-//	if err != nil {
-//		return
-//	}
-//	defer logger.Close()
-//
-func NewLogger(ctx context.Context) (Logger, error) {
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-	return NewGCPLogger(ctx)
-}
-
-// WriteError write error and stack to server
-//
-//	stack format like
-//
-//	at firstLine (a.js:3)
-//
-//	at secondLine (b.js:3)
-//
-//	err := errors.New("my error1")
-//	errID := identifier.UUID()
-//	here := "log_test"
-//	LogError(ctx,here, "hi error", stack, errID)
-//
-func WriteError(ctx context.Context, where, message, stack, errID string) {
-	errorer, err := NewErrorer(ctx)
-	if err != nil {
-		return
-	}
-	defer errorer.Close()
-	errorer.Write(ctx, where, message, stack, errID)
-}
-
 // Error log error to google cloud and return error id, return empty if error not logged
 //
 //	stack format like
-//
 //	at firstLine (a.js:3)
-//
 //	at secondLine (b.js:3)
 //
-//	err := errors.New("my error1")
-//	errID := identifier.UUID()
-//	HERE := "log_test"
-//	LogErr(ctx,HERE, err)
+//	Error(ctx, err)
 //
-func Error(ctx context.Context, where string, err error) {
+func Error(ctx context.Context, err error) {
 	if ctx.Err() != nil { // deadline error
 		return
 	}
@@ -236,29 +141,42 @@ func Error(ctx context.Context, where string, err error) {
 		return
 	}
 	if testMode != nil {
-		Print(ctx, where, "%v - [TestMode]", err.Error())
 		return
 	}
-	message := err.Error()
 	stack := beautyStack(err)
-	errID := identifier.UUID()
-	WriteError(ctx, where, message, stack, errID)
+	logger.Error(ctx, stack)
+
+	message := beautyMessage(err)
+	gerror.Write(ctx, message, stack)
 }
 
-// NewErrorer return errorer
+// CustomError write error and stack direct to database
 //
-//	errorer, err := NewErrorer(ctx)
+//	stack format like
+//	at firstLine (a.js:3)
+//	at secondLine (b.js:3)
 //
-func NewErrorer(ctx context.Context) (Errorer, error) {
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
+//	CustomError(ctx, "hi error", stack)
+//
+func CustomError(ctx context.Context, message, stack string) {
+	gerror.Write(ctx, message, stack)
+}
+
+// beautyMessage return simple message
+//
+//	message := beautyMessage(err)
+//
+func beautyMessage(err error) string {
+	cause := errors.Cause(err)
+	if cause != nil {
+		return cause.Error()
 	}
-	return NewGCPErrorer(ctx)
+	return err.Error()
 }
 
 // beautyStack return simple format stack trace
 //
-//	formatedStackFromError(err)
+//	stack := beautyStack(err)
 //
 func beautyStack(err error) string {
 	var sb strings.Builder
@@ -273,7 +191,7 @@ func beautyStack(err error) string {
 				newline := fmt.Sprintf("at %v (%v)\n", parts[0], filename)
 				sb.WriteString(newline)
 			} else {
-				//this is message, just ignore it
+				sb.WriteString(line + "\n") //this is message
 			}
 		}
 	}
@@ -282,11 +200,11 @@ func beautyStack(err error) string {
 
 // isLineUsable check line to see if we need it for debug
 //
-//	line := "/convey/doc.go:75"
-//	So(isLineUsable(line), ShouldBeFalse)
+//	line := "/jtolds/doc.go:75"
+//	usable = isLineUsable(line) //false
 //
 func isLineUsable(line string) bool {
-	notUsableKeywords := []string{"smartystreets", "jtolds", "log.go", "log_gcp.go", "net/http", "runtime.goexit", "testing.tRunner"}
+	notUsableKeywords := []string{"jtolds", "log.go", "log_gcp.go", "net/http", "runtime.goexit", "testing.tRunner"}
 	for _, keyword := range notUsableKeywords {
 		if strings.Contains(line, keyword) {
 			return false
@@ -298,7 +216,7 @@ func isLineUsable(line string) bool {
 // isLineDuplicate check current line to see if it duplicate in list
 //
 //	list := []string{"/doc.go:75", "/doc.go:75"}
-//	So(isLineDuplicate(list, 1), ShouldBeTrue)
+//	duplicate := isLineDuplicate(list, 1) // true
 //
 func isLineDuplicate(list []string, currentIndex int) bool {
 	line := list[currentIndex]
@@ -313,8 +231,7 @@ func isLineDuplicate(list []string, currentIndex int) bool {
 // extractFilename extract filename from path
 //
 // 	path := "/@v1.6.4/doc.go:75"
-//	filename := extractFileName(path)
-//	So(filename, ShouldEqual, "doc.go:75")
+//	filename := extractFileName(path) // "doc.go:75"
 //
 func extractFilename(path string) string {
 	index := strings.LastIndex(path, "/")

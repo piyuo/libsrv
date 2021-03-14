@@ -2,17 +2,31 @@ package data
 
 import "time"
 
-// Object represent single database object
+// Object is any defined object in a database that is used to store or reference data
 //
 type Object interface {
 
-	// id is object unique identifier used for other object to reference
+	// Factory create a empty object
+	//
+	//	sample := &Sample{}
+	//	sample2 = db.Factory()
+	//
+	Factory() Object
+
+	// Table name
+	//
+	//	sample := &Sample{}
+	//	tableName = db.TableName() // "Sample"
+	//
+	TableName() string
+
+	// ID is object unique identifier used for other object to reference
 	//
 	//	d := &Sample{}
 	//	err = db.Get(ctx, d)
 	//	id := d.ID()
 	//
-	GetID() string
+	ID() string
 
 	// SetID is object unique identifier used for other object to reference
 	//
@@ -26,7 +40,7 @@ type Object interface {
 	//
 	//	ref := d.Ref()
 	//
-	GetRef() interface{}
+	Ref() interface{}
 
 	// SetRef set reference which used by db implementation
 	//
@@ -34,11 +48,11 @@ type Object interface {
 	//
 	SetRef(ref interface{})
 
-	// GetCreateTime return object create time
+	// CreateTime return object create time
 	//
-	//	t := d.GetCreateTime()
+	//	t := d.CreateTime()
 	//
-	GetCreateTime() time.Time
+	CreateTime() time.Time
 
 	// SetCreateTime set object create time, create time will not change if it's not empty
 	//
@@ -46,11 +60,11 @@ type Object interface {
 	//
 	SetCreateTime(t time.Time)
 
-	// GetUpdateTime return object last update time
+	// UpdateTime return object last update time
 	//
-	//	t := d.GetUpdateTime()
+	//	t := d.UpdateTime()
 	//
-	GetUpdateTime() time.Time
+	UpdateTime() time.Time
 
 	// SetUpdateTime set object latest update time
 	//
@@ -58,11 +72,11 @@ type Object interface {
 	//
 	SetUpdateTime(t time.Time)
 
-	// GetAccountID return owner's account id
+	// AccountID return owner's account id
 	//
-	//	accountID := d.GetAccountID()
+	//	accountID := d.AccountID()
 	//
-	GetAccountID() string
+	AccountID() string
 
 	// SetAccountID set owner's account id
 	//
@@ -70,11 +84,11 @@ type Object interface {
 	//
 	SetAccountID(accountID string)
 
-	// GetAccountID return owner's user id
+	// UserID return owner's user id
 	//
-	//	userID := d.GetUserID()
+	//	userID := d.UserID()
 	//
-	GetUserID() string
+	UserID() string
 
 	// SetUserID set owner's user id
 	//
@@ -88,27 +102,27 @@ type Object interface {
 type BaseObject struct {
 	Object `firestore:"-"`
 
-	// ID is object unique identifier used for other object to reference
+	// id is object unique identifier
 	//
-	ID string `firestore:"-"`
+	id string `firestore:"-"`
 
-	// reference used by connection implementation
+	// ref use in connection implementation
 	//
-	Ref interface{} `firestore:"-"`
+	ref interface{} `firestore:"-"`
 
-	// CreateTime is object create time
+	// createTime is object create time
 	// We keep our own create time, cause database provide create time like "snapshot.CreateTime" may not use in query
 	//
-	CreateTime time.Time
+	createTime time.Time
 }
 
-// GetID return object unique identifier
+// ID return object unique identifier
 //
 //	d := &Sample{}
 //	id := d.ID()
 //
-func (c *BaseObject) GetID() string {
-	return c.ID
+func (c *BaseObject) ID() string {
+	return c.id
 }
 
 // SetID set object unique identifier
@@ -117,31 +131,31 @@ func (c *BaseObject) GetID() string {
 //	id := d.setID("uniqueID")
 //
 func (c *BaseObject) SetID(id string) {
-	c.ID = id
+	c.id = id
 }
 
-// GetRef return reference which used by db implementation
+// Ref return reference which used by db implementation
 //
 //	ref := d.Ref()
 //
-func (c *BaseObject) GetRef() interface{} {
-	return c.Ref
+func (c *BaseObject) Ref() interface{} {
+	return c.ref
 }
 
 // SetRef set reference which used by db implementation
 //
-//	d.setRef(ref)
+//	d.SetRef(ref)
 //
 func (c *BaseObject) SetRef(ref interface{}) {
-	c.Ref = ref
+	c.ref = ref
 }
 
-// GetCreateTime return object create time
+// CreateTime return object create time
 //
-//	t := d.GetCreateTime()
+//	t := d.CreateTime()
 //
-func (c *BaseObject) GetCreateTime() time.Time {
-	return c.CreateTime
+func (c *BaseObject) CreateTime() time.Time {
+	return c.createTime
 }
 
 // SetCreateTime set object create time
@@ -149,14 +163,14 @@ func (c *BaseObject) GetCreateTime() time.Time {
 //	d.SetCreateTime(time.Now().UTC())
 //
 func (c *BaseObject) SetCreateTime(t time.Time) {
-	if c.CreateTime.IsZero() {
-		c.CreateTime = t
+	if c.createTime.IsZero() {
+		c.createTime = t
 	}
 }
 
-// GetUserID return owner's user id
+// UserID return owner's user id
 //
-func (c *BaseObject) GetUserID() string {
+func (c *BaseObject) UserID() string {
 	return ""
 }
 
@@ -165,9 +179,9 @@ func (c *BaseObject) GetUserID() string {
 func (c *BaseObject) SetUserID(userID string) {
 }
 
-// GetAccountID return owner's account id
+// AccountID return owner's account id
 //
-func (c *BaseObject) GetAccountID() string {
+func (c *BaseObject) AccountID() string {
 	return ""
 }
 
@@ -178,11 +192,11 @@ func (c *BaseObject) GetAccountID() string {
 func (c *BaseObject) SetAccountID(accountID string) {
 }
 
-// GetUpdateTime return object last update time
+// UpdateTime return object last update time
 //
-//	t := d.GetUpdateTime()
+//	t := d.UpdateTime()
 //
-func (c *BaseObject) GetUpdateTime() time.Time {
+func (c *BaseObject) UpdateTime() time.Time {
 	return time.Time{}
 }
 
@@ -198,26 +212,26 @@ func (c *BaseObject) SetUpdateTime(t time.Time) {
 type DomainObject struct {
 	BaseObject
 
-	// UpdateTime is object last update time
+	// updateTime is object last update time
 	// We keep our own update time, cause database provide update time like "snapshot.UpdateTime" may not use in query
 	//
-	UpdateTime time.Time
+	updateTime time.Time
 
-	// AccountID is owner's account id
+	// accountID is owner's account id
 	//
-	AccountID string
+	accountID string
 
-	// UserID is owner's user id
+	// userID is owner's user id
 	//
-	UserID string
+	userID string
 }
 
-// GetUserID return owner's user id
+// UserID return owner's user id
 //
-//	userID := d.GetUserID()
+//	userID := d.UserID()
 //
-func (c *DomainObject) GetUserID() string {
-	return c.UserID
+func (c *DomainObject) UserID() string {
+	return c.userID
 }
 
 // SetUserID set owner's user id
@@ -225,15 +239,15 @@ func (c *DomainObject) GetUserID() string {
 //	d.SetUserID(userID)
 //
 func (c *DomainObject) SetUserID(userID string) {
-	c.UserID = userID
+	c.userID = userID
 }
 
-// GetAccountID return owner's account id
+// AccountID return owner's account id
 //
-//	accountID := d.GetAccountID()
+//	accountID := d.AccountID()
 //
-func (c *DomainObject) GetAccountID() string {
-	return c.AccountID
+func (c *DomainObject) AccountID() string {
+	return c.accountID
 }
 
 // SetAccountID set owner's account id
@@ -241,15 +255,15 @@ func (c *DomainObject) GetAccountID() string {
 //	d.SetAccountID(accountID)
 //
 func (c *DomainObject) SetAccountID(accountID string) {
-	c.AccountID = accountID
+	c.accountID = accountID
 }
 
-// GetUpdateTime return object last update time
+// UpdateTime return object last update time
 //
-//	t := d.GetUpdateTime()
+//	t := d.UpdateTime()
 //
-func (c *DomainObject) GetUpdateTime() time.Time {
-	return c.UpdateTime
+func (c *DomainObject) UpdateTime() time.Time {
+	return c.updateTime
 }
 
 // SetUpdateTime set object latest update time
@@ -257,5 +271,5 @@ func (c *DomainObject) GetUpdateTime() time.Time {
 //	d.SetUpdateTime(time.Now().UTC())
 //
 func (c *DomainObject) SetUpdateTime(t time.Time) {
-	c.UpdateTime = t
+	c.updateTime = t
 }

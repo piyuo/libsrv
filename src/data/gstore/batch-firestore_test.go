@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBatchDeleteObjectTest(t *testing.T) {
+func TestGstoreBatchDeleteObjectTest(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	g, err := NewSampleGlobalDB(ctx)
@@ -26,12 +26,10 @@ func TestBatchDeleteObjectTest(t *testing.T) {
 
 	count, err := table.Query().Count(ctx)
 	assert.Equal(0, count)
-	assert.False(g.InBatch())
 
-	g.BatchBegin()
-	assert.True(g.InBatch())
-	table.Set(ctx, sample1) //batch mode do not return error
-	table.Set(ctx, sample2)
+	batch := g.Batch()
+	batch.Set(ctx, sample1) //batch mode do not return error
+	batch.Set(ctx, sample2)
 	err = g.BatchCommit(ctx)
 	assert.Nil(err)
 	list, err := table.Query().Execute(ctx)
@@ -82,7 +80,7 @@ func TestBatchDeleteObjectTest(t *testing.T) {
 	assert.Equal(0, count)
 }
 
-func TestBatchDeleteTest(t *testing.T) {
+func TestGstoreBatchDeleteTest(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	g, err := NewSampleGlobalDB(ctx)

@@ -2,6 +2,7 @@ package gstore
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"cloud.google.com/go/firestore"
@@ -117,20 +118,11 @@ func errorID(tablename, name string) string {
 	return id
 }
 
-// snapshotToObject convert document snapshot to object
+// snapshotToObject2 convert document snapshot to object
 //
 //	c.snapshotToObject(tablename, docRef, snapshot, object)
 //
-func (c *ConnectionFirestore) snapshotToObject(tablename string, docRef *firestore.DocumentRef, snapshot *firestore.DocumentSnapshot, object data.Object) error {
-	if snapshot == nil {
-		return errors.New("snapshot can not be nil: " + errorID(tablename, ""))
-	}
-
-	if err := snapshot.DataTo(object); err != nil {
-		return errors.Wrap(err, "failed to convert document to object: "+errorID(tablename, object.GetID()))
-	}
-	object.SetRef(docRef)
-	object.SetID(docRef.ID)
+func snapshotToObject2(tablename string, docRef *firestore.DocumentRef, snapshot *firestore.DocumentSnapshot, object data.Object) error {
 	return nil
 }
 
@@ -220,83 +212,77 @@ func (c *ConnectionFirestore) getDocRef(tablename, id string) *firestore.Documen
 	return c.getCollectionRef(tablename).Doc(id)
 }
 
-// Get data object from table, return nil if object does not exist
-//
-//	factory := func() Object {
-//		return &Sample{}
-//	}
-//	object, err := c.Get(ctx, "sample", id, factory)
-//
-func (c *ConnectionFirestore) Get(ctx context.Context, tablename, id string, factory func() data.Object) (data.Object, error) {
-	if id == "" {
-		return nil, nil
-	}
-	docRef := c.getDocRef(tablename, id)
-	snapshot, err := docRef.Get(ctx)
-
+func snapshotToObject(obj data.Object, id string, docRef *firestore.DocumentRef, snapshot *firestore.DocumentSnapshot, err error) (data.Object, error) {
 	if snapshot != nil && !snapshot.Exists() {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get document: "+errorID(tablename, id))
+		return nil, errors.Wrapf(err, "get snapshot from table %v,%v", obj.TableName(), id)
 	}
 
-	object := factory()
-	if object == nil {
-		return nil, errors.New("failed to create object from factory: " + errorID(tablename, id))
+	if err := snapshot.DataTo(obj); err != nil {
+		return nil, errors.Wrapf(err, "make snapshot to object %v,%v", obj.TableName(), id)
 	}
+	obj.SetRef(docRef)
+	obj.SetID(docRef.ID)
+	return obj, nil
+}
 
-	err = c.snapshotToObject(tablename, docRef, snapshot, object)
-	if err != nil {
-		return nil, err
+// Get data object from table, return nil if object does not exist
+//
+//	object, err := Get(ctx, &Sample{}, "id")
+//
+func (c *ConnectionFirestore) Get(ctx context.Context, obj data.Object, id string) (data.Object, error) {
+	if obj == nil {
+		return nil, errors.New(fmt.Sprintf("obj must not nil %v", id))
 	}
-	return object, nil
+	if id == "" {
+		return nil, errors.New(fmt.Sprintf("id must not empty %v", obj.TableName()))
+	}
+	docRef := c.getDocRef(obj.TableName(), id)
+	snapshot, err := docRef.Get(ctx)
+	return snapshotToObject(obj, id, docRef, snapshot, err)
 }
 
 // Set object into table, If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, if object does not have id, it will created using UUID
 //
-//	if err := c.Set(ctx, tablename, object); err != nil {
-//		return err
-//	}
+//	 err := Set(ctx, object)
 //
-func (c *ConnectionFirestore) Set(ctx context.Context, tablename string, object data.Object) error {
-	if object == nil {
-		return errors.New("object can not be nil: " + errorID(tablename, ""))
+func (c *ConnectionFirestore) Set(ctx context.Context, obj data.Object) error {
+	if obj == nil {
+		return errors.New("Set() obj must not nil")
 	}
 	var docRef *firestore.DocumentRef
-	if object.GetRef() == nil { // this is new object
-		if object.GetID() == "" {
-			object.SetID(identifier.UUID())
+	if obj.Ref() == nil { // new object
+		if obj.ID() == "" {
+			obj.SetID(identifier.UUID())
 		}
-		docRef = c.getDocRef(tablename, object.GetID())
-		object.SetRef(docRef)
-	} else {
-		docRef = object.GetRef().(*firestore.DocumentRef)
+		docRef = c.getDocRef(obj.TableName(), obj.ID())
+		obj.SetRef(docRef)
+	} else { // object already exist
+		docRef = obj.Ref().(*firestore.DocumentRef)
 	}
 
-	var err error
-	if c.batch != nil {
-		c.batch.Set(docRef, object)
-	} else {
-		_, err = docRef.Set(ctx, object)
-	}
+	_, err := docRef.Set(ctx, obj)
 	if err != nil {
-		return errors.Wrap(err, "failed to set object: "+errorID(tablename, object.GetID()))
+		return errors.Wrapf(err, "Set(%v,%v)", errorID(obj.TableName(), obj.ID()))
 	}
 	return nil
 }
 
-// IsExists return true if object with id exist
+// Exists return true if object with id exist
 //
-//	return c.IsExists(ctx, tablename, id)
+//	found,err := Exists(ctx, &Sample{}, "id")
 //
-func (c *ConnectionFirestore) IsExists(ctx context.Context, tablename, id string) (bool, error) {
-	if id == "" {
-		return false, nil
+func (c *ConnectionFirestore) Exists(ctx context.Context, obj data.Object, id string) (bool, error) {
+	if obj == nil {
+		return false, errors.New("Exists() obj must not nil")
 	}
-	docRef := c.getDocRef(tablename, id)
+	if id == "" {
+		return false, errors.New(fmt.Sprintf("Exists(%v) id must not empty", obj.TableName()))
+	}
+	docRef := c.getDocRef(obj.TableName(), id)
 	snapshot, err := docRef.Get(ctx)
-
 	if snapshot != nil && !snapshot.Exists() {
 		return false, nil
 	}
@@ -308,10 +294,10 @@ func (c *ConnectionFirestore) IsExists(ctx context.Context, tablename, id string
 
 // All return max 10 object, if you need more! using query instead
 //
-//	return c.All(ctx, tablename, factory)
+//	list,err := All(ctx, &Sample{})
 //
-func (c *ConnectionFirestore) All(ctx context.Context, tablename string, factory func() data.Object) ([]data.Object, error) {
-	collectionRef := c.getCollectionRef(tablename)
+func (c *ConnectionFirestore) All(ctx context.Context, obj data.Object) ([]data.Object, error) {
+	collectionRef := c.getCollectionRef(obj.TableName())
 	list := []data.Object{}
 	iter := collectionRef.Limit(data.LimitQueryDefault).Documents(ctx)
 	defer iter.Stop()
@@ -321,18 +307,17 @@ func (c *ConnectionFirestore) All(ctx context.Context, tablename string, factory
 		if err == iterator.Done {
 			break
 		} else if err != nil {
-			return nil, errors.Wrap(err, "failed to iterator documents: "+errorID(tablename, ""))
+			return nil, errors.Wrapf(err, "iter(%v)", obj.TableName())
 		}
-		object := factory()
+		object := obj.Factory()
 		if object == nil {
-			return nil, errors.New("failed to create object from factory: " + errorID(tablename, ""))
+			return nil, errors.New(fmt.Sprint("%v not implement Factory()", obj.TableName()))
 		}
 
-		err = snapshot.DataTo(object)
+		_, err = snapshotToObject(object, snapshot.Ref.ID, snapshot.Ref, snapshot, err)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to convert document to object: "+errorID(tablename, ""))
+			return nil, errors.WithMessagef(err, "iter snapshotToObject(%v,%v)", obj.TableName(), snapshot.Ref.ID)
 		}
-		c.snapshotToObject(tablename, snapshot.Ref, snapshot, object)
 		list = append(list, object)
 	}
 	return list, nil
@@ -367,12 +352,6 @@ func (c *ConnectionFirestore) Select(ctx context.Context, tablename, id, field s
 //
 func (c *ConnectionFirestore) Update(ctx context.Context, tablename, id string, fields map[string]interface{}) error {
 	docRef := c.getDocRef(tablename, id)
-
-	if c.batch != nil {
-		c.batch.Set(docRef, fields, firestore.MergeAll)
-		return nil
-	}
-
 	_, err := docRef.Set(ctx, fields, firestore.MergeAll)
 	if err != nil {
 		return errors.Wrap(err, "failed to update field: "+errorID(tablename, id))
@@ -386,14 +365,6 @@ func (c *ConnectionFirestore) Update(ctx context.Context, tablename, id string, 
 //
 func (c *ConnectionFirestore) Increment(ctx context.Context, tablename, id, field string, value int) error {
 	docRef := c.getDocRef(tablename, id)
-
-	if c.batch != nil {
-		c.batch.Update(docRef, []firestore.Update{
-			{Path: field, Value: firestore.Increment(value)},
-		})
-		return nil
-	}
-
 	_, err := docRef.Update(ctx, []firestore.Update{
 		{Path: field, Value: firestore.Increment(value)},
 	})
@@ -409,33 +380,9 @@ func (c *ConnectionFirestore) Increment(ctx context.Context, tablename, id, fiel
 //
 func (c *ConnectionFirestore) Delete(ctx context.Context, tablename, id string) error {
 	docRef := c.getDocRef(tablename, id)
-	if c.batch != nil {
-		c.batch.Delete(docRef)
-		return nil
-	}
-
 	_, err := docRef.Delete(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete: "+errorID(tablename, id))
-	}
-	return nil
-}
-
-// DeleteBatch delete list of id use batch mode, no error if id not exist
-//
-//	c.DeleteBatch(ctx, dt.tablename, ids)
-//
-func (c *ConnectionFirestore) DeleteBatch(ctx context.Context, tablename string, ids []string) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	c.BatchBegin()
-	for _, id := range ids {
-		c.Delete(ctx, tablename, id)
-	}
-	if err := c.BatchCommit(ctx); err != nil {
-		return err
 	}
 	return nil
 }
@@ -445,24 +392,19 @@ func (c *ConnectionFirestore) DeleteBatch(ctx context.Context, tablename string,
 //	c.DeleteObject(ctx, "sample", object)
 //
 func (c *ConnectionFirestore) DeleteObject(ctx context.Context, tablename string, object data.Object) error {
-	if object == nil || object.GetID() == "" {
+	if object == nil || object.ID() == "" {
 		return nil
 	}
 	var docRef *firestore.DocumentRef
-	if object.GetRef() == nil {
-		docRef = c.getDocRef(tablename, object.GetID())
+	if object.Ref() == nil {
+		docRef = c.getDocRef(tablename, object.ID())
 	} else {
-		docRef = object.GetRef().(*firestore.DocumentRef)
+		docRef = object.Ref().(*firestore.DocumentRef)
 	}
 
-	if c.batch != nil {
-		c.batch.Delete(docRef)
-
-	} else {
-		_, err := docRef.Delete(ctx)
-		if err != nil {
-			return errors.Wrap(err, "failed to delete: "+errorID(tablename, object.GetID()))
-		}
+	_, err := docRef.Delete(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete: "+errorID(tablename, object.ID()))
 	}
 	object.SetRef(nil)
 	object.SetID("")
@@ -522,6 +464,22 @@ func (c *ConnectionFirestore) Query(tablename string, factory func() data.Object
 		query:     c.getCollectionRef(tablename).Query,
 		conn:      c,
 		tablename: tablename,
+	}
+}
+
+// CreateTransaction create transaction
+//
+func (c *ConnectionFirestore) CreateTransaction() data.Transaction {
+	return &TransactionFirestore{
+		conn: c,
+	}
+}
+
+// CreateBatch create batch
+//
+func (c *ConnectionFirestore) CreateBatch() data.Batch {
+	return &BatchFirestore{
+		conn: c,
 	}
 }
 

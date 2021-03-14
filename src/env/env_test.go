@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetIPLocale(t *testing.T) {
+func TestEnvGetIPLocale(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(GetRequest(ctx))
@@ -21,7 +22,8 @@ func TestGetIPLocale(t *testing.T) {
 	assert.Equal(req, req2)
 }
 
-func TestGetIPAndLocale(t *testing.T) {
+func TestEnvGetIPAndLocale(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	ctx := context.Background()
@@ -33,7 +35,8 @@ func TestGetIPAndLocale(t *testing.T) {
 	assert.Equal("::1", GetIP(ctx))
 }
 
-func TestUserAgent(t *testing.T) {
+func TestEnvUserAgent(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	str := GetUserAgentString(ctx)
@@ -55,7 +58,8 @@ func TestUserAgent(t *testing.T) {
 	assert.Equal("iPhone,iOS 7.0,Safari 6.0", str)
 }
 
-func TestUserID(t *testing.T) {
+func TestEnvUserID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	userID := GetUserID(ctx)
@@ -65,7 +69,8 @@ func TestUserID(t *testing.T) {
 	assert.Equal("id", userID)
 }
 
-func TestAccountID(t *testing.T) {
+func TestEnvAccountID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	accountID := GetAccountID(ctx)

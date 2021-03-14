@@ -139,6 +139,14 @@ type Sample struct {
 	Obj     *PlainObject
 }
 
+func (c *Sample) Factory() data.Object {
+	return &Sample{}
+}
+
+func (c *Sample) TableName() string {
+	return "Sample"
+}
+
 // SampleCoders  represent collection of code
 //
 type SampleCoders struct {
