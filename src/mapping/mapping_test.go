@@ -11,7 +11,7 @@ import (
 func TestMappingToString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	m := map[string]string{
+	m := map[string]interface{}{
 		"a": "1",
 		"b": "2",
 	}
@@ -26,7 +26,7 @@ func TestMappingToString(t *testing.T) {
 func TestMappingToAndFromString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	m := map[string]string{}
+	m := map[string]interface{}{}
 	s := ToString(m)
 	assert.Empty(s)
 

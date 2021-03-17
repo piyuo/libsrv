@@ -9,21 +9,21 @@ import (
 
 // ToString convert map to string using key value pair
 //
-//	m := map[string]string{
+//	m := map[string]interface{}{
 //		"a": "1",
 //		"b": "2",
 //	}
 //	s := ToString(m)
 //
 //
-func ToString(m map[string]string) string {
+func ToString(m map[string]interface{}) string {
 	if len(m) == 0 {
 		return ""
 	}
 
 	b := new(bytes.Buffer)
 	for key, value := range m {
-		fmt.Fprintf(b, "%s=%s&", key, value)
+		fmt.Fprintf(b, "%s=%v&", key, value)
 	}
 	str := b.String()
 	str = str[0 : len(str)-1]
@@ -34,9 +34,9 @@ func ToString(m map[string]string) string {
 //
 //	m2 := FromString(s)
 //
-func FromString(str string) map[string]string {
+func FromString(str string) map[string]interface{} {
 	ss := strings.Split(str, "&")
-	m := make(map[string]string)
+	m := make(map[string]interface{})
 	for _, pair := range ss {
 		if pair != "" {
 			z := strings.Split(pair, "=")

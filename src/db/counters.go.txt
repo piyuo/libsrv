@@ -1,0 +1,11 @@
+package db
+
+// Counters is collection of counter
+//
+type Counters struct {
+	Client Client
+
+	//TableName is counter table name
+	//
+	TableName string
+}

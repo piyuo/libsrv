@@ -1,0 +1,11 @@
+package db
+
+// Serials is collection of serial
+//
+type Serials struct {
+	Client Client
+
+	//TableName is serial table name
+	//
+	TableName string
+}

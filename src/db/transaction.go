@@ -1,0 +1,80 @@
+package db
+
+import (
+	"context"
+
+	"cloud.google.com/go/firestore"
+)
+
+// Transaction define transaction operation
+//
+type Transaction interface {
+
+	// Get data object from table, return nil if object does not exist
+	//
+	//	object, err := Get(ctx, &Sample{}, "id")
+	//
+	Get(ctx context.Context, obj Object, id string) (Object, error)
+
+	// Exists return true if object with id exist
+	//
+	//	found,err := Exists(ctx, &Sample{}, "id")
+	//
+	Exists(ctx context.Context, obj Object, id string) (bool, error)
+
+	// All return max 10 object, if you need more! using query instead
+	//
+	//	list,err := All(ctx, &Sample{})
+	//
+	All(ctx context.Context, obj Object) ([]Object, error)
+
+	// Select return object field from data store, return nil if object does not exist
+	//
+	//	return Select(ctx, &Sample{}, id, field)
+	//
+	Select(ctx context.Context, obj Object, id, field string) (interface{}, error)
+
+	// Query create query
+	//
+	//	c.Query(ctx, &Sample{}).Execute(ctx)
+	//
+	Query(obj Object) Query
+
+	// Set object into table, If the document not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, if object does not have id, it will created using UUID
+	//
+	//	 err := Set(ctx, object)
+	//
+	Set(ctx context.Context, obj Object) error
+
+	// Update partial object field, create new one if object does not exist, this function is significant slow than Set()
+	//
+	//	err = Update(ctx, Sample, map[string]interface{}{
+	//		"desc": "hi",
+	//	})
+	//
+	Update(ctx context.Context, obj Object, fields map[string]interface{}) error
+
+	// Increment value on object field, return error if object does not exist
+	//
+	//	err := Increment(ctx,sample, "Value", 2)
+	//
+	Increment(ctx context.Context, obj Object, field string, value int) error
+
+	// Delete object, no error if id not exist
+	//
+	//	Delete(ctx, sample)
+	//
+	Delete(ctx context.Context, obj Object) error
+
+	// DeleteCollection delete document in collection. delete max doc count. return true if no doc left in collection
+	//
+	//	cleared, err := DeleteCollection(ctx, &Sample{}, 50, iter)
+	//
+	DeleteCollection(ctx context.Context, obj Object, max int, collectionRef *firestore.CollectionRef) (bool, error)
+
+	// Clear delete all document in collection. try 10 batch each batch only delete document specific in max. return true if collection is cleared
+	//
+	//	cleared, err := Clear(ctx, &Sample{}, 50)
+	//
+	Clear(ctx context.Context, obj Object, max int) (bool, error)
+}
