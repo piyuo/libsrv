@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/src/google/gaccount"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
@@ -24,11 +23,8 @@ func shutdown() {
 	gaccount.UseTestCredential(false)
 }
 
-func TestCleanTest(t *testing.T) {
-	assert := assert.New(t)
+func BenchmarkGdbClean(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
-
-	_, err := client.Clear(ctx, &Sample{}, 100)
-	assert.Nil(err)
+	client.Clear(ctx, &Sample{}, 100)
 }

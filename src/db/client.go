@@ -9,14 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TransactionFunc define a transaction function
-//
-type TransactionFunc func(ctx context.Context, tx Transaction) error
-
-// BatchFunc define a batch function
-//
-type BatchFunc func(ctx context.Context, bc Batch) error
-
 // Client define how to connect and manipulate document database
 //
 type Client interface {
@@ -97,7 +89,7 @@ type Client interface {
 	//
 	Transaction(ctx context.Context, f TransactionFunc) error
 
-	// Batch start a batch operation
+	// Batch start a batch operation. batch won't be commit if there is no batch operation like set/update/delete been called
 	//
 	//	err := Batch(ctx, func(ctx context.Context,bc db.Batch) error {
 	//		return nil

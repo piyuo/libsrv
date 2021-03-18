@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+// TransactionFunc define a transaction function
+//
+type TransactionFunc func(ctx context.Context, tx Transaction) error
+
 // Transaction define transaction operation
 //
 type Transaction interface {

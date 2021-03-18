@@ -16,9 +16,13 @@ type BatchFirestore struct {
 	//
 	client *ClientFirestore
 
-	//batch is curenet batch, it is nil if not in batch
+	// batch is curenet batch, it is nil if not in batch
 	//
 	batch *firestore.WriteBatch
+
+	// hasSomethingToCommit set to true when batch operation has been called like set/update/delete
+	//
+	hasSomethingToCommit bool
 }
 
 // Set object into table, If the document not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, if object does not have id, it will created using UUID
@@ -32,6 +36,7 @@ func (c *BatchFirestore) Set(ctx context.Context, obj db.Object) error {
 	c.client.BaseClient.BeforeSet(ctx, obj)
 	docRef := c.client.refFromObj(ctx, obj)
 	c.batch.Set(docRef, obj)
+	c.hasSomethingToCommit = true
 	return nil
 }
 
@@ -47,6 +52,7 @@ func (c *BatchFirestore) Update(ctx context.Context, obj db.Object, fields map[s
 	}
 	docRef := c.client.getDocRef(obj.Collection(), obj.ID())
 	c.batch.Set(docRef, fields, firestore.MergeAll)
+	c.hasSomethingToCommit = true
 	return nil
 }
 
@@ -62,6 +68,7 @@ func (c *BatchFirestore) Increment(ctx context.Context, obj db.Object, field str
 	c.batch.Update(docRef, []firestore.Update{
 		{Path: field, Value: firestore.Increment(value)},
 	})
+	c.hasSomethingToCommit = true
 	return nil
 }
 
@@ -75,6 +82,7 @@ func (c *BatchFirestore) Delete(ctx context.Context, obj db.Object) error {
 	}
 	docRef := c.client.objDeleteRef(obj)
 	c.batch.Delete(docRef)
+	c.hasSomethingToCommit = true
 	return nil
 }
 
@@ -91,6 +99,9 @@ func (c *BatchFirestore) DeleteList(ctx context.Context, obj db.Object, list []s
 		obj.SetID(id)
 		c.Delete(ctx, obj)
 	}
+	if len(list) > 0 {
+		c.hasSomethingToCommit = true
+	}
 	obj.SetID("")
 	return nil
 }
@@ -101,4 +112,5 @@ func (c *BatchFirestore) DeleteList(ctx context.Context, obj db.Object, list []s
 //
 func (c *BatchFirestore) DeleteRef(ref *firestore.DocumentRef) {
 	c.batch.Delete(ref)
+	c.hasSomethingToCommit = true
 }

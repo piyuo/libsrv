@@ -33,29 +33,31 @@ func (c *ClientFirestore) Close() {
 	}
 }
 
-// Batch start a batch operation
+// Batch start a batch operation. batch won't be commit if there is no batch operation like set/update/delete been called
 //
 //	err := Batch(ctx, func(ctx context.Context,bc db.Batch) error {
 //		return nil
 //	})
 //
 func (c *ClientFirestore) Batch(ctx context.Context, f db.BatchFunc) error {
-	batch := c.firestoreClient.Batch()
-	bc := &BatchFirestore{
+	native := c.firestoreClient.Batch()
+	batch := &BatchFirestore{
 		client: c,
-		batch:  batch,
+		batch:  native,
 	}
-	err := f(ctx, bc)
+
+	err := f(ctx, batch)
 	if err != nil {
 		return errors.Wrapf(err, "run batch func")
 	}
 
-	_, err = batch.Commit(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "commit batch")
+	if batch.hasSomethingToCommit {
+		_, err = native.Commit(ctx)
+		if err != nil {
+			return errors.Wrapf(err, "commit batch")
+		}
 	}
-	return err
-
+	return nil
 }
 
 // Transaction start a transaction

@@ -6,6 +6,10 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
+// BatchFunc define a batch function
+//
+type BatchFunc func(ctx context.Context, bc Batch) error
+
 // Batch define batch operation
 //
 type Batch interface {
