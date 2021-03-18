@@ -4,23 +4,33 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/google/gaccount"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDBInCanceledContext(t *testing.T) {
+func TestGdb(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	cred, err := gaccount.GlobalCredential(ctx)
+	assert.NotNil(err)
+
+	client, err := NewClient(ctx, cred)
+	assert.Nil(err)
+	assert.NotNil(client)
+}
+
+func TestGdbInCanceledContext(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	ctxCanceled := util.CanceledCtx()
 
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	assert.NotNil(g.GetConnection())
+	cred, err := gaccount.GlobalCredential(ctx)
+	assert.NotNil(err)
 
-	err = g.Transaction(ctxCanceled, func(ctx context.Context) error {
-		return nil
-	})
+	client, err := NewClient(ctxCanceled, cred)
 	assert.NotNil(err)
-	err = g.BatchCommit(ctxCanceled)
-	assert.NotNil(err)
+	assert.Nil(client)
 }

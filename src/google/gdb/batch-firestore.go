@@ -26,7 +26,7 @@ type BatchFirestore struct {
 //	 err := Set(ctx, object)
 //
 func (c *BatchFirestore) Set(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.Check(ctx, obj, false); err != nil {
 		return err
 	}
 	c.client.BaseClient.BeforeSet(ctx, obj)

@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-
-	"cloud.google.com/go/firestore"
 )
 
 // Transaction define transaction operation
@@ -22,11 +20,11 @@ type Transaction interface {
 	//
 	Exists(ctx context.Context, obj Object, id string) (bool, error)
 
-	// All return max 10 object, if you need more! using query instead
+	// List return object list, use max to specific return object count
 	//
-	//	list,err := All(ctx, &Sample{})
+	//	list,err := List(ctx, &Sample{},10)
 	//
-	All(ctx context.Context, obj Object) ([]Object, error)
+	List(ctx context.Context, obj Object, max int) ([]Object, error)
 
 	// Select return object field from data store, return nil if object does not exist
 	//
@@ -65,12 +63,6 @@ type Transaction interface {
 	//	Delete(ctx, sample)
 	//
 	Delete(ctx context.Context, obj Object) error
-
-	// DeleteCollection delete document in collection. delete max doc count. return true if no doc left in collection
-	//
-	//	cleared, err := DeleteCollection(ctx, &Sample{}, 50, iter)
-	//
-	DeleteCollection(ctx context.Context, obj Object, max int, collectionRef *firestore.CollectionRef) (bool, error)
 
 	// Clear delete all document in collection. try 10 batch each batch only delete document specific in max. return true if collection is cleared
 	//

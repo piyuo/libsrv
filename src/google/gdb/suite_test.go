@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/piyuo/libsrv/src/gaccount"
+	"github.com/piyuo/libsrv/src/google/gaccount"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,20 +27,8 @@ func shutdown() {
 func TestCleanTest(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
+	client := sampleClient()
+
+	_, err := client.Clear(ctx, &Sample{}, 100)
 	assert.Nil(err)
-	defer g.Close()
-
-	table := g.SampleTable()
-	table.Clear(ctx)
-
-	counters := g.Counters()
-	counter := counters.SampleCounter()
-	counter.Clear(ctx)
-
-	coders := g.Coders()
-	coder := coders.SampleCoder()
-	coder.Clear(ctx)
-
-	g.SampleTable().Clear(ctx)
 }

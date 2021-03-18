@@ -181,7 +181,7 @@ func (c *BaseClient) BeforeSet(ctx context.Context, obj Object) {
 	}
 
 	t := time.Now().UTC()
-	obj.SetCreateTime(t) // create time will not change if it's not empty
+	// create time will set by database
 	obj.SetUpdateTime(t)
 
 	accountID := env.GetAccountID(ctx)

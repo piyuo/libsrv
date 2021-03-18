@@ -2,7 +2,6 @@ package gdb
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"cloud.google.com/go/firestore"
@@ -150,7 +149,7 @@ func iterObjects(obj db.Object, iter *firestore.DocumentIterator) ([]db.Object, 
 		}
 		newObj := obj.Factory()
 		if newObj == nil {
-			return nil, errors.New(fmt.Sprint("%v not implement Factory()", obj.Collection()))
+			return nil, errors.New(obj.Collection() + " not implement Factory()")
 		}
 
 		_, err = snapshotToObject(newObj, snapshot.Ref, snapshot, err)
@@ -270,7 +269,7 @@ func (c *ClientFirestore) Query(obj db.Object) db.Query {
 //	 err := Set(ctx, object)
 //
 func (c *ClientFirestore) Set(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.Check(ctx, obj, false); err != nil {
 		return err
 	}
 	c.BaseClient.BeforeSet(ctx, obj)
@@ -371,7 +370,7 @@ func (c *ClientFirestore) DeleteCollection(ctx context.Context, max int, iter *f
 //	cleared, err := Clear(ctx, &Sample{}, 50)
 //
 func (c *ClientFirestore) Clear(ctx context.Context, obj db.Object, max int) (bool, error) {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.Check(ctx, obj, false); err != nil {
 		return false, err
 	}
 	collectionRef := c.getCollectionRef(obj.Collection())

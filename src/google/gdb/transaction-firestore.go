@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
-	"github.com/piyuo/libsrv/src/data"
 	"github.com/piyuo/libsrv/src/db"
 	"github.com/piyuo/libsrv/src/mapping"
 	"github.com/pkg/errors"
@@ -15,7 +14,7 @@ import (
 // TransactionFirestore implement firestore transaction
 //
 type TransactionFirestore struct {
-	data.Transaction
+	db.Transaction
 
 	// client is gdb connection
 	//
@@ -58,16 +57,16 @@ func (c *TransactionFirestore) Exists(ctx context.Context, obj db.Object, id str
 	return snapshotExists(obj, id, snapshot, err)
 }
 
-// All return max 10 object, if you need more! using query instead
+// List return object list, use max to specific return object count
 //
-//	list,err := All(ctx, &Sample{})
+//	list,err := List(ctx, &Sample{},10)
 //
-func (c *TransactionFirestore) All(ctx context.Context, obj db.Object) ([]data.Object, error) {
+func (c *TransactionFirestore) List(ctx context.Context, obj db.Object, max int) ([]db.Object, error) {
 	if err := db.Check(ctx, obj, false); err != nil {
 		return nil, err
 	}
 	collectionRef := c.client.getCollectionRef(obj.Collection())
-	iter := c.tx.Documents(collectionRef.Query.Limit(data.LimitQueryDefault))
+	iter := c.tx.Documents(collectionRef.Query.Limit(max))
 	defer iter.Stop()
 	return iterObjects(obj, iter)
 }
@@ -108,7 +107,7 @@ func (c *TransactionFirestore) Query(obj db.Object) db.Query {
 //	 err := Set(ctx, object)
 //
 func (c *TransactionFirestore) Set(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.Check(ctx, obj, false); err != nil {
 		return err
 	}
 	c.client.BaseClient.BeforeSet(ctx, obj)
@@ -203,7 +202,7 @@ func (c *TransactionFirestore) DeleteCollection(ctx context.Context, obj db.Obje
 //	cleared, err := Clear(ctx, &Sample{}, 50)
 //
 func (c *TransactionFirestore) Clear(ctx context.Context, obj db.Object, max int) (bool, error) {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.Check(ctx, obj, false); err != nil {
 		return false, err
 	}
 	collectionRef := c.client.getCollectionRef(obj.Collection())

@@ -2,97 +2,68 @@ package gdb
 
 import (
 	"context"
-	"strconv"
 	"testing"
 
-	"github.com/piyuo/libsrv/src/data"
-	"github.com/piyuo/libsrv/src/gaccount"
-	"github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFirestoreNewDB(t *testing.T) {
+func TestGdbObjectWithoutFactory(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := gaccount.GlobalCredential(ctx)
-	assert.Nil(err)
-	db, err := firestoreCreateConnection(cred)
-	defer db.Close()
-	assert.Nil(err)
-	assert.NotNil(db)
+	client := sampleClient()
+	sampleNoFactory := &SampleNoFactory{}
+	err := client.Set(ctx, sampleNoFactory)
+	assert.NotNil(err)
 }
 
-func TestFirestoreGlobalDB(t *testing.T) {
+func TestGdbClientCRUD(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	conn, err := ConnectGlobalFirestore(ctx)
-	defer conn.Close()
-	assert.Nil(err)
-	assert.NotNil(conn)
-
-	id := errorID("tablename", "")
-	assert.Equal("tablename", id)
-	id = errorID("tablename", "id")
-	assert.Equal("tablename-id", id)
-}
-
-func TestFirestoreID(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
-
+	client := sampleClient()
 	sample := &Sample{
 		Name:  "sample",
 		Value: 1,
 	}
-	assert.Empty(sample.ID)
+	assert.Empty(sample.ID())
 
-	o, err := table.Get(ctx, "")
+	// return nil if object not exists
+	o, err := client.Get(ctx, &Sample{}, "no id")
 	assert.Nil(err)
 	assert.Nil(o)
 
-	// auto id
-	err = table.Set(ctx, sample)
+	// set object with auto id
+	err = client.Set(ctx, sample)
 	assert.Nil(err)
-	assert.NotEmpty(sample.ID)
+	assert.NotEmpty(sample.ID())
 
-	sample2, err := table.Get(ctx, sample.ID)
+	// get saved object
+	sample2, err := client.Get(ctx, &Sample{}, sample.ID())
 	assert.Nil(err)
 	assert.NotNil(sample2)
 	assert.Equal(sample2.(*Sample).Name, sample.Name)
-	sampleCreateTime := sample2.GetCreateTime()
+	sampleCreateTime := sample2.CreateTime()
 	assert.False(sampleCreateTime.IsZero())
-	assert.False(sample2.GetUpdateTime().IsZero())
-
-	// factory has no object return must error
-	bakFactory := table.Factory
-	table.Factory = func() data.Object {
-		return nil
-	}
-	sampleX, err := table.Get(ctx, sample.ID)
-	assert.NotNil(err)
-	assert.Nil(sampleX)
-	table.Factory = bakFactory
+	assert.False(sample2.UpdateTime().IsZero())
 
 	// set sample again
 	sample.Name = "modified"
-	err = table.Set(ctx, sample)
+	err = client.Set(ctx, sample)
 	assert.Nil(err)
 
-	m, err := table.Get(ctx, sample.ID)
+	m, err := client.Get(ctx, &Sample{}, sample.ID())
 	sampleM := m.(*Sample)
 	assert.Nil(err)
 	assert.NotNil(sampleM)
 	assert.Equal("modified", sampleM.Name)
 
 	// set nil object
-	err = table.Set(ctx, nil)
+	err = client.Set(ctx, nil)
 	assert.NotNil(err)
 
-	err = table.DeleteObject(ctx, sample2)
+	// delete object
+	err = client.Delete(ctx, sample2)
 	assert.Nil(err)
 
 	// manual id
@@ -100,21 +71,19 @@ func TestFirestoreID(t *testing.T) {
 		Name:  "sample",
 		Value: 1,
 	}
-	sample.ID = "sample-id"
-	err = table.Set(ctx, sample)
+	sample.SetID("gdb-client-test")
+	err = client.Set(ctx, sample)
 	assert.Nil(err)
-	assert.Equal("sample-id", sample.ID)
+	assert.Equal("gdb-client-test", sample.ID())
 
-	sample3, err := table.Get(ctx, "sample-id")
+	sample3, err := client.Get(ctx, &Sample{}, "gdb-client-test")
+	defer client.Delete(ctx, sample3)
 	assert.Nil(err)
 	assert.NotNil(sample3)
 	assert.Equal(sample3.(*Sample).Name, sample.Name)
-
-	err = table.DeleteObject(ctx, sample3)
-	assert.Nil(err)
-
 }
 
+/*
 func TestSetGetExistDelete(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -462,3 +431,4 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 	}
 	table.DeleteObject(ctx, sample)
 }
+*/

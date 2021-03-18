@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"cloud.google.com/go/firestore"
-	"github.com/piyuo/libsrv/src/data"
 	"github.com/piyuo/libsrv/src/db"
 	"github.com/pkg/errors"
 )
@@ -12,7 +11,7 @@ import (
 // SerialFirestore generial serial from firestore
 //
 type SerialFirestore struct {
-	data.Serial `firestore:"-"`
+	db.Serial `firestore:"-"`
 
 	MetaFirestore `firestore:"-"`
 
@@ -47,7 +46,7 @@ func (c *SerialFirestore) NumberRX(ctx context.Context, transaction db.Transacti
 		return 1, nil
 	}
 
-	idRef, err := snapshot.DataAt(data.MetaValue)
+	idRef, err := snapshot.DataAt(db.MetaValue)
 	if err != nil {
 		return 0, errors.Wrapf(err, "get data at snapshot %v-%v", c.collection, c.id)
 	}
@@ -75,8 +74,8 @@ func (c *SerialFirestore) NumberWX(ctx context.Context, transaction db.Transacti
 		}
 	} else {
 		shard := map[string]interface{}{
-			data.MetaID:    c.id,
-			data.MetaValue: 1,
+			db.MetaID:    c.id,
+			db.MetaValue: 1,
 		}
 		if err := tx.createShard(c.getRef(), shard); err != nil {
 			return err

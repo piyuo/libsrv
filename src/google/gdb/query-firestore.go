@@ -208,7 +208,7 @@ func (c *QueryFirestore) Clear(ctx context.Context, max int) (bool, error) {
 		defer iter.Stop()
 		cleared, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
 		if err != nil {
-			return false, errors.Wrapf(err, "clear %", c.QueryObject.Collection())
+			return false, errors.Wrapf(err, "clear %v", c.QueryObject.Collection())
 		}
 		return cleared, nil
 	}
