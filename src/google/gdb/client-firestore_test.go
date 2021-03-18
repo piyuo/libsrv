@@ -33,10 +33,20 @@ func TestGdbClientCRUD(t *testing.T) {
 	assert.Nil(err)
 	assert.Nil(o)
 
+	// not found
+	exist, err := client.Exists(ctx, &Sample{}, "no id")
+	assert.Nil(err)
+	assert.False(exist)
+
 	// set object with auto id
 	err = client.Set(ctx, sample)
 	assert.Nil(err)
 	assert.NotEmpty(sample.ID())
+
+	// found
+	exist, err = client.Exists(ctx, &Sample{}, sample.ID())
+	assert.Nil(err)
+	assert.True(exist)
 
 	// get saved object
 	sample2, err := client.Get(ctx, &Sample{}, sample.ID())
@@ -81,116 +91,66 @@ func TestGdbClientCRUD(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(sample3)
 	assert.Equal(sample3.(*Sample).Name, sample.Name)
+
+	// delete not exists object
+	err = client.Delete(ctx, &Sample{})
+	assert.NotNil(err)
 }
 
-/*
-func TestSetGetExistDelete(t *testing.T) {
+func TestGdbSelectUpdateIncrementDelete(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
-
-	sample := &Sample{
-		Name:  "sample",
-		Value: 1,
-	}
-
-	err = table.Set(ctx, sample)
-	assert.Nil(err)
-	sampleID := sample.ID
-	sample2, err := table.Get(ctx, sampleID)
-	assert.Nil(err)
-	assert.NotNil(sample2)
-	assert.Equal(sample2.(*Sample).Name, sample.Name)
-
-	exist, err := table.IsExists(ctx, sampleID)
-	assert.Nil(err)
-	assert.True(exist)
-
-	exist, err = table.IsExists(ctx, "")
-	assert.Nil(err)
-	assert.False(exist)
-
-	err = table.Delete(ctx, sampleID)
-	assert.Nil(err)
-
-	exist, err = table.IsExists(ctx, sampleID)
-	assert.Nil(err)
-	assert.False(exist)
-
-	sample3, err := table.Get(ctx, sampleID)
-	assert.Nil(err)
-	assert.Nil(sample3)
-
-	err = table.Clear(ctx)
-	assert.Nil(err)
-}
-
-func TestSelectUpdateIncrementDelete(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
+	client := sampleClient()
 
 	sample := &Sample{
 		Name:  "sample",
 		Value: 6,
 	}
-	err = table.Set(ctx, sample)
+
+	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
-	value, err := table.Select(ctx, "NotExistID", "Value")
+	// not exists
+	value, err := client.Select(ctx, &Sample{}, "no id", "Value")
 	assert.Nil(err)
 	assert.Nil(value)
-	value, err = table.Select(ctx, sample.ID, "Value")
+
+	// found
+	value, err = client.Select(ctx, &Sample{}, sample.ID(), "Value")
 	assert.Nil(err)
 	assert.Equal(int64(6), value)
 
-	err = table.Update(ctx, "NotExistID", map[string]interface{}{
+	// update
+	err = client.Update(ctx, sample, map[string]interface{}{
 		"Name":  "sample2",
 		"Value": 2,
 	})
 	assert.Nil(err)
 
-	err = table.Delete(ctx, "NotExistID")
-	assert.Nil(err)
-
-	err = table.Update(ctx, sample.ID, map[string]interface{}{
-		"Name":  "sample2",
-		"Value": 2,
-	})
-	assert.Nil(err)
-
-	name, err := table.Select(ctx, sample.ID, "Name")
+	name, err := client.Select(ctx, &Sample{}, sample.ID(), "Name")
 	assert.Nil(err)
 	assert.Equal("sample2", name)
 
-	value, err = table.Select(ctx, sample.ID, "Value")
+	value, err = client.Select(ctx, &Sample{}, sample.ID(), "Value")
 	assert.Nil(err)
 	assert.Equal(int64(2), value)
 
-	err = table.Increment(ctx, "NotExistID", "Value", 3)
+	err = client.Increment(ctx, &Sample{}, "Value", 3)
 	assert.NotNil(err)
 
-	err = table.Delete(ctx, "NotExistID")
+	err = client.Increment(ctx, sample, "Value", 3)
 	assert.Nil(err)
 
-	err = table.Increment(ctx, sample.ID, "Value", 3)
-	assert.Nil(err)
-
-	value, err = table.Select(ctx, sample.ID, "Value")
+	value, err = client.Select(ctx, &Sample{}, sample.ID(), "Value")
 	assert.Nil(err)
 	assert.Equal(int64(5), value)
 
-	err = table.DeleteObject(ctx, sample)
+	err = client.Delete(ctx, sample)
 	assert.Nil(err)
-
 }
 
+/*
 func TestListQueryFindCountClear(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()

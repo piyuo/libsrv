@@ -14,8 +14,7 @@ func TestGdb(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
-	assert.NotNil(err)
-
+	assert.Nil(err)
 	client, err := NewClient(ctx, cred)
 	assert.Nil(err)
 	assert.NotNil(client)
@@ -26,10 +25,8 @@ func TestGdbInCanceledContext(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	ctxCanceled := util.CanceledCtx()
-
 	cred, err := gaccount.GlobalCredential(ctx)
-	assert.NotNil(err)
-
+	assert.Nil(err)
 	client, err := NewClient(ctxCanceled, cred)
 	assert.NotNil(err)
 	assert.Nil(client)

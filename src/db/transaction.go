@@ -50,7 +50,7 @@ type Transaction interface {
 
 	// Update partial object field, create new one if object does not exist, this function is significant slow than Set()
 	//
-	//	err = Update(ctx, Sample, map[string]interface{}{
+	//	err = Update(ctx, sample, map[string]interface{}{
 	//		"desc": "hi",
 	//	})
 	//
