@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/google/gaccount"
+	"github.com/piyuo/libsrv/src/identifier"
+	"github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,6 +18,17 @@ func TestGdbObjectWithoutFactory(t *testing.T) {
 	sampleNoFactory := &SampleNoFactory{}
 	err := client.Set(ctx, sampleNoFactory)
 	assert.NotNil(err)
+}
+
+func TestGdbClientClose(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	cred, err := gaccount.GlobalCredential(ctx)
+	assert.Nil(err)
+	client, err := NewClient(ctx, cred)
+	assert.Nil(err)
+	client.Close()
 }
 
 func TestGdbClientCRUD(t *testing.T) {
@@ -150,204 +164,100 @@ func TestGdbSelectUpdateIncrementDelete(t *testing.T) {
 	assert.Nil(err)
 }
 
-/*
-func TestListQueryFindCountClear(t *testing.T) {
+func TestGdbListQueryFindCount(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
+	client := sampleClient()
 
+	name1 := "testGdb-" + identifier.RandomString(6)
+	name2 := "testGdb-" + identifier.RandomString(6)
 	sample1 := &Sample{
-		Name:  "sample1",
-		Value: 1,
+		Name:  name1,
+		Value: 111221,
 	}
 	sample2 := &Sample{
-		Name:  "sample2",
-		Value: 2,
+		Name:  name2,
+		Value: 111222,
 	}
-	err = table.Set(ctx, sample1)
+	err := client.Set(ctx, sample1)
 	assert.Nil(err)
-	err = table.Set(ctx, sample2)
+	err = client.Set(ctx, sample2)
 	assert.Nil(err)
+	defer client.Delete(ctx, sample1)
+	defer client.Delete(ctx, sample2)
 
-	list, err := table.All(ctx)
+	// not found
+	obj, err := client.Query(&Sample{}).Where("Value", "==", 111222).ReturnFirst(ctx)
 	assert.Nil(err)
-	assert.Equal(2, len(list))
-	assert.Contains(list[0].(*Sample).Name, "sample")
-	assert.Contains(list[1].(*Sample).Name, "sample")
+	assert.NotNil(obj)
 
-	// factory has no object return must error
-	bakFactory := table.Factory
-	table.Factory = func() data.Object {
-		return nil
-	}
-	listX, err := table.All(ctx)
-	assert.NotNil(err)
-	assert.Nil(listX)
-	table.Factory = bakFactory
+	// found
+	list, err := client.List(ctx, &Sample{}, 2)
+	assert.Nil(err)
+	assert.True(len(list) >= 2)
 
-	obj, err := table.Find(ctx, "Name", "==", "sample1")
+	list, err = client.Query(&Sample{}).Return(ctx)
 	assert.Nil(err)
-	assert.Equal("sample1", (obj.(*Sample)).Name)
+	assert.True(len(list) >= 2)
 
-	list, err = table.Query().OrderBy("Name").Execute(ctx)
+	obj, err = client.Query(&Sample{}).Where("Value", "==", 111222).ReturnFirst(ctx)
 	assert.Nil(err)
-	assert.Equal(2, len(list))
-	assert.Equal(sample1.Name, list[0].(*Sample).Name)
-	assert.Equal(sample2.Name, list[1].(*Sample).Name)
-
-	obj, err = table.Find(ctx, "Value", "==", 2)
-	assert.Nil(err)
-	assert.Equal("sample2", (obj.(*Sample)).Name)
-
-	err = table.Clear(ctx)
-	assert.Nil(err)
-
-	obj, err = table.Find(ctx, "Value", "==", 2)
-	assert.Nil(err)
-	assert.Nil(obj)
-}
-
-func TestSearchCountIsEmpty(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
-
-	sample := &Sample{
-		Name:  "sample",
-		Value: 0,
-	}
-	err = table.Set(ctx, sample)
-	assert.Nil(err)
-
-	objects, err := table.List(ctx, "Name", "==", "sample")
-	assert.Nil(err)
-	assert.Equal(1, len(objects))
-
-	count, err := table.Count(ctx)
-	assert.Nil(err)
-	assert.Equal(1, count)
-
-	empty, err := table.IsEmpty(ctx)
-	assert.Nil(err)
-	assert.False(empty)
-
-	err = table.DeleteObject(ctx, sample)
-	assert.Nil(err)
-}
-
-func TestDelete(t *testing.T) {
-	assert := assert.New(t)
-	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
-
-	sample := &Sample{
-		Name:  "sample",
-		Value: 0,
-	}
-	err = table.DeleteObject(ctx, sample)
-	assert.Nil(err)
-	err = table.Delete(ctx, "NotExistID")
-	assert.Nil(err)
-	err = table.Delete(ctx, "NotExistID")
-	assert.Nil(err)
-
-	err = table.Set(ctx, sample)
-	assert.Nil(err)
-	exist, err := table.IsExists(ctx, sample.ID)
-	assert.Nil(err)
-	assert.True(exist)
-
-	sample2 := &Sample{}
-	sample2.ID = sample.ID
-	err = table.DeleteObject(ctx, sample2)
-	assert.Nil(err)
-	exist, err = table.IsExists(ctx, sample.ID)
-	assert.Nil(err)
-	assert.False(exist)
-
-	//delete batch
-	//delete empty batch
-	ids := []string{}
-	err = table.DeleteBatch(ctx, ids)
-	assert.Nil(err)
-
-	err = table.Set(ctx, sample)
-	assert.Nil(err)
-	exist, err = table.IsExists(ctx, sample.ID)
-	assert.Nil(err)
-	assert.True(exist)
-
-	ids = []string{sample.ID}
-	err = table.DeleteBatch(ctx, ids)
-	assert.Nil(err)
-	exist, err = table.IsExists(ctx, sample.ID)
-	assert.Nil(err)
-	assert.False(exist)
-
+	assert.Equal(name2, (obj.(*Sample)).Name)
 }
 
 func TestConnectionContextCanceled(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
-	g, err := NewSampleGlobalDB(context.Background())
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
+	client := sampleClient()
 
 	ctx := util.CanceledCtx()
 	sample := &Sample{}
+	sample.SetID("id")
 
-	err = table.Set(ctx, sample)
+	err := client.Set(ctx, sample)
 	assert.NotNil(err)
-	_, err = table.Get(ctx, "notexist")
+	_, err = client.Get(ctx, &Sample{}, "no id")
 	assert.NotNil(err)
-	err = table.Delete(ctx, "notexist")
+	err = client.Delete(ctx, sample)
 	assert.NotNil(err)
-	err = table.DeleteObject(ctx, sample)
+	_, err = client.List(ctx, &Sample{}, 1)
 	assert.NotNil(err)
-	err = table.DeleteBatch(ctx, []string{})
+	_, err = client.Exists(ctx, &Sample{}, "no id")
 	assert.NotNil(err)
-	_, err = table.All(ctx)
+	_, err = client.Select(ctx, &Sample{}, "not id", "Value")
 	assert.NotNil(err)
-	_, err = table.IsExists(ctx, "notexist")
-	assert.NotNil(err)
-	_, err = table.Select(ctx, "notexist", "Value")
-	assert.NotNil(err)
-	err = table.Update(ctx, "notexist", map[string]interface{}{
+	err = client.Update(ctx, sample, map[string]interface{}{
 		"Name":  "Sample2",
 		"Value": "2",
 	})
 	assert.NotNil(err)
-	err = table.Clear(ctx)
+	_, err = client.Clear(ctx, &Sample{}, 10)
 	assert.NotNil(err)
-	_, err = table.Query().Execute(ctx)
+	_, err = client.Query(&Sample{}).Return(ctx)
 	assert.NotNil(err)
-	_, err = table.Find(ctx, "Value", "==", "2")
-	assert.NotNil(err)
-	_, err = table.Count(ctx)
-	assert.NotNil(err)
-	err = table.Increment(ctx, "notexist", "Value", 2)
-	assert.NotNil(err)
-	_, err = table.List(ctx, "Name", "==", "1")
-	assert.NotNil(err)
-	_, err = table.SortList(ctx, "Name", "==", "1", "", data.ASC)
-	assert.NotNil(err)
-	_, err = table.All(ctx)
-	assert.NotNil(err)
-	_, err = table.IsEmpty(ctx)
-	assert.NotNil(err)
-	err = table.Clear(ctx)
+	err = client.Increment(ctx, sample, "Value", 2)
 	assert.NotNil(err)
 }
 
+func TestGdbClear(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+
+	sample := &SampleClear{
+		Name: "sampleClear",
+	}
+	err := client.Set(ctx, sample)
+	assert.Nil(err)
+
+	cleared, err := client.Clear(ctx, sample, 100)
+	assert.Nil(err)
+	assert.True(cleared)
+}
+
+/*
 func BenchmarkPutSpeed(b *testing.B) {
 	ctx := context.Background()
 	dbG, err := NewSampleGlobalDB(ctx)

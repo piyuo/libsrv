@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
 )
 
 // orderby define order by asc or desc
@@ -131,50 +129,4 @@ type BaseQuery struct {
 	// QueryTransaction not nil mean using transaction to do query
 	//
 	QueryTransaction Transaction
-}
-
-// ReturnIsExists return true if object exist
-//
-//	isExists, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnIsExists(ctx)
-//
-func (c *BaseQuery) ReturnIsExists(ctx context.Context) (bool, error) {
-	empty, err := c.ReturnIsEmpty(ctx)
-	return !empty, err
-}
-
-// ReturnFirst return first object from query
-//
-//	obj, err := Query(&Sample{}).OrderBy("From").Limit(1).StartAt("b city").ReturnFirst(ctx)
-//	greet := obj.(*Greet)
-//
-func (c *BaseQuery) ReturnFirst(ctx context.Context) (Object, error) {
-	if err := Check(ctx, c.QueryObject, false); err != nil {
-		return nil, err
-	}
-	list, err := c.Limit(1).Return(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "return first")
-	}
-	if len(list) == 0 {
-		return nil, nil
-	}
-	return list[0], nil
-}
-
-// ReturnFirstID return first object id from query
-//
-//	id, err := Query(&Sample{}).OrderBy("From").Limit(1).StartAt("b city").ReturnFirstID(ctx)
-//
-func (c *BaseQuery) ReturnFirstID(ctx context.Context) (string, error) {
-	if err := Check(ctx, c.QueryObject, false); err != nil {
-		return "", err
-	}
-	list, err := c.Limit(1).Return(ctx)
-	if err != nil {
-		return "", errors.Wrap(err, "return first id")
-	}
-	if len(list) == 0 {
-		return "", nil
-	}
-	return list[0].ID(), nil
 }

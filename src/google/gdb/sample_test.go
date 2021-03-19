@@ -32,6 +32,21 @@ func (c *SampleNoFactory) Collection() string {
 	return ""
 }
 
+// SampleClear for test clear
+//
+type SampleClear struct {
+	db.DomainObject
+	Name string `firestore:"Name,omitempty"`
+}
+
+func (c *SampleClear) Factory() db.Object {
+	return &SampleClear{}
+}
+
+func (c *SampleClear) Collection() string {
+	return "SampleClear"
+}
+
 // Sample for test
 //
 type Sample struct {
