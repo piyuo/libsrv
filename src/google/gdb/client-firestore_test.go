@@ -174,11 +174,11 @@ func TestGdbListQueryFindCount(t *testing.T) {
 	name2 := "testGdb-" + identifier.RandomString(6)
 	sample1 := &Sample{
 		Name:  name1,
-		Value: 111221,
+		Value: 1001,
 	}
 	sample2 := &Sample{
 		Name:  name2,
-		Value: 111222,
+		Value: 1002,
 	}
 	err := client.Set(ctx, sample1)
 	assert.Nil(err)
@@ -188,7 +188,7 @@ func TestGdbListQueryFindCount(t *testing.T) {
 	defer client.Delete(ctx, sample2)
 
 	// not found
-	obj, err := client.Query(&Sample{}).Where("Value", "==", 111222).ReturnFirst(ctx)
+	obj, err := client.Query(&Sample{}).Where("Value", "==", 1002).ReturnFirst(ctx)
 	assert.Nil(err)
 	assert.NotNil(obj)
 
@@ -201,7 +201,7 @@ func TestGdbListQueryFindCount(t *testing.T) {
 	assert.Nil(err)
 	assert.True(len(list) >= 2)
 
-	obj, err = client.Query(&Sample{}).Where("Value", "==", 111222).ReturnFirst(ctx)
+	obj, err = client.Query(&Sample{}).Where("Value", "==", 1002).ReturnFirst(ctx)
 	assert.Nil(err)
 	assert.Equal(name2, (obj.(*Sample)).Name)
 }

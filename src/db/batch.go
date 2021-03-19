@@ -16,39 +16,39 @@ type Batch interface {
 
 	// Set object into table, If the document not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, if object does not have id, it will created using UUID
 	//
-	//	 err := Set(ctx, object)
+	//	 Set(ctx, object) // no error in batch mode
 	//
-	Set(ctx context.Context, obj Object) error
+	Set(ctx context.Context, obj Object)
 
 	// Update partial object field, create new one if object does not exist, this function is significant slow than Set()
 	//
-	//	err = Update(ctx, Sample, map[string]interface{}{
+	//	Update(ctx, Sample, map[string]interface{}{
 	//		"desc": "hi",
 	//	})
 	//
-	Update(ctx context.Context, obj Object, fields map[string]interface{}) error
+	Update(ctx context.Context, obj Object, fields map[string]interface{})
 
 	// Increment value on object field, return error if object does not exist
 	//
-	//	err := Increment(ctx,sample, "Value", 2)
+	//	Increment(ctx,sample, "Value", 2) // no error in batch mode
 	//
-	Increment(ctx context.Context, obj Object, field string, value int) error
+	Increment(ctx context.Context, obj Object, field string, value int)
 
 	// Delete object, no error if id not exist
 	//
-	//	Delete(ctx, sample)
+	//	Delete(ctx, sample) // no error in batch mode
 	//
-	Delete(ctx context.Context, obj Object) error
+	Delete(ctx context.Context, obj Object)
 
 	// DeleteList delete object use list of id, no error if id not exist
 	//
-	//	c.DeleteList(ctx, &Sample{}, []string{"1","2"})
+	//	DeleteList(ctx, &Sample{}, []string{"1","2"}) // no error in batch mode
 	//
-	DeleteList(ctx context.Context, obj Object, list []string) error
+	DeleteList(ctx context.Context, obj Object, list []string)
 
 	// DeleteRef delete object use document ref
 	//
-	//	err := DeleteRef(ref)
+	//	DeleteRef(ref) // no error in batch mode
 	//
 	DeleteRef(ref *firestore.DocumentRef)
 }
