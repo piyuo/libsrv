@@ -2,6 +2,7 @@ package gdb
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/piyuo/libsrv/src/google/gaccount"
@@ -257,48 +258,36 @@ func TestGdbClear(t *testing.T) {
 	assert.True(cleared)
 }
 
-/*
-func BenchmarkPutSpeed(b *testing.B) {
+func BenchmarkSetSpeed(b *testing.B) {
 	ctx := context.Background()
-	dbG, err := NewSampleGlobalDB(ctx)
-	defer dbG.Close()
-
-	table := dbG.SampleTable()
-	dbR, err := NewSampleRegionalDB(ctx)
-	defer dbR.Close()
-
+	client := sampleClient()
 	sample := &Sample{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		sample.Name = "hello" + strconv.Itoa(i)
-		err = table.Set(ctx, sample)
+		sample.Name = "gdb-benchmark"
+		err := client.Set(ctx, sample)
 		if err != nil {
 			return
 		}
 	}
-	table.DeleteObject(ctx, sample)
+	client.Delete(ctx, sample)
 }
 
 func BenchmarkUpdateSpeed(b *testing.B) {
 	ctx := context.Background()
-	dbG, err := NewSampleGlobalDB(ctx)
-	defer dbG.Close()
-	table := dbG.SampleTable()
-	dbR, err := NewSampleRegionalDB(ctx)
-	defer dbR.Close()
+	client := sampleClient()
 
 	sample := &Sample{}
-	err = table.Set(ctx, sample)
+	err := client.Set(ctx, sample)
 	if err != nil {
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		table.Update(ctx, sample.ID, map[string]interface{}{
+		client.Update(ctx, sample, map[string]interface{}{
 			"Name": "hello" + strconv.Itoa(i),
 		})
 	}
-	table.DeleteObject(ctx, sample)
+	client.Delete(ctx, sample)
 }
-*/
