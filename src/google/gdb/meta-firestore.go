@@ -31,9 +31,9 @@ type MetaFirestore struct {
 	id string `firestore:"-"`
 }
 
-// assert check ctx, table name, id are valid
+// check check ctx, table name, id are valid
 //
-func (c *MetaFirestore) assert(ctx context.Context) error {
+func (c *MetaFirestore) check(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -51,7 +51,7 @@ func (c *MetaFirestore) assert(ctx context.Context) error {
 //	err = clear(ctx,100)
 //
 func (c *MetaFirestore) clear(ctx context.Context, max int) (bool, error) {
-	if err := c.assert(ctx); err != nil {
+	if err := c.check(ctx); err != nil {
 		return false, err
 	}
 	tableRef := c.client.getCollectionRef(c.collection)

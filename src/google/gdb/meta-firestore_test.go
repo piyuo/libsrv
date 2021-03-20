@@ -9,34 +9,31 @@ import (
 )
 
 func TestShardsFirestore(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
+	client := sampleClient()
 
 	shards := MetaFirestore{
-		conn:       g.Connection.(*ConnectionFirestore),
+		client:     client.(*ClientFirestore),
 		id:         "id",
 		collection: "tablename",
 		numShards:  0,
 	}
-	id := shards.errorID()
-	assert.Equal("tablename-id", id)
 
 	//check canceled ctx
 	ctxCanceled := util.CanceledCtx()
-	err = shards.assert(ctxCanceled)
+	err := shards.check(ctxCanceled)
 	assert.NotNil(err)
 
 	//check empty id
 	shards.id = ""
-	err = shards.assert(ctx)
+	err = shards.check(ctx)
 	assert.NotNil(err)
 
 	//check empty table name
 	shards.id = "id"
 	shards.collection = ""
-	err = shards.assert(ctx)
+	err = shards.check(ctx)
 	assert.NotNil(err)
 }

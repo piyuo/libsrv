@@ -27,4 +27,5 @@ func BenchmarkGdbClean(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
 	client.Clear(ctx, &Sample{}, 100)
+
 }

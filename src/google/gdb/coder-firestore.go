@@ -39,7 +39,7 @@ func (c *CoderFirestore) pickShard(ctx context.Context, transaction db.Transacti
 	if err != nil {
 		return false, 0, errors.Wrapf(err, "get coder snapshot %v-%v", c.collection, c.id)
 	}
-	if snapshot != nil {
+	if snapshot == nil {
 		// value format is incrementValue+shardIndex, e.g. 12 , 1= increment value, 2=shard index
 		value := int64(c.numShards + c.shardPick)
 		return false, value, nil
@@ -167,7 +167,7 @@ func (c *CoderFirestore) NumberWX(ctx context.Context, transaction db.Transactio
 
 	if c.shardExist {
 		if err := tx.incrementShard(c.getPickedRef(), 1); err != nil {
-			return err
+			return errors.Wrap(err, "inc shard")
 		}
 	} else {
 		shard := map[string]interface{}{
@@ -175,7 +175,7 @@ func (c *CoderFirestore) NumberWX(ctx context.Context, transaction db.Transactio
 			db.MetaValue: 1,
 		}
 		if err := tx.createShard(c.getPickedRef(), shard); err != nil {
-			return err
+			return errors.Wrap(err, "new shard")
 		}
 	}
 	c.callRX = false
