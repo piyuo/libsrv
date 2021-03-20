@@ -114,7 +114,6 @@ func TestGdbCoderCode(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-
 	name := "testGdb-coder-code" + identifier.RandomString(6)
 	coder := client.Coder(name, 1)
 	defer coder.Clear(ctx, 10)
@@ -217,13 +216,11 @@ func TestGdbCoderCode64(t *testing.T) {
 	assert.NotEqual(firstCode, currentCode)
 }
 
-func TestConcurrentCoder(t *testing.T) {
+func TestGdbConcurrentCoder(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
-
 	client := sampleClient()
 	name := "testGdb-coder-concurrent" + identifier.RandomString(6)
-
 	result := make(map[int64]int64)
 	resultMutex := sync.RWMutex{}
 

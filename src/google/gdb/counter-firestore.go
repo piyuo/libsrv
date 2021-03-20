@@ -218,24 +218,6 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, transaction db.Trans
 	return nil
 }
 
-// mock create mock data
-//
-func (c *CounterFirestore) mock(transaction db.Transaction, hierarchy db.Hierarchy, date time.Time, pick int, value interface{}) error {
-	tx := transaction.(*TransactionFirestore)
-
-	c.pickedShard = strconv.Itoa(pick)
-	shard := map[string]interface{}{
-		db.MetaID:           c.id,
-		db.MetaValue:        value,
-		db.CounterDateLevel: hierarchy,
-		db.CounterTime:      date,
-	}
-	if err := tx.createShard(c.shardAllRef(), shard); err != nil {
-		return errors.Wrap(err, "Failed to create shard at mock")
-	}
-	return nil
-}
-
 // CountAll return a total count across all period. this function not support transation cause it easily cause "Too much contention on these documents"
 //
 //	count, err = counter.CountAll(ctx)
