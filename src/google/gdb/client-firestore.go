@@ -435,7 +435,7 @@ func (c *ClientFirestore) Serial(serialName string) db.Serial {
 			client:     c,
 			collection: "Serial",
 			id:         serialName,
-			numShards:  0,
+			numShards:  1,
 		},
 	}
 }

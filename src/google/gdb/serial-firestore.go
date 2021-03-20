@@ -86,12 +86,12 @@ func (c *SerialFirestore) NumberWX(ctx context.Context, transaction db.Transacti
 	return nil
 }
 
-// Clear delete all shard in collection. delete max doc count. return true if collection is cleared
+// Clear serial and it's shard
 //
-//	err = Clear(ctx,100)
+//	cleared, err = Clear(ctx,100)
 //
-func (c *SerialFirestore) Clear(ctx context.Context, max int) (bool, error) {
-	return c.clear(ctx, max)
+func (c *SerialFirestore) Clear(ctx context.Context) (bool, error) {
+	return c.clear(ctx, 2)
 }
 
 // ShardsCount returns shards count
