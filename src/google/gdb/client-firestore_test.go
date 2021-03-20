@@ -119,7 +119,7 @@ func TestGdbSelectUpdateIncrementDelete(t *testing.T) {
 	client := sampleClient()
 
 	sample := &Sample{
-		Name:  "sample",
+		Name:  "testGdbUpdate-sample",
 		Value: 6,
 	}
 
@@ -138,14 +138,14 @@ func TestGdbSelectUpdateIncrementDelete(t *testing.T) {
 
 	// update
 	err = client.Update(ctx, sample, map[string]interface{}{
-		"Name":  "sample2",
+		"Name":  "testGdbUpdate-sample2",
 		"Value": 2,
 	})
 	assert.Nil(err)
 
 	name, err := client.Select(ctx, &Sample{}, sample.ID(), "Name")
 	assert.Nil(err)
-	assert.Equal("sample2", name)
+	assert.Equal("testGdbUpdate-sample2", name)
 
 	value, err = client.Select(ctx, &Sample{}, sample.ID(), "Value")
 	assert.Nil(err)
