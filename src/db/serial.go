@@ -29,10 +29,4 @@ type Serial interface {
 	//	err = Delete(ctx)
 	//
 	Delete(ctx context.Context) error
-
-	// ShardsCount returns shards count
-	//
-	//	count, err = serial.ShardsCount(ctx)
-	//
-	ShardsCount(ctx context.Context) (int, error)
 }

@@ -93,11 +93,3 @@ func (c *SerialFirestore) NumberWX(ctx context.Context, transaction db.Transacti
 func (c *SerialFirestore) Delete(ctx context.Context) error {
 	return c.deleteShards(ctx)
 }
-
-// ShardsCount returns shards count
-//
-//	count, err = ShardsCount(ctx)
-//
-func (c *SerialFirestore) ShardsCount(ctx context.Context) (int, error) {
-	return c.shardsCount(ctx)
-}

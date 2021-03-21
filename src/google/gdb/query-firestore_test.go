@@ -231,8 +231,9 @@ func TestQueryDeleteInTransaction(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(2, count)
 
+	// query in transaction
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		cleared, err := client.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 10)
+		cleared, err := tx.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 10)
 		assert.Nil(err)
 		assert.True(cleared)
 		return nil

@@ -157,11 +157,25 @@ func TestCounterCountPeriod(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter-period-" + identifier.RandomString(8)
+	name := "test-counter-count-period-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyFull)
 	now := time.Now().UTC()
 	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
 	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
 	_, err := counter.CountPeriod(ctx, db.HierarchyYear, from, to)
+	assert.Contains(err.Error(), "requires an index")
+}
+
+func TestCounterDetailPeriod(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	name := "test-counter-detail-period-" + identifier.RandomString(8)
+	counter := client.Counter(name, 1, db.DateHierarchyFull)
+	now := time.Now().UTC()
+	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
+	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
+	_, err := counter.DetailPeriod(ctx, db.HierarchyYear, from, to)
 	assert.Contains(err.Error(), "requires an index")
 }
