@@ -15,7 +15,7 @@ type BaseToken struct {
 
 	// content is a key/value map
 	//
-	content map[string]string
+	content map[string]interface{}
 }
 
 //expiredFormat is expired time string format
@@ -32,7 +32,7 @@ const keyExpired = "_"
 //
 func NewToken() Token {
 	return &BaseToken{
-		content: map[string]string{},
+		content: map[string]interface{}{},
 	}
 }
 
@@ -62,7 +62,7 @@ func FromString(str string) (Token, bool, error) {
 		return nil, false, errors.Wrap(err, "failed to decrypt str:"+str)
 	}
 	content := mapping.FromString(everything)
-	expired := content[keyExpired]
+	expired := content[keyExpired].(string)
 	if isExpired(expired) {
 		return nil, true, nil
 	}
@@ -93,7 +93,10 @@ func (c *BaseToken) ToString(expired time.Time) (string, error) {
 //	value := token.Get("UserID")
 //
 func (c *BaseToken) Get(key string) string {
-	return c.content[key]
+	if c.content[key] == nil {
+		return ""
+	}
+	return c.content[key].(string)
 }
 
 // Set return value to key
