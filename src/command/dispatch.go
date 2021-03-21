@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"encoding/binary"
-	"fmt"
 
 	proto "github.com/golang/protobuf/proto"
 	shared "github.com/piyuo/libsrv/src/command/shared"
@@ -39,16 +38,15 @@ type Dispatch struct {
 	Map IMap
 }
 
-// Route get action from httpRequest and write response to httpResponse
+// Route get action from httpRequest and write response to httpResponse, write http error text if some thing went wrong
 //
-// write http error text if some thing went wrong
 func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	//bytes is command contain [proto,id], id is 2 bytes
 	_, action, err := dp.DecodeCommand(bytes)
 	if err != nil {
 		return nil, err
 	}
-	commandLog := fmt.Sprintf("exec %v (%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
+	log.Info(ctx, "exec %v (%v bytes), ", action.(Action).XXX_MapName(), len(bytes))
 	responseID, response, err := dp.runAction(ctx, action)
 	if err != nil {
 		return nil, err
@@ -56,19 +54,17 @@ func (dp *Dispatch) Route(ctx context.Context, bytes []byte) ([]byte, error) {
 	var returnBytes []byte
 	returnBytes, err = dp.EncodeCommand(responseID, response)
 	if err != nil {
-		//commandLog += fmt.Sprintf("failed with %v , %v ms\n", err.Error(), ms)
-		commandLog += fmt.Sprintf("failed with %v\n", err.Error())
-		log.Print(ctx, here, commandLog)
+		log.Warn(ctx, "failed.  %v", err.Error())
 		return nil, err
 	}
-	commandLog += fmt.Sprintf("return %v (%v bytes)\n", betterResponseName(responseID, response), len(returnBytes))
-	log.Print(ctx, here, commandLog)
+	log.Info(ctx, "return %v (%v bytes)\n", betterResponseName(responseID, response), len(returnBytes))
 	return returnBytes, nil
 }
 
 //betterResponseName return response name but return ok when err=0
 //
 //	result := betterResponseName(errOK.XXX_MapID(), errOK)
+//
 func betterResponseName(id uint16, response interface{}) string {
 
 	name := response.(Response).XXX_MapName()
@@ -122,11 +118,11 @@ func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error
 		obj = dp.Map.NewObjectByID(id)
 	}
 	if obj == nil {
-		return nil, errors.Errorf("failed to map id %v", id)
+		return nil, errors.Errorf("map id %v", id)
 	}
 	err := proto.Unmarshal(bytes, obj.(proto.Message))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode protobuf")
+		return nil, errors.Wrap(err, "decode protobuf")
 	}
 	return obj, nil
 }
@@ -139,23 +135,20 @@ func (dp *Dispatch) protoToBuffer(obj interface{}) ([]byte, error) {
 
 	bytes, err := proto.Marshal(obj.(proto.Message))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to encode protobuf")
+		return nil, errors.Wrap(err, "encode protobuf")
 	}
 	return bytes, nil
 }
 
-// runAction send action to handler and get response
+// runAction send action to handler and get response, normally we don't return err here, because we can log err to database let programmer to fix it. just return error response and error id let user track the problem, DeadlineExceeded is the only error return
 //
-//normally we don't return err here, because we can log err to database let programmer to fix it. just return error response and error id let user track the problem
-//
-//DeadlineExceeded is the only error return
 func (dp *Dispatch) runAction(ctx context.Context, action interface{}) (uint16, interface{}, error) {
 	responseInterface, err := action.(Action).Do(ctx)
 	if err != nil {
 		return 0, nil, err
 	}
 	if responseInterface == nil {
-		return 0, nil, errors.New("failed to get response from action.Main()")
+		return 0, nil, errors.New("do action")
 	}
 	response := responseInterface.(Response)
 	return response.XXX_MapID(), response, nil
@@ -166,7 +159,7 @@ func (dp *Dispatch) runAction(ctx context.Context, action interface{}) (uint16, 
 func (dp *Dispatch) EncodeCommand(id uint16, proto interface{}) ([]byte, error) {
 	bytes, err := dp.protoToBuffer(proto)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to convert proto to buffer")
+		return nil, errors.Wrap(err, "proto to buffer")
 	}
 	idBytes := make([]byte, 2)
 	binary.LittleEndian.PutUint16(idBytes, id)
@@ -182,7 +175,7 @@ func (dp *Dispatch) DecodeCommand(bytes []byte) (uint16, interface{}, error) {
 	id := binary.LittleEndian.Uint16(idBytes)
 	protoInterface, err := dp.protoFromBuffer(id, protoBytes)
 	if err != nil {
-		return 0, nil, errors.Wrap(err, "failed to convert buffer to proto")
+		return 0, nil, errors.Wrap(err, "buffer to proto")
 	}
 	return id, protoInterface, nil
 }
