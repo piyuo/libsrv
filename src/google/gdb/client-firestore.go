@@ -371,9 +371,9 @@ func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *f
 	return false, nil
 }
 
-// deleteAll delete all document in collection. delete max doc count. return true if delete completed
+// deleteAll delete all document in collection. delete max doc count. return true if nothing left to delete
 //
-//	completed, err := Clear(ctx, &Sample{}, 50)
+//	done, err := deleteAll(ctx, &Sample{}, 50)
 //
 func (c *ClientFirestore) deleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
 	if err := db.AssertObject(ctx, obj, false); err != nil {
@@ -382,11 +382,11 @@ func (c *ClientFirestore) deleteAll(ctx context.Context, obj db.Object, max int)
 	collectionRef := c.getCollectionRef(obj.Collection())
 	iter := collectionRef.Limit(max).Documents(ctx)
 	defer iter.Stop()
-	completed, err := c.deleteByIterator(ctx, max, iter)
+	done, err := c.deleteByIterator(ctx, max, iter)
 	if err != nil {
 		return false, errors.Wrap(err, "delete "+obj.Collection())
 	}
-	return completed, nil
+	return done, nil
 }
 
 // Counter return counter, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error

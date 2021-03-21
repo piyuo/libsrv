@@ -19,7 +19,7 @@ func TestCounter(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter" + identifier.RandomString(8)
+	name := "test-counter-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyFull)
 
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
@@ -62,7 +62,7 @@ func TestCounterFail(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter-fail" + identifier.RandomString(8)
+	name := "test-counter-fail-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyNone)
 	defer counter.Delete(ctx)
 
@@ -87,7 +87,7 @@ func TestCounterInCanceledCtx(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	client := sampleClient()
-	name := "test-counter-no-ctx" + identifier.RandomString(8)
+	name := "test-counter-no-ctx-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyNone)
 
 	ctxCanceled := util.CanceledCtx()
@@ -105,7 +105,7 @@ func TestCounterConcurrent(t *testing.T) {
 
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter-concurrent" + identifier.RandomString(6)
+	name := "test-counter-concurrent-" + identifier.RandomString(8)
 	counter := client.Counter(name, 30, db.DateHierarchyNone)
 	defer counter.Delete(ctx)
 
@@ -157,7 +157,7 @@ func TestCounterCountPeriod(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter-period" + identifier.RandomString(6)
+	name := "test-counter-period-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyFull)
 	now := time.Now().UTC()
 	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)

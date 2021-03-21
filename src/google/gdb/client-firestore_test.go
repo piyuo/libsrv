@@ -27,8 +27,9 @@ func TestClientCRUD(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
+	name := "test-client-CRUD-" + identifier.RandomString(8)
 	sample := &Sample{
-		Name:  "sample",
+		Name:  name,
 		Value: 1,
 	}
 	assert.Empty(sample.ID())
@@ -83,16 +84,16 @@ func TestClientCRUD(t *testing.T) {
 
 	// manual id
 	sample = &Sample{
-		Name:  "sample",
+		Name:  "sample-manual-id",
 		Value: 1,
 	}
-	sample.SetID("gdb-client-test")
+	sample.SetID("my-id")
 	err = client.Set(ctx, sample)
 	assert.Nil(err)
-	assert.Equal("gdb-client-test", sample.ID())
+	defer client.Delete(ctx, sample)
+	assert.Equal("my-id", sample.ID())
 
-	sample3, err := client.Get(ctx, &Sample{}, "gdb-client-test")
-	defer client.Delete(ctx, sample3)
+	sample3, err := client.Get(ctx, &Sample{}, "my-id")
 	assert.Nil(err)
 	assert.NotNil(sample3)
 	assert.Equal(sample3.(*Sample).Name, sample.Name)
@@ -102,14 +103,16 @@ func TestClientCRUD(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestClientSelectUpdateIncrementDelete(t *testing.T) {
+func TestClientUpdate(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
+	name1 := "test-client-update-" + identifier.RandomString(8)
+	name2 := "test-client-update-2-" + identifier.RandomString(8)
 	sample := &Sample{
-		Name:  "testGdbUpdate-sample",
+		Name:  name1,
 		Value: 6,
 	}
 
@@ -128,14 +131,14 @@ func TestClientSelectUpdateIncrementDelete(t *testing.T) {
 
 	// update
 	err = client.Update(ctx, sample, map[string]interface{}{
-		"Name":  "testGdbUpdate-sample2",
+		"Name":  name2,
 		"Value": 2,
 	})
 	assert.Nil(err)
 
 	name, err := client.Select(ctx, &Sample{}, sample.ID(), "Name")
 	assert.Nil(err)
-	assert.Equal("testGdbUpdate-sample2", name)
+	assert.Equal(name2, name)
 
 	value, err = client.Select(ctx, &Sample{}, sample.ID(), "Value")
 	assert.Nil(err)
@@ -155,14 +158,13 @@ func TestClientSelectUpdateIncrementDelete(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestClientListQueryFindCount(t *testing.T) {
+func TestClientList(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-
-	name1 := "testGdb-" + identifier.RandomString(6)
-	name2 := "testGdb-" + identifier.RandomString(6)
+	name1 := "test-client-list-" + identifier.RandomString(8)
+	name2 := "test-client-list-" + identifier.RandomString(8)
 	sample1 := &Sample{
 		Name:  name1,
 		Value: 1001,
@@ -219,7 +221,7 @@ func TestClientContextCanceled(t *testing.T) {
 	_, err = client.Select(ctx, &Sample{}, "not id", "Value")
 	assert.NotNil(err)
 	err = client.Update(ctx, sample, map[string]interface{}{
-		"Name":  "Sample2",
+		"Name":  "ctx cancel",
 		"Value": "2",
 	})
 	assert.NotNil(err)
@@ -235,8 +237,9 @@ func TestClientDeleteAll(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 
+	name := "test-client-delete-all-" + identifier.RandomString(8)
 	sample := &SampleEmpty{
-		Name: "test-client-delete-all",
+		Name: name,
 	}
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
@@ -246,13 +249,14 @@ func TestClientDeleteAll(t *testing.T) {
 	assert.True(cleared)
 }
 
-func BenchmarkSetSpeed(b *testing.B) {
+func BenchmarkClientSet(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
+	name := "benchmark-client-set-" + identifier.RandomString(8)
 	sample := &Sample{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		sample.Name = "gdb-benchmark"
+		sample.Name = name
 		err := client.Set(ctx, sample)
 		if err != nil {
 			return
@@ -261,10 +265,10 @@ func BenchmarkSetSpeed(b *testing.B) {
 	client.Delete(ctx, sample)
 }
 
-func BenchmarkUpdateSpeed(b *testing.B) {
+func BenchmarkClientUpdate(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
-
+	name := "benchmark-client-update-" + identifier.RandomString(8)
 	sample := &Sample{}
 	err := client.Set(ctx, sample)
 	if err != nil {
@@ -274,7 +278,7 @@ func BenchmarkUpdateSpeed(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		client.Update(ctx, sample, map[string]interface{}{
-			"Name": "hello" + strconv.Itoa(i),
+			"Name": name + strconv.Itoa(i),
 		})
 	}
 	client.Delete(ctx, sample)

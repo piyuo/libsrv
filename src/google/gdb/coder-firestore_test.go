@@ -25,13 +25,14 @@ func TestCoderInCanceledCtx(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestCoderMustReadBeforeWrite(t *testing.T) {
+func TestCoderReadBeforeWrite(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
+	name := "test-coder-read-before-write-" + identifier.RandomString(8)
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		coder := client.Coder("sample", 3)
+		coder := client.Coder(name, 3)
 		err := coder.NumberWX(ctx, tx)
 		assert.NotNil(err)
 		err = coder.CodeWX(ctx, tx)
@@ -50,8 +51,7 @@ func TestCoderNum(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-
-	name := "test-coder-num" + identifier.RandomString(8)
+	name := "test-coder-num-" + identifier.RandomString(8)
 	coder := client.Coder(name, 1)
 	// success
 	var firstNum int64
@@ -111,7 +111,7 @@ func TestCoderCode(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-coder-code" + identifier.RandomString(8)
+	name := "test-coder-code-" + identifier.RandomString(8)
 	coder := client.Coder(name, 1)
 	defer coder.Delete(ctx)
 	var firstCode string
@@ -147,7 +147,7 @@ func TestCoderCode16(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "test-coder-code16" + identifier.RandomString(6)
+	name := "test-coder-code16-" + identifier.RandomString(6)
 	coder := client.Coder(name, 1)
 	defer coder.Delete(ctx)
 	var firstCode string
@@ -183,7 +183,7 @@ func TestCoderCode64(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "test-coder-code64" + identifier.RandomString(6)
+	name := "test-coder-code64-" + identifier.RandomString(6)
 	coder := client.Coder(name, 1)
 	defer coder.Delete(ctx)
 	var firstCode string
@@ -214,10 +214,11 @@ func TestCoderCode64(t *testing.T) {
 }
 
 func TestConcurrentCoder(t *testing.T) {
+	t.Parallel()
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-coder-concurrent" + identifier.RandomString(6)
+	name := "test-coder-concurrent-" + identifier.RandomString(8)
 	result := make(map[int64]int64)
 	resultMutex := sync.RWMutex{}
 

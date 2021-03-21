@@ -68,9 +68,9 @@ type Transaction interface {
 	//
 	Delete(ctx context.Context, obj Object) error
 
-	// Clear delete all document in collection. try 10 batch each batch only delete document specific in max. return true if collection is cleared
-	//
+	// DeleteAll delete all document in collection
+	// ! this function is danger in production, rather not provide
 	//	cleared, err := Clear(ctx, &Sample{}, 50)
 	//
-	Clear(ctx context.Context, obj Object, max int) (bool, error)
+	// DeleteAll(ctx context.Context, obj Object, max int) (bool, error)
 }

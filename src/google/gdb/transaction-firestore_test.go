@@ -11,12 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGdbTransaction(t *testing.T) {
+func TestTransaction(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "testGdb-Tx" + identifier.RandomString(6)
+	name := "test-tx-" + identifier.RandomString(8)
 	sample := &Sample{
 		Name:  name,
 		Value: 1,
@@ -78,7 +79,8 @@ func TestGdbTransaction(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestGdbTransactionFail(t *testing.T) {
+func TestTransactionFail(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
@@ -89,22 +91,23 @@ func TestGdbTransactionFail(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestGdbTransactionClear(t *testing.T) {
+func TestTransactionDeleteAll(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
+	name := "test-tx-delete-all-" + identifier.RandomString(8)
 	sample := &SampleEmpty{
-		Name: "sampleClear",
+		Name: name,
 	}
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		cleared, err := tx.Clear(ctx, sample, 10)
+		done, err := tx.(*TransactionFirestore).deleteAll(ctx, sample, 10)
 		assert.Nil(err)
-		assert.True(cleared)
+		assert.True(done)
 		return nil
 	})
 	assert.Nil(err)

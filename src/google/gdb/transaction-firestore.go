@@ -197,11 +197,11 @@ func (c *TransactionFirestore) DeleteCollection(ctx context.Context, obj db.Obje
 	return false, nil
 }
 
-// Clear delete all document in collection. try 10 batch each batch only delete document specific in max. return true if collection is cleared
+// deleteAll delete all document in collection. delete max doc count. return true if nothing left to delete
 //
-//	cleared, err := Clear(ctx, &Sample{}, 50)
+//	done, err := deleteAll(ctx, &Sample{}, 50)
 //
-func (c *TransactionFirestore) Clear(ctx context.Context, obj db.Object, max int) (bool, error) {
+func (c *TransactionFirestore) deleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
 	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}

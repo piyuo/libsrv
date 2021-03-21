@@ -4,20 +4,22 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShardsFirestore(t *testing.T) {
+func TestMeta(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
+	name := "test-meta-" + identifier.RandomString(8)
 	shards := MetaFirestore{
 		client:     client.(*ClientFirestore),
 		id:         "id",
-		collection: "tablename",
+		collection: name,
 		numShards:  0,
 	}
 

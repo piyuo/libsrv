@@ -15,7 +15,7 @@ func TestQuery(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	rand := identifier.RandomString(6)
+	rand := identifier.RandomString(8)
 	name1 := "test-query-1-" + rand
 	name2 := "test-query-2-" + rand
 
@@ -151,7 +151,7 @@ func TestQueryTime(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	rand := identifier.RandomString(6)
+	rand := identifier.RandomString(8)
 	name := "test-query-time-" + rand
 
 	sample := &Sample{
@@ -174,7 +174,7 @@ func TestQueryDelete(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	rand := identifier.RandomString(6)
+	rand := identifier.RandomString(8)
 	name := "test-query-delete-" + rand
 
 	sample := &Sample{
@@ -199,12 +199,13 @@ func TestQueryDelete(t *testing.T) {
 }
 
 func TestQueryDeleteInTransaction(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 	rand := identifier.RandomString(8)
-	name1 := "test-query-delete-" + rand
-	name2 := "test-query-delete-" + rand
+	name1 := "test-query-delete-tx-" + rand
+	name2 := "test-query-delete-tx-" + rand
 
 	//prepare 2 sample
 	sample1 := &Sample{

@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGdbBatch(t *testing.T) {
+func TestBatch(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "testGdb-batch" + identifier.RandomString(6)
+	name := "test-batch-" + identifier.RandomString(8)
 	sample := &Sample{
 		Name:  name,
 		Value: 2001,
@@ -67,7 +67,7 @@ func TestGdbBatch(t *testing.T) {
 	assert.False(found)
 }
 
-func TestGdbBatchEmpty(t *testing.T) {
+func TestBatchEmpty(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -79,13 +79,13 @@ func TestGdbBatchEmpty(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestGdbBatchDeleteList(t *testing.T) {
+func TestBatchDeleteList(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "testGdb-batch" + identifier.RandomString(6)
+	name := "test-batch-" + identifier.RandomString(6)
 	sample := &Sample{
 		Name:  name,
 		Value: 2010,
