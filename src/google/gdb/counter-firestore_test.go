@@ -99,6 +99,15 @@ func TestCounterInCanceledCtx(t *testing.T) {
 	assert.NotNil(err)
 }
 
+func TestCounterNumShards0(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	client := sampleClient()
+	counter := client.Counter("no-num", 0, db.DateHierarchyNone)
+	assert.NotNil(counter)
+	assert.Equal(10, counter.(*CounterFirestore).numShards)
+}
+
 func TestCounterConcurrent(t *testing.T) {
 	t.Parallel()
 	rand.Seed(time.Now().UnixNano())

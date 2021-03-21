@@ -31,3 +31,12 @@ func TestGdbInCanceledContext(t *testing.T) {
 	assert.NotNil(err)
 	assert.Nil(client)
 }
+
+func TestGdbNewClient(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client, err := NewClient(ctx, nil)
+	assert.NotNil(err)
+	assert.Nil(client)
+}

@@ -36,7 +36,16 @@ func TestQuery(t *testing.T) {
 	assert.Nil(err)
 	defer client.Delete(ctx, sample2)
 
-	// get full object
+	// no obj will result error
+	_, err = client.Query(nil).Where("ID", "==", sample1.ID()).ReturnFirstID(ctx)
+	assert.NotNil(err)
+
+	// get full object from id
+	firstID, err := client.Query(&Sample{}).Where("ID", "==", sample1.ID()).ReturnFirstID(ctx)
+	assert.Nil(err)
+	assert.Equal(sample1.ID(), firstID)
+
+	// get full object from name
 	list, err := client.Query(&Sample{}).Where("Name", "==", name1).Return(ctx)
 	assert.Nil(err)
 	assert.Equal(1, len(list))
@@ -117,6 +126,10 @@ func TestQueryList(t *testing.T) {
 	assert.Nil(err)
 	defer client.Delete(ctx, sample2)
 
+	// no obj will result error
+	_, err = client.Query(nil).Where("Tag", "==", rand).ReturnID(ctx)
+	assert.NotNil(err)
+
 	// get id only
 	list, err := client.Query(&Sample{}).Where("Tag", "==", rand).ReturnID(ctx)
 	assert.Nil(err)
@@ -125,14 +138,23 @@ func TestQueryList(t *testing.T) {
 	assert.NotEmpty(list[1])
 	assert.NotEqual(list[1], list[0])
 
+	// no obj will result error
+	obj, err := client.Query(nil).Where("Name", "==", name1).ReturnFirst(ctx)
+	assert.NotNil(err)
+
 	// first
-	obj, err := client.Query(&Sample{}).Where("Name", "==", name1).ReturnFirst(ctx)
+	obj, err = client.Query(&Sample{}).Where("Name", "==", name1).ReturnFirst(ctx)
 	assert.Nil(err)
 	assert.Equal(sample1.ID(), obj.ID())
 
 	id, err := client.Query(&Sample{}).Where("Name", "==", name1).ReturnFirstID(ctx)
 	assert.Nil(err)
 	assert.Equal(sample1.ID(), id)
+
+	// object not found will return empty string
+	id, err = client.Query(&Sample{}).Where("Name", "==", "not exist").ReturnFirstID(ctx)
+	assert.Nil(err)
+	assert.Empty(id)
 }
 
 func TestQueryNotExistFieldWillNotError(t *testing.T) {

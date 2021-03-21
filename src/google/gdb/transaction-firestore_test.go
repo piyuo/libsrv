@@ -91,6 +91,49 @@ func TestTransactionFail(t *testing.T) {
 	assert.NotNil(err)
 }
 
+func TestTransactionAssert(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+
+	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		_, err := tx.Get(ctx, nil, "")
+		assert.NotNil(err)
+		_, err = tx.Get(ctx, &Sample{}, "")
+		assert.NotNil(err)
+		_, err = tx.Exists(ctx, nil, "")
+		assert.NotNil(err)
+		_, err = tx.Exists(ctx, &Sample{}, "")
+		assert.NotNil(err)
+		_, err = tx.List(ctx, nil, 10)
+		assert.NotNil(err)
+		_, err = tx.Select(ctx, nil, "", "")
+		assert.NotNil(err)
+		_, err = tx.Select(ctx, &Sample{}, "", "")
+		assert.NotNil(err)
+		err = tx.Set(ctx, nil)
+		assert.NotNil(err)
+		err = tx.Update(ctx, nil, nil)
+		assert.NotNil(err)
+		err = tx.Increment(ctx, nil, "Value", 1)
+		assert.NotNil(err)
+		err = tx.Delete(ctx, nil)
+		assert.NotNil(err)
+		_, err = tx.(*TransactionFirestore).deleteAll(ctx, nil, 1)
+		assert.NotNil(err)
+
+		ref := client.(*ClientFirestore).getDocRef("not-exists", "not-exists")
+		err = tx.(*TransactionFirestore).createShard(ref, nil)
+		assert.NotNil(err)
+		err = tx.(*TransactionFirestore).incrementShard(ref, nil)
+		assert.NotNil(err)
+
+		return nil
+	})
+	assert.Nil(err)
+}
+
 func TestTransactionDeleteAll(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)

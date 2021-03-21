@@ -6,6 +6,7 @@ import (
 
 	"github.com/piyuo/libsrv/src/db"
 	"github.com/piyuo/libsrv/src/identifier"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,6 +78,17 @@ func TestBatchEmpty(t *testing.T) {
 		return nil
 	})
 	assert.Nil(err)
+}
+
+func TestBatchFail(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	err := client.Batch(ctx, func(ctx context.Context, batch db.Batch) error {
+		return errors.New("fail")
+	})
+	assert.NotNil(err)
 }
 
 func TestBatchDeleteList(t *testing.T) {

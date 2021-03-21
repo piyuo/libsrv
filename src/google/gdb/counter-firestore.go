@@ -139,7 +139,7 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, transaction db.Trans
 	utcNow := time.Now().UTC()
 	shard := map[string]interface{}{
 		db.MetaID:      c.id,
-		db.MetaValue:   value,
+		db.MetaN:       value,
 		db.CounterTime: utcNow,
 	}
 	if c.keepDateHierarchy {
@@ -261,7 +261,7 @@ func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy db.Hierar
 		}
 
 		obj := snotshot.Data()
-		iValue := obj[db.MetaValue]
+		iValue := obj[db.MetaN]
 		value, err := util.ToFloat64(iValue)
 		if err != nil {
 			return nil, errors.Wrapf(err, "invalid dataType %T want float64 %v-%v", iValue, c.collection, c.id)

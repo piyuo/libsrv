@@ -46,7 +46,7 @@ func (c *CoderFirestore) pickShard(ctx context.Context, transaction db.Transacti
 		return false, value, nil
 	}
 
-	idRef, err := snapshot.DataAt(db.MetaValue)
+	idRef, err := snapshot.DataAt(db.MetaN)
 	if err != nil {
 		return false, 0, errors.Wrapf(err, "get data at snapshot %v-%v", c.collection, c.id)
 	}
@@ -172,8 +172,8 @@ func (c *CoderFirestore) NumberWX(ctx context.Context, transaction db.Transactio
 		}
 	} else {
 		shard := map[string]interface{}{
-			db.MetaID:    c.id,
-			db.MetaValue: 1,
+			db.MetaID: c.id,
+			db.MetaN:  1,
 		}
 		if err := tx.createShard(c.getPickedRef(), shard); err != nil {
 			return errors.Wrap(err, "new shard")

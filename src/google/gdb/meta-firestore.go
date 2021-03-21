@@ -103,7 +103,7 @@ func (c *MetaFirestore) countValue(shards *firestore.DocumentIterator) (float64,
 			return 0, errors.Wrapf(err, "iter next %v-%v", c.collection, c.id)
 		}
 
-		iTotal := snotshot.Data()[db.MetaValue]
+		iTotal := snotshot.Data()[db.MetaN]
 		shardCount, err := util.ToFloat64(iTotal)
 		if err != nil {
 			return 0, errors.Wrapf(err, "invalid dataType %T want float64 %v-%v", iTotal, c.collection, c.id)

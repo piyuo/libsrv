@@ -6,6 +6,6 @@ package db
 //
 const MetaID = "ID"
 
-// MetaValue field in shard
+// MetaN field in shard
 //
-const MetaValue = "N"
+const MetaN = "N"

@@ -240,7 +240,7 @@ func (c *TransactionFirestore) isShardExists(ctx context.Context, ref *firestore
 // createShard create a shard
 //
 func (c *TransactionFirestore) createShard(ref *firestore.DocumentRef, shard map[string]interface{}) error {
-	if shard[db.MetaValue] == nil {
+	if shard[db.MetaN] == nil {
 		return errors.New("N must not nil")
 	}
 
@@ -259,7 +259,7 @@ func (c *TransactionFirestore) incrementShard(ref *firestore.DocumentRef, value 
 	}
 
 	err := c.tx.Update(ref, []firestore.Update{
-		{Path: db.MetaValue, Value: firestore.Increment(value)},
+		{Path: db.MetaN, Value: firestore.Increment(value)},
 	})
 	if err != nil {
 		return errors.Wrap(err, "tx update shard")

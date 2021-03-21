@@ -27,10 +27,9 @@ type QueryFirestore struct {
 //	list, err := Query(&Sample{}).Where("ID", "==", "sample1").Return(ctx)
 //
 func (c *QueryFirestore) Where(path, op string, value interface{}) db.Query {
-	if path == "ID" {
+	if c.QueryObject != nil && path == "ID" {
 		path = firestore.DocumentID
 		value = c.client.getDocRef(c.QueryObject.Collection(), value.(string))
-		//c.conn.client.Collection(c.ame).Doc(value.(string))
 	}
 	c.query = c.query.Where(path, op, value)
 	return c

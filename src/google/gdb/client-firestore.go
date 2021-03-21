@@ -18,7 +18,7 @@ type ClientFirestore struct {
 
 	// client is firestore native client
 	//
-	firestoreClient *firestore.Client
+	native *firestore.Client
 }
 
 // Close client
@@ -27,9 +27,9 @@ type ClientFirestore struct {
 //	defer c.Close()
 //
 func (c *ClientFirestore) Close() {
-	if c.firestoreClient != nil {
-		c.firestoreClient.Close()
-		c.firestoreClient = nil
+	if c.native != nil {
+		c.native.Close()
+		c.native = nil
 	}
 }
 
@@ -44,7 +44,7 @@ func (c *ClientFirestore) Batch(ctx context.Context, f db.BatchFunc) error {
 		return ctx.Err()
 	}
 
-	native := c.firestoreClient.Batch()
+	native := c.native.Batch()
 	batch := &BatchFirestore{
 		client: c,
 		batch:  native,
@@ -71,7 +71,7 @@ func (c *ClientFirestore) Batch(ctx context.Context, f db.BatchFunc) error {
 //	})
 //
 func (c *ClientFirestore) Transaction(ctx context.Context, f db.TransactionFunc) error {
-	return c.firestoreClient.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+	return c.native.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		trans := &TransactionFirestore{
 			client: c,
 			tx:     tx,
@@ -85,7 +85,7 @@ func (c *ClientFirestore) Transaction(ctx context.Context, f db.TransactionFunc)
 //	collectionRef, err := c.getCollectionRef(tablename)
 //
 func (c *ClientFirestore) getCollectionRef(tablename string) *firestore.CollectionRef {
-	return c.firestoreClient.Collection(tablename)
+	return c.native.Collection(tablename)
 }
 
 // getDocRef return document reference in table
@@ -107,7 +107,7 @@ func snapshotToObject(obj db.Object, docRef *firestore.DocumentRef, snapshot *fi
 	}
 
 	if err := snapshot.DataTo(obj); err != nil {
-		return nil, errors.Wrapf(err, "make snapshot to object %v-%v", obj.Collection(), docRef.ID)
+		return nil, errors.Wrapf(err, "snapshot to object %v-%v", obj.Collection(), docRef.ID)
 	}
 	obj.SetRef(docRef)
 	obj.SetID(docRef.ID)
@@ -261,11 +261,16 @@ func (c *ClientFirestore) Select(ctx context.Context, obj db.Object, id, field s
 //	c.Query(ctx, &Sample{}).Return(ctx)
 //
 func (c *ClientFirestore) Query(obj db.Object) db.Query {
+	var query firestore.Query
+	if obj != nil {
+		query = c.getCollectionRef(obj.Collection()).Query
+	}
+
 	return (&QueryFirestore{
 		BaseQuery: db.BaseQuery{
 			QueryObject: obj,
 		},
-		query:  c.getCollectionRef(obj.Collection()).Query,
+		query:  query,
 		client: c,
 	}).Limit(20)
 }
@@ -296,6 +301,9 @@ func (c *ClientFirestore) Set(ctx context.Context, obj db.Object) error {
 func (c *ClientFirestore) Update(ctx context.Context, obj db.Object, fields map[string]interface{}) error {
 	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
+	}
+	if len(fields) == 0 {
+		return nil
 	}
 	docRef := c.getDocRef(obj.Collection(), obj.ID())
 	_, err := docRef.Set(ctx, fields, firestore.MergeAll)
@@ -415,6 +423,10 @@ func (c *ClientFirestore) Counter(counterName string, numshards int, hierarchy d
 //	productCoder,err = Coder("coderName",100)
 //
 func (c *ClientFirestore) Coder(coderName string, numshards int) db.Coder {
+	if numshards <= 0 {
+		numshards = 10
+	}
+
 	return &CoderFirestore{
 		MetaFirestore: MetaFirestore{
 			client:     c,

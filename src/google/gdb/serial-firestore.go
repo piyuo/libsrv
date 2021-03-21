@@ -46,7 +46,7 @@ func (c *SerialFirestore) NumberRX(ctx context.Context, transaction db.Transacti
 		return 1, nil
 	}
 
-	idRef, err := snapshot.DataAt(db.MetaValue)
+	idRef, err := snapshot.DataAt(db.MetaN)
 	if err != nil {
 		return 0, errors.Wrapf(err, "get data at snapshot %v-%v", c.collection, c.id)
 	}
@@ -74,8 +74,8 @@ func (c *SerialFirestore) NumberWX(ctx context.Context, transaction db.Transacti
 		}
 	} else {
 		shard := map[string]interface{}{
-			db.MetaID:    c.id,
-			db.MetaValue: 1,
+			db.MetaID: c.id,
+			db.MetaN:  1,
 		}
 		if err := tx.createShard(c.getRef(), shard); err != nil {
 			return err

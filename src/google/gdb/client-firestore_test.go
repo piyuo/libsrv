@@ -34,10 +34,18 @@ func TestClientCRUD(t *testing.T) {
 	}
 	assert.Empty(sample.ID())
 
+	// return error if no id
+	_, err := client.Get(ctx, &Sample{}, "")
+	assert.NotNil(err)
+
 	// return nil if object not exists
 	o, err := client.Get(ctx, &Sample{}, "no id")
 	assert.Nil(err)
 	assert.Nil(o)
+
+	// return error if no id
+	_, err = client.Exists(ctx, &Sample{}, "")
+	assert.NotNil(err)
 
 	// not found
 	exist, err := client.Exists(ctx, &Sample{}, "no id")
@@ -118,6 +126,11 @@ func TestClientUpdate(t *testing.T) {
 
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
+	defer client.Delete(ctx, sample)
+
+	// return error if no id
+	_, err = client.Select(ctx, &Sample{}, "", "Value")
+	assert.NotNil(err)
 
 	// not exists
 	value, err := client.Select(ctx, &Sample{}, "no id", "Value")
@@ -130,12 +143,29 @@ func TestClientUpdate(t *testing.T) {
 	assert.Equal(int64(6), value)
 
 	// update
+
+	// nil fields will not error
+	err = client.Update(ctx, sample, nil)
+	assert.Nil(err)
+
+	// field not exist will not error
+	err = client.Update(ctx, sample, map[string]interface{}{
+		"NotExist": name2,
+	})
+	assert.Nil(err)
+
+	// nothing to update will not error
+	err = client.Update(ctx, sample, map[string]interface{}{})
+	assert.Nil(err)
+
+	// success
 	err = client.Update(ctx, sample, map[string]interface{}{
 		"Name":  name2,
 		"Value": 2,
 	})
 	assert.Nil(err)
 
+	// select
 	name, err := client.Select(ctx, &Sample{}, sample.ID(), "Name")
 	assert.Nil(err)
 	assert.Equal(name2, name)
@@ -154,8 +184,6 @@ func TestClientUpdate(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(int64(5), value)
 
-	err = client.Delete(ctx, sample)
-	assert.Nil(err)
 }
 
 func TestClientList(t *testing.T) {

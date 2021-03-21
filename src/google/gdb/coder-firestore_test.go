@@ -14,38 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCoderInCanceledCtx(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	client := sampleClient()
-	coder := client.Coder("cancelCtx", 3)
-	assert.NotNil(coder)
-	ctxCanceled := util.CanceledCtx()
-	err := coder.Delete(ctxCanceled)
-	assert.NotNil(err)
-}
-
-func TestCoderReadBeforeWrite(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	ctx := context.Background()
-	client := sampleClient()
-	name := "test-coder-read-before-write-" + identifier.RandomString(8)
-	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		coder := client.Coder(name, 3)
-		err := coder.NumberWX(ctx, tx)
-		assert.NotNil(err)
-		err = coder.CodeWX(ctx, tx)
-		assert.NotNil(err)
-		err = coder.Code16WX(ctx, tx)
-		assert.NotNil(err)
-		err = coder.Code64WX(ctx, tx)
-		assert.NotNil(err)
-		return nil
-	})
-	assert.Nil(err)
-}
-
 func TestCoderNum(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -262,4 +230,45 @@ func TestConcurrentCoder(t *testing.T) {
 	if resultLen != 9 {
 		t.Errorf("result = %d; need 9", resultLen)
 	}
+}
+
+func TestCoderInCanceledCtx(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	client := sampleClient()
+	coder := client.Coder("cancelCtx", 3)
+	assert.NotNil(coder)
+	ctxCanceled := util.CanceledCtx()
+	err := coder.Delete(ctxCanceled)
+	assert.NotNil(err)
+}
+
+func TestCoderNumShards0(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	client := sampleClient()
+	coder := client.Coder("no-num", 0)
+	assert.NotNil(coder)
+	assert.Equal(10, coder.(*CoderFirestore).numShards)
+}
+
+func TestCoderReadBeforeWrite(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	name := "test-coder-read-before-write-" + identifier.RandomString(8)
+	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		coder := client.Coder(name, 3)
+		err := coder.NumberWX(ctx, tx)
+		assert.NotNil(err)
+		err = coder.CodeWX(ctx, tx)
+		assert.NotNil(err)
+		err = coder.Code16WX(ctx, tx)
+		assert.NotNil(err)
+		err = coder.Code64WX(ctx, tx)
+		assert.NotNil(err)
+		return nil
+	})
+	assert.Nil(err)
 }
