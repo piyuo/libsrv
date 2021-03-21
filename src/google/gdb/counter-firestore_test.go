@@ -3,6 +3,7 @@ package gdb
 import (
 	"context"
 	"math/rand"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -57,6 +58,54 @@ func TestCounter(t *testing.T) {
 	assert.Equal(0, shardsCount)
 }
 
+func TestCounterShards(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	name := "test-counter-shards-" + identifier.RandomString(8)
+	counter := client.Counter(name, 1, db.DateHierarchyFull)
+
+	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		err := counter.IncrementRX(ctx, tx)
+		assert.Nil(err)
+		return counter.IncrementWX(ctx, tx, 1)
+	})
+	assert.Nil(err)
+
+	utcNow := time.Now().UTC()
+	year := strconv.Itoa(utcNow.Year())
+	month := strconv.Itoa(int(utcNow.Month()))
+	day := strconv.Itoa(int(utcNow.Day()))
+	hour := strconv.Itoa(int(utcNow.Hour()))
+	c := counter.(*CounterFirestore)
+	yearRef := client.(*ClientFirestore).getDocRef(c.collection, c.id+year+"_"+c.pickedShard)
+	monthRef := client.(*ClientFirestore).getDocRef(c.collection, c.id+year+"-"+month+"_"+c.pickedShard)
+	dayRef := client.(*ClientFirestore).getDocRef(c.collection, c.id+year+"-"+month+"-"+day+"_"+c.pickedShard)
+	hourRef := client.(*ClientFirestore).getDocRef(c.collection, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.pickedShard)
+	hourRef.Delete(ctx)
+	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		return counter.IncrementRX(ctx, tx)
+	})
+
+	dayRef.Delete(ctx)
+	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		return counter.IncrementRX(ctx, tx)
+	})
+
+	monthRef.Delete(ctx)
+	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		return counter.IncrementRX(ctx, tx)
+	})
+
+	yearRef.Delete(ctx)
+	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		return counter.IncrementRX(ctx, tx)
+	})
+	assert.Nil(err)
+
+}
+
 func TestCounterFail(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -81,6 +130,21 @@ func TestCounterFail(t *testing.T) {
 	secondCount, err := counter.CountAll(ctx)
 	assert.Nil(err)
 	assert.Equal(firstCount, secondCount)
+}
+
+func TestCounterWxBeforeRx(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	name := "test-counter-wx-before-rx-" + identifier.RandomString(8)
+	counter := client.Counter(name, 1, db.DateHierarchyNone)
+	defer counter.Delete(ctx)
+
+	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		return counter.IncrementWX(ctx, tx, 1)
+	})
+	assert.NotNil(err)
 }
 
 func TestCounterInCanceledCtx(t *testing.T) {
@@ -175,6 +239,7 @@ func TestCounterCountPeriod(t *testing.T) {
 	assert.Contains(err.Error(), "requires an index")
 }
 
+/* not support for now
 func TestCounterDetailPeriod(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -188,3 +253,4 @@ func TestCounterDetailPeriod(t *testing.T) {
 	_, err := counter.DetailPeriod(ctx, db.HierarchyYear, from, to)
 	assert.Contains(err.Error(), "requires an index")
 }
+*/

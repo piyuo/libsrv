@@ -9,9 +9,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/piyuo/libsrv/src/db"
 	"github.com/piyuo/libsrv/src/log"
-	"github.com/piyuo/libsrv/src/util"
 	"github.com/pkg/errors"
-	"google.golang.org/api/iterator"
 )
 
 // CounterFirestore implement Counter
@@ -241,6 +239,7 @@ func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy db.Hierarc
 	return c.countValue(shards)
 }
 
+/* not support for now
 // DetailPeriod return detail between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
 //
 //	dict, err = counter.DetailPeriod(ctx)
@@ -276,7 +275,7 @@ func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy db.Hierar
 		}
 	}
 	return result, nil
-}
+}*/
 
 // Delete delete counter
 //
