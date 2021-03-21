@@ -78,11 +78,11 @@ type Coder interface {
 	//
 	NumberWX(ctx context.Context, transaction Transaction) error
 
-	// Clear all shards
+	// Delete delete coder
 	//
-	//	err = coder.Clear(ctx)
+	//	err = Delete(ctx)
 	//
-	Clear(ctx context.Context, max int) (bool, error)
+	Delete(ctx context.Context) error
 
 	// ShardsCount returns shards count
 	//

@@ -169,13 +169,13 @@ func TestQueryTime(t *testing.T) {
 	assert.NotNil(obj)
 }
 
-func TestQueryClear(t *testing.T) {
+func TestQueryDelete(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 	rand := identifier.RandomString(6)
-	name := "test-query-clear-" + rand
+	name := "test-query-delete-" + rand
 
 	sample := &Sample{
 		Name:  name,
@@ -189,7 +189,7 @@ func TestQueryClear(t *testing.T) {
 	assert.Nil(err)
 	assert.True(found)
 
-	cleared, err := client.Query(&Sample{}).Where("Name", "==", name).Clear(ctx, 2)
+	cleared, err := client.Query(&Sample{}).Where("Name", "==", name).Delete(ctx, 2)
 	assert.Nil(err)
 	assert.True(cleared)
 
@@ -198,13 +198,13 @@ func TestQueryClear(t *testing.T) {
 	assert.False(found)
 }
 
-func TestQueryClearInTransaction(t *testing.T) {
+func TestQueryDeleteInTransaction(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 	rand := identifier.RandomString(8)
-	name1 := "test-query-list-" + rand
-	name2 := "test-query-list-" + rand
+	name1 := "test-query-delete-" + rand
+	name2 := "test-query-delete-" + rand
 
 	//prepare 2 sample
 	sample1 := &Sample{
@@ -231,7 +231,7 @@ func TestQueryClearInTransaction(t *testing.T) {
 	assert.Equal(2, count)
 
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		cleared, err := client.Query(&Sample{}).Where("Tag", "==", rand).Clear(ctx, 10)
+		cleared, err := client.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 10)
 		assert.Nil(err)
 		assert.True(cleared)
 		return nil

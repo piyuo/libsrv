@@ -85,6 +85,16 @@ func TestObjectMap(t *testing.T) {
 	assert.Equal("a", sample2.PObj.Name)
 }
 
+func TestClientObjectWithoutFactory(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	sampleNoFactory := &SampleNoFactory{}
+	err := client.Set(ctx, sampleNoFactory)
+	assert.NotNil(err)
+}
+
 func doWork(f func(i int) string) string {
 	return f(1)
 }

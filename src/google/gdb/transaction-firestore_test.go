@@ -95,7 +95,7 @@ func TestGdbTransactionClear(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 
-	sample := &SampleClear{
+	sample := &SampleEmpty{
 		Name: "sampleClear",
 	}
 	err := client.Set(ctx, sample)

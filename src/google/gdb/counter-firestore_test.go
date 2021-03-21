@@ -19,7 +19,7 @@ func TestCounter(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter" + identifier.RandomString(6)
+	name := "test-counter" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyFull)
 
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
@@ -49,9 +49,8 @@ func TestCounter(t *testing.T) {
 	assert.Nil(err)
 	assert.True(secondCount > firstCount)
 
-	cleared, err := counter.Clear(ctx, 10)
+	err = counter.Delete(ctx)
 	assert.Nil(err)
-	assert.True(cleared)
 
 	shardsCount, err = counter.ShardsCount(ctx)
 	assert.Nil(err)
@@ -63,9 +62,9 @@ func TestCounterFail(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-counter-fail" + identifier.RandomString(6)
+	name := "test-counter-fail" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyNone)
-	defer counter.Clear(ctx, 10)
+	defer counter.Delete(ctx)
 
 	firstCount, err := counter.CountAll(ctx)
 	assert.Nil(err)
@@ -88,7 +87,7 @@ func TestCounterInCanceledCtx(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	client := sampleClient()
-	name := "test-counter-no-ctx" + identifier.RandomString(6)
+	name := "test-counter-no-ctx" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyNone)
 
 	ctxCanceled := util.CanceledCtx()
@@ -96,9 +95,8 @@ func TestCounterInCanceledCtx(t *testing.T) {
 	assert.NotNil(err)
 	assert.Equal(float64(0), count)
 
-	cleared, err := counter.Clear(ctxCanceled, 10)
+	err = counter.Delete(ctxCanceled)
 	assert.NotNil(err)
-	assert.False(cleared)
 }
 
 func TestCounterConcurrent(t *testing.T) {
@@ -109,7 +107,7 @@ func TestCounterConcurrent(t *testing.T) {
 	client := sampleClient()
 	name := "test-counter-concurrent" + identifier.RandomString(6)
 	counter := client.Counter(name, 30, db.DateHierarchyNone)
-	defer counter.Clear(ctx, 100)
+	defer counter.Delete(ctx)
 
 	var concurrent = 3
 	var wg sync.WaitGroup
@@ -161,7 +159,6 @@ func TestCounterCountPeriod(t *testing.T) {
 	client := sampleClient()
 	name := "test-counter-period" + identifier.RandomString(6)
 	counter := client.Counter(name, 1, db.DateHierarchyFull)
-	//defer counter.Clear(ctx, 100)
 	now := time.Now().UTC()
 	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
 	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)

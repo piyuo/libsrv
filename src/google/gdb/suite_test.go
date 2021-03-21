@@ -26,6 +26,6 @@ func shutdown() {
 func BenchmarkGdbClean(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
-	client.Clear(ctx, &Sample{}, 100)
+	client.(*ClientFirestore).deleteAll(ctx, &Sample{}, 100)
 
 }

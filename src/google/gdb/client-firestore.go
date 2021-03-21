@@ -199,10 +199,10 @@ func (c *ClientFirestore) refFromObj(ctx context.Context, obj db.Object) *firest
 //	object, err := Get(ctx, &Sample{}, "id")
 //
 func (c *ClientFirestore) Get(ctx context.Context, obj db.Object, id string) (db.Object, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return nil, err
 	}
-	if err := db.CheckID(id); err != nil {
+	if err := db.AssertID(id); err != nil {
 		return nil, err
 	}
 	docRef := c.getDocRef(obj.Collection(), id)
@@ -215,10 +215,10 @@ func (c *ClientFirestore) Get(ctx context.Context, obj db.Object, id string) (db
 //	found,err := Exists(ctx, &Sample{}, "id")
 //
 func (c *ClientFirestore) Exists(ctx context.Context, obj db.Object, id string) (bool, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}
-	if err := db.CheckID(id); err != nil {
+	if err := db.AssertID(id); err != nil {
 		return false, err
 	}
 	docRef := c.getDocRef(obj.Collection(), id)
@@ -231,7 +231,7 @@ func (c *ClientFirestore) Exists(ctx context.Context, obj db.Object, id string) 
 //	list,err := List(ctx, &Sample{},10)
 //
 func (c *ClientFirestore) List(ctx context.Context, obj db.Object, max int) ([]db.Object, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return nil, err
 	}
 	collectionRef := c.getCollectionRef(obj.Collection())
@@ -245,10 +245,10 @@ func (c *ClientFirestore) List(ctx context.Context, obj db.Object, max int) ([]d
 //	return Select(ctx, &Sample{}, id, field)
 //
 func (c *ClientFirestore) Select(ctx context.Context, obj db.Object, id, field string) (interface{}, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}
-	if err := db.CheckID(id); err != nil {
+	if err := db.AssertID(id); err != nil {
 		return false, err
 	}
 	docRef := c.getDocRef(obj.Collection(), id)
@@ -275,7 +275,7 @@ func (c *ClientFirestore) Query(obj db.Object) db.Query {
 //	 err := Set(ctx, object)
 //
 func (c *ClientFirestore) Set(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return err
 	}
 	c.BaseClient.BeforeSet(ctx, obj)
@@ -294,7 +294,7 @@ func (c *ClientFirestore) Set(ctx context.Context, obj db.Object) error {
 //	})
 //
 func (c *ClientFirestore) Update(ctx context.Context, obj db.Object, fields map[string]interface{}) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
 	}
 	docRef := c.getDocRef(obj.Collection(), obj.ID())
@@ -311,7 +311,7 @@ func (c *ClientFirestore) Update(ctx context.Context, obj db.Object, fields map[
 //	err := Increment(ctx,sample, "Value", 2)
 //
 func (c *ClientFirestore) Increment(ctx context.Context, obj db.Object, field string, value int) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
 	}
 	docRef := c.getDocRef(obj.Collection(), obj.ID())
@@ -329,7 +329,7 @@ func (c *ClientFirestore) Increment(ctx context.Context, obj db.Object, field st
 //	Delete(ctx, sample)
 //
 func (c *ClientFirestore) Delete(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
 	}
 	docRef := c.objDeleteRef(obj)
@@ -340,11 +340,11 @@ func (c *ClientFirestore) Delete(ctx context.Context, obj db.Object) error {
 	return nil
 }
 
-// DeleteCollection delete document in collection. delete max doc count. return true if no doc left in collection
+// deleteByIterator delete document using collection document iterator. delete max doc count. return true if no doc left in collection
 //
-//	cleared, err := DeleteCollection(ctx, 50, iter)
+//	done, err := deleteByIterator(ctx, 50, iter)
 //
-func (c *ClientFirestore) DeleteCollection(ctx context.Context, max int, iter *firestore.DocumentIterator) (bool, error) {
+func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *firestore.DocumentIterator) (bool, error) {
 	numDeleted := 0
 	// Iterate through the documents, adding a delete operation for each one to a WriteBatch.
 	err := c.Batch(ctx, func(ctx context.Context, batch db.Batch) error {
@@ -371,22 +371,22 @@ func (c *ClientFirestore) DeleteCollection(ctx context.Context, max int, iter *f
 	return false, nil
 }
 
-// Clear delete all document in collection. delete max doc count. return true if collection is cleared
+// deleteAll delete all document in collection. delete max doc count. return true if delete completed
 //
-//	cleared, err := Clear(ctx, &Sample{}, 50)
+//	completed, err := Clear(ctx, &Sample{}, 50)
 //
-func (c *ClientFirestore) Clear(ctx context.Context, obj db.Object, max int) (bool, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+func (c *ClientFirestore) deleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}
 	collectionRef := c.getCollectionRef(obj.Collection())
 	iter := collectionRef.Limit(max).Documents(ctx)
 	defer iter.Stop()
-	cleared, err := c.DeleteCollection(ctx, max, iter)
+	completed, err := c.deleteByIterator(ctx, max, iter)
 	if err != nil {
 		return false, errors.Wrap(err, "delete "+obj.Collection())
 	}
-	return cleared, nil
+	return completed, nil
 }
 
 // Counter return counter, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error

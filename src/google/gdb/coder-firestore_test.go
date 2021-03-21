@@ -14,20 +14,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGdbCoderInCanceledCtx(t *testing.T) {
+func TestCoderInCanceledCtx(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	client := sampleClient()
-	coder := client.Coder("sample", 3)
+	coder := client.Coder("cancelCtx", 3)
 	assert.NotNil(coder)
-
 	ctxCanceled := util.CanceledCtx()
-	cleared, err := coder.Clear(ctxCanceled, 10)
+	err := coder.Delete(ctxCanceled)
 	assert.NotNil(err)
-	assert.False(cleared)
 }
 
-func TestGdbCoderMustReadBeforeWrite(t *testing.T) {
+func TestCoderMustReadBeforeWrite(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -47,13 +45,13 @@ func TestGdbCoderMustReadBeforeWrite(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestGdbCoderNum(t *testing.T) {
+func TestCoderNum(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "testGdb-coder-num" + identifier.RandomString(6)
+	name := "test-coder-num" + identifier.RandomString(8)
 	coder := client.Coder(name, 1)
 	// success
 	var firstNum int64
@@ -82,7 +80,7 @@ func TestGdbCoderNum(t *testing.T) {
 
 		err = coder.NumberWX(ctx, tx)
 		assert.Nil(err)
-		return errors.New("fail transation")
+		return errors.New("fail")
 	})
 	assert.NotNil(err)
 
@@ -100,23 +98,22 @@ func TestGdbCoderNum(t *testing.T) {
 	assert.Equal(failNum, currentNum)
 	assert.NotEqual(firstNum, currentNum)
 
-	cleared, err := coder.Clear(ctx, 10)
+	err = coder.Delete(ctx)
 	assert.Nil(err)
-	assert.True(cleared)
 
 	shardsCount, err = coder.ShardsCount(ctx)
 	assert.Nil(err)
 	assert.Equal(0, shardsCount)
 }
 
-func TestGdbCoderCode(t *testing.T) {
+func TestCoderCode(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "testGdb-coder-code" + identifier.RandomString(6)
+	name := "test-coder-code" + identifier.RandomString(8)
 	coder := client.Coder(name, 1)
-	defer coder.Clear(ctx, 10)
+	defer coder.Delete(ctx)
 	var firstCode string
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		code, err := coder.CodeRX(ctx, tx)
@@ -144,15 +141,15 @@ func TestGdbCoderCode(t *testing.T) {
 	assert.NotEqual(firstCode, currentCode)
 }
 
-func TestGdbCoderCode16(t *testing.T) {
+func TestCoderCode16(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "testGdb-coder-code16" + identifier.RandomString(6)
+	name := "test-coder-code16" + identifier.RandomString(6)
 	coder := client.Coder(name, 1)
-	defer coder.Clear(ctx, 10)
+	defer coder.Delete(ctx)
 	var firstCode string
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		code, err := coder.Code16RX(ctx, tx)
@@ -180,15 +177,15 @@ func TestGdbCoderCode16(t *testing.T) {
 	assert.NotEqual(firstCode, currentCode)
 }
 
-func TestGdbCoderCode64(t *testing.T) {
+func TestCoderCode64(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	name := "testGdb-coder-code64" + identifier.RandomString(6)
+	name := "test-coder-code64" + identifier.RandomString(6)
 	coder := client.Coder(name, 1)
-	defer coder.Clear(ctx, 10)
+	defer coder.Delete(ctx)
 	var firstCode string
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		code, err := coder.Code64RX(ctx, tx)
@@ -216,16 +213,16 @@ func TestGdbCoderCode64(t *testing.T) {
 	assert.NotEqual(firstCode, currentCode)
 }
 
-func TestGdbConcurrentCoder(t *testing.T) {
+func TestConcurrentCoder(t *testing.T) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	ctx := context.Background()
 	client := sampleClient()
-	name := "testGdb-coder-concurrent" + identifier.RandomString(6)
+	name := "test-coder-concurrent" + identifier.RandomString(6)
 	result := make(map[int64]int64)
 	resultMutex := sync.RWMutex{}
 
 	coder := client.Coder(name, 30)
-	defer coder.Clear(ctx, 100)
+	defer coder.Delete(ctx)
 
 	var concurrent = 3
 	var wg sync.WaitGroup

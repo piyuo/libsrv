@@ -18,9 +18,9 @@ func TestSerial(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-serial-" + identifier.RandomString(6)
+	name := "test-serial-" + identifier.RandomString(8)
 	serial := client.Serial(name)
-	defer serial.Clear(ctx)
+	defer serial.Delete(ctx)
 
 	var firstSerial int64
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
@@ -55,9 +55,8 @@ func TestSerial(t *testing.T) {
 	assert.True(secondSerial >= failSerial)
 
 	// reset serial
-	cleared, err := serial.Clear(ctx)
+	err = serial.Delete(ctx)
 	assert.Nil(err)
-	assert.True(cleared)
 }
 
 func TestSerialInCanceledCtx(t *testing.T) {
@@ -67,9 +66,8 @@ func TestSerialInCanceledCtx(t *testing.T) {
 	serial := client.Serial("serialInCancelCtx")
 
 	ctxCanceled := util.CanceledCtx()
-	cleared, err := serial.Clear(ctxCanceled)
+	err := serial.Delete(ctxCanceled)
 	assert.NotNil(err)
-	assert.False(cleared)
 }
 
 func TestSerialConcurrent(t *testing.T) {
@@ -77,9 +75,9 @@ func TestSerialConcurrent(t *testing.T) {
 	ctx := context.Background()
 	rand.Seed(time.Now().UnixNano())
 	client := sampleClient()
-	name := "test-serial-concurrent-" + identifier.RandomString(6)
+	name := "test-serial-concurrent-" + identifier.RandomString(8)
 	serial := client.Serial(name)
-	defer serial.Clear(ctx)
+	defer serial.Delete(ctx)
 
 	var concurrent = 3
 	var wg sync.WaitGroup

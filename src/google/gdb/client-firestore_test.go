@@ -11,17 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGdbObjectWithoutFactory(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	ctx := context.Background()
-	client := sampleClient()
-	sampleNoFactory := &SampleNoFactory{}
-	err := client.Set(ctx, sampleNoFactory)
-	assert.NotNil(err)
-}
-
-func TestGdbClientClose(t *testing.T) {
+func TestClientClose(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -32,7 +22,7 @@ func TestGdbClientClose(t *testing.T) {
 	client.Close()
 }
 
-func TestGdbClientCRUD(t *testing.T) {
+func TestClientCRUD(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -112,7 +102,7 @@ func TestGdbClientCRUD(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestGdbSelectUpdateIncrementDelete(t *testing.T) {
+func TestClientSelectUpdateIncrementDelete(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -165,7 +155,7 @@ func TestGdbSelectUpdateIncrementDelete(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestGdbListQueryFindCount(t *testing.T) {
+func TestClientListQueryFindCount(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -207,7 +197,7 @@ func TestGdbListQueryFindCount(t *testing.T) {
 	assert.Equal(name2, (obj.(*Sample)).Name)
 }
 
-func TestConnectionContextCanceled(t *testing.T) {
+func TestClientContextCanceled(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	client := sampleClient()
@@ -233,27 +223,25 @@ func TestConnectionContextCanceled(t *testing.T) {
 		"Value": "2",
 	})
 	assert.NotNil(err)
-	_, err = client.Clear(ctx, &Sample{}, 10)
-	assert.NotNil(err)
 	_, err = client.Query(&Sample{}).Return(ctx)
 	assert.NotNil(err)
 	err = client.Increment(ctx, sample, "Value", 2)
 	assert.NotNil(err)
 }
 
-func TestGdbClear(t *testing.T) {
+func TestClientDeleteAll(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
 
-	sample := &SampleClear{
-		Name: "sampleClear",
+	sample := &SampleEmpty{
+		Name: "test-client-delete-all",
 	}
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
-	cleared, err := client.Clear(ctx, sample, 100)
+	cleared, err := client.(*ClientFirestore).deleteAll(ctx, sample, 100)
 	assert.Nil(err)
 	assert.True(cleared)
 }

@@ -24,11 +24,11 @@ type Serial interface {
 	//
 	NumberWX(ctx context.Context, transaction Transaction) error
 
-	// Clear serial and it's shard
+	// Delete delete serial
 	//
-	//	cleared, err = Clear(ctx,100)
+	//	err = Delete(ctx)
 	//
-	Clear(ctx context.Context) (bool, error)
+	Delete(ctx context.Context) error
 
 	// ShardsCount returns shards count
 	//

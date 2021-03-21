@@ -32,18 +32,18 @@ func (c *SampleNoFactory) Collection() string {
 	return ""
 }
 
-// SampleClear for test clear
+// SampleEmpty for test clear
 //
-type SampleClear struct {
+type SampleEmpty struct {
 	db.DomainObject
 	Name string `firestore:"Name,omitempty"`
 }
 
-func (c *SampleClear) Factory() db.Object {
-	return &SampleClear{}
+func (c *SampleEmpty) Factory() db.Object {
+	return &SampleEmpty{}
 }
 
-func (c *SampleClear) Collection() string {
+func (c *SampleEmpty) Collection() string {
 	return "SampleClear"
 }
 

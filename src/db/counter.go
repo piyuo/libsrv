@@ -47,11 +47,11 @@ type Counter interface {
 	//
 	DetailPeriod(ctx context.Context, hierarchy Hierarchy, from, to time.Time) (map[time.Time]float64, error)
 
-	// Clear all shards
+	// Delete delete counter
 	//
-	//	err = counter.Clear(ctx,100)
+	//	err = Delete(ctx)
 	//
-	Clear(ctx context.Context, max int) (bool, error)
+	Delete(ctx context.Context) error
 
 	// ShardsCount returns shards count
 	//

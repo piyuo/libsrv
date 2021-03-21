@@ -75,11 +75,11 @@ type Client interface {
 	//
 	Delete(ctx context.Context, obj Object) error
 
-	// Clear delete all document in collection. delete max Collection count. return true if collection is cleared
-	//
+	// DeleteAll delete all document in collection
+	// ! this function is too danger in production, rather not provider
 	//	cleared, err := Clear(ctx, &Sample{}, 50)
 	//
-	Clear(ctx context.Context, obj Object, max int) (bool, error)
+	// DeleteAll(ctx context.Context, obj Object, max int) (bool, error)
 
 	// Transaction start a transaction operation
 	//
@@ -131,11 +131,11 @@ const (
 	DateHierarchyFull = 2
 )
 
-// Check return error if ctx/obj has problem
+// AssertObject return error if ctx/obj has problem
 //
-//	err := Check(ctx, Sample)
+//	err := AssertObject(ctx, Sample)
 //
-func Check(ctx context.Context, obj Object, hasID bool) error {
+func AssertObject(ctx context.Context, obj Object, hasID bool) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -148,11 +148,11 @@ func Check(ctx context.Context, obj Object, hasID bool) error {
 	return nil
 }
 
-// CheckID check id is empty
+// AssertID check id is empty
 //
-//	err := CheckID(id)
+//	err := AssertID(id)
 //
-func CheckID(id string) error {
+func AssertID(id string) error {
 	if id == "" {
 		return errors.New("id must not empty")
 	}

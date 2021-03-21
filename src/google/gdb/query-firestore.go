@@ -100,7 +100,7 @@ func (c *QueryFirestore) EndBefore(docSnapshotOrFieldValues ...interface{}) db.Q
 }
 
 func (c *QueryFirestore) returnIter(ctx context.Context) (*firestore.DocumentIterator, error) {
-	if err := db.Check(ctx, c.QueryObject, false); err != nil {
+	if err := db.AssertObject(ctx, c.QueryObject, false); err != nil {
 		return nil, err
 	}
 
@@ -214,7 +214,7 @@ func (c *QueryFirestore) ReturnIsExists(ctx context.Context) (bool, error) {
 //	greet := obj.(*Greet)
 //
 func (c *QueryFirestore) ReturnFirst(ctx context.Context) (db.Object, error) {
-	if err := db.Check(ctx, c.QueryObject, false); err != nil {
+	if err := db.AssertObject(ctx, c.QueryObject, false); err != nil {
 		return nil, err
 	}
 	list, err := c.Limit(1).Return(ctx)
@@ -232,7 +232,7 @@ func (c *QueryFirestore) ReturnFirst(ctx context.Context) (db.Object, error) {
 //	id, err := Query(&Sample{}).OrderBy("From").Limit(1).StartAt("b city").ReturnFirstID(ctx)
 //
 func (c *QueryFirestore) ReturnFirstID(ctx context.Context) (string, error) {
-	if err := db.Check(ctx, c.QueryObject, false); err != nil {
+	if err := db.AssertObject(ctx, c.QueryObject, false); err != nil {
 		return "", err
 	}
 	list, err := c.Limit(1).Return(ctx)
@@ -245,24 +245,24 @@ func (c *QueryFirestore) ReturnFirstID(ctx context.Context) (string, error) {
 	return list[0].ID(), nil
 }
 
-// Clear delete all document in collection. delete max doc count. return true if collection is cleared
+// Delete delete all document return from query. delete max doc count. return true if delete is complete
 //
-func (c *QueryFirestore) Clear(ctx context.Context, max int) (bool, error) {
+func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, error) {
 	if c.QueryTransaction != nil {
 		trans := c.QueryTransaction.(*TransactionFirestore)
 		iter := trans.tx.Documents(c.query)
 		defer iter.Stop()
-		cleared, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
+		complete, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
 		if err != nil {
-			return false, errors.Wrapf(err, "clear %v", c.QueryObject.Collection())
+			return false, errors.Wrapf(err, "tx delete %v", c.QueryObject.Collection())
 		}
-		return cleared, nil
+		return complete, nil
 	}
 	iter := c.query.Documents(ctx)
 	defer iter.Stop()
-	cleared, err := c.client.DeleteCollection(ctx, max, iter)
+	complete, err := c.client.deleteByIterator(ctx, max, iter)
 	if err != nil {
-		return false, errors.Wrap(err, "delete collection "+c.QueryObject.Collection())
+		return false, errors.Wrap(err, "delete "+c.QueryObject.Collection())
 	}
-	return cleared, nil
+	return complete, nil
 }

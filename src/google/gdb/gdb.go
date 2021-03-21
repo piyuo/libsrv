@@ -11,8 +11,8 @@ import (
 
 // NewClient create google db client
 //
-//	cred, err := gaccount.RegionalCredential(ctx)
-//	return NewClient(cred)
+//	cred, err := gaccount.GlobalCredential(ctx)
+//	return NewClient(ctx, cred)
 //
 func NewClient(ctx context.Context, cred *google.Credentials) (db.Client, error) {
 	if ctx.Err() != nil {

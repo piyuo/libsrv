@@ -30,10 +30,10 @@ type TransactionFirestore struct {
 //	object, err := Get(ctx, &Sample{}, "id")
 //
 func (c *TransactionFirestore) Get(ctx context.Context, obj db.Object, id string) (db.Object, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return nil, err
 	}
-	if err := db.CheckID(id); err != nil {
+	if err := db.AssertID(id); err != nil {
 		return nil, err
 	}
 	docRef := c.client.getDocRef(obj.Collection(), id)
@@ -46,10 +46,10 @@ func (c *TransactionFirestore) Get(ctx context.Context, obj db.Object, id string
 //	found,err := Exists(ctx, &Sample{}, "id")
 //
 func (c *TransactionFirestore) Exists(ctx context.Context, obj db.Object, id string) (bool, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}
-	if err := db.CheckID(id); err != nil {
+	if err := db.AssertID(id); err != nil {
 		return false, err
 	}
 	docRef := c.client.getDocRef(obj.Collection(), id)
@@ -62,7 +62,7 @@ func (c *TransactionFirestore) Exists(ctx context.Context, obj db.Object, id str
 //	list,err := List(ctx, &Sample{},10)
 //
 func (c *TransactionFirestore) List(ctx context.Context, obj db.Object, max int) ([]db.Object, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return nil, err
 	}
 	collectionRef := c.client.getCollectionRef(obj.Collection())
@@ -76,10 +76,10 @@ func (c *TransactionFirestore) List(ctx context.Context, obj db.Object, max int)
 //	return Select(ctx, &Sample{}, id, field)
 //
 func (c *TransactionFirestore) Select(ctx context.Context, obj db.Object, id, field string) (interface{}, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}
-	if err := db.CheckID(id); err != nil {
+	if err := db.AssertID(id); err != nil {
 		return false, err
 	}
 	docRef := c.client.getDocRef(obj.Collection(), id)
@@ -107,7 +107,7 @@ func (c *TransactionFirestore) Query(obj db.Object) db.Query {
 //	 err := Set(ctx, object)
 //
 func (c *TransactionFirestore) Set(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return err
 	}
 	c.client.BaseClient.BeforeSet(ctx, obj)
@@ -126,7 +126,7 @@ func (c *TransactionFirestore) Set(ctx context.Context, obj db.Object) error {
 //	})
 //
 func (c *TransactionFirestore) Update(ctx context.Context, obj db.Object, fields map[string]interface{}) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
 	}
 	docRef := c.client.getDocRef(obj.Collection(), obj.ID())
@@ -143,7 +143,7 @@ func (c *TransactionFirestore) Update(ctx context.Context, obj db.Object, fields
 //	err := Increment(ctx,sample, "Value", 2)
 //
 func (c *TransactionFirestore) Increment(ctx context.Context, obj db.Object, field string, value int) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
 	}
 	docRef := c.client.getDocRef(obj.Collection(), obj.ID())
@@ -161,7 +161,7 @@ func (c *TransactionFirestore) Increment(ctx context.Context, obj db.Object, fie
 //	Delete(ctx, sample)
 //
 func (c *TransactionFirestore) Delete(ctx context.Context, obj db.Object) error {
-	if err := db.Check(ctx, obj, true); err != nil {
+	if err := db.AssertObject(ctx, obj, true); err != nil {
 		return err
 	}
 	docRef := c.client.objDeleteRef(obj)
@@ -202,7 +202,7 @@ func (c *TransactionFirestore) DeleteCollection(ctx context.Context, obj db.Obje
 //	cleared, err := Clear(ctx, &Sample{}, 50)
 //
 func (c *TransactionFirestore) Clear(ctx context.Context, obj db.Object, max int) (bool, error) {
-	if err := db.Check(ctx, obj, false); err != nil {
+	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}
 	collectionRef := c.client.getCollectionRef(obj.Collection())

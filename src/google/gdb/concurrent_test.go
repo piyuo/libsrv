@@ -21,14 +21,14 @@ func TestConcurrent(t *testing.T) {
 	rand := identifier.RandomString(8)
 	counterName := "test-concurrent-counter-" + rand
 	counter := client.Counter(counterName, 1000, db.DateHierarchyFull)
-	defer counter.Clear(ctx, 1001)
+	defer counter.Delete(ctx)
 
 	coderName := "test-concurrent-coder-" + rand
 	coder := client.Coder(coderName, 1000)
-	defer coder.Clear(ctx, 1001)
+	defer coder.Delete(ctx)
 
 	//cleanup
-	defer client.Query(&Sample{}).Where("Tag", "==", rand).Clear(ctx, 100)
+	defer client.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 100)
 
 	//	begin concurrent run
 	var concurrent = 3

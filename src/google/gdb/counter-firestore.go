@@ -278,12 +278,12 @@ func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy db.Hierar
 	return result, nil
 }
 
-// Clear delete all shard in collection. delete max doc count. return true if collection is cleared
+// Delete delete counter
 //
-//	err = Clear(ctx,100)
+//	err = Delete(ctx)
 //
-func (c *CounterFirestore) Clear(ctx context.Context, max int) (bool, error) {
-	return c.clear(ctx, max)
+func (c *CounterFirestore) Delete(ctx context.Context) error {
+	return c.deleteShards(ctx)
 }
 
 // ShardsCount returns shards count

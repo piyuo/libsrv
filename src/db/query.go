@@ -69,9 +69,9 @@ type Query interface {
 	//
 	EndBefore(docSnapshotOrFieldValues ...interface{}) Query
 
-	// Clear delete all document in collection. delete max doc count. return true if collection is cleared
+	// Delete delete all document return from query. delete max doc count. return true if delete is complete
 	//
-	Clear(ctx context.Context, max int) (bool, error)
+	Delete(ctx context.Context, max int) (bool, error)
 
 	// Return query result with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 	//

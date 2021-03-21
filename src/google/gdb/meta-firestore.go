@@ -46,21 +46,24 @@ func (c *MetaFirestore) check(ctx context.Context) error {
 	return nil
 }
 
-// clear delete all shard in collection. delete max doc count. return true if collection is cleared
+// deleteShards delete all shards
 //
-//	err = clear(ctx,100)
+//	err = deleteShards(ctx)
 //
-func (c *MetaFirestore) clear(ctx context.Context, max int) (bool, error) {
+func (c *MetaFirestore) deleteShards(ctx context.Context) error {
 	if err := c.check(ctx); err != nil {
-		return false, err
+		return err
 	}
 	tableRef := c.client.getCollectionRef(c.collection)
 	shardsIter := tableRef.Where(db.MetaID, "==", c.id).Documents(ctx)
-	cleared, err := c.client.DeleteCollection(ctx, max, shardsIter)
+	done, err := c.client.deleteByIterator(ctx, c.numShards+1, shardsIter)
 	if err != nil {
-		return false, errors.Wrap(err, "delete "+c.collection)
+		return errors.Wrap(err, "delete shards "+c.collection)
 	}
-	return cleared, nil
+	if done != true {
+		return errors.Wrap(err, "delete shards not done "+c.collection)
+	}
+	return nil
 }
 
 // shardsCount returns shards count

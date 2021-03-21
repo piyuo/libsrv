@@ -185,12 +185,12 @@ func (c *CoderFirestore) NumberWX(ctx context.Context, transaction db.Transactio
 	return nil
 }
 
-// Clear delete all shard in collection. delete max doc count. return true if collection is cleared
+// Delete delete coder
 //
-//	err = Clear(ctx,100)
+//	err = Delete(ctx)
 //
-func (c *CoderFirestore) Clear(ctx context.Context, max int) (bool, error) {
-	return c.clear(ctx, max)
+func (c *CoderFirestore) Delete(ctx context.Context) error {
+	return c.deleteShards(ctx)
 }
 
 // ShardsCount returns shards count

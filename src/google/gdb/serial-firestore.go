@@ -86,12 +86,12 @@ func (c *SerialFirestore) NumberWX(ctx context.Context, transaction db.Transacti
 	return nil
 }
 
-// Clear serial and it's shard
+// Delete delete serial
 //
-//	cleared, err = Clear(ctx,100)
+//	err = Delete(ctx)
 //
-func (c *SerialFirestore) Clear(ctx context.Context) (bool, error) {
-	return c.clear(ctx, 2)
+func (c *SerialFirestore) Delete(ctx context.Context) error {
+	return c.deleteShards(ctx)
 }
 
 // ShardsCount returns shards count
