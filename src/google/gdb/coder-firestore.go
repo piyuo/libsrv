@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/piyuo/libsrv/src/db"
 	identifier "github.com/piyuo/libsrv/src/identifier"
+	"github.com/piyuo/libsrv/src/log"
 	"github.com/pkg/errors"
 )
 
@@ -142,7 +143,7 @@ func (c *CoderFirestore) Code64WX(ctx context.Context, transaction db.Transactio
 func (c *CoderFirestore) NumberRX(ctx context.Context, transaction db.Transaction) (int64, error) {
 	c.callRX = true
 	c.shardPick = rand.Intn(c.numShards) //random pick a shard
-	//	fmt.Printf("coder pick:" + strconv.Itoa(c.shardPick) + "\n")
+	log.Debug(ctx, "coder pick %v from %v shards", c.shardPick, c.numShards)
 
 	exist, value, err := c.pickShard(ctx, transaction)
 	if err != nil {

@@ -6,43 +6,47 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestID(t *testing.T) {
+func TestObjectID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	d := &Sample{}
-	assert.Empty(d.ID)
-	assert.True(d.GetCreateTime().IsZero())
-	assert.True(d.GetUpdateTime().IsZero())
+	assert.Empty(d.ID())
+	assert.True(d.CreateTime().IsZero())
+	assert.True(d.UpdateTime().IsZero())
 }
 
-func TestUserID(t *testing.T) {
+func TestObjectUserID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	d := &Sample{}
-	assert.Empty(d.GetUserID())
+	assert.Empty(d.UserID())
 	d.SetUserID("user1")
-	assert.Equal("user1", d.GetUserID())
+	assert.Equal("user1", d.UserID())
 }
 
-func TestAccountID(t *testing.T) {
+func TestObjectAccountID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	d := &Sample{}
-	assert.Empty(d.GetAccountID())
+	assert.Empty(d.AccountID())
 	d.SetAccountID("account1")
-	assert.Equal("account1", d.GetAccountID())
+	assert.Equal("account1", d.AccountID())
 }
 
-func TestMap(t *testing.T) {
+func TestObjectMap(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	g, err := NewSampleGlobalDB(ctx)
-	assert.Nil(err)
-	defer g.Close()
-	table := g.SampleTable()
+	client := sampleClient()
+	rand := identifier.RandomString(8)
+	name := "test-object-map-" + rand
 
 	sample := &Sample{
-		Name:  "sample",
+		Name:  name,
 		Value: 1,
 		Map: map[string]string{
 			"1": "a",
@@ -58,16 +62,16 @@ func TestMap(t *testing.T) {
 		},
 	}
 
-	sample.Obj = &PlainObject{
+	sample.PObj = &PlainObject{
 		ID:   "1",
 		Name: "a",
 	}
 
-	err = table.Set(ctx, sample)
-	defer table.DeleteObject(ctx, sample)
+	err := client.Set(ctx, sample)
 	assert.Nil(err)
-	sampleID := sample.ID
-	sample2Obj, err := table.Get(ctx, sampleID)
+	defer client.Delete(ctx, sample)
+
+	sample2Obj, err := client.Get(ctx, &Sample{}, sample.ID())
 	assert.Nil(err)
 	sample2 := sample2Obj.(*Sample)
 	assert.NotNil(sample2.Map)
@@ -77,8 +81,8 @@ func TestMap(t *testing.T) {
 	assert.Equal("b", sample2.Array[1])
 	assert.Equal(1, sample2.Numbers[0])
 	assert.Equal(2, sample2.Numbers[1])
-	assert.Equal("1", sample2.Obj.ID)
-	assert.Equal("a", sample2.Obj.Name)
+	assert.Equal("1", sample2.PObj.ID)
+	assert.Equal("a", sample2.PObj.Name)
 }
 
 func doWork(f func(i int) string) string {
@@ -86,6 +90,7 @@ func doWork(f func(i int) string) string {
 }
 
 func TestFunctionCallback(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	text := doWork(func(i int) string {
 		return strconv.Itoa(i)

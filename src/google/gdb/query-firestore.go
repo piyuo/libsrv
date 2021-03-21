@@ -137,7 +137,7 @@ func (c *QueryFirestore) ReturnID(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 	defer iter.Stop()
-	var result []string
+	result := []string{}
 	for {
 		snapshot, err := iter.Next()
 		if err == iterator.Done {

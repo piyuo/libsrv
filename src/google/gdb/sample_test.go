@@ -52,6 +52,7 @@ func (c *SampleClear) Collection() string {
 type Sample struct {
 	db.DomainObject
 	Name    string            `firestore:"Name,omitempty"`
+	Tag     string            `firestore:"Tag,omitempty"`
 	Value   int               `firestore:"Value,omitempty"`
 	Map     map[string]string `firestore:"Map,omitempty"`
 	Array   []string          `firestore:"Array,omitempty"`

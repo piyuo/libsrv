@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/piyuo/libsrv/src/db"
+	"github.com/piyuo/libsrv/src/log"
 	"github.com/piyuo/libsrv/src/util"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
@@ -57,10 +58,8 @@ func (c *CounterFirestore) shardAllRef() *firestore.DocumentRef {
 func (c *CounterFirestore) IncrementRX(ctx context.Context, transaction db.Transaction) error {
 	tx := transaction.(*TransactionFirestore)
 	c.callRX = true
-	if c.pickedShard == "" {
-		c.pickedShard = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
-	}
-	//fmt.Printf("counter pick:" + c.shardPick + "\n")
+	c.pickedShard = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
+	log.Debug(ctx, "counter pick %v from %v shards", c.pickedShard, c.numShards)
 
 	var err error
 	if c.keepDateHierarchy {

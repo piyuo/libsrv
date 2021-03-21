@@ -98,10 +98,10 @@ type BaseObject struct {
 	//
 	ref interface{} // lowercase private field will not save to database
 
-	// Created is object create time, you should always use CreateTime() SetCreateTime() to access this field
+	// Createtime is object create time, you should always use CreateTime() SetCreateTime() to access this field
 	// We keep our own create time, cause database provide create time like "snapshot.CreateTime" may not use in query
 	//
-	Created time.Time `firestore:"Created,serverTimestamp"`
+	Createtime time.Time `firestore:"CreateTime,serverTimestamp"`
 }
 
 // ID return object unique identifier
@@ -143,7 +143,7 @@ func (c *BaseObject) SetRef(ref interface{}) {
 //	t := d.CreateTime()
 //
 func (c *BaseObject) CreateTime() time.Time {
-	return c.Created
+	return c.Createtime
 }
 
 // UserID return owner's user id
@@ -190,18 +190,18 @@ func (c *BaseObject) SetUpdateTime(t time.Time) {
 type DomainObject struct {
 	BaseObject
 
-	// Updated is object last update time, you should use UpdateTime() SetUpdateTime() to access this field
+	// Updatetime is object last update time, you should use UpdateTime() SetUpdateTime() to access this field
 	// We keep our own update time, cause database provide update time like "snapshot.UpdateTime" may not use in query
 	//
-	Updated time.Time `firestore:"Updated,omitempty"`
+	Updatetime time.Time `firestore:"UpdateTime,omitempty"`
 
-	// AID is owner's account id, you should use AccountID() SetAccountID() to access this field
+	// AccountId is owner's account id, you should use AccountID() SetAccountID() to access this field
 	//
-	AID string `firestore:"AID,omitempty"`
+	AccountId string `firestore:"AccountID,omitempty"`
 
-	// UID is owner's user id, you should use UserID() SetUserID() to access this field
+	// UserId is owner's user id, you should use UserID() SetUserID() to access this field
 	//
-	UID string `firestore:"UID,omitempty"`
+	UserId string `firestore:"UserID,omitempty"`
 }
 
 // UserID return owner's user id
@@ -209,7 +209,7 @@ type DomainObject struct {
 //	userID := d.UserID()
 //
 func (c *DomainObject) UserID() string {
-	return c.UID
+	return c.UserId
 }
 
 // SetUserID set owner's user id
@@ -217,7 +217,7 @@ func (c *DomainObject) UserID() string {
 //	d.SetUserID(userID)
 //
 func (c *DomainObject) SetUserID(userID string) {
-	c.UID = userID
+	c.UserId = userID
 }
 
 // AccountID return owner's account id
@@ -225,7 +225,7 @@ func (c *DomainObject) SetUserID(userID string) {
 //	accountID := d.AccountID()
 //
 func (c *DomainObject) AccountID() string {
-	return c.AID
+	return c.AccountId
 }
 
 // SetAccountID set owner's account id
@@ -233,7 +233,7 @@ func (c *DomainObject) AccountID() string {
 //	d.SetAccountID(accountID)
 //
 func (c *DomainObject) SetAccountID(accountID string) {
-	c.AID = accountID
+	c.AccountId = accountID
 }
 
 // UpdateTime return object last update time
@@ -241,7 +241,7 @@ func (c *DomainObject) SetAccountID(accountID string) {
 //	t := d.UpdateTime()
 //
 func (c *DomainObject) UpdateTime() time.Time {
-	return c.Updated
+	return c.Updatetime
 }
 
 // SetUpdateTime set object latest update time
@@ -249,5 +249,5 @@ func (c *DomainObject) UpdateTime() time.Time {
 //	d.SetUpdateTime(time.Now().UTC())
 //
 func (c *DomainObject) SetUpdateTime(t time.Time) {
-	c.Updated = t
+	c.Updatetime = t
 }
