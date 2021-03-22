@@ -5,7 +5,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"fmt"
 
 	key "github.com/piyuo/libsrv/src/key"
 
@@ -25,8 +24,7 @@ func getBlock() ([]byte, cipher.Block, error) {
 
 	block, err := aes.NewCipher(cachedKey)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create cipher, make sure you have 128bit key in crypto.key, "+fmt.Sprintf("NewCipher(%d bytes) = %s",
-			len(cachedKey), err))
+		return nil, nil, errors.Wrapf(err, "must use 128bit key in crypto.key, got %d ", len(cachedKey))
 	}
 	if blockSize == 0 {
 		blockSize = block.BlockSize()
@@ -66,7 +64,7 @@ func getDecrypter() (cipher.BlockMode, error) {
 func Encrypt(text string) (string, error) {
 	encrypter, err := getEncrypter()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to init encrypter")
+		return "", errors.Wrap(err, "init encrypter")
 	}
 
 	textData := []byte(text)
@@ -83,15 +81,15 @@ func Encrypt(text string) (string, error) {
 func Decrypt(crypted string) (string, error) {
 	decrypter, err := getDecrypter()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to init decrypter")
+		return "", errors.Wrap(err, "init decrypter")
 	}
 
 	crytedByte, err := base64.StdEncoding.DecodeString(crypted)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode base64 from cryted string")
+		return "", errors.Wrap(err, "decode base64 from string")
 	}
 	if len(crytedByte) == 0 {
-		return "", errors.New("crypted string can not be empty")
+		return "", errors.New("crypted string must not be empty")
 	}
 	orig := make([]byte, len(crytedByte))
 	decrypter.CryptBlocks(orig, crytedByte)
