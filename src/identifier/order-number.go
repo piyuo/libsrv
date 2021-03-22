@@ -63,7 +63,7 @@ func OrderNumberFromString(str string) (int64, error) {
 	str = strings.ReplaceAll(str, "-", "")
 	n, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to parse number: "+str)
+		return 0, errors.Wrapf(err, "parse number %v", str)
 	}
 	return n, nil
 }

@@ -70,7 +70,7 @@ func (c *TwilioSMS) Send(ctx context.Context, receiver string) error {
 	}
 
 	if exception != nil {
-		msg := fmt.Sprintf("failed to send SMS, response=%v, message=%v", exception.Status, exception.Message)
+		msg := fmt.Sprintf("twillio error, response=%v, message=%v", exception.Status, exception.Message)
 		return errors.New(msg)
 	}
 	return nil

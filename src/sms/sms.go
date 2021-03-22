@@ -126,7 +126,7 @@ func getTemplate(templateName, language string) (string, error) {
 func E164(phoneNumber, countryCode string) (string, error) {
 	num, err := phonenumbers.Parse(phoneNumber, countryCode)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to parse phone number: "+phoneNumber+", country:"+countryCode)
+		return "", errors.Wrapf(err, "parse phone number:%v, country:%v ", phoneNumber, countryCode)
 	}
 
 	if !phonenumbers.IsValidNumber(num) {

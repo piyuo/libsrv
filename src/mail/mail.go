@@ -191,7 +191,7 @@ func NewMail(ctx context.Context, name string) (Mail, error) {
 func getTemplate(ctx context.Context, name string) (*template, error) {
 	json, err := i18n.Resource(ctx, name)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get i18n resource: "+name)
+		return nil, errors.Wrapf(err, "i18n resource %v", name)
 	}
 
 	template := &template{

@@ -176,7 +176,7 @@ func MapID(m map[string]string) (string, error) {
 	for k := range m {
 		i, err := strconv.Atoi(k)
 		if err != nil {
-			return "", errors.Wrap(err, "failed to convert map key to number")
+			return "", errors.Wrap(err, "key to number")
 		}
 		if i > max {
 			max = i

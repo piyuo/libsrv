@@ -59,7 +59,7 @@ func isExpired(str string) bool {
 func FromString(str string) (Token, bool, error) {
 	everything, err := crypto.Decrypt(str)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "failed to decrypt str:"+str)
+		return nil, false, errors.Wrapf(err, "decrypt %v", str)
 	}
 	content := mapping.FromString(everything)
 	expired := content[keyExpired].(string)
@@ -83,7 +83,7 @@ func (c *BaseToken) ToString(expired time.Time) (string, error) {
 	everything := mapping.ToString(c.content)
 	crypted, err := crypto.Encrypt(everything)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to encrypt tokens")
+		return "", errors.Wrap(err, "encrypt")
 	}
 	return crypted, nil
 }

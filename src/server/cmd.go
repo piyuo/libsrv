@@ -56,7 +56,7 @@ func CMDCreateFunc(cmdMap command.IMap) http.Handler {
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Error(ctx, err)
-			WriteStatus(w, http.StatusBadRequest, "failed to read request")
+			WriteStatus(w, http.StatusBadRequest, "no body")
 			return
 		}
 		if len(bytes) == 0 {
