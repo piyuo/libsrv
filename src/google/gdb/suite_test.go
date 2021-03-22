@@ -26,9 +26,8 @@ func shutdown() {
 	log.TestModeBackNormal()
 }
 
-func BenchmarkGdbClean(b *testing.B) {
+func BenchmarkClean(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
 	client.(*ClientFirestore).deleteAll(ctx, &Sample{}, 100)
-
 }

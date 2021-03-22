@@ -25,7 +25,7 @@ func setDeadlineCMD(ctx context.Context) (context.Context, context.CancelFunc) {
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 20000
-			log.Print(ctx, "cmd", "use default 20 seconds for DEADLINE_CMD")
+			log.Warn(ctx, "use default 20 seconds for DEADLINE_CMD")
 		}
 		deadlineCMD = time.Duration(ms) * time.Millisecond
 	}
@@ -55,7 +55,7 @@ func CMDCreateFunc(cmdMap command.IMap) http.Handler {
 		}
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Error(ctx, here, err)
+			log.Error(ctx, err)
 			WriteStatus(w, http.StatusBadRequest, "failed to read request")
 			return
 		}

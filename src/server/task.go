@@ -2,11 +2,15 @@ package server
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/piyuo/libsrv/src/db"
+	"github.com/piyuo/libsrv/src/google/gaccount"
+	"github.com/piyuo/libsrv/src/google/gdb"
+	"github.com/pkg/errors"
 
 	"github.com/piyuo/libsrv/src/log"
 )
@@ -26,7 +30,7 @@ func setDeadlineTask(ctx context.Context) (context.Context, context.CancelFunc) 
 		ms, err := strconv.Atoi(text)
 		if err != nil {
 			ms = 840000
-			log.Print(ctx, "task", "use default 840 seconds for DEADLINE_TASK")
+			log.Warn(ctx, "use default 840 seconds for DEADLINE_TASK")
 		}
 		deadlineTask = time.Duration(ms) * time.Millisecond
 	}
@@ -50,33 +54,31 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 
 		taskID, found := Query(r, "TaskID")
 		if !found {
-			log.Error(ctx, here, errors.New("TaskID not found"))
+			log.Error(ctx, errors.New("TaskID not found"))
 			return
 		}
 		lockID := CreateLockID(taskID)
 
-		db, err := New(ctx)
-		if !found {
-			log.Error(ctx, here, errors.New("failed to create task lock database connection"))
-			return
-		}
-		defer db.Close()
-
-		locked, err := db.LockTask(ctx, lockID, 15*time.Minute)
+		client, err := newClient(ctx)
 		if err != nil {
-			log.Error(ctx, here, errors.New("failed to lock task"))
+			log.Error(ctx, errors.New("new client"))
+		}
+		defer client.Close()
+
+		locked, err := lockTask(ctx, client, lockID, 15*time.Minute)
+		if err != nil {
+			log.Error(ctx, err)
 			return
 		}
 		if !locked {
-			log.Print(ctx, here, "task already in progress. just wait")
+			log.Info(ctx, "task already in progress. just wait")
 			w.WriteHeader(http.StatusTooManyRequests) // return 429/503 will let google cloud slowing down execution
 			return
 		}
-		defer db.DeleteTaskLock(ctx, lockID)
-
+		defer unlockTask(ctx, client, lockID)
 		retry, err := taskHandler(ctx, w, r)
 		if err != nil {
-			log.Error(ctx, here, err)
+			log.Error(ctx, err)
 		}
 
 		if retry {
@@ -84,4 +86,104 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 		}
 	}
 	return http.HandlerFunc(f)
+}
+
+// TaskLock keep task lock records
+//
+type TaskLock struct {
+	db.BaseObject
+}
+
+func (c *TaskLock) Factory() db.Object {
+	return &TaskLock{}
+}
+
+func (c *TaskLock) Collection() string {
+	return "TaskLock"
+}
+
+// tasklockClient return tasklockClient
+//
+//	client,err := tasklockClient(ctx)
+//	defer client.Close()
+//
+func newClient(ctx context.Context) (db.Client, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	cred, err := gaccount.GlobalCredential(ctx)
+	if err != nil {
+		return nil, err
+	}
+	client, err := gdb.NewClient(ctx, cred)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+// createTaskLock create lock on task
+//
+//	err = createTaskLock(ctx, client, "lock id")
+//
+func createTaskLock(ctx context.Context, client db.Client, lockID string) error {
+	lock := &TaskLock{}
+	lock.SetID(lockID)
+	return client.Set(ctx, lock)
+}
+
+// isTaskLockExists check lock exists
+//
+//	found, createTime, err := isTaskLockExists(ctx, client, "lock id")
+//
+func isTaskLockExists(ctx context.Context, client db.Client, lockID string) (bool, time.Time, error) {
+	obj, err := client.Get(ctx, &TaskLock{}, lockID)
+	if err != nil {
+		return false, time.Time{}, errors.Wrap(err, "get task lock:"+lockID)
+	}
+	if obj != nil {
+		return true, obj.CreateTime(), nil
+	}
+	return false, time.Time{}, nil
+}
+
+// lockTask lock task for 15 mins
+//
+//	locked, err := lockTask(ctx, "lock id")
+//
+func lockTask(ctx context.Context, client db.Client, lockID string, duration time.Duration) (bool, error) {
+
+	found, createTime, err := isTaskLockExists(ctx, client, lockID)
+	if err != nil {
+		return false, errors.Wrap(err, "check lock exists:"+lockID)
+	}
+	if !found {
+		if err := createTaskLock(ctx, client, lockID); err != nil {
+			return false, errors.Wrap(err, "create task lock")
+		}
+		return true, nil
+	}
+
+	deadline := time.Now().UTC().Add(-duration)
+	if createTime.Before(deadline) {
+		// this target is too old, maybe something went wrong
+		lock := &TaskLock{}
+		lock.SetID(lockID)
+		if err := client.Update(ctx, lock, map[string]interface{}{"CreateTime": time.Now().UTC()}); err != nil {
+			return false, errors.Wrap(err, "add task lock")
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+// unlockTask unlock task
+//
+//	locked, err := unlockTask(ctx, "lock id")
+//
+func unlockTask(ctx context.Context, client db.Client, lockID string) error {
+	lock := &TaskLock{}
+	lock.SetID(lockID)
+	return client.Delete(ctx, lock)
 }

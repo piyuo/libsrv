@@ -1,9 +1,11 @@
 package server
 
 import (
+	"context"
 	"os"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/google/gdb"
 	"github.com/piyuo/libsrv/src/log"
 )
 
@@ -22,5 +24,9 @@ func shutdown() {
 	log.TestModeBackNormal()
 }
 
-func TestClean(t *testing.T) {
+func BenchmarkClean(b *testing.B) {
+	ctx := context.Background()
+	client, _ := newClient(ctx)
+	defer client.Close()
+	client.(*gdb.ClientFirestore).deleteAll(ctx, &Sample{}, 100)
 }

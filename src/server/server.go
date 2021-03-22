@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	goerrors "errors"
-	fmt "fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -12,8 +11,6 @@ import (
 	"github.com/piyuo/libsrv/src/command"
 	"github.com/piyuo/libsrv/src/log"
 )
-
-const here = "server"
 
 // HTTPHandler let you handle http request,  return error will result InternalServerError
 //
@@ -65,7 +62,7 @@ func (s *Server) Start() {
 	}
 
 	if err := http.ListenAndServe(s.ready(ctx), nil); err != nil {
-		log.Error(ctx, here, err)
+		log.Error(ctx, err)
 	}
 }
 
@@ -103,7 +100,7 @@ func (s *Server) ready(ctx context.Context) string {
 	if port == "" {
 		port = "8080"
 	}
-	log.Print(ctx, here, fmt.Sprintf("start listening from http://localhost%v", port))
+	log.Info(ctx, "start listening from http://localhost%v", port)
 	return ":" + port
 }
 
@@ -116,7 +113,7 @@ func handleRouteException(ctx context.Context, w http.ResponseWriter, err error)
 		return
 	}
 
-	log.Error(ctx, here, err)
+	log.Error(ctx, err)
 	WriteError(w, http.StatusInternalServerError, err)
 }
 

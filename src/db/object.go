@@ -146,6 +146,14 @@ func (c *BaseObject) CreateTime() time.Time {
 	return c.Createtime
 }
 
+// SetCreateTime return object create time
+//
+//	d.SetCreateTime(time.Now().UTC())
+//
+func (c *BaseObject) SetCreateTime(value time.Time) {
+	c.Createtime = value
+}
+
 // UserID return owner's user id
 //
 func (c *BaseObject) UserID() string {
