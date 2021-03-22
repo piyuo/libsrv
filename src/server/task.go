@@ -153,7 +153,6 @@ func isTaskLockExists(ctx context.Context, client db.Client, lockID string) (boo
 //	locked, err := lockTask(ctx, "lock id")
 //
 func lockTask(ctx context.Context, client db.Client, lockID string, duration time.Duration) (bool, error) {
-
 	found, createTime, err := isTaskLockExists(ctx, client, lockID)
 	if err != nil {
 		return false, errors.Wrap(err, "check lock exists:"+lockID)

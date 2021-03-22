@@ -38,7 +38,7 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	setDeadlineTask(ctx)
-	lockID := CreateLockID("test-task-in-progress")
+	lockID := CreateLockID("testTaskInProgress")
 	req, _ := http.NewRequest("GET", "/?TaskID=testTaskInProgress", nil)
 
 	client, err := newClient(ctx)
