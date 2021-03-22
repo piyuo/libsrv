@@ -379,11 +379,11 @@ func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *f
 	return false, nil
 }
 
-// deleteAll delete all document in collection. delete max doc count. return true if nothing left to delete
+// DeleteAll delete all document in collection. delete max doc count. return true if nothing left to delete
 //
-//	done, err := deleteAll(ctx, &Sample{}, 50)
+//	done, err := DeleteAll(ctx, &Sample{}, 50)
 //
-func (c *ClientFirestore) deleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
+func (c *ClientFirestore) DeleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
 	if err := db.AssertObject(ctx, obj, false); err != nil {
 		return false, err
 	}

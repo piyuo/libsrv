@@ -76,10 +76,10 @@ type Client interface {
 	Delete(ctx context.Context, obj Object) error
 
 	// DeleteAll delete all document in collection
-	// ! this function is danger in production, rather not provide
+	//
 	//	cleared, err := Clear(ctx, &Sample{}, 50)
 	//
-	// DeleteAll(ctx context.Context, obj Object, max int) (bool, error)
+	DeleteAll(ctx context.Context, obj Object, max int) (bool, error)
 
 	// Transaction start a transaction operation
 	//

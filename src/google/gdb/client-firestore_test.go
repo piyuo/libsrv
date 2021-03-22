@@ -272,7 +272,7 @@ func TestClientDeleteAll(t *testing.T) {
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
-	cleared, err := client.(*ClientFirestore).deleteAll(ctx, sample, 100)
+	cleared, err := client.(*ClientFirestore).DeleteAll(ctx, sample, 100)
 	assert.Nil(err)
 	assert.True(cleared)
 }
