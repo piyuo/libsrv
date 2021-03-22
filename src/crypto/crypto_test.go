@@ -58,7 +58,7 @@ func TestConcurrentCrypto(t *testing.T) {
 				t.Errorf("err should be nil, got %v", err)
 			}
 			if result != "hello"+id {
-				t.Errorf("failed to decrypt result, got %v", result)
+				t.Errorf("decrypt result fail, got %v", result)
 			}
 			//fmt.Print(result + "\n")
 
