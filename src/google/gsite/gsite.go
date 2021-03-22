@@ -12,8 +12,6 @@ import (
 	"google.golang.org/api/siteverification/v1"
 )
 
-const here = "siteverify"
-
 //VerifiedSite return by SiteVerify.List, show which domain has been verified
 //
 type VerifiedSite struct {
@@ -96,7 +94,7 @@ func NewSiteVerify(ctx context.Context) (SiteVerify, error) {
 	var j map[string]interface{}
 	err = json.Unmarshal(cred.JSON, &j)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get credential json")
+		return nil, errors.Wrap(err, "get cred from json")
 	}
 
 	siteVerifyImpl := &Impl{
@@ -132,7 +130,7 @@ func (impl *Impl) GetToken(ctx context.Context, domainName string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	log.Info(ctx, here, "site verify token created: "+response.Token)
+	log.Info(ctx, "site verify token created: "+response.Token)
 	return response.Token, nil
 }
 

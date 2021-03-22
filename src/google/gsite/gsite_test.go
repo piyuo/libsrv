@@ -9,6 +9,7 @@ import (
 )
 
 func TestNewSiteVerify(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	storage, err := NewSiteVerify(context.Background())
 	assert.Nil(err)
@@ -16,6 +17,7 @@ func TestNewSiteVerify(t *testing.T) {
 }
 
 func TestVerification(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	siteverify, err := NewSiteVerify(ctx)
