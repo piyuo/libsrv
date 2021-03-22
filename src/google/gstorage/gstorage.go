@@ -3,7 +3,6 @@ package gstorage
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"time"
@@ -172,9 +171,9 @@ func (impl *Implementation) CreateBucket(ctx context.Context, bucketName, locati
 		Location:     "us-central1",
 		LocationType: "region",
 	}); err != nil {
-		return errors.Wrap(err, "failed to add bucket:"+bucketName)
+		return errors.Wrapf(err, "add bucket %v", bucketName)
 	}
-	log.Info(ctx, bucketName+" Bucket created")
+	log.Info(ctx, bucketName+" created")
 	return nil
 }
 
@@ -188,13 +187,13 @@ func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string)
 	bucket := impl.client.Bucket(bucketName)
 
 	if err := impl.CleanBucket(ctx, bucketName); err != nil {
-		return errors.Wrap(err, "failed to clean bucket before remove:"+bucketName)
+		return errors.Wrap(err, "clean bucket before remove "+bucketName)
 	}
 
 	if err := bucket.Delete(ctx); err != nil {
-		return errors.Wrap(err, "failed to remove bucket:"+bucketName)
+		return errors.Wrap(err, "remove bucket:"+bucketName)
 	}
-	log.Info(ctx, bucketName+" Bucket deleted")
+	log.Info(ctx, bucketName+" deleted")
 	return nil
 }
 
@@ -207,7 +206,7 @@ func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string)
 	bucket := impl.client.Bucket(bucketName)
 	policy, err := bucket.IAM().V3().Policy(ctx)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to get Bucket(%q).IAM().V3().Policy", bucketName))
+		return errors.Wrapf(err, "get bucket(%q)", bucketName)
 	}
 	role := "roles/storage.objectViewer"
 	policy.Bindings = append(policy.Bindings, &iampb.Binding{
@@ -215,7 +214,7 @@ func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string)
 		Members: []string{iam.AllUsers},
 	})
 	if err := bucket.IAM().V3().SetPolicy(ctx, policy); err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to set Bucket(%q).IAM().SetPolicy", bucketName))
+		return errors.Wrapf(err, "set bucket(%q)", bucketName)
 	}
 	return nil
 }
@@ -240,7 +239,7 @@ func (impl *Implementation) SetPageAndCORS(ctx context.Context, bucketName, orig
 			}},
 	}
 	if _, err := bucket.Update(ctx, bucketAttrsToUpdate); err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to exec Bucket(%q).Update", bucketName))
+		return errors.Wrapf(err, "update bucket(%q)", bucketName)
 	}
 	return nil
 }
@@ -259,7 +258,7 @@ func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName strin
 			break
 		}
 		if err != nil {
-			return false, errors.Wrap(err, "failed iterator buckets")
+			return false, errors.Wrap(err, "iter buckets")
 		}
 
 		if bucketAttrs.Name == bucketName {
@@ -339,10 +338,10 @@ func (impl *Implementation) ReadText(ctx context.Context, bucketName, path strin
 func (impl *Implementation) WriteJSON(ctx context.Context, bucketName, path string, content map[string]interface{}) error {
 	bytes, err := json.Marshal(content)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal version control to json")
+		return errors.Wrap(err, "marshal json")
 	}
 	if err = impl.WriteText(ctx, bucketName, path, string(bytes)); err != nil {
-		return errors.Wrap(err, "failed to write verstion control to bucket")
+		return errors.Wrap(err, "write json to bucket")
 	}
 	return nil
 }
@@ -408,7 +407,7 @@ func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix 
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}
-		log.Debug(ctx, fmt.Sprintf("delete object:%v", attrs.Name))
+		log.Debug(ctx, "delete %v", attrs.Name)
 	}
 	return nil
 }
@@ -424,7 +423,7 @@ func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path str
 	if err := o.Delete(ctx); err != nil {
 		return err
 	}
-	log.Debug(ctx, fmt.Sprintf("delete object:%v", path))
+	log.Debug(ctx, "delete %v", path)
 	return nil
 }
 
@@ -466,7 +465,7 @@ func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.B
 		if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 			return false, err
 		}
-		log.Debug(ctx, fmt.Sprintf("clean object:%v, i=%v", attrs.Name, i))
+		log.Debug(ctx, "delete %v, i=%v", attrs.Name, i)
 		i++
 		if i >= 1000 {
 			return false, nil
@@ -510,7 +509,7 @@ func (impl *Implementation) Sync(ctx context.Context, bucketName string, shouldD
 			if err := bucket.Object(attrs.Name).Delete(ctx); err != nil {
 				return err
 			}
-			log.Debug(ctx, fmt.Sprintf("sync delete object:%v", attrs.Name))
+			log.Debug(ctx, "delete %v", attrs.Name)
 		}
 	}
 	return nil

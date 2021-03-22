@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/piyuo/libsrv/src/google/gaccount"
+	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
-var bucketName = "test-gstorage-1"
-
 func TestNewGstorage(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
@@ -23,13 +23,13 @@ func TestNewGstorage(t *testing.T) {
 }
 
 func TestGstorageBucket(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
-
-	storage.DeleteBucket(ctx, bucketName)
+	bucketName := "test-gstorage-bucket-" + identifier.RandomNumber(12)
 
 	exist, err := storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
@@ -37,6 +37,7 @@ func TestGstorageBucket(t *testing.T) {
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
+	defer storage.DeleteBucket(ctx, bucketName)
 
 	exist, err = storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
@@ -56,7 +57,8 @@ func TestGstorageBucket(t *testing.T) {
 	assert.False(exist)
 }
 
-func TestGstorageReadWriteDelete(t *testing.T) {
+func TestGstorageRW(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
@@ -65,6 +67,7 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	filename := "a/b.txt"
 	jsonname := "a/b.json"
 	prefix := "a"
+	bucketName := "test-gstorage-rw-" + identifier.RandomNumber(12)
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
@@ -111,12 +114,14 @@ func TestGstorageReadWriteDelete(t *testing.T) {
 	assert.Equal(len(files), 1)
 }
 
-func TestGstorageDeleteFiles(t *testing.T) {
+func TestGstorageDelete(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	bucketName := "test-gstorage-delete-" + identifier.RandomNumber(12)
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
@@ -145,15 +150,18 @@ func TestGstorageDeleteFiles(t *testing.T) {
 }
 
 func TestGstorageCleanBucket(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
 	path := "TestCleanBucket.txt"
+	bucketName := "test-gstorage-clean-" + identifier.RandomNumber(12)
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
+	defer storage.DeleteBucket(ctx, bucketName)
 
 	for i := 0; i < 1; i++ {
 		err = storage.WriteText(ctx, bucketName, fmt.Sprintf("%v%v", path, i), fmt.Sprintf("hi %v", i))
@@ -161,16 +169,16 @@ func TestGstorageCleanBucket(t *testing.T) {
 	}
 	err = storage.CleanBucket(ctx, bucketName)
 	assert.Nil(err)
-	err = storage.DeleteBucket(ctx, bucketName)
-	assert.Nil(err)
 }
 
 func TestGstorageSyncDir(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	bucketName := "test-gstorage-sync-" + identifier.RandomNumber(12)
 
 	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
 	assert.Nil(err)
