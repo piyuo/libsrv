@@ -15,8 +15,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const here = "gcloud"
-
 const defaultLocationID = "us-central1"
 
 // Regions is predefine google regions for deploy cloud run and database

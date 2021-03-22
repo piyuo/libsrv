@@ -12,6 +12,8 @@ var AppName = os.Getenv("NAME")
 
 var Debug = os.Getenv("DEBUG") != ""
 
+var Region = os.Getenv("REGION")
+
 // KeyContext define key used in ctx
 //
 type KeyContext int

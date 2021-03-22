@@ -11,6 +11,7 @@ import (
 )
 
 func TestEncodeDecodeCommand(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	act := &mock.RespondAction{
 		Text: "Hi",
@@ -28,6 +29,7 @@ func TestEncodeDecodeCommand(t *testing.T) {
 }
 
 func TestBetterResponseName(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	errOK := OK().(*shared.PbOK)
 	result := betterResponseName(errOK.XXX_MapID(), errOK)
@@ -43,6 +45,7 @@ func TestBetterResponseName(t *testing.T) {
 }
 
 func TestActionNoRespose(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	act := &mock.NoRespondAction{
 		Text: "Hi",
@@ -59,6 +62,7 @@ func TestActionNoRespose(t *testing.T) {
 }
 
 func TestRoute(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	act := &mock.RespondAction{
 		Text: "Hi",
@@ -77,6 +81,7 @@ func TestRoute(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	//create sample data
@@ -92,20 +97,6 @@ func TestHandle(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(response)
 }
-
-/*
-func TestTimeExecuteAction(t *testing.T) {
-	assert := assert.New(t)
-	os.Setenv("PIYUO_SLOW", "1")
-	act := &mock.SlowAction{}
-	dispatch := &Dispatch{
-		Map: &mock.MapXXX{},
-	}
-	_, respInterface, err := dispatch.timeExecuteAction(context.Background(), act)
-	assert.Nil(err)
-	assert.NotNil(respInterface)
-}
-*/
 
 var benchmarkResult string
 

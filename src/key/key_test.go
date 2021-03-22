@@ -8,6 +8,7 @@ import (
 )
 
 func TestShouldGetKeyContent(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	text, err := Text("gcloud.json")
 	assert.Nil(err)
@@ -23,6 +24,7 @@ func TestShouldGetKeyContent(t *testing.T) {
 }
 
 func TestReturnErrorWhenKeyNotExists(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	content, err := Text("not exists")
 	assert.NotNil(err)
@@ -39,6 +41,7 @@ func TestReturnErrorWhenKeyNotExists(t *testing.T) {
 }
 
 func TestConcurrentKey(t *testing.T) {
+	t.Parallel()
 	var concurrent = 10
 	var wg sync.WaitGroup
 	wg.Add(concurrent)

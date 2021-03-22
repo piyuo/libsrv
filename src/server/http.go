@@ -44,5 +44,7 @@ func HTTPCreateFunc(httpHandler HTTPHandler) http.Handler {
 			return
 		}
 	}
-	return http.HandlerFunc(f)
+	withoutArchive := http.HandlerFunc(f)
+	withArchive := ArchiveHandler(withoutArchive)
+	return withArchive
 }

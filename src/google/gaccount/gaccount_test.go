@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/src/env"
 	"github.com/piyuo/libsrv/src/key"
-	"github.com/piyuo/libsrv/src/region"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,21 +44,23 @@ func TestGaccountCreateCredential(t *testing.T) {
 func TestGaccountDataCredentialByRegion(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	region.Current = "us"
+	bak := env.Region
+	env.Region = "us"
 	ctx := context.Background()
 	cred, err := RegionalCredential(ctx)
 	assert.Nil(err)
 	assert.NotNil(cred)
 
-	region.Current = "jp"
+	env.Region = "jp"
 	cred, err = RegionalCredential(ctx)
 	assert.Nil(err)
 	assert.NotNil(cred)
 
-	region.Current = "be"
+	env.Region = "be"
 	cred, err = RegionalCredential(ctx)
 	assert.Nil(err)
 	assert.NotNil(cred)
+	env.Region = bak
 }
 
 func TestGaccountCredentialWhenContextCanceled(t *testing.T) {

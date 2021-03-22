@@ -79,3 +79,9 @@ func TestEnvAccountID(t *testing.T) {
 	accountID = GetAccountID(ctx)
 	assert.Equal("id", accountID)
 }
+
+func TestRegion(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	assert.NotEmpty(Region)
+}

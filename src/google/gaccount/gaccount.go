@@ -3,9 +3,9 @@ package gaccount
 import (
 	"context"
 
+	"github.com/piyuo/libsrv/src/env"
 	"github.com/piyuo/libsrv/src/file"
 	"github.com/piyuo/libsrv/src/key"
-	"github.com/piyuo/libsrv/src/region"
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -92,9 +92,9 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	var cred = regionalCredentials[region.Current]
-	if regionalCredentials[region.Current] == nil {
-		keyFile := "gcloud-" + region.Current + ".json"
+	var cred = regionalCredentials[env.Region]
+	if regionalCredentials[env.Region] == nil {
+		keyFile := "gcloud-" + env.Region + ".json"
 		if useTestCredential {
 			keyFile = "gcloud-test.json"
 		}
@@ -107,7 +107,7 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "make credential from %v", keyFile)
 		}
-		regionalCredentials[region.Current] = cred
+		regionalCredentials[env.Region] = cred
 		return cred, nil
 	}
 	return cred, nil

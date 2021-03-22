@@ -11,8 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const here = "command"
-
 // Action interface
 type Action interface {
 	Do(ctx context.Context) (interface{}, error)

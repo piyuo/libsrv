@@ -8,6 +8,7 @@ import (
 )
 
 func TestShared(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	//should create text response
 	text := String("hi").(*shared.PbString)
@@ -44,6 +45,7 @@ func TestShared(t *testing.T) {
 }
 
 func TestPbString(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsString(nil, ""))
 	assert.False(IsString(String("hi"), ""))
@@ -51,6 +53,7 @@ func TestPbString(t *testing.T) {
 }
 
 func TestPbInt(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsInt(nil, 1))
 	assert.False(IsInt(Int(12), 42))
@@ -58,6 +61,7 @@ func TestPbInt(t *testing.T) {
 }
 
 func TestPbBool(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsBool(nil, false))
 	assert.False(IsBool(Bool(false), true))

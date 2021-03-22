@@ -9,6 +9,7 @@ import (
 )
 
 func TestOrderNumber(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	rand.Seed(time.Now().UnixNano())
 	num := OrderNumber()
