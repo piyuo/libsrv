@@ -73,23 +73,17 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 		}
 		lockID := CreateLockID(taskID)
 
-		client, err := newClient(ctx)
-		if err != nil {
-			log.Error(ctx, errors.New("new client"))
-		}
-		defer client.Close()
-
-		locked, err := lockTask(ctx, client, lockID, 15*time.Minute)
+		locked, err := lockTask(ctx, lockID, 15*time.Minute)
 		if err != nil {
 			log.Error(ctx, err)
 			return
 		}
 		if !locked {
-			log.Info(ctx, "task already in progress. just wait")
+			log.Info(ctx, "task in progress. just wait")
 			w.WriteHeader(http.StatusTooManyRequests) // return 429/503 will let google cloud slowing down execution
 			return
 		}
-		defer unlockTask(ctx, client, lockID)
+		defer unlockTask(ctx, lockID)
 		retry, err := taskHandler(ctx, w, r)
 		if err != nil {
 			log.Error(ctx, err)
@@ -152,7 +146,13 @@ func isTaskLockExists(ctx context.Context, client db.Client, lockID string) (boo
 //
 //	locked, err := lockTask(ctx, "lock id")
 //
-func lockTask(ctx context.Context, client db.Client, lockID string, duration time.Duration) (bool, error) {
+func lockTask(ctx context.Context, lockID string, duration time.Duration) (bool, error) {
+	client, err := newClient(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer client.Close()
+
 	found, createTime, err := isTaskLockExists(ctx, client, lockID)
 	if err != nil {
 		return false, errors.Wrap(err, "check lock exists:"+lockID)
@@ -181,7 +181,13 @@ func lockTask(ctx context.Context, client db.Client, lockID string, duration tim
 //
 //	locked, err := unlockTask(ctx, "lock id")
 //
-func unlockTask(ctx context.Context, client db.Client, lockID string) error {
+func unlockTask(ctx context.Context, lockID string) error {
+	client, err := newClient(ctx)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
 	lock := &TaskLock{}
 	lock.SetID(lockID)
 	return client.Delete(ctx, lock)

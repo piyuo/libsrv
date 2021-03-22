@@ -49,7 +49,7 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 	lockInProgress.SetID(lockID)
 	lockInProgress.SetCreateTime(time.Now().UTC().Add(-10 * time.Minute))
 	err = client.Set(ctx, lockInProgress)
-	defer unlockTask(ctx, client, lockID)
+	defer unlockTask(ctx, lockID)
 
 	resp := httptest.NewRecorder()
 	TaskCreateFunc(mockTaskHandler).ServeHTTP(resp, req)
@@ -128,7 +128,7 @@ func TestServerTaskLock(t *testing.T) {
 	assert.True(found)
 	assert.True(createTime.Before(time.Now().UTC()))
 
-	err = unlockTask(ctx, client, lockID)
+	err = unlockTask(ctx, lockID)
 	assert.Nil(err)
 
 	found, createTime, err = isTaskLockExists(ctx, client, lockID)
@@ -147,10 +147,10 @@ func TestServerLockTask(t *testing.T) {
 	lockID := "testLock2"
 
 	// when task lock not exists
-	ready, err := lockTask(ctx, client, lockID, 15*time.Minute)
+	ready, err := lockTask(ctx, lockID, 15*time.Minute)
 	assert.Nil(err)
 	assert.True(ready)
-	err = unlockTask(ctx, client, lockID)
+	err = unlockTask(ctx, lockID)
 	assert.Nil(err)
 
 	// when a expired task lock exists
@@ -159,10 +159,10 @@ func TestServerLockTask(t *testing.T) {
 	lock.SetCreateTime(time.Now().UTC().Add(-16 * time.Minute))
 	err = client.Set(ctx, lock)
 
-	ready, err = lockTask(ctx, client, lockID, 15*time.Minute)
+	ready, err = lockTask(ctx, lockID, 15*time.Minute)
 	assert.Nil(err)
 	assert.True(ready)
-	err = unlockTask(ctx, client, lockID)
+	err = unlockTask(ctx, lockID)
 	assert.Nil(err)
 
 	// when a not expired task lock exist
@@ -171,9 +171,9 @@ func TestServerLockTask(t *testing.T) {
 	lockInProgress.SetCreateTime(time.Now().UTC().Add(-10 * time.Minute))
 	err = client.Set(ctx, lockInProgress)
 
-	ready, err = lockTask(ctx, client, lockID, 15*time.Minute)
+	ready, err = lockTask(ctx, lockID, 15*time.Minute)
 	assert.Nil(err)
 	assert.False(ready)
-	err = unlockTask(ctx, client, lockID)
+	err = unlockTask(ctx, lockID)
 	assert.Nil(err)
 }
