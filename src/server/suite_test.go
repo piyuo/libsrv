@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/piyuo/libsrv/src/google/gdb"
 	"github.com/piyuo/libsrv/src/log"
 )
 
@@ -28,5 +27,5 @@ func BenchmarkClean(b *testing.B) {
 	ctx := context.Background()
 	client, _ := newClient(ctx)
 	defer client.Close()
-	client.(*gdb.ClientFirestore).deleteAll(ctx, &Sample{}, 100)
+	client.DeleteAll(ctx, &TaskLock{}, 100)
 }

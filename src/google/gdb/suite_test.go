@@ -29,5 +29,5 @@ func shutdown() {
 func BenchmarkClean(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
-	client.(*ClientFirestore).DeleteAll(ctx, &Sample{}, 100)
+	client.DeleteAll(ctx, &Sample{}, 100)
 }
