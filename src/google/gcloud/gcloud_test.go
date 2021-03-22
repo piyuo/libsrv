@@ -8,6 +8,7 @@ import (
 )
 
 func TestGcloudCreateHTTPTask(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 

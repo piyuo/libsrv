@@ -60,7 +60,7 @@ func CreateHTTPTask(ctx context.Context, queueID, url string, body []byte, sched
 		if *testMode {
 			return nil
 		}
-		return errors.New("failed always")
+		return errors.New("fail")
 	}
 
 	//gcloud won't allow context deadline over 30 seconds
@@ -69,12 +69,12 @@ func CreateHTTPTask(ctx context.Context, queueID, url string, body []byte, sched
 
 	cred, err := gaccount.GlobalCredential(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to create global credential")
+		return errors.Wrap(err, "create global cred")
 	}
 
 	client, err := cloudtasks.NewClient(ctx, option.WithCredentials(cred))
 	if err != nil {
-		return errors.Wrap(err, "failed to create cloud tasks client")
+		return errors.Wrap(err, "create tasks client")
 	}
 	taskID := identifier.UUID()
 	if strings.Contains(url, "?") {
@@ -109,7 +109,7 @@ func CreateHTTPTask(ctx context.Context, queueID, url string, body []byte, sched
 
 	_, err = client.CreateTask(ctx, req)
 	if err != nil {
-		return errors.Wrap(err, "failed to create task")
+		return errors.Wrap(err, "create task")
 	}
 	return nil
 }
