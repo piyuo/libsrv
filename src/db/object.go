@@ -107,7 +107,7 @@ type BaseObject struct {
 	// Createtime is object create time, you should always use CreateTime() SetCreateTime() to access this field
 	// We keep our own create time, cause database provide create time like "snapshot.CreateTime" may not use in query
 	//
-	Createtime time.Time `firestore:"CreateTime,serverTimestamp"`
+	Createtime time.Time `firestore:"CreateTime"`
 }
 
 // ID return object unique identifier
@@ -157,7 +157,9 @@ func (c *BaseObject) CreateTime() time.Time {
 //	d.SetCreateTime(time.Now().UTC())
 //
 func (c *BaseObject) SetCreateTime(value time.Time) {
-	c.Createtime = value
+	if c.Createtime.IsZero() {
+		c.Createtime = value
+	}
 }
 
 // UserID return owner's user id
