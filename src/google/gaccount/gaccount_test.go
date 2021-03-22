@@ -11,6 +11,7 @@ import (
 )
 
 func TestGaccountCredential(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	//should create google credential
@@ -22,7 +23,6 @@ func TestGaccountCredential(t *testing.T) {
 	assert.NotNil(cred)
 
 	//should keep global credential
-	assert.Nil(globalCredential)
 	cred, err = GlobalCredential(ctx)
 	assert.Nil(err)
 	assert.NotNil(cred)
@@ -30,6 +30,7 @@ func TestGaccountCredential(t *testing.T) {
 }
 
 func TestGaccountCreateCredential(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	cred, err := CreateCredential(ctx, "gcloud.json")
@@ -41,6 +42,7 @@ func TestGaccountCreateCredential(t *testing.T) {
 }
 
 func TestGaccountDataCredentialByRegion(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	region.Current = "us"
 	ctx := context.Background()
@@ -60,6 +62,7 @@ func TestGaccountDataCredentialByRegion(t *testing.T) {
 }
 
 func TestGaccountCredentialWhenContextCanceled(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	deadline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), deadline)
@@ -72,6 +75,7 @@ func TestGaccountCredentialWhenContextCanceled(t *testing.T) {
 }
 
 func TestGaccountTestMode(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	assert := assert.New(t)
 	ClearCache()
@@ -88,6 +92,7 @@ func TestGaccountTestMode(t *testing.T) {
 }
 
 func TestGaccountCredentialFromFile(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	assert := assert.New(t)
 	cred, err := CredentialFromFile(ctx, "notExists")

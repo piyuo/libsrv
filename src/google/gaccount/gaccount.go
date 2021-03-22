@@ -47,7 +47,7 @@ func CreateCredential(ctx context.Context, keyName string) (*google.Credentials,
 
 	bytes, err := key.BytesWithoutCache(keyName)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get keys/"+keyName)
+		return nil, errors.Wrap(err, "get keys/"+keyName)
 	}
 	cred, err := MakeCredential(ctx, bytes)
 	if err != nil {
@@ -73,7 +73,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 
 		bytes, err := key.BytesWithoutCache(keyFile)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/"+keyFile)
+			return nil, errors.Wrap(err, "get keys/"+keyFile)
 		}
 		cred, err := MakeCredential(ctx, bytes)
 		if err != nil {
@@ -101,11 +101,11 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 
 		bytes, err := key.BytesWithoutCache(keyFile)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get keys/"+keyFile)
+			return nil, errors.Wrap(err, "get keys/"+keyFile)
 		}
 		cred, err := MakeCredential(ctx, bytes)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create credential, check format on:"+keyFile)
+			return nil, errors.Wrapf(err, "make credential from %v", keyFile)
 		}
 		regionalCredentials[region.Current] = cred
 		return cred, nil
@@ -140,7 +140,7 @@ func CredentialFromFile(ctx context.Context, jsonFile string) (*google.Credentia
 
 	bytes, err := file.Read(jsonFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get json file:"+jsonFile)
+		return nil, errors.Wrapf(err, "get json file %v", jsonFile)
 	}
 	cred, err := MakeCredential(ctx, bytes)
 	if err != nil {
