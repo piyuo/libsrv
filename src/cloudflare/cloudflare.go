@@ -46,7 +46,7 @@ func TestModeBackNormal() {
 func credential() (string, string, error) {
 	json, err := key.JSON("cloudflare.json")
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to get key from JSON:cloudflare.json")
+		return "", "", errors.Wrap(err, "get key from cloudflare.json")
 	}
 	return json["zone"].(string), json["token"].(string), nil
 }
@@ -58,13 +58,13 @@ func credential() (string, string, error) {
 func sendDNSRequest(ctx context.Context, method, query string, reqestBody io.Reader) (map[string]interface{}, error) {
 	zone, token, err := credential()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get credential")
+		return nil, errors.Wrap(err, "get credential")
 	}
 
 	url := "https://api.cloudflare.com/client/v4/zones/" + zone + "/dns_records" + query
 	req, err := http.NewRequest(method, url, reqestBody)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to new http request")
+		return nil, errors.Wrap(err, "http request")
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
@@ -75,7 +75,7 @@ func sendDNSRequest(ctx context.Context, method, query string, reqestBody io.Rea
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to make dns request")
+		return nil, errors.Wrap(err, "dns request")
 	}
 	defer resp.Body.Close()
 
@@ -83,7 +83,7 @@ func sendDNSRequest(ctx context.Context, method, query string, reqestBody io.Rea
 	var response map[string]interface{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode json")
+		return nil, errors.Wrap(err, "decode json")
 	}
 
 	success := response["success"].(bool)
@@ -148,7 +148,7 @@ func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) e
 		if *testMode {
 			return nil
 		}
-		return errors.New("failed always")
+		return errors.New("fail")
 	}
 
 	proxy := "false"
@@ -176,7 +176,7 @@ func DeleteCNAME(ctx context.Context, domainName string) error {
 		if *testMode {
 			return nil
 		}
-		return errors.New("failed always")
+		return errors.New("fail")
 	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
@@ -202,7 +202,7 @@ func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 		if *testMode {
 			return true, nil
 		}
-		return false, errors.New("failed always")
+		return false, errors.New("fail")
 	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
@@ -221,7 +221,7 @@ func CreateTXT(ctx context.Context, domainName, txt string) error {
 		if *testMode {
 			return nil
 		}
-		return errors.New("failed always")
+		return errors.New("fail")
 	}
 	var requestJSON = []byte(`{"type":"TXT","name":"` + domainName + `","content":"` + txt + `"}`)
 	_, err := sendDNSRequest(ctx, "POST", "", bytes.NewBuffer(requestJSON))
@@ -243,7 +243,7 @@ func RemoveTXT(ctx context.Context, domainName string) error {
 		if *testMode {
 			return nil
 		}
-		return errors.New("failed always")
+		return errors.New("fail")
 	}
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
@@ -268,7 +268,7 @@ func IsTXTExists(ctx context.Context, domainName string) (bool, error) {
 		if *testMode {
 			return true, nil
 		}
-		return false, errors.New("failed always")
+		return false, errors.New("fail")
 	}
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {

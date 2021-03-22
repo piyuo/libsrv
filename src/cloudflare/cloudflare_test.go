@@ -8,6 +8,7 @@ import (
 )
 
 func TestCloudflareCredential(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	zone, token, err := credential()
 	assert.Nil(err)
@@ -16,6 +17,7 @@ func TestCloudflareCredential(t *testing.T) {
 }
 
 func TestCloudflareSendDNSRequest(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 
@@ -25,6 +27,7 @@ func TestCloudflareSendDNSRequest(t *testing.T) {
 }
 
 func TestCloudflareGetDNSRecordID(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 
@@ -34,6 +37,7 @@ func TestCloudflareGetDNSRecordID(t *testing.T) {
 }
 
 func TestCloudflareCNAME(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	subDomain := "mock-libsrv"
@@ -87,7 +91,6 @@ func TestCloudflareCNAME(t *testing.T) {
 	assert.Nil(err)
 
 	TestModeAlwaySuccess()
-	defer TestModeBackNormal()
 
 	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
@@ -99,9 +102,22 @@ func TestCloudflareCNAME(t *testing.T) {
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
+	TestModeAlwayFail()
+	defer TestModeBackNormal()
+
+	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
+	assert.NotNil(err)
+
+	exist, err = IsCNAMEExists(ctx, domainName)
+	assert.NotNil(err)
+	assert.False(exist)
+
+	err = DeleteCNAME(ctx, domainName)
+	assert.NotNil(err)
 }
 
 func TestTxtRecord(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 
 	ctx := context.Background()
@@ -138,7 +154,6 @@ func TestTxtRecord(t *testing.T) {
 	assert.Nil(err)
 
 	TestModeAlwaySuccess()
-	defer TestModeBackNormal()
 
 	err = CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
@@ -147,4 +162,16 @@ func TestTxtRecord(t *testing.T) {
 	exist, err = IsTXTExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(exist)
+
+	TestModeAlwayFail()
+	defer TestModeBackNormal()
+
+	err = CreateTXT(ctx, domainName, txt)
+	assert.NotNil(err)
+	err = RemoveTXT(ctx, domainName)
+	assert.NotNil(err)
+	exist, err = IsTXTExists(ctx, domainName)
+	assert.NotNil(err)
+	assert.False(exist)
+
 }
