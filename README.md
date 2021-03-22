@@ -28,7 +28,7 @@ git clone git@github.com:piyuo/libsrv.git
 unit test using go test
 
 ```bash
-go test ./... -parallel 8
+go test ./... -parallel 16
 ```
 
 ## Update go.mod
