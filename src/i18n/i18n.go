@@ -136,7 +136,7 @@ func Resource(ctx context.Context, name string) (map[string]interface{}, error) 
 
 	json, err := file.ReadJSON(filepath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load resource")
+		return nil, errors.Wrapf(err, "read json %v", filepath)
 	}
 	cache.Set(cache.MEDIUM, keyname, json)
 	return json, nil
