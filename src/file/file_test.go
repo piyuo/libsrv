@@ -8,6 +8,7 @@ import (
 )
 
 func TestFile(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	keyPath := "../../../keys/gcloud.json"
 	//should have bytes
@@ -37,6 +38,7 @@ func TestFile(t *testing.T) {
 }
 
 func TestFileReadWrite(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	filename := "test.txt"
 	err := WriteText(filename, "hello")

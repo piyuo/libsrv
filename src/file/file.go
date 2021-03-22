@@ -17,7 +17,7 @@ import (
 func Read(filename string) ([]byte, error) {
 	osFile, err := os.Open(filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open file: "+filename)
+		return nil, errors.Wrapf(err, "open file: %v", filename)
 	}
 	defer osFile.Close()
 	return ioutil.ReadAll(osFile)
@@ -55,7 +55,7 @@ func ReadJSON(filename string) (map[string]interface{}, error) {
 	}
 	content := make(map[string]interface{})
 	if err := json.Unmarshal([]byte(bytes), &content); err != nil {
-		return nil, errors.Wrap(err, "failed to decode json: "+filename)
+		return nil, errors.Wrapf(err, "decode json %v", filename)
 	}
 	return content, nil
 }
@@ -89,6 +89,6 @@ func Find(name string) (string, bool) {
 	}
 
 	filepath = path.Join(curdir, name)
-	fmt.Printf("failed to find %v in %v or parent dir\n", name, curdir)
+	fmt.Printf("%v not found in %v or parent dir", name, curdir)
 	return "", false
 }
