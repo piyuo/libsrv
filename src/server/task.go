@@ -21,6 +21,20 @@ var deadlineTask time.Duration = -1
 
 var lockHeader string
 
+// TaskLock keep task lock records
+//
+type TaskLock struct {
+	db.BaseObject
+}
+
+func (c *TaskLock) Factory() db.Object {
+	return &TaskLock{}
+}
+
+func (c *TaskLock) Collection() string {
+	return "TaskLock"
+}
+
 // setDeadlineTask set context deadline using os.Getenv("DEADLINE_TASK"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
 func setDeadlineTask(ctx context.Context) (context.Context, context.CancelFunc) {
@@ -86,20 +100,6 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 		}
 	}
 	return http.HandlerFunc(f)
-}
-
-// TaskLock keep task lock records
-//
-type TaskLock struct {
-	db.BaseObject
-}
-
-func (c *TaskLock) Factory() db.Object {
-	return &TaskLock{}
-}
-
-func (c *TaskLock) Collection() string {
-	return "TaskLock"
 }
 
 // tasklockClient return tasklockClient

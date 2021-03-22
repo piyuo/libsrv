@@ -259,7 +259,7 @@ func TestClientContextCanceled(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestClientDeleteAll(t *testing.T) {
+func TestClientTruncate(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -272,7 +272,7 @@ func TestClientDeleteAll(t *testing.T) {
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
-	cleared, err := client.(*ClientFirestore).DeleteAll(ctx, sample, 100)
+	cleared, err := client.(*ClientFirestore).Truncate(ctx, "SampleEmpty", 100)
 	assert.Nil(err)
 	assert.True(cleared)
 }

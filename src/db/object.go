@@ -48,6 +48,12 @@ type Object interface {
 	//
 	CreateTime() time.Time
 
+	// SetCreateTime return object create time
+	//
+	//	d.SetCreateTime(time.Now().UTC())
+	//
+	SetCreateTime(value time.Time)
+
 	// UpdateTime return object last update time
 	//
 	//	t := sample.UpdateTime()

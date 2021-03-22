@@ -77,9 +77,9 @@ type Client interface {
 
 	// DeleteAll delete all document in collection
 	//
-	//	cleared, err := Clear(ctx, &Sample{}, 50)
+	//	done, err := Truncate(ctx, "Sample", 50)
 	//
-	DeleteAll(ctx context.Context, obj Object, max int) (bool, error)
+	Truncate(ctx context.Context, collectionName string, max int) (bool, error)
 
 	// Transaction start a transaction operation
 	//

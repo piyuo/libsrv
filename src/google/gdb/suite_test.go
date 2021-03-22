@@ -29,5 +29,8 @@ func shutdown() {
 func BenchmarkClean(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
-	client.DeleteAll(ctx, &Sample{}, 100)
+	client.Truncate(ctx, "Sample", 100)
+	client.Truncate(ctx, "Count", 100)
+	client.Truncate(ctx, "Code", 100)
+	client.Truncate(ctx, "Serial", 100)
 }

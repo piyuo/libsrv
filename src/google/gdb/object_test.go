@@ -19,6 +19,23 @@ func TestObjectID(t *testing.T) {
 	assert.True(d.UpdateTime().IsZero())
 }
 
+func TestObjectTime(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	sample := &Sample{}
+	err := client.Set(ctx, sample)
+	assert.Nil(err)
+	defer client.Delete(ctx, sample)
+
+	sample2Obj, err := client.Get(ctx, &Sample{}, sample.ID())
+	assert.Nil(err)
+	sample2 := sample2Obj.(*Sample)
+	assert.False(sample2.CreateTime().IsZero())
+	assert.False(sample2.UpdateTime().IsZero())
+}
+
 func TestObjectUserID(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)

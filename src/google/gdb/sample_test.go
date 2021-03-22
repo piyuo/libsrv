@@ -44,7 +44,7 @@ func (c *SampleEmpty) Factory() db.Object {
 }
 
 func (c *SampleEmpty) Collection() string {
-	return "SampleClear"
+	return "SampleEmpty"
 }
 
 // Sample for test

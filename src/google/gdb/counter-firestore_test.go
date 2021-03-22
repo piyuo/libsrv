@@ -65,6 +65,7 @@ func TestCounterShards(t *testing.T) {
 	client := sampleClient()
 	name := "test-counter-shards-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1, db.DateHierarchyFull)
+	defer counter.Delete(ctx)
 
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		err := counter.IncrementRX(ctx, tx)

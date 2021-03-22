@@ -379,20 +379,17 @@ func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *f
 	return false, nil
 }
 
-// DeleteAll delete all document in collection. delete max doc count. return true if nothing left to delete
+// Truncate delete all document in collection. delete max doc count. return true if nothing left to delete
 //
-//	done, err := DeleteAll(ctx, &Sample{}, 50)
+//	done, err := Truncate(ctx, "Sample", 50)
 //
-func (c *ClientFirestore) DeleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
-	if err := db.AssertObject(ctx, obj, false); err != nil {
-		return false, err
-	}
-	collectionRef := c.getCollectionRef(obj.Collection())
+func (c *ClientFirestore) Truncate(ctx context.Context, collectionName string, max int) (bool, error) {
+	collectionRef := c.getCollectionRef(collectionName)
 	iter := collectionRef.Limit(max).Documents(ctx)
 	defer iter.Stop()
 	done, err := c.deleteByIterator(ctx, max, iter)
 	if err != nil {
-		return false, errors.Wrap(err, "delete "+obj.Collection())
+		return false, errors.Wrap(err, "delete "+collectionName)
 	}
 	return done, nil
 }
