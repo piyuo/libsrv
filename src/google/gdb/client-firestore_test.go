@@ -19,7 +19,10 @@ func TestClientClose(t *testing.T) {
 	assert.Nil(err)
 	client, err := NewClient(ctx, cred)
 	assert.Nil(err)
+
+	assert.False(client.IsClose())
 	client.Close()
+	assert.True(client.IsClose())
 }
 
 func TestClientCRUD(t *testing.T) {

@@ -18,6 +18,12 @@ type Client interface {
 	//
 	Close()
 
+	// IsClose return true if connection is close
+	//
+	//	closed := IsClose()
+	//
+	IsClose() bool
+
 	// Get data object from data store, return nil if object does not exist
 	//
 	//	object, err := Get(ctx, &Sample{}, "id")

@@ -33,6 +33,17 @@ func (c *ClientFirestore) Close() {
 	}
 }
 
+// IsClose return true if connection is close
+//
+//	closed := IsClose()
+//
+func (c *ClientFirestore) IsClose() bool {
+	if c.native != nil {
+		return false
+	}
+	return true
+}
+
 // Batch start a batch operation. batch won't be commit if there is no batch operation like set/update/delete been called
 //
 //	err := Batch(ctx, func(ctx context.Context,batch db.Batch) error {

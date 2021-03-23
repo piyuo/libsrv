@@ -73,7 +73,7 @@ var sampleClientInstance *ClientFirestore
 // sample client create db client use for test, it will keep client instance to resuse, recreate new instance if client is close
 //
 func sampleClient() db.Client {
-	if sampleClientInstance != nil && sampleClientInstance.native != nil {
+	if sampleClientInstance != nil && !sampleClientInstance.IsClose() {
 		return sampleClientInstance
 	}
 	ctx := context.Background()
