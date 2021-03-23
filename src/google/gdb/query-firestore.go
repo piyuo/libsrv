@@ -176,11 +176,11 @@ func (c *QueryFirestore) ReturnCount(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-// ReturnIsEmpty return true if no object exist
+// ReturnEmpty return true if no object exist
 //
-//	isEmpty, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnIsEmpty(ctx)
+//	isEmpty, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnEmpty(ctx)
 //
-func (c *QueryFirestore) ReturnIsEmpty(ctx context.Context) (bool, error) {
+func (c *QueryFirestore) ReturnEmpty(ctx context.Context) (bool, error) {
 	c.Limit(1)
 	iter, err := c.returnIter(ctx)
 	if err != nil {
@@ -198,12 +198,12 @@ func (c *QueryFirestore) ReturnIsEmpty(ctx context.Context) (bool, error) {
 	return false, nil
 }
 
-// ReturnIsExists return true if object exist
+// ReturnExists return true if object exist
 //
-//	isExists, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnIsExists(ctx)
+//	isExists, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnExists(ctx)
 //
-func (c *QueryFirestore) ReturnIsExists(ctx context.Context) (bool, error) {
-	empty, err := c.ReturnIsEmpty(ctx)
+func (c *QueryFirestore) ReturnExists(ctx context.Context) (bool, error) {
+	empty, err := c.ReturnEmpty(ctx)
 	return !empty, err
 }
 

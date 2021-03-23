@@ -91,11 +91,11 @@ func TestQuery(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, count)
 
-	isEmpty, err := client.Query(&Sample{}).Where("Name", "==", name1).ReturnIsEmpty(ctx)
+	isEmpty, err := client.Query(&Sample{}).Where("Name", "==", name1).ReturnEmpty(ctx)
 	assert.Nil(err)
 	assert.False(isEmpty)
 
-	isExist, err := client.Query(&Sample{}).Where("Name", "==", name1).ReturnIsExists(ctx)
+	isExist, err := client.Query(&Sample{}).Where("Name", "==", name1).ReturnExists(ctx)
 	assert.Nil(err)
 	assert.True(isExist)
 }
@@ -207,7 +207,7 @@ func TestQueryDelete(t *testing.T) {
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
-	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnIsExists(ctx)
+	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)
 	assert.True(found)
 
@@ -215,7 +215,7 @@ func TestQueryDelete(t *testing.T) {
 	assert.Nil(err)
 	assert.True(cleared)
 
-	found, err = client.Query(&Sample{}).Where("Name", "==", name).ReturnIsExists(ctx)
+	found, err = client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)
 	assert.False(found)
 }

@@ -91,17 +91,17 @@ type Query interface {
 	//
 	ReturnCount(ctx context.Context) (int, error)
 
-	// ReturnIsEmpty return true if no object exist
+	// ReturnEmpty return true if no object exist
 	//
-	//	isEmpty, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnIsEmpty(ctx)
+	//	isEmpty, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnEmpty(ctx)
 	//
-	ReturnIsEmpty(ctx context.Context) (bool, error)
+	ReturnEmpty(ctx context.Context) (bool, error)
 
-	// ReturnIsExists return true if object exist
+	// ReturnExists return true if object exist
 	//
-	//	isExists, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnIsExists(ctx)
+	//	isExists, err := Query(&Sample{}).Where("Name", "==", "sample1").ReturnExists(ctx)
 	//
-	ReturnIsExists(ctx context.Context) (bool, error)
+	ReturnExists(ctx context.Context) (bool, error)
 
 	// ReturnFirst return first object from query
 	//

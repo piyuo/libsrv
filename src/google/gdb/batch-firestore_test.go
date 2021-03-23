@@ -63,7 +63,7 @@ func TestBatch(t *testing.T) {
 	})
 	assert.Nil(err)
 
-	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnIsExists(ctx)
+	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)
 	assert.False(found)
 }
@@ -110,7 +110,7 @@ func TestBatchDeleteList(t *testing.T) {
 		return nil
 	})
 
-	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnIsExists(ctx)
+	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)
 	assert.False(found)
 }

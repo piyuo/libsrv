@@ -28,7 +28,7 @@ func TestTransaction(t *testing.T) {
 	})
 	assert.Nil(err)
 
-	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnIsExists(ctx)
+	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)
 	assert.True(found)
 
