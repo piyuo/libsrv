@@ -24,7 +24,7 @@ var lockHeader string
 // TaskLock keep task lock records
 //
 type TaskLock struct {
-	db.BaseObject
+	db.Entity
 }
 
 func (c *TaskLock) Factory() db.Object {

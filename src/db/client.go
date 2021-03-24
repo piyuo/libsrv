@@ -165,7 +165,7 @@ func AssertID(id string) error {
 	return nil
 }
 
-// BaseObject represent object stored in document database
+// BaseClient represent object stored in document database
 //
 type BaseClient struct {
 	Client

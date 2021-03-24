@@ -91,9 +91,9 @@ type Object interface {
 	SetUserID(userID string)
 }
 
-// BaseObject represent object stored in document database
+// Entity a class that has id
 //
-type BaseObject struct {
+type Entity struct {
 	Object `firestore:"-"`
 
 	// id is object unique identifier
@@ -115,7 +115,7 @@ type BaseObject struct {
 //	d := &Sample{}
 //	id := d.ID()
 //
-func (c *BaseObject) ID() string {
+func (c *Entity) ID() string {
 	return c.id
 }
 
@@ -124,7 +124,7 @@ func (c *BaseObject) ID() string {
 //	d := &Sample{}
 //	id := d.setID("uniqueID")
 //
-func (c *BaseObject) SetID(id string) {
+func (c *Entity) SetID(id string) {
 	c.id = id
 }
 
@@ -132,7 +132,7 @@ func (c *BaseObject) SetID(id string) {
 //
 //	ref := d.Ref()
 //
-func (c *BaseObject) Ref() interface{} {
+func (c *Entity) Ref() interface{} {
 	return c.ref
 }
 
@@ -140,7 +140,7 @@ func (c *BaseObject) Ref() interface{} {
 //
 //	d.SetRef(ref)
 //
-func (c *BaseObject) SetRef(ref interface{}) {
+func (c *Entity) SetRef(ref interface{}) {
 	c.ref = ref
 }
 
@@ -148,7 +148,7 @@ func (c *BaseObject) SetRef(ref interface{}) {
 //
 //	t := d.CreateTime()
 //
-func (c *BaseObject) CreateTime() time.Time {
+func (c *Entity) CreateTime() time.Time {
 	return c.Createtime
 }
 
@@ -156,7 +156,7 @@ func (c *BaseObject) CreateTime() time.Time {
 //
 //	d.SetCreateTime(time.Now().UTC())
 //
-func (c *BaseObject) SetCreateTime(value time.Time) {
+func (c *Entity) SetCreateTime(value time.Time) {
 	if c.Createtime.IsZero() {
 		c.Createtime = value
 	}
@@ -164,18 +164,18 @@ func (c *BaseObject) SetCreateTime(value time.Time) {
 
 // UserID return owner's user id
 //
-func (c *BaseObject) UserID() string {
+func (c *Entity) UserID() string {
 	return ""
 }
 
 // SetUserID set owner's user id
 //
-func (c *BaseObject) SetUserID(userID string) {
+func (c *Entity) SetUserID(userID string) {
 }
 
 // AccountID return owner's account id
 //
-func (c *BaseObject) AccountID() string {
+func (c *Entity) AccountID() string {
 	return ""
 }
 
@@ -183,14 +183,14 @@ func (c *BaseObject) AccountID() string {
 //
 //	d.SetAccountID(accountID)
 //
-func (c *BaseObject) SetAccountID(accountID string) {
+func (c *Entity) SetAccountID(accountID string) {
 }
 
 // UpdateTime return object last update time
 //
 //	t := d.UpdateTime()
 //
-func (c *BaseObject) UpdateTime() time.Time {
+func (c *Entity) UpdateTime() time.Time {
 	return time.Time{}
 }
 
@@ -198,13 +198,13 @@ func (c *BaseObject) UpdateTime() time.Time {
 //
 //	d.SetUpdateTime(time.Now().UTC())
 //
-func (c *BaseObject) SetUpdateTime(t time.Time) {
+func (c *Entity) SetUpdateTime(t time.Time) {
 }
 
-// DomainObject is object with AccountID and UserID
+// Model is class with AccountID and UserID
 //
-type DomainObject struct {
-	BaseObject
+type Model struct {
+	Entity
 
 	// Updatetime is object last update time, you should use UpdateTime() SetUpdateTime() to access this field
 	// We keep our own update time, cause database provide update time like "snapshot.UpdateTime" may not use in query
@@ -224,7 +224,7 @@ type DomainObject struct {
 //
 //	userID := d.UserID()
 //
-func (c *DomainObject) UserID() string {
+func (c *Model) UserID() string {
 	return c.UserId
 }
 
@@ -232,7 +232,7 @@ func (c *DomainObject) UserID() string {
 //
 //	d.SetUserID(userID)
 //
-func (c *DomainObject) SetUserID(userID string) {
+func (c *Model) SetUserID(userID string) {
 	c.UserId = userID
 }
 
@@ -240,7 +240,7 @@ func (c *DomainObject) SetUserID(userID string) {
 //
 //	accountID := d.AccountID()
 //
-func (c *DomainObject) AccountID() string {
+func (c *Model) AccountID() string {
 	return c.AccountId
 }
 
@@ -248,7 +248,7 @@ func (c *DomainObject) AccountID() string {
 //
 //	d.SetAccountID(accountID)
 //
-func (c *DomainObject) SetAccountID(accountID string) {
+func (c *Model) SetAccountID(accountID string) {
 	c.AccountId = accountID
 }
 
@@ -256,7 +256,7 @@ func (c *DomainObject) SetAccountID(accountID string) {
 //
 //	t := d.UpdateTime()
 //
-func (c *DomainObject) UpdateTime() time.Time {
+func (c *Model) UpdateTime() time.Time {
 	return c.Updatetime
 }
 
@@ -264,6 +264,6 @@ func (c *DomainObject) UpdateTime() time.Time {
 //
 //	d.SetUpdateTime(time.Now().UTC())
 //
-func (c *DomainObject) SetUpdateTime(t time.Time) {
+func (c *Model) SetUpdateTime(t time.Time) {
 	c.Updatetime = t
 }

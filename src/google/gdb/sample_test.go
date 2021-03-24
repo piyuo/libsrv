@@ -15,7 +15,7 @@ type PlainObject struct {
 // SampleNoFactory with no factory and collection
 //
 type SampleNoFactory struct {
-	db.DomainObject
+	db.Model
 	Name    string
 	Value   int
 	Map     map[string]string
@@ -35,7 +35,7 @@ func (c *SampleNoFactory) Collection() string {
 // SampleEmpty for test clear
 //
 type SampleEmpty struct {
-	db.DomainObject
+	db.Model
 	Name string `firestore:"Name,omitempty"`
 }
 
@@ -50,7 +50,7 @@ func (c *SampleEmpty) Collection() string {
 // Sample for test
 //
 type Sample struct {
-	db.DomainObject
+	db.Model
 	Name    string            `firestore:"Name,omitempty"`
 	Tag     string            `firestore:"Tag,omitempty"`
 	Value   int               `firestore:"Value,omitempty"`
