@@ -11,7 +11,6 @@ func TestUUID(t *testing.T) {
 	assert := assert.New(t)
 	id := UUID()
 	assert.NotEmpty(id)
-	//fmt.Printf("%v, %v\n", id, len(id))
 }
 
 func TestSerialID16(t *testing.T) {
