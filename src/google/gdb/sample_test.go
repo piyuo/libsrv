@@ -60,8 +60,14 @@ type Sample struct {
 	PObj    *PlainObject      `firestore:"PObj,omitempty"`
 }
 
+// Factory create a empty object, return object must be nil safe, no nil in any field
+//
 func (c *Sample) Factory() db.Object {
-	return &Sample{}
+	return &Sample{
+		Array:   []string{},
+		Numbers: []int{},
+		PObj:    &PlainObject{},
+	}
 }
 
 func (c *Sample) Collection() string {

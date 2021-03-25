@@ -216,6 +216,7 @@ func (c *ClientFirestore) Get(ctx context.Context, obj db.Object, id string) (db
 	if err := db.AssertID(id); err != nil {
 		return nil, err
 	}
+	obj = obj.Factory() // recreate null safe object
 	docRef := c.getDocRef(obj.Collection(), id)
 	snapshot, err := docRef.Get(ctx)
 	return snapshotToObject(obj, docRef, snapshot, err)

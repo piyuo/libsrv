@@ -36,6 +36,7 @@ func (c *TransactionFirestore) Get(ctx context.Context, obj db.Object, id string
 	if err := db.AssertID(id); err != nil {
 		return nil, err
 	}
+	obj = obj.Factory() // recreate null safe object
 	docRef := c.client.getDocRef(obj.Collection(), id)
 	snapshot, err := c.tx.Get(docRef)
 	return snapshotToObject(obj, docRef, snapshot, err)

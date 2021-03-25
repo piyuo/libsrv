@@ -225,6 +225,13 @@ func TestClientList(t *testing.T) {
 	assert.Nil(err)
 	assert.True(len(list) >= 2)
 
+	// test nil safe
+	sample := list[0].(*Sample)
+	assert.NotNil(sample.Array)
+	assert.NotNil(sample.Numbers)
+	assert.NotNil(sample.PObj)
+
+	// test return first
 	obj, err = client.Query(&Sample{}).Where("Value", "==", 1002).ReturnFirst(ctx)
 	assert.Nil(err)
 	assert.Equal(name2, (obj.(*Sample)).Name)

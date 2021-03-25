@@ -6,7 +6,7 @@ import "time"
 //
 type Object interface {
 
-	// Factory create a empty object
+	// Factory create a empty object, return object must be nil safe, no nil in any field
 	//
 	//	newSample = sample.Factory()
 	//

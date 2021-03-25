@@ -38,6 +38,12 @@ func TestTransaction(t *testing.T) {
 		assert.Nil(err)
 		assert.NotNil(sample2)
 
+		// test nil safety
+		s := sample2.(*Sample)
+		assert.NotNil(s.Array)
+		assert.NotNil(s.Numbers)
+		assert.NotNil(s.PObj)
+
 		found, err := tx.Exists(ctx, &Sample{}, sample.ID())
 		assert.Nil(err)
 		assert.True(found)
@@ -45,6 +51,12 @@ func TestTransaction(t *testing.T) {
 		list, err := tx.List(ctx, &Sample{}, 10)
 		assert.Nil(err)
 		assert.NotEmpty(list)
+
+		// test nil safety
+		s = list[0].(*Sample)
+		assert.NotNil(s.Array)
+		assert.NotNil(s.Numbers)
+		assert.NotNil(s.PObj)
 
 		value, err := tx.Select(ctx, &Sample{}, sample.ID(), "Value")
 		assert.Nil(err)

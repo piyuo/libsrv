@@ -19,6 +19,25 @@ func TestObjectID(t *testing.T) {
 	assert.True(d.UpdateTime().IsZero())
 }
 
+func TestObjectNilSafety(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	sample := &Sample{}
+	err := client.Set(ctx, sample)
+	assert.Nil(err)
+	defer client.Delete(ctx, sample)
+
+	sample2Obj, err := client.Get(ctx, &Sample{}, sample.ID())
+	assert.Nil(err)
+	sample2 := sample2Obj.(*Sample)
+
+	assert.NotNil(sample2.Array)
+	assert.NotNil(sample2.Numbers)
+	assert.NotNil(sample2.PObj)
+}
+
 func TestObjectTime(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
