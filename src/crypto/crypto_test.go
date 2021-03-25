@@ -35,8 +35,10 @@ func TestShouldReturnErrorDecryptWrongString(t *testing.T) {
 	assert := assert.New(t)
 	_, err := Decrypt("")
 	assert.NotNil(err)
-	_, err1 := Decrypt("something wrong")
-	assert.NotNil(err1)
+	_, err = Decrypt("something wrong")
+	assert.NotNil(err)
+	_, err = Decrypt("invalid")
+	assert.NotNil(err)
 }
 
 func TestConcurrentCrypto(t *testing.T) {

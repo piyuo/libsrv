@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"strconv"
 
 	key "github.com/piyuo/libsrv/src/key"
 	"github.com/pkg/errors"
@@ -86,10 +87,15 @@ func Decrypt(crypted string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "decode base64")
 	}
-	if len(crytedByte) == 0 {
-		return "", errors.New("crypted must not empty")
+	lenCryted := len(crytedByte)
+	if lenCryted == 0 {
+		return "", errors.New("input must not empty")
 	}
-	orig := make([]byte, len(crytedByte))
+	if lenCryted%blockSize != 0 {
+		return "", errors.New("input not full blocks, block size must be " + strconv.Itoa(blockSize))
+	}
+
+	orig := make([]byte, lenCryted)
 	decrypter.CryptBlocks(orig, crytedByte)
 	orig = pkcs7UnPadding(orig)
 	return string(orig), nil
