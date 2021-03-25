@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 
 	key "github.com/piyuo/libsrv/src/key"
-
 	"github.com/pkg/errors"
 )
 
@@ -32,24 +31,23 @@ func getBlock() ([]byte, cipher.Block, error) {
 	return cachedKey, block, nil
 }
 
-// getEncrypter return encrypter
+// newEncrypter return encrypter
 //
-//	encrypter, err := crypto.Encrypter()
+//	encrypter, err := newEncrypter()
 //
-func getEncrypter() (cipher.BlockMode, error) {
+func newEncrypter() (cipher.BlockMode, error) {
 	cryptoKey, block, err := getBlock()
 	if err != nil {
 		return nil, err
 	}
-
 	return cipher.NewCBCEncrypter(block, cryptoKey[:blockSize]), nil
 }
 
-// getDecrypter return decrypter
+// newDecrypter return decrypter
 //
-//	decrypter, err := crypto.Decrypter()
+//	decrypter, err := newDecrypter()
 //
-func getDecrypter() (cipher.BlockMode, error) {
+func newDecrypter() (cipher.BlockMode, error) {
 	cryptoKey, block, err := getBlock()
 	if err != nil {
 		return nil, err
@@ -59,37 +57,37 @@ func getDecrypter() (cipher.BlockMode, error) {
 
 // Encrypt string, if you need encrypt multiple string at the same time using getEncrypter()
 //
-//	crypted1, err := crypto.Encrypt("hello1")
+//	crypted1, err := Encrypt("hello1")
 //
 func Encrypt(text string) (string, error) {
-	encrypter, err := getEncrypter()
+	encrypter, err := newEncrypter()
 	if err != nil {
-		return "", errors.Wrap(err, "init encrypter")
+		return "", errors.Wrap(err, "new encrypter")
 	}
 
 	textData := []byte(text)
 	textData = pkcs7Padding(textData, blockSize)
 	cryted := make([]byte, len(textData))
 	encrypter.CryptBlocks(cryted, textData)
-	return base64.StdEncoding.EncodeToString(cryted), nil
+	return base64.RawStdEncoding.EncodeToString(cryted), nil
 }
 
 // Decrypt string, if you need decrypt multiple string at the same time using getEncrypter()
 //
-//	result, err := crypto.Decrypt(crypted)
+//	result, err := cDecrypt(crypted)
 //
 func Decrypt(crypted string) (string, error) {
-	decrypter, err := getDecrypter()
+	decrypter, err := newDecrypter()
 	if err != nil {
-		return "", errors.Wrap(err, "init decrypter")
+		return "", errors.Wrap(err, "new decrypter")
 	}
 
-	crytedByte, err := base64.StdEncoding.DecodeString(crypted)
+	crytedByte, err := base64.RawStdEncoding.DecodeString(crypted)
 	if err != nil {
-		return "", errors.Wrap(err, "decode base64 from string")
+		return "", errors.Wrap(err, "decode base64")
 	}
 	if len(crytedByte) == 0 {
-		return "", errors.New("crypted string must not be empty")
+		return "", errors.New("crypted must not empty")
 	}
 	orig := make([]byte, len(crytedByte))
 	decrypter.CryptBlocks(orig, crytedByte)
