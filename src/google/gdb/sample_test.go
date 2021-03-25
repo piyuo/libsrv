@@ -64,6 +64,7 @@ type Sample struct {
 //
 func (c *Sample) Factory() db.Object {
 	return &Sample{
+		Map:     map[string]string{},
 		Array:   []string{},
 		Numbers: []int{},
 		PObj:    &PlainObject{},

@@ -227,6 +227,7 @@ func TestClientList(t *testing.T) {
 
 	// test nil safe
 	sample := list[0].(*Sample)
+	assert.NotNil(sample.Map)
 	assert.NotNil(sample.Array)
 	assert.NotNil(sample.Numbers)
 	assert.NotNil(sample.PObj)
