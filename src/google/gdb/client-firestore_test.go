@@ -283,9 +283,10 @@ func TestClientTruncate(t *testing.T) {
 	err := client.Set(ctx, sample)
 	assert.Nil(err)
 
-	cleared, err := client.(*ClientFirestore).Truncate(ctx, "SampleEmpty", 100)
+	cleared, numDeleted, err := client.(*ClientFirestore).Truncate(ctx, "SampleEmpty", 100)
 	assert.Nil(err)
 	assert.True(cleared)
+	assert.Equal(1, numDeleted)
 }
 
 func BenchmarkClientSet(b *testing.B) {

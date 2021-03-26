@@ -81,11 +81,11 @@ type Client interface {
 	//
 	Delete(ctx context.Context, obj Object) error
 
-	// DeleteAll delete all document in collection
+	// Truncate delete all document in collection,return true if nothing left to delete
 	//
-	//	done, err := Truncate(ctx, "Sample", 50)
+	//	done,numDeleted, err := Truncate(ctx, "Sample", 50)
 	//
-	Truncate(ctx context.Context, collectionName string, max int) (bool, error)
+	Truncate(ctx context.Context, collectionName string, max int) (bool, int, error)
 
 	// Transaction start a transaction operation
 	//

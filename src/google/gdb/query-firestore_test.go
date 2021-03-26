@@ -211,9 +211,10 @@ func TestQueryDelete(t *testing.T) {
 	assert.Nil(err)
 	assert.True(found)
 
-	cleared, err := client.Query(&Sample{}).Where("Name", "==", name).Delete(ctx, 2)
+	done, count, err := client.Query(&Sample{}).Where("Name", "==", name).Delete(ctx, 100)
 	assert.Nil(err)
-	assert.True(cleared)
+	assert.True(done)
+	assert.True(count > 0)
 
 	found, err = client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)
@@ -255,9 +256,10 @@ func TestQueryDeleteInTransaction(t *testing.T) {
 
 	// query in transaction
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		cleared, err := tx.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 10)
+		done, numDeleted, err := tx.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 10)
 		assert.Nil(err)
-		assert.True(cleared)
+		assert.True(done)
+		assert.Equal(2, numDeleted)
 		return nil
 	})
 

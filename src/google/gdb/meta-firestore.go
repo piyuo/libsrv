@@ -56,12 +56,12 @@ func (c *MetaFirestore) deleteShards(ctx context.Context) error {
 	}
 	tableRef := c.client.getCollectionRef(c.collection)
 	shardsIter := tableRef.Where(db.MetaID, "==", c.id).Documents(ctx)
-	done, err := c.client.deleteByIterator(ctx, c.numShards+1, shardsIter)
+	done, numDeleted, err := c.client.deleteByIterator(ctx, c.numShards+1, shardsIter)
 	if err != nil {
-		return errors.Wrap(err, "delete shards "+c.collection)
+		return errors.Wrap(err, "del shards "+c.collection)
 	}
 	if done != true {
-		return errors.Wrap(err, "delete shards not done "+c.collection)
+		return errors.Wrapf(err, "del shards not done want %v only del %v", c.numShards+1, numDeleted)
 	}
 	return nil
 }

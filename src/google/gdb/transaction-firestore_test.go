@@ -132,7 +132,7 @@ func TestTransactionAssert(t *testing.T) {
 		assert.NotNil(err)
 		err = tx.Delete(ctx, nil)
 		assert.NotNil(err)
-		_, err = tx.(*TransactionFirestore).deleteAll(ctx, nil, 1)
+		_, _, err = tx.(*TransactionFirestore).deleteAll(ctx, nil, 1)
 		assert.NotNil(err)
 
 		ref := client.(*ClientFirestore).getDocRef("not-exists", "not-exists")
@@ -160,9 +160,10 @@ func TestTransactionDeleteAll(t *testing.T) {
 	assert.Nil(err)
 
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		done, err := tx.(*TransactionFirestore).deleteAll(ctx, sample, 10)
+		done, numDeleted, err := tx.(*TransactionFirestore).deleteAll(ctx, sample, 10)
 		assert.Nil(err)
 		assert.True(done)
+		assert.Equal(1, numDeleted)
 		return nil
 	})
 	assert.Nil(err)

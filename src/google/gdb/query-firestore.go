@@ -244,24 +244,27 @@ func (c *QueryFirestore) ReturnFirstID(ctx context.Context) (string, error) {
 	return list[0].ID(), nil
 }
 
-// Delete delete all document return from query. delete max doc count. return true if delete is complete
+// Delete delete all document return from query. delete max doc count. return is done,delete count, error
 //
-func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, error) {
+//	done, count, err := client.Query(&Sample{}).Where("Name", "==", name).Delete(ctx, 100)
+//
+func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, int, error) {
 	if c.QueryTransaction != nil {
 		trans := c.QueryTransaction.(*TransactionFirestore)
 		iter := trans.tx.Documents(c.query)
 		defer iter.Stop()
-		complete, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
+		complete, numDeleted, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
 		if err != nil {
-			return false, errors.Wrapf(err, "tx delete %v", c.QueryObject.Collection())
+			return false, numDeleted, errors.Wrapf(err, "tx delete %v", c.QueryObject.Collection())
 		}
-		return complete, nil
+		return complete, numDeleted, nil
 	}
+
 	iter := c.query.Documents(ctx)
 	defer iter.Stop()
-	complete, err := c.client.deleteByIterator(ctx, max, iter)
+	complete, numDeletd, err := c.client.deleteByIterator(ctx, max, iter)
 	if err != nil {
-		return false, errors.Wrap(err, "delete "+c.QueryObject.Collection())
+		return false, numDeletd, errors.Wrap(err, "delete "+c.QueryObject.Collection())
 	}
-	return complete, nil
+	return complete, numDeletd, nil
 }

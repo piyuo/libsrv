@@ -362,9 +362,9 @@ func (c *ClientFirestore) Delete(ctx context.Context, obj db.Object) error {
 
 // deleteByIterator delete document using collection document iterator. delete max doc count. return true if no doc left in collection
 //
-//	done, err := deleteByIterator(ctx, 50, iter)
+//	done,delCount, err := deleteByIterator(ctx, 50, iter)
 //
-func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *firestore.DocumentIterator) (bool, error) {
+func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *firestore.DocumentIterator) (bool, int, error) {
 	numDeleted := 0
 	// Iterate through the documents, adding a delete operation for each one to a WriteBatch.
 	err := c.Batch(ctx, func(ctx context.Context, batch db.Batch) error {
@@ -382,28 +382,28 @@ func (c *ClientFirestore) deleteByIterator(ctx context.Context, max int, iter *f
 		return nil
 	})
 	if err != nil {
-		return false, errors.Wrapf(err, "commit batch")
+		return false, numDeleted, errors.Wrapf(err, "commit batch")
 	}
 
 	if numDeleted < max {
-		return true, nil
+		return true, numDeleted, nil
 	}
-	return false, nil
+	return false, numDeleted, nil
 }
 
 // Truncate delete all document in collection. delete max doc count. return true if nothing left to delete
 //
-//	done, err := Truncate(ctx, "Sample", 50)
+//	done,numDeleted, err := Truncate(ctx, "Sample", 50)
 //
-func (c *ClientFirestore) Truncate(ctx context.Context, collectionName string, max int) (bool, error) {
+func (c *ClientFirestore) Truncate(ctx context.Context, collectionName string, max int) (bool, int, error) {
 	collectionRef := c.getCollectionRef(collectionName)
 	iter := collectionRef.Limit(max).Documents(ctx)
 	defer iter.Stop()
-	done, err := c.deleteByIterator(ctx, max, iter)
+	done, numDeleted, err := c.deleteByIterator(ctx, max, iter)
 	if err != nil {
-		return false, errors.Wrap(err, "delete "+collectionName)
+		return false, numDeleted, errors.Wrap(err, "delete "+collectionName)
 	}
-	return done, nil
+	return done, numDeleted, nil
 }
 
 // Counter return counter, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error

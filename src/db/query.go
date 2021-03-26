@@ -69,9 +69,11 @@ type Query interface {
 	//
 	EndBefore(docSnapshotOrFieldValues ...interface{}) Query
 
-	// Delete delete all document return from query. delete max doc count. return true if delete is complete
+	// Delete delete all document return from query. delete max doc count. return is done,delete count, error
 	//
-	Delete(ctx context.Context, max int) (bool, error)
+	//	done, count, err := client.Query(&Sample{}).Where("Name", "==", name).Delete(ctx, 100)
+	//
+	Delete(ctx context.Context, max int) (bool, int, error)
 
 	// Return query result with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 	//

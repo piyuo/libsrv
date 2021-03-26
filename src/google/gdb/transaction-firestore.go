@@ -177,7 +177,7 @@ func (c *TransactionFirestore) Delete(ctx context.Context, obj db.Object) error 
 //
 //	cleared, err := DeleteCollection(ctx, &Sample{}, 50, iter)
 //
-func (c *TransactionFirestore) DeleteCollection(ctx context.Context, obj db.Object, max int, iter *firestore.DocumentIterator) (bool, error) {
+func (c *TransactionFirestore) DeleteCollection(ctx context.Context, obj db.Object, max int, iter *firestore.DocumentIterator) (bool, int, error) {
 	numDeleted := 0
 	for {
 		doc, err := iter.Next()
@@ -185,26 +185,26 @@ func (c *TransactionFirestore) DeleteCollection(ctx context.Context, obj db.Obje
 			break
 		}
 		if err != nil {
-			return false, errors.Wrap(err, "tx iter next "+obj.Collection())
+			return false, numDeleted, errors.Wrap(err, "tx iter next "+obj.Collection())
 		}
 		if err := c.tx.Delete(doc.Ref); err != nil {
-			return false, errors.Wrap(err, "tx delete "+obj.Collection()+"-"+doc.Ref.ID)
+			return false, numDeleted, errors.Wrap(err, "tx delete "+obj.Collection()+"-"+doc.Ref.ID)
 		}
 		numDeleted++
 	}
 	if numDeleted < max {
-		return true, nil
+		return true, numDeleted, nil
 	}
-	return false, nil
+	return false, numDeleted, nil
 }
 
 // deleteAll delete all document in collection. delete max doc count. return true if nothing left to delete
 //
-//	done, err := deleteAll(ctx, &Sample{}, 50)
+//	done,numDeleted, err := deleteAll(ctx, &Sample{}, 50)
 //
-func (c *TransactionFirestore) deleteAll(ctx context.Context, obj db.Object, max int) (bool, error) {
+func (c *TransactionFirestore) deleteAll(ctx context.Context, obj db.Object, max int) (bool, int, error) {
 	if err := db.AssertObject(ctx, obj, false); err != nil {
-		return false, err
+		return false, 0, err
 	}
 	collectionRef := c.client.getCollectionRef(obj.Collection())
 	iter := c.tx.Documents(collectionRef.Query.Limit(max))
