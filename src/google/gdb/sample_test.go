@@ -71,6 +71,8 @@ func (c *Sample) Factory() db.Object {
 	}
 }
 
+// Collection is name in the database
+//
 func (c *Sample) Collection() string {
 	return "Sample"
 }
