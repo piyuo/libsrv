@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/piyuo/libsrv/src/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,18 +39,18 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	setDeadlineTask(ctx)
-	lockID := CreateLockID("testTaskInProgress")
-	req, _ := http.NewRequest("GET", "/?TaskID=testTaskInProgress", nil)
+	taskID := "testTaskInProgress-" + identifier.RandomNumber(6)
+	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 
 	client, err := newClient(ctx)
 	assert.Nil(err)
 	defer client.Close()
 
 	lockInProgress := &TaskLock{}
-	lockInProgress.SetID(lockID)
+	lockInProgress.SetID(taskID)
 	lockInProgress.SetCreateTime(time.Now().UTC().Add(-10 * time.Minute))
 	err = client.Set(ctx, lockInProgress)
-	defer unlockTask(ctx, lockID)
+	defer unlockTask(ctx, taskID)
 
 	resp := httptest.NewRecorder()
 	TaskCreateFunc(mockTaskHandler).ServeHTTP(resp, req)

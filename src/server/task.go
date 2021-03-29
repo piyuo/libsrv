@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/piyuo/libsrv/src/db"
-	"github.com/piyuo/libsrv/src/google/gaccount"
-	"github.com/piyuo/libsrv/src/google/gdb"
 	"github.com/pkg/errors"
 
 	"github.com/piyuo/libsrv/src/log"
@@ -18,8 +16,6 @@ import (
 // deadlineTask cache os env DEADLINE_TASK value
 //
 var deadlineTask time.Duration = -1
-
-var lockHeader string
 
 // TaskLock keep task lock records
 //
@@ -39,7 +35,6 @@ func (c *TaskLock) Collection() string {
 //
 func setDeadlineTask(ctx context.Context) (context.Context, context.CancelFunc) {
 	if deadlineTask == -1 {
-		lockHeader = os.Getenv("NAME") + "-" + os.Getenv("BRANCH")
 		text := os.Getenv("DEADLINE_TASK")
 		ms, err := strconv.Atoi(text)
 		if err != nil {
@@ -50,12 +45,6 @@ func setDeadlineTask(ctx context.Context) (context.Context, context.CancelFunc) 
 	}
 	expired := time.Now().Add(deadlineTask)
 	return context.WithDeadline(ctx, expired)
-}
-
-// CreateLockID from taskID
-//
-func CreateLockID(taskID string) string {
-	return lockHeader + "-" + taskID
 }
 
 // TaskCreateFunc create task handler function
@@ -71,9 +60,8 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 			log.Error(ctx, errors.New("TaskID not found"))
 			return
 		}
-		lockID := CreateLockID(taskID)
 
-		locked, err := lockTask(ctx, lockID, 15*time.Minute)
+		locked, err := lockTask(ctx, taskID, 15*time.Minute)
 		if err != nil {
 			log.Error(ctx, err)
 			return
@@ -83,38 +71,24 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 			w.WriteHeader(http.StatusTooManyRequests) // return 429/503 will let google cloud slowing down execution
 			return
 		}
-		defer unlockTask(ctx, lockID)
+		defer unlockTask(ctx, taskID)
+
+		log.Info(ctx, "start task "+taskID)
 		retry, err := taskHandler(ctx, w, r)
 		if err != nil {
 			log.Error(ctx, err)
 		}
 
 		if retry {
+			log.Warn(ctx, "task fail. it will be retry later")
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
+		// if no retry, always return OK to let cloud task know not to retry
+		log.Info(ctx, "task OK")
+		w.WriteHeader(http.StatusOK)
 	}
 	return http.HandlerFunc(f)
-}
-
-// tasklockClient return tasklockClient
-//
-//	client,err := tasklockClient(ctx)
-//	defer client.Close()
-//
-func newClient(ctx context.Context) (db.Client, error) {
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-
-	cred, err := gaccount.GlobalCredential(ctx)
-	if err != nil {
-		return nil, err
-	}
-	client, err := gdb.NewClient(ctx, cred)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
 }
 
 // createTaskLock create lock on task
@@ -152,6 +126,11 @@ func lockTask(ctx context.Context, lockID string, duration time.Duration) (bool,
 		return false, err
 	}
 	defer client.Close()
+
+	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+
+		return nil
+	})
 
 	found, createTime, err := isTaskLockExists(ctx, client, lockID)
 	if err != nil {
