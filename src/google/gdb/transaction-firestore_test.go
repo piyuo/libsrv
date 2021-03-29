@@ -153,7 +153,7 @@ func TestTransactionDeleteAll(t *testing.T) {
 	client := sampleClient()
 
 	name := "test-tx-delete-all-" + identifier.RandomString(8)
-	sample := &SampleEmpty{
+	sample := &SampleDeleteAll{
 		Name: name,
 	}
 	err := client.Set(ctx, sample)

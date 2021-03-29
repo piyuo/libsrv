@@ -47,6 +47,21 @@ func (c *SampleEmpty) Collection() string {
 	return "SampleEmpty"
 }
 
+// SampleDeleteAll for test clear
+//
+type SampleDeleteAll struct {
+	db.Model
+	Name string `firestore:"Name,omitempty"`
+}
+
+func (c *SampleDeleteAll) Factory() db.Object {
+	return &SampleDeleteAll{}
+}
+
+func (c *SampleDeleteAll) Collection() string {
+	return "SampleDeleteAll"
+}
+
 // Sample for test
 //
 type Sample struct {
