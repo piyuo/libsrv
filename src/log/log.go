@@ -150,6 +150,19 @@ func Error(ctx context.Context, err error) {
 	gerror.Write(ctx, message, stack)
 }
 
+// Error log error to google cloud and return error id, return empty if error not logged
+//
+//	stack format like
+//	at firstLine (a.js:3)
+//	at secondLine (b.js:3)
+//
+//	Error(ctx, err)
+//
+func ErrorToStr(err error) string {
+	stack := beautyStack(err)
+	return stack
+}
+
 // CustomError write error and stack direct to database
 //
 //	stack format like

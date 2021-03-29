@@ -84,6 +84,14 @@ func TestLogError(t *testing.T) {
 	Error(ctx, err)
 }
 
+func TestLogErrorToStr(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	err := errors.New("my error")
+	str := ErrorToStr(err)
+	assert.NotEmpty(str)
+}
+
 func TestLogErrorWithRequest(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
