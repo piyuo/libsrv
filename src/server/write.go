@@ -29,7 +29,7 @@ func WriteText(w http.ResponseWriter, text string) {
 
 // WriteError to response
 //
-//	WriteError(w, errors.New("error"), 500, "error")
+//	WriteError(w,  500, errors.New("error"))
 //
 func WriteError(w http.ResponseWriter, statusCode int, err error) {
 	w.WriteHeader(statusCode)

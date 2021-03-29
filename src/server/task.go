@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/piyuo/libsrv/src/db"
+	"github.com/piyuo/libsrv/src/google/gtask"
 	"github.com/pkg/errors"
 
 	"github.com/piyuo/libsrv/src/log"
@@ -16,20 +16,6 @@ import (
 // deadlineTask cache os env DEADLINE_TASK value
 //
 var deadlineTask time.Duration = -1
-
-// TaskLock keep task lock records
-//
-type TaskLock struct {
-	db.Entity
-}
-
-func (c *TaskLock) Factory() db.Object {
-	return &TaskLock{}
-}
-
-func (c *TaskLock) Collection() string {
-	return "TaskLock"
-}
 
 // setDeadlineTask set context deadline using os.Getenv("DEADLINE_TASK"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
@@ -55,119 +41,33 @@ func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
 		ctx, cancel := setDeadlineTask(r.Context())
 		defer cancel()
 
-		taskID, found := Query(r, "TaskID")
-		if !found {
-			log.Error(ctx, errors.New("TaskID not found"))
-			return
-		}
-
-		locked, err := lockTask(ctx, taskID, 15*time.Minute)
+		err := TaskRun(ctx, taskHandler, r)
 		if err != nil {
 			log.Error(ctx, err)
+			WriteError(w, http.StatusOK, err) // return OK to stop retry
 			return
 		}
-		if !locked {
-			log.Info(ctx, "task in progress. just wait")
-			w.WriteHeader(http.StatusTooManyRequests) // return 429/503 will let google cloud slowing down execution
-			return
-		}
-		defer unlockTask(ctx, taskID)
-
-		log.Info(ctx, "start task "+taskID)
-		retry, err := taskHandler(ctx, w, r)
-		if err != nil {
-			log.Error(ctx, err)
-		}
-
-		if retry {
-			log.Warn(ctx, "task fail. it will be retry later")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// if no retry, always return OK to let cloud task know not to retry
-		log.Info(ctx, "task OK")
-		w.WriteHeader(http.StatusOK)
 	}
 	return http.HandlerFunc(f)
 }
 
-// createTaskLock create lock on task
-//
-//	err = createTaskLock(ctx, client, "lock id")
-//
-func createTaskLock(ctx context.Context, client db.Client, lockID string) error {
-	lock := &TaskLock{}
-	lock.SetID(lockID)
-	return client.Set(ctx, lock)
-}
-
-// isTaskLockExists check lock exists
-//
-//	found, createTime, err := isTaskLockExists(ctx, client, "lock id")
-//
-func isTaskLockExists(ctx context.Context, client db.Client, lockID string) (bool, time.Time, error) {
-	obj, err := client.Get(ctx, &TaskLock{}, lockID)
-	if err != nil {
-		return false, time.Time{}, errors.Wrap(err, "get task lock:"+lockID)
-	}
-	if obj != nil {
-		return true, obj.CreateTime(), nil
-	}
-	return false, time.Time{}, nil
-}
-
-// lockTask lock task for 15 mins
-//
-//	locked, err := lockTask(ctx, "lock id")
-//
-func lockTask(ctx context.Context, lockID string, duration time.Duration) (bool, error) {
-	client, err := newClient(ctx)
-	if err != nil {
-		return false, err
-	}
-	defer client.Close()
-
-	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-
-		return nil
-	})
-
-	found, createTime, err := isTaskLockExists(ctx, client, lockID)
-	if err != nil {
-		return false, errors.Wrap(err, "check lock exists:"+lockID)
-	}
+func TaskRun(ctx context.Context, taskHandler TaskHandler, r *http.Request) error {
+	taskID, found := Query(r, "TaskID")
 	if !found {
-		if err := createTaskLock(ctx, client, lockID); err != nil {
-			return false, errors.Wrap(err, "create task lock")
-		}
-		return true, nil
+		return errors.New("TaskID not found")
 	}
 
-	deadline := time.Now().UTC().Add(-duration)
-	if createTime.Before(deadline) {
-		// this target is too old, maybe something went wrong
-		lock := &TaskLock{}
-		lock.SetID(lockID)
-		if err := client.Update(ctx, lock, map[string]interface{}{"CreateTime": time.Now().UTC()}); err != nil {
-			return false, errors.Wrap(err, "add task lock")
-		}
-		return true, nil
-	}
-	return false, nil
-}
-
-// unlockTask unlock task
-//
-//	locked, err := unlockTask(ctx, "lock id")
-//
-func unlockTask(ctx context.Context, lockID string) error {
-	client, err := newClient(ctx)
+	err := gtask.Lock(ctx, taskID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "lock task "+taskID)
 	}
-	defer client.Close()
+	defer gtask.Delete(ctx, taskID)
 
-	lock := &TaskLock{}
-	lock.SetID(lockID)
-	return client.Delete(ctx, lock)
+	log.Info(ctx, "start task "+taskID)
+	err = taskHandler(ctx, r)
+	if err != nil {
+		return errors.Wrap(err, "task handler fail")
+	}
+	log.Info(ctx, "finish task "+taskID)
+	return nil
 }

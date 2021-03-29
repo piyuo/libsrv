@@ -5,10 +5,24 @@ import (
 	"os"
 	"testing"
 
+	"github.com/piyuo/libsrv/src/db"
 	"github.com/piyuo/libsrv/src/google/gaccount"
 	"github.com/piyuo/libsrv/src/google/gdb"
 	"github.com/piyuo/libsrv/src/log"
 )
+
+var sampleClientInstance db.Client
+
+func sampleClient() db.Client {
+	if sampleClientInstance != nil {
+		return sampleClientInstance
+	}
+	ctx := context.Background()
+	cred, _ := gaccount.GlobalCredential(ctx)
+	client, _ := gdb.NewClient(ctx, cred)
+	sampleClientInstance = client
+	return sampleClientInstance
+}
 
 func TestMain(m *testing.M) {
 	setup()
@@ -18,12 +32,12 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	//	gaccount.UseTestCredential(true)
+	gaccount.UseTestCredential(true)
 	log.TestModeAlwaySuccess()
 }
 
 func shutdown() {
-	//	gaccount.UseTestCredential(false)
+	gaccount.UseTestCredential(false)
 	log.TestModeBackNormal()
 }
 

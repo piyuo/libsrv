@@ -9,26 +9,34 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/src/identifier"
+	"github.com/piyuo/libsrv/src/google/gtask"
 	"github.com/stretchr/testify/assert"
 )
 
-func mockTaskHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
-	return false, nil
+func mockTaskHandler(ctx context.Context, r *http.Request) error {
+	return nil
 }
 
-func mockTaskErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
-	return true, errors.New("myError")
+func mockTaskErrorHandler(ctx context.Context, r *http.Request) error {
+	return errors.New("myError")
 }
 
 func TestServerTaskHandlerOK(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	req, _ := http.NewRequest("GET", "/?TaskID=testTask", nil)
+	ctx := context.Background()
+	taskID, err := gtask.New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "TaskHandlerOK", 1800, 3)
+	assert.Nil(err)
+
+	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
 	TaskCreateFunc(mockTaskHandler).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
+
+	found, err := sampleClient().Exists(ctx, &gtask.Task{}, taskID)
+	assert.Nil(err)
+	assert.False(found)
 
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
@@ -39,41 +47,53 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	setDeadlineTask(ctx)
-	taskID := "testTaskInProgress-" + identifier.RandomNumber(6)
-	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
-
-	client, err := newClient(ctx)
+	taskID, err := gtask.New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "TaskHandlerInProgress", 1800, 3)
 	assert.Nil(err)
-	defer client.Close()
+	err = gtask.Lock(ctx, taskID)
+	assert.Nil(err)
+	defer gtask.Delete(ctx, taskID)
 
-	lockInProgress := &TaskLock{}
-	lockInProgress.SetID(taskID)
-	lockInProgress.SetCreateTime(time.Now().UTC().Add(-10 * time.Minute))
-	err = client.Set(ctx, lockInProgress)
-	defer unlockTask(ctx, taskID)
-
+	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
 	TaskCreateFunc(mockTaskHandler).ServeHTTP(resp, req)
 	res := resp.Result()
-	assert.Equal(http.StatusTooManyRequests, res.StatusCode)
+	assert.Equal(http.StatusOK, res.StatusCode)
 
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
 }
 
 func TestServerTaskHandlerReturnError(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
-	req, _ := http.NewRequest("GET", "/?TaskID=testTaskError", nil)
+	ctx := context.Background()
+	taskID, err := gtask.New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "TaskHandlerInProgress", 1800, 3)
+	assert.Nil(err)
+	defer gtask.Delete(ctx, taskID)
 
+	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
 	TaskCreateFunc(mockTaskErrorHandler).ServeHTTP(resp, req)
 	res := resp.Result()
-	assert.Equal(http.StatusInternalServerError, res.StatusCode)
+	assert.Equal(http.StatusOK, res.StatusCode)
+	//cleanup http.Handle mapping
+	http.DefaultServeMux = new(http.ServeMux)
+}
+
+func TestServerTaskHandlerNoTaskID(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	req, _ := http.NewRequest("GET", "/", nil)
+	resp := httptest.NewRecorder()
+	TaskCreateFunc(mockTaskErrorHandler).ServeHTTP(resp, req)
+	res := resp.Result()
+	assert.Equal(http.StatusOK, res.StatusCode)
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
 }
 
 func TestServerTaskDeadline(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
 	assert.Nil(ctx.Err())
@@ -110,71 +130,4 @@ func TestServerTaskDeadlineNotSet(t *testing.T) {
 	ms := deadlineTask.Milliseconds()
 	assert.Equal(int64(840000), ms)
 	deadlineTask = -1 // remove cache
-}
-
-func TestServerTaskLock(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	ctx := context.Background()
-	client, err := newClient(ctx)
-	assert.Nil(err)
-	defer client.Close()
-	lockID := "testLock1"
-
-	err = createTaskLock(ctx, client, lockID)
-	assert.Nil(err)
-
-	found, createTime, err := isTaskLockExists(ctx, client, lockID)
-	assert.Nil(err)
-	assert.True(found)
-	assert.True(createTime.Before(time.Now().UTC()))
-
-	err = unlockTask(ctx, lockID)
-	assert.Nil(err)
-
-	found, createTime, err = isTaskLockExists(ctx, client, lockID)
-	assert.Nil(err)
-	assert.False(found)
-	assert.True(createTime.Before(time.Now().UTC()))
-}
-
-func TestServerLockTask(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	ctx := context.Background()
-	client, err := newClient(ctx)
-	assert.Nil(err)
-	defer client.Close()
-	lockID := "testLock2"
-
-	// when task lock not exists
-	ready, err := lockTask(ctx, lockID, 15*time.Minute)
-	assert.Nil(err)
-	assert.True(ready)
-	err = unlockTask(ctx, lockID)
-	assert.Nil(err)
-
-	// when a expired task lock exists
-	lock := &TaskLock{}
-	lock.SetID(lockID)
-	lock.SetCreateTime(time.Now().UTC().Add(-16 * time.Minute))
-	err = client.Set(ctx, lock)
-
-	ready, err = lockTask(ctx, lockID, 15*time.Minute)
-	assert.Nil(err)
-	assert.True(ready)
-	err = unlockTask(ctx, lockID)
-	assert.Nil(err)
-
-	// when a not expired task lock exist
-	lockInProgress := &TaskLock{}
-	lockInProgress.SetID(lockID)
-	lockInProgress.SetCreateTime(time.Now().UTC().Add(-10 * time.Minute))
-	err = client.Set(ctx, lockInProgress)
-
-	ready, err = lockTask(ctx, lockID, 15*time.Minute)
-	assert.Nil(err)
-	assert.False(ready)
-	err = unlockTask(ctx, lockID)
-	assert.Nil(err)
 }

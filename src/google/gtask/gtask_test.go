@@ -4,24 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/piyuo/libsrv/src/db"
-	"github.com/piyuo/libsrv/src/google/gaccount"
-	"github.com/piyuo/libsrv/src/google/gdb"
 	"github.com/stretchr/testify/assert"
 )
-
-var sampleClientInstance db.Client
-
-func sampleClient() db.Client {
-	if sampleClientInstance != nil {
-		return sampleClientInstance
-	}
-	ctx := context.Background()
-	cred, _ := gaccount.GlobalCredential(ctx)
-	client, _ := gdb.NewClient(ctx, cred)
-	sampleClientInstance = client
-	return sampleClientInstance
-}
 
 func TestNew(t *testing.T) {
 	t.Parallel()

@@ -16,7 +16,7 @@ func TestTask(t *testing.T) {
 	assert.Equal(3, task.MaxRetry)
 	assert.Equal("TestTask", task.ID())
 
-	assert.Equal("TestTask", task.Collection())
+	assert.Equal("Task", task.Collection())
 	assert.NotNil(task.Factory())
 }
 

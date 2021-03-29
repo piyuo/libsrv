@@ -16,10 +16,9 @@ import (
 //
 type HTTPHandler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
 
-// TaskHandler let you handle task request, return true if task need retry
-// ! task execution time is 15 mins, can be retry 2 times after that it will abort
+// TaskHandler let you handle task request
 //
-type TaskHandler func(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error)
+type TaskHandler func(ctx context.Context, r *http.Request) error
 
 // Server handle http request and call dispatch
 //
