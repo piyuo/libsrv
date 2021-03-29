@@ -119,7 +119,7 @@ func New(ctx context.Context, queueID, url string, body []byte, name string, dur
 	return taskID, nil
 }
 
-// Lock task for 15 mins
+// Lock task
 //
 //	ok, err := Lock(ctx, "task id")
 //
@@ -166,7 +166,7 @@ func Lock(ctx context.Context, taskID string) error {
 
 // Delete task
 //
-//	ok, err := Delete(ctx, "task id")
+//	err := Delete(ctx, "task id")
 //
 func Delete(ctx context.Context, taskID string) error {
 	if testMode != nil {
