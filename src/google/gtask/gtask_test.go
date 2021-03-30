@@ -12,7 +12,7 @@ func TestNew(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 
-	taskID, err := New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "task-create", 1800, 3)
+	taskID, err := New(ctx, "task", "http://not-exists", []byte{}, "task-create", 1800, 3)
 	assert.Nil(err)
 	assert.NotEmpty(taskID)
 
@@ -27,11 +27,11 @@ func TestNew(t *testing.T) {
 
 	defer TestModeBackNormal()
 	TestModeAlwaySuccess()
-	_, err = New(ctx, "task", "http://notExist", []byte{}, "my-task", 1800, 3)
+	_, err = New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
 	assert.Nil(err)
 
 	TestModeAlwayFail()
-	_, err = New(ctx, "task", "http://notExist", []byte{}, "my-task", 1800, 3)
+	_, err = New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
 	assert.NotNil(err)
 
 }
@@ -41,7 +41,7 @@ func TestLock(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 
-	taskID, err := New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "task-lock", 1800, 3)
+	taskID, err := New(ctx, "task", "http://not-exists", []byte{}, "task-lock", 1800, 3)
 	assert.Nil(err)
 
 	err = Lock(ctx, taskID)
@@ -74,7 +74,7 @@ func TestDelete(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 
-	taskID, err := New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "task-delete", 1800, 3)
+	taskID, err := New(ctx, "task", "http://not-exists", []byte{}, "task-delete", 1800, 3)
 	assert.Nil(err)
 
 	client := sampleClient()

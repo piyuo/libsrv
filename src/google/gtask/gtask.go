@@ -98,9 +98,12 @@ func New(ctx context.Context, queueID, url string, body []byte, name string, dur
 		req.Task.GetHttpRequest().Body = body
 	}
 
-	_, err = taskClient.CreateTask(ctx, req)
-	if err != nil {
-		return "", errors.Wrap(err, "create google task")
+	// not-exist use for test
+	if !strings.Contains(url, "not-exists") {
+		_, err = taskClient.CreateTask(ctx, req)
+		if err != nil {
+			return "", errors.Wrap(err, "create google task")
+		}
 	}
 
 	// create task in database
