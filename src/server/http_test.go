@@ -27,7 +27,7 @@ func TestServerHttpDefaultReturn403(t *testing.T) {
 
 	req1, _ := http.NewRequest("GET", "/", nil)
 	resp1 := httptest.NewRecorder()
-	HTTPCreateFunc(mockHTTPHandler).ServeHTTP(resp1, req1)
+	HTTPEntry(mockHTTPHandler).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusForbidden, res1.StatusCode)
 
@@ -41,7 +41,7 @@ func TestServerHttpHandlerReturnError(t *testing.T) {
 
 	req1, _ := http.NewRequest("GET", "/", nil)
 	resp1 := httptest.NewRecorder()
-	HTTPCreateFunc(mockErrorHandler).ServeHTTP(resp1, req1)
+	HTTPEntry(mockErrorHandler).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusInternalServerError, res1.StatusCode)
 

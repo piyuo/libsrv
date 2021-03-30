@@ -30,9 +30,9 @@ func setDeadlineHTTP(ctx context.Context) (context.Context, context.CancelFunc) 
 	return context.WithDeadline(ctx, expired)
 }
 
-// HTTPCreateFunc create http handler function
+// HTTPEntry create http handler function
 //
-func HTTPCreateFunc(httpHandler HTTPHandler) http.Handler {
+func HTTPEntry(httpHandler HTTPHandler) http.Handler {
 	f := func(w http.ResponseWriter, r *http.Request) {
 		//add deadline to context
 		ctx, cancel := setDeadlineHTTP(r.Context())

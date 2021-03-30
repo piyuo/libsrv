@@ -152,7 +152,7 @@ func TestServe404(t *testing.T) {
 }
 
 func newTestServerHandler() http.Handler {
-	return CMDCreateFunc(&mock.MapXXX{})
+	return CommandEntry(&mock.MapXXX{})
 }
 
 func newTestAction(text string) []byte {

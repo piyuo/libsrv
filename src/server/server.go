@@ -72,7 +72,7 @@ func (s *Server) ready(ctx context.Context) string {
 
 	if s.CommandHandlers != nil {
 		for pattern, cmdMap := range s.CommandHandlers {
-			http.Handle(pattern, CMDCreateFunc(cmdMap))
+			http.Handle(pattern, CommandEntry(cmdMap))
 			break // only allow one command handler for now
 		}
 		//realease command handlers, don't need anymore
@@ -81,7 +81,7 @@ func (s *Server) ready(ctx context.Context) string {
 
 	if s.HTTPHandlers != nil {
 		for pattern, httpHandler := range s.HTTPHandlers {
-			http.Handle(pattern, HTTPCreateFunc(httpHandler))
+			http.Handle(pattern, HTTPEntry(httpHandler))
 		}
 		//realease http handlers, don't need anymore
 		s.HTTPHandlers = nil
@@ -89,7 +89,7 @@ func (s *Server) ready(ctx context.Context) string {
 
 	if s.TaskHandlers != nil {
 		for pattern, taskHandler := range s.TaskHandlers {
-			http.Handle(pattern, TaskCreateFunc(taskHandler))
+			http.Handle(pattern, TaskEntry(taskHandler))
 		}
 		//realease task handlers, don't need anymore
 		s.TaskHandlers = nil

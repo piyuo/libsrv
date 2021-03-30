@@ -17,9 +17,9 @@ import (
 //
 var deadlineCMD time.Duration = -1
 
-// setDeadlineCMD set context deadline using os.Getenv("DEADLINE_CMD"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
+// setDeadlineCommand set context deadline using os.Getenv("DEADLINE_CMD"), return CancelFunc that Canceling this context releases resources associated with it, so code should call cancel as soon as the operations running in this Context complete.
 //
-func setDeadlineCMD(ctx context.Context) (context.Context, context.CancelFunc) {
+func setDeadlineCommand(ctx context.Context) (context.Context, context.CancelFunc) {
 	if deadlineCMD == -1 {
 		text := os.Getenv("DEADLINE_CMD")
 		ms, err := strconv.Atoi(text)
@@ -33,9 +33,9 @@ func setDeadlineCMD(ctx context.Context) (context.Context, context.CancelFunc) {
 	return context.WithDeadline(ctx, expired)
 }
 
-// CMDCreateFunc create command handler function
+// CommandEntry create command handler function
 //
-func CMDCreateFunc(cmdMap command.IMap) http.Handler {
+func CommandEntry(cmdMap command.IMap) http.Handler {
 	dispatch := &command.Dispatch{
 		Map: cmdMap,
 	}
@@ -43,7 +43,7 @@ func CMDCreateFunc(cmdMap command.IMap) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		//add deadline to context
-		ctx, cancel := setDeadlineCMD(r.Context())
+		ctx, cancel := setDeadlineCommand(r.Context())
 		defer cancel()
 
 		//add request to context

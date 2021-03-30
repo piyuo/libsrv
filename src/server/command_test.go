@@ -19,7 +19,7 @@ func TestServerNilBodyWillReturnBadRequest(t *testing.T) {
 
 	req1, _ := http.NewRequest("GET", "/", nil)
 	resp1 := httptest.NewRecorder()
-	CMDCreateFunc(&mock.MapXXX{}).ServeHTTP(resp1, req1)
+	CommandEntry(&mock.MapXXX{}).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusBadRequest, res1.StatusCode)
 
@@ -33,7 +33,7 @@ func TestServerEmptyRequestWillReturnBadRequest(t *testing.T) {
 
 	req1, _ := http.NewRequest("GET", "/", strings.NewReader(""))
 	resp1 := httptest.NewRecorder()
-	CMDCreateFunc(&mock.MapXXX{}).ServeHTTP(resp1, req1)
+	CommandEntry(&mock.MapXXX{}).ServeHTTP(resp1, req1)
 	res1 := resp1.Result()
 	assert.Equal(http.StatusBadRequest, res1.StatusCode)
 
@@ -52,7 +52,7 @@ func TestCmdDeadline(t *testing.T) {
 	defer os.Setenv("DEADLINE_CMD", backup)
 	deadlineCMD = -1 // remove cache
 
-	ctx, cancel := setDeadlineCMD(ctx)
+	ctx, cancel := setDeadlineCommand(ctx)
 	defer cancel()
 
 	assert.Nil(ctx.Err())
@@ -73,7 +73,7 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	defer os.Setenv("DEADLINE_CMD", backup)
 	deadlineCMD = -1 // remove cache
 
-	ctx, cancel := setDeadlineCMD(ctx)
+	ctx, cancel := setDeadlineCommand(ctx)
 	defer cancel()
 
 	ms := deadlineCMD.Milliseconds()

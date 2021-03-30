@@ -33,9 +33,9 @@ func setDeadlineTask(ctx context.Context) (context.Context, context.CancelFunc) 
 	return context.WithDeadline(ctx, expired)
 }
 
-// TaskCreateFunc create task handler function
+// TaskEntry create task entry function
 //
-func TaskCreateFunc(taskHandler TaskHandler) http.Handler {
+func TaskEntry(taskHandler TaskHandler) http.Handler {
 	f := func(w http.ResponseWriter, r *http.Request) {
 		//add deadline to context
 		ctx, cancel := setDeadlineTask(r.Context())

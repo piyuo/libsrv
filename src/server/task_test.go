@@ -30,7 +30,7 @@ func TestServerTaskHandlerOK(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
-	TaskCreateFunc(mockTaskHandler).ServeHTTP(resp, req)
+	TaskEntry(mockTaskHandler).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 
@@ -55,7 +55,7 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
-	TaskCreateFunc(mockTaskHandler).ServeHTTP(resp, req)
+	TaskEntry(mockTaskHandler).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 
@@ -73,7 +73,7 @@ func TestServerTaskHandlerReturnError(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
-	TaskCreateFunc(mockTaskErrorHandler).ServeHTTP(resp, req)
+	TaskEntry(mockTaskErrorHandler).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 	//cleanup http.Handle mapping
@@ -85,7 +85,7 @@ func TestServerTaskHandlerNoTaskID(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	resp := httptest.NewRecorder()
-	TaskCreateFunc(mockTaskErrorHandler).ServeHTTP(resp, req)
+	TaskEntry(mockTaskErrorHandler).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 	//cleanup http.Handle mapping
