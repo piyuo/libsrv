@@ -226,44 +226,13 @@ func TestQueryDeleteInTransaction(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	client := sampleClient()
-	rand := identifier.RandomString(8)
-	name1 := "test-query-delete-tx-" + rand
-	name2 := "test-query-delete-tx-" + rand
 
-	//prepare 2 sample
-	sample1 := &Sample{
-		Name:  name1,
-		Value: 1,
-		Tag:   rand,
-	}
-	sample2 := &Sample{
-		Name:  name2,
-		Value: 2,
-		Tag:   rand,
-	}
-
-	err := client.Set(ctx, sample1)
-	assert.Nil(err)
-	defer client.Delete(ctx, sample1)
-
-	err = client.Set(ctx, sample2)
-	assert.Nil(err)
-	defer client.Delete(ctx, sample2)
-
-	count, err := client.Query(&Sample{}).Where("Tag", "==", rand).ReturnCount(ctx)
-	assert.Nil(err)
-	assert.Equal(2, count)
-
-	// query in transaction
-	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
-		done, numDeleted, err := tx.Query(&Sample{}).Where("Tag", "==", rand).Delete(ctx, 10)
-		assert.Nil(err)
-		assert.True(done)
-		assert.Equal(2, numDeleted)
+	// delete query is not support in transaction
+	client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
+		done, numDeleted, err := tx.Query(&Sample{}).Where("Tag", "==", "1").Delete(ctx, 10)
+		assert.NotNil(err)
+		assert.False(done)
+		assert.Equal(0, numDeleted)
 		return nil
 	})
-
-	count, err = client.Query(&Sample{}).Where("Tag", "==", rand).ReturnCount(ctx)
-	assert.Nil(err)
-	assert.Equal(0, count)
 }

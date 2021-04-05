@@ -250,14 +250,17 @@ func (c *QueryFirestore) ReturnFirstID(ctx context.Context) (string, error) {
 //
 func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, int, error) {
 	if c.QueryTransaction != nil {
-		trans := c.QueryTransaction.(*TransactionFirestore)
-		iter := trans.tx.Documents(c.query)
-		defer iter.Stop()
-		complete, numDeleted, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
-		if err != nil {
-			return false, numDeleted, errors.Wrapf(err, "tx delete %v", c.QueryObject.Collection())
-		}
-		return complete, numDeleted, nil
+		return false, 0, errors.New("delete query is not support in transaction, use tx.Delete() instead")
+		/*
+			trans := c.QueryTransaction.(*TransactionFirestore)
+			iter := trans.tx.Documents(c.query)
+			defer iter.Stop()
+			complete, numDeleted, err := trans.DeleteCollection(ctx, c.QueryObject, max, iter)
+			if err != nil {
+				return false, numDeleted, errors.Wrapf(err, "tx delete %v", c.QueryObject.Collection())
+			}
+			return complete, numDeleted, nil
+		*/
 	}
 
 	iter := c.query.Documents(ctx)
