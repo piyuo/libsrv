@@ -277,7 +277,7 @@ func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, int, error)
 	return complete, numDeletd, nil
 }
 
-// Cleanup delete 25 document a time, max 500 object. return true if no object left in collection
+// Cleanup delete 25 document a time, max 5000 object. return true if no object left in collection
 //
 //	done,  err := client.Query(&Sample{}).Where("Name", "==", name).Cleanup(ctx)
 //
@@ -291,7 +291,7 @@ func (c *QueryFirestore) Cleanup(ctx context.Context) (bool, error) {
 
 	numDeleted := 0
 	complete := false
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 200; i++ {
 		done, count, err := c.Delete(ctx, 25)
 		if err != nil {
 			return false, errors.Wrap(err, "clean 25 doc")

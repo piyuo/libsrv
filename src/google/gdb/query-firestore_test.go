@@ -261,3 +261,20 @@ func TestQueryCleanup(t *testing.T) {
 	assert.Nil(err)
 	assert.False(found)
 }
+
+func BenchmarkCleanup(b *testing.B) {
+
+	ctx := context.Background()
+	client := sampleClient()
+	rand := identifier.RandomString(8)
+	name := "test-query-cleanup-" + rand
+
+	for i := 0; i < 5000; i++ {
+		sample := &Sample{
+			Name: name,
+		}
+		client.Set(ctx, sample)
+	}
+
+	client.Query(&Sample{}).Where("Name", "==", name).Cleanup(ctx)
+}
