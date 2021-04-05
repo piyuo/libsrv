@@ -46,5 +46,5 @@ func BenchmarkClean(b *testing.B) {
 	cred, _ := gaccount.GlobalCredential(ctx)
 	client, _ := gdb.NewClient(ctx, cred)
 	defer client.Close()
-	client.Truncate(ctx, "Task", 100)
+	client.Truncate(ctx, "Task")
 }
