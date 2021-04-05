@@ -265,14 +265,15 @@ func TestQueryCleanup(t *testing.T) {
 func BenchmarkCleanupSetup(b *testing.B) {
 	ctx := context.Background()
 	client := sampleClient()
-	name := "test-query-benchmark"
+	name := "test-query-benchmark1"
+	rand := identifier.RandomString(8)
 	for i := 0; i < 1000; i++ {
 		sample := &Sample{
 			Name: name,
+			Tag:  rand,
 		}
 		client.Set(ctx, sample)
 	}
-
 }
 
 func BenchmarkCleanup(b *testing.B) {
