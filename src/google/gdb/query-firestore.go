@@ -5,6 +5,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/piyuo/libsrv/src/db"
+	"github.com/piyuo/libsrv/src/log"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
@@ -249,6 +250,9 @@ func (c *QueryFirestore) ReturnFirstID(ctx context.Context) (string, error) {
 //	done, count, err := client.Query(&Sample{}).Where("Name", "==", name).Delete(ctx, 100)
 //
 func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, int, error) {
+	if ctx.Err() != nil {
+		return false, 0, ctx.Err()
+	}
 	if c.QueryTransaction != nil {
 		return false, 0, errors.New("delete query is not support in transaction, use tx.Delete() instead")
 		/*
@@ -263,6 +267,7 @@ func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, int, error)
 		*/
 	}
 
+	c.Limit(max)
 	iter := c.query.Documents(ctx)
 	defer iter.Stop()
 	complete, numDeletd, err := c.client.deleteByIterator(ctx, max, iter)
@@ -270,4 +275,35 @@ func (c *QueryFirestore) Delete(ctx context.Context, max int) (bool, int, error)
 		return false, numDeletd, errors.Wrap(err, "delete "+c.QueryObject.Collection())
 	}
 	return complete, numDeletd, nil
+}
+
+// Cleanup delete 25 document a time, max 500 object. return true if no object left in collection
+//
+//	done,  err := client.Query(&Sample{}).Where("Name", "==", name).Cleanup(ctx)
+//
+func (c *QueryFirestore) Cleanup(ctx context.Context) (bool, error) {
+	if ctx.Err() != nil {
+		return false, ctx.Err()
+	}
+	if c.QueryTransaction != nil {
+		return false, errors.New("cleanup query is not support in transaction")
+	}
+
+	numDeleted := 0
+	complete := false
+	for i := 0; i < 20; i++ {
+		done, count, err := c.Delete(ctx, 25)
+		if err != nil {
+			return false, errors.Wrap(err, "clean 25 doc")
+		}
+		numDeleted += count
+		if done {
+			complete = true
+			break
+		}
+	}
+	if numDeleted > 0 {
+		log.Info(ctx, "cleanup %s, deleted %v "+c.QueryObject.Collection(), numDeleted)
+	}
+	return complete, nil
 }

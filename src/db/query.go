@@ -75,6 +75,12 @@ type Query interface {
 	//
 	Delete(ctx context.Context, max int) (bool, int, error)
 
+	// Cleanup delete 25 document a time, max 1000 object. return true if no object left in collection
+	//
+	//	done,  err := client.Query(&Sample{}).Where("Name", "==", name).Cleanup(ctx)
+	//
+	Cleanup(ctx context.Context) (bool, error)
+
 	// Return query result with default limit to 20 object, use Limit() to override default limit, return nil if anything wrong
 	//
 	//	list, err = Query(&Sample{}).OrderByDesc("Name").Limit(1).Return(ctx)

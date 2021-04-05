@@ -236,3 +236,28 @@ func TestQueryDeleteInTransaction(t *testing.T) {
 		return nil
 	})
 }
+
+func TestQueryCleanup(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	client := sampleClient()
+	rand := identifier.RandomString(8)
+	name := "test-query-cleanup-" + rand
+
+	for i := 0; i < 30; i++ {
+		sample := &Sample{
+			Name: name,
+		}
+		err := client.Set(ctx, sample)
+		assert.Nil(err)
+	}
+
+	done, err := client.Query(&Sample{}).Where("Name", "==", name).Cleanup(ctx)
+	assert.Nil(err)
+	assert.True(done)
+
+	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
+	assert.Nil(err)
+	assert.False(found)
+}
