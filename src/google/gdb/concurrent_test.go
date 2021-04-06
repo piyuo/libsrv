@@ -20,7 +20,7 @@ func TestConcurrent(t *testing.T) {
 	client := sampleClient()
 	rand := identifier.RandomString(8)
 	counterName := "test-concurrent-counter-" + rand
-	counter := client.Counter(counterName, 1000, db.DateHierarchyFull)
+	counter := client.Counter(counterName, 1000)
 	defer counter.Delete(ctx)
 
 	coderName := "test-concurrent-coder-" + rand
@@ -38,7 +38,7 @@ func TestConcurrent(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 				// read count first to avoid read after write error
-				counter := client.Counter(counterName, 1000, db.DateHierarchyFull)
+				counter := client.Counter(counterName, 1000)
 				coder := client.Coder(coderName, 1000)
 				num, err := coder.NumberRX(ctx, tx)
 				if err != nil {

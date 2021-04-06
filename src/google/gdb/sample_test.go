@@ -126,9 +126,9 @@ func sampleSerial(client db.Client) db.Serial {
 }
 
 func sampleCounter(client db.Client) db.Counter {
-	return client.Counter("SampleCount", 3, db.DateHierarchyNone)
+	return client.Counter("SampleCount", 3)
 }
 
 func sampleCounter1000(client db.Client) db.Counter {
-	return client.Counter("SampleCount", 1000, db.DateHierarchyNone)
+	return client.Counter("SampleCount", 1000)
 }

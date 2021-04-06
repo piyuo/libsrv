@@ -21,7 +21,7 @@ func TestCounter(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 	name := "test-counter-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyFull)
+	counter := client.Counter(name, 1)
 
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		err := counter.IncrementRX(ctx, tx)
@@ -32,7 +32,7 @@ func TestCounter(t *testing.T) {
 
 	shardsCount, err := counter.ShardsCount(ctx)
 	assert.Nil(err)
-	assert.Equal(5, shardsCount) // 5 shard, all/year/month/day/hour
+	assert.Equal(1, shardsCount) // 5 shard, all/year/month/day/hour
 
 	firstCount, err := counter.CountAll(ctx)
 	assert.Nil(err)
@@ -64,7 +64,7 @@ func TestCounterShards(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 	name := "test-counter-shards-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyFull)
+	counter := client.Counter(name, 1)
 	defer counter.Delete(ctx)
 
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
@@ -113,7 +113,7 @@ func TestCounterFail(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 	name := "test-counter-fail-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyNone)
+	counter := client.Counter(name, 1)
 	defer counter.Delete(ctx)
 
 	firstCount, err := counter.CountAll(ctx)
@@ -139,7 +139,7 @@ func TestCounterWxBeforeRx(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 	name := "test-counter-wx-before-rx-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyNone)
+	counter := client.Counter(name, 1)
 	defer counter.Delete(ctx)
 
 	err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
@@ -153,7 +153,7 @@ func TestCounterInCanceledCtx(t *testing.T) {
 	assert := assert.New(t)
 	client := sampleClient()
 	name := "test-counter-no-ctx-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyNone)
+	counter := client.Counter(name, 1)
 
 	ctxCanceled := util.CanceledCtx()
 	count, err := counter.CountAll(ctxCanceled)
@@ -168,7 +168,7 @@ func TestCounterNumShards0(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	client := sampleClient()
-	counter := client.Counter("no-num", 0, db.DateHierarchyNone)
+	counter := client.Counter("no-num", 0)
 	assert.NotNil(counter)
 	assert.Equal(10, counter.(*CounterFirestore).numShards)
 }
@@ -180,14 +180,14 @@ func TestCounterConcurrent(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 	name := "test-counter-concurrent-" + identifier.RandomString(8)
-	counter := client.Counter(name, 30, db.DateHierarchyNone)
+	counter := client.Counter(name, 30)
 	defer counter.Delete(ctx)
 
 	var concurrent = 3
 	var wg sync.WaitGroup
 	wg.Add(concurrent)
 	counting := func() {
-		counter := client.Counter(name, 1, db.DateHierarchyNone)
+		counter := client.Counter(name, 1)
 		for i := 0; i < 3; i++ {
 			err := client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 				err := counter.IncrementRX(ctx, tx)
@@ -232,26 +232,10 @@ func TestCounterCountPeriod(t *testing.T) {
 	ctx := context.Background()
 	client := sampleClient()
 	name := "test-counter-count-period-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyFull)
+	counter := client.Counter(name, 1)
 	now := time.Now().UTC()
 	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
 	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
 	_, err := counter.CountPeriod(ctx, db.HierarchyYear, from, to)
 	assert.Contains(err.Error(), "requires an index")
 }
-
-/* not support for now
-func TestCounterDetailPeriod(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	ctx := context.Background()
-	client := sampleClient()
-	name := "test-counter-detail-period-" + identifier.RandomString(8)
-	counter := client.Counter(name, 1, db.DateHierarchyFull)
-	now := time.Now().UTC()
-	from := time.Date(now.Year()-1, 01, 01, 0, 0, 0, 0, time.UTC)
-	to := time.Date(now.Year()+1, 01, 01, 0, 0, 0, 0, time.UTC)
-	_, err := counter.DetailPeriod(ctx, db.HierarchyYear, from, to)
-	assert.Contains(err.Error(), "requires an index")
-}
-*/

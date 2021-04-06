@@ -104,11 +104,10 @@ type Client interface {
 	Batch(ctx context.Context, f BatchFunc) error
 
 	// Counter return counter, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
-	// if DateHierarchyFull is set, counter will automatically generate year/month/day/hour hierarchy in utc timezone
 	//
-	//	sampleCounter,err = Counter("SampleCount", 100, DateHierarchyNone)
+	//	sampleCounter,err = Counter("SampleCount", 100)
 	//
-	Counter(counterName string, numshards int, hierarchy DateHierarchy) Counter
+	Counter(counterName string, numshards int) Counter
 
 	// Coder return coder, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
 	//
@@ -122,20 +121,6 @@ type Client interface {
 	//
 	Serial(serialName string) Serial
 }
-
-// DateHierarchy used in create counter
-//
-type DateHierarchy int8
-
-const (
-	// DateHierarchyNone create counter without date hierarchy, only total count
-	//
-	DateHierarchyNone DateHierarchy = 1
-
-	// DateHierarchyFull create counter with year/month/day/hour hierarchy and total count
-	//
-	DateHierarchyFull = 2
-)
 
 // AssertObject return error if ctx/obj has problem
 //

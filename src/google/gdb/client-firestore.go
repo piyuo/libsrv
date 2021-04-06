@@ -408,11 +408,10 @@ func (c *ClientFirestore) Truncate(ctx context.Context, collectionName string) e
 }
 
 // Counter return counter, set numshards 100 times of concurrent usage. for example if you think concurrent use is 10/seconds then set numshards to 1000 to avoid too much retention error
-// if DateHierarchyFull is set, counter will automatically generate year/month/day/hour hierarchy in utc timezone
 //
-//	sampleCounter,err = Counter("SampleCount", 100, DateHierarchyNone)
+//	sampleCounter,err = Counter("SampleCount", 100)
 //
-func (c *ClientFirestore) Counter(counterName string, numshards int, hierarchy db.DateHierarchy) db.Counter {
+func (c *ClientFirestore) Counter(counterName string, numshards int) db.Counter {
 	if numshards <= 0 {
 		numshards = 10
 	}
@@ -424,7 +423,6 @@ func (c *ClientFirestore) Counter(counterName string, numshards int, hierarchy d
 			id:         counterName,
 			numShards:  numshards,
 		},
-		keepDateHierarchy: hierarchy == db.DateHierarchyFull,
 	}
 }
 

@@ -25,19 +25,9 @@ type CounterFirestore struct {
 	//
 	pickedShard string
 
-	// keepDateHierarchy set to true mean keep count in date keepDateHierarchy
+	// shardExists return true if shard exists
 	//
-	keepDateHierarchy bool
-
-	shardAllExist bool
-
-	shardYearExist bool
-
-	shardMonthExist bool
-
-	shardDayExist bool
-
-	shardHourExist bool
+	shardExists bool
 }
 
 // shardAllRef return picked all period ref
@@ -58,63 +48,8 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context, transaction db.Trans
 	c.callRX = true
 	c.pickedShard = strconv.Itoa(rand.Intn(c.numShards)) //random pick a shard
 	log.Debug(ctx, "counter pick %v from %v shards", c.pickedShard, c.numShards)
-
 	var err error
-	if c.keepDateHierarchy {
-		utcNow := time.Now().UTC()
-		year := strconv.Itoa(utcNow.Year())
-		month := strconv.Itoa(int(utcNow.Month()))
-		day := strconv.Itoa(int(utcNow.Day()))
-		hour := strconv.Itoa(int(utcNow.Hour()))
-		yearRef := c.client.getDocRef(c.collection, c.id+year+"_"+c.pickedShard)
-		monthRef := c.client.getDocRef(c.collection, c.id+year+"-"+month+"_"+c.pickedShard)
-		dayRef := c.client.getDocRef(c.collection, c.id+year+"-"+month+"-"+day+"_"+c.pickedShard)
-		hourRef := c.client.getDocRef(c.collection, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.pickedShard)
-
-		c.shardHourExist, err = tx.isShardExists(ctx, hourRef)
-		if err != nil {
-			return errors.Wrap(err, "hour")
-		}
-		if c.shardHourExist {
-			c.shardDayExist = true
-			c.shardMonthExist = true
-			c.shardYearExist = true
-			c.shardAllExist = true
-			return nil
-		}
-
-		c.shardDayExist, err = tx.isShardExists(ctx, dayRef)
-		if err != nil {
-			return errors.Wrap(err, "day")
-		}
-		if c.shardDayExist {
-			c.shardMonthExist = true
-			c.shardYearExist = true
-			c.shardAllExist = true
-			return nil
-		}
-
-		c.shardMonthExist, err = tx.isShardExists(ctx, monthRef)
-		if err != nil {
-			return errors.Wrap(err, "month")
-		}
-		if c.shardMonthExist {
-			c.shardYearExist = true
-			c.shardAllExist = true
-			return nil
-		}
-
-		c.shardYearExist, err = tx.isShardExists(ctx, yearRef)
-		if err != nil {
-			return errors.Wrap(err, "year")
-		}
-		if c.shardYearExist {
-			c.shardAllExist = true
-			return nil
-		}
-	}
-
-	c.shardAllExist, err = tx.isShardExists(ctx, c.shardAllRef())
+	c.shardExists, err = tx.isShardExists(ctx, c.shardAllRef())
 	if err != nil {
 		return errors.Wrap(err, "all")
 	}
@@ -140,62 +75,8 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, transaction db.Trans
 		db.MetaN:       value,
 		db.CounterTime: utcNow,
 	}
-	if c.keepDateHierarchy {
-		year := strconv.Itoa(utcNow.Year())
-		month := strconv.Itoa(int(utcNow.Month()))
-		day := strconv.Itoa(int(utcNow.Day()))
-		hour := strconv.Itoa(int(utcNow.Hour()))
-		yearRef := c.client.getDocRef(c.collection, c.id+year+"_"+c.pickedShard)
-		monthRef := c.client.getDocRef(c.collection, c.id+year+"-"+month+"_"+c.pickedShard)
-		dayRef := c.client.getDocRef(c.collection, c.id+year+"-"+month+"-"+day+"_"+c.pickedShard)
-		hourRef := c.client.getDocRef(c.collection, c.id+year+"-"+month+"-"+day+"-"+hour+"_"+c.pickedShard)
 
-		if c.shardHourExist {
-			if err := tx.incrementShard(hourRef, value); err != nil {
-				return errors.Wrap(err, "inc hour")
-			}
-		} else {
-			shard[db.CounterDateLevel] = db.HierarchyHour
-			if err := tx.createShard(hourRef, shard); err != nil {
-				return errors.Wrap(err, "create hour")
-			}
-		}
-
-		if c.shardDayExist {
-			if err := tx.incrementShard(dayRef, value); err != nil {
-				return errors.Wrap(err, "inc day")
-			}
-		} else {
-			shard[db.CounterDateLevel] = db.HierarchyDay
-			if err := tx.createShard(dayRef, shard); err != nil {
-				return errors.Wrap(err, "create day")
-			}
-		}
-
-		if c.shardMonthExist {
-			if err := tx.incrementShard(monthRef, value); err != nil {
-				return errors.Wrap(err, "inc month")
-			}
-		} else {
-			shard[db.CounterDateLevel] = db.HierarchyMonth
-			if err := tx.createShard(monthRef, shard); err != nil {
-				return errors.Wrap(err, "create month")
-			}
-		}
-
-		if c.shardYearExist {
-			if err := tx.incrementShard(yearRef, value); err != nil {
-				return errors.Wrap(err, "inc year")
-			}
-		} else {
-			shard[db.CounterDateLevel] = db.HierarchyYear
-			if err := tx.createShard(yearRef, shard); err != nil {
-				return errors.Wrap(err, "create year")
-			}
-		}
-	}
-
-	if c.shardAllExist {
+	if c.shardExists {
 		if err := tx.incrementShard(c.shardAllRef(), value); err != nil {
 			return errors.Wrap(err, "inc all")
 		}
@@ -207,11 +88,6 @@ func (c *CounterFirestore) IncrementWX(ctx context.Context, transaction db.Trans
 
 	}
 	c.callRX = false
-	c.shardAllExist = false
-	c.shardYearExist = false
-	c.shardMonthExist = false
-	c.shardDayExist = false
-	c.shardHourExist = false
 	return nil
 }
 
@@ -238,44 +114,6 @@ func (c *CounterFirestore) CountPeriod(ctx context.Context, hierarchy db.Hierarc
 	defer shards.Stop()
 	return c.countValue(shards)
 }
-
-/* not support for now
-// DetailPeriod return detail between from and to. this function not support transation cause it easily cause "Too much contention on these documents"
-//
-//	dict, err = counter.DetailPeriod(ctx)
-//
-func (c *CounterFirestore) DetailPeriod(ctx context.Context, hierarchy db.Hierarchy, from, to time.Time) (map[time.Time]float64, error) {
-	result := map[time.Time]float64{}
-
-	tableRef := c.client.getCollectionRef(c.collection)
-	shards := tableRef.Where(db.MetaID, "==", c.id).Where(db.CounterDateLevel, "==", string(hierarchy)).Where(db.CounterTime, ">=", from).Where(db.CounterTime, "<=", to).Documents(ctx)
-	defer shards.Stop()
-	for {
-		snotshot, err := shards.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return nil, errors.Wrapf(err, "iter next %v-%v", c.collection, c.id)
-		}
-
-		obj := snotshot.Data()
-		iValue := obj[db.MetaN]
-		value, err := util.ToFloat64(iValue)
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid dataType %T want float64 %v-%v", iValue, c.collection, c.id)
-		}
-		iDate := obj[db.CounterTime]
-		date := iDate.(time.Time)
-
-		if val, ok := result[date]; ok {
-			result[date] = value + val
-		} else {
-			result[date] = value
-		}
-	}
-	return result, nil
-}*/
 
 // Delete delete counter
 //
