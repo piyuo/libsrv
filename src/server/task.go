@@ -52,19 +52,24 @@ func TaskEntry(taskHandler TaskHandler) http.Handler {
 }
 
 func TaskRun(ctx context.Context, taskHandler TaskHandler, r *http.Request) error {
-	taskID, found := Query(r, "TaskID")
+	_, found := Query(r, "debug")
+	taskID := ""
 	if !found {
-		return errors.New("TaskID not found")
-	}
+		// no need to lock task when debug
+		taskID, found = Query(r, "TaskID")
+		if !found {
+			return errors.New("TaskID not found")
+		}
 
-	err := gtask.Lock(ctx, taskID)
-	if err != nil {
-		return errors.Wrap(err, "lock task "+taskID)
+		err := gtask.Lock(ctx, taskID)
+		if err != nil {
+			return errors.Wrap(err, "lock task "+taskID)
+		}
+		defer gtask.Delete(ctx, taskID)
 	}
-	defer gtask.Delete(ctx, taskID)
 
 	log.Info(ctx, "start task "+taskID)
-	err = taskHandler(ctx, r)
+	err := taskHandler(ctx, r)
 	if err != nil {
 		return errors.Wrap(err, "task handler fail")
 	}

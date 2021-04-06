@@ -92,6 +92,18 @@ func TestServerTaskHandlerNoTaskID(t *testing.T) {
 	http.DefaultServeMux = new(http.ServeMux)
 }
 
+func TestServerTaskHandlerDebug(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	req, _ := http.NewRequest("GET", "/?debug=1", nil)
+	resp := httptest.NewRecorder()
+	TaskEntry(mockTaskHandler).ServeHTTP(resp, req)
+	res := resp.Result()
+	assert.Equal(http.StatusOK, res.StatusCode)
+	//cleanup http.Handle mapping
+	http.DefaultServeMux = new(http.ServeMux)
+}
+
 func TestServerTaskDeadline(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -128,6 +140,6 @@ func TestServerTaskDeadlineNotSet(t *testing.T) {
 	defer cancel()
 
 	ms := deadlineTask.Milliseconds()
-	assert.Equal(int64(840000), ms)
+	assert.Greater(ms, int64(0))
 	deadlineTask = -1 // remove cache
 }
