@@ -99,7 +99,7 @@ func (s *Server) ready(ctx context.Context) string {
 	if port == "" {
 		port = "8080"
 	}
-	log.Info(ctx, "start listening from http://localhost%v", port)
+	log.Info(ctx, "start listening from http://localhost:%v", port)
 	return ":" + port
 }
 
