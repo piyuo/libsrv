@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/binary"
 
-	proto "github.com/golang/protobuf/proto"
-	shared "github.com/piyuo/libsrv/src/command/shared"
-	log "github.com/piyuo/libsrv/src/log"
+	"github.com/golang/protobuf/proto"
+	"github.com/piyuo/libsrv/src/command/pb"
+	"github.com/piyuo/libsrv/src/log"
 
 	"github.com/pkg/errors"
 )
@@ -67,10 +67,10 @@ func betterResponseName(id uint16, response interface{}) string {
 
 	name := response.(Response).XXX_MapName()
 	switch response.(type) {
-	case *shared.PbOK:
+	case *pb.OK:
 		name = "OK"
-	case *shared.PbError:
-		err := response.(*shared.PbError)
+	case *pb.Error:
+		err := response.(*pb.Error)
 		errLen := len(err.Code)
 		if errLen < 16 {
 			return err.Code
@@ -110,7 +110,7 @@ func (dp *Dispatch) fastAppend(bytes1 []byte, bytes2 []byte) []byte {
 func (dp *Dispatch) protoFromBuffer(id uint16, bytes []byte) (interface{}, error) {
 	var obj interface{}
 	if id <= 1000 {
-		shareMap := &shared.MapXXX{}
+		shareMap := &pb.MapXXX{}
 		obj = shareMap.NewObjectByID(id)
 	} else {
 		obj = dp.Map.NewObjectByID(id)

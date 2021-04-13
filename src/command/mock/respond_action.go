@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	shared "github.com/piyuo/libsrv/src/command/shared"
+	"github.com/piyuo/libsrv/src/command/pb"
 )
 
 // Do comments
@@ -11,5 +11,5 @@ import (
 //
 // do not return nil on response
 func (a *RespondAction) Do(ctx context.Context) (interface{}, error) {
-	return &shared.PbOK{}, nil
+	return &pb.OK{}, nil
 }

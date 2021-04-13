@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	shared "github.com/piyuo/libsrv/src/command/shared"
+	"github.com/piyuo/libsrv/src/command/pb"
 )
 
 // GetSample return large text sample
@@ -17,7 +17,7 @@ func (a *BigDataAction) GetSample() string {
 //
 // do not return nil on response
 func (a *BigDataAction) Do(ctx context.Context) (interface{}, error) {
-	return &shared.PbString{
+	return &pb.String{
 		Value: a.GetSample(),
 	}, nil
 }

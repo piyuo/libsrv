@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mock "github.com/piyuo/libsrv/src/command/mock"
-	shared "github.com/piyuo/libsrv/src/command/shared"
+	"github.com/piyuo/libsrv/src/command/pb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,17 +31,17 @@ func TestEncodeDecodeCommand(t *testing.T) {
 func TestBetterResponseName(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	errOK := OK().(*shared.PbOK)
+	errOK := OK().(*pb.OK)
 	result := betterResponseName(errOK.XXX_MapID(), errOK)
 	assert.Equal("OK", result)
 
-	err := Error("failed").(*shared.PbError)
+	err := Error("failed").(*pb.Error)
 	result = betterResponseName(err.XXX_MapID(), err)
 	assert.Equal("failed", result)
 
-	errText := &shared.PbString{}
+	errText := &pb.String{}
 	result = betterResponseName(errText.XXX_MapID(), errText)
-	assert.Equal("PbString", result)
+	assert.Equal("String", result)
 }
 
 func TestActionNoRespose(t *testing.T) {
@@ -53,7 +53,7 @@ func TestActionNoRespose(t *testing.T) {
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	//no response action,will cause &shared.Err{}
+	//no response action,will cause &pb.r{}
 	actBytes, err := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	assert.Nil(err)
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
@@ -73,7 +73,7 @@ func TestRoute(t *testing.T) {
 	actBytes, err := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
 	_, resp, err3 := dispatch.DecodeCommand(resultBytes)
-	actualResponse := resp.(*shared.PbOK)
+	actualResponse := resp.(*pb.OK)
 	assert.Nil(err)
 	assert.Nil(err2)
 	assert.Nil(err3)
@@ -93,7 +93,7 @@ func TestHandle(t *testing.T) {
 		Map: &mock.MapXXX{},
 	}
 	_, respInterface, err := dispatch.runAction(context.Background(), act)
-	response := respInterface.(*shared.PbOK)
+	response := respInterface.(*pb.OK)
 	assert.Nil(err)
 	assert.NotNil(response)
 }

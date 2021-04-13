@@ -13,7 +13,7 @@ import (
 
 	"github.com/piyuo/libsrv/src/command"
 	"github.com/piyuo/libsrv/src/command/mock"
-	"github.com/piyuo/libsrv/src/command/shared"
+	"github.com/piyuo/libsrv/src/command/pb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -113,9 +113,9 @@ func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 func okResponse() []byte {
 	dispatch := command.Dispatch{
-		Map: &shared.MapXXX{},
+		Map: &pb.MapXXX{},
 	}
-	ok := command.OK().(*shared.PbOK)
+	ok := command.OK().(*pb.OK)
 	bytes, _ := dispatch.EncodeCommand(ok.XXX_MapID(), ok)
 	return bytes
 }

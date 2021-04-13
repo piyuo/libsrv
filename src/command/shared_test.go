@@ -3,29 +3,29 @@ package command
 import (
 	"testing"
 
-	"github.com/piyuo/libsrv/src/command/shared"
+	"github.com/piyuo/libsrv/src/command/pb"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShared(t *testing.T) {
+func TestPB(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	//should create text response
-	text := String("hi").(*shared.PbString)
+	text := String("hi").(*pb.String)
 	assert.Equal("hi", text.Value)
 
 	//should create number response
-	num := Int(201).(*shared.PbInt)
+	num := Number(201).(*pb.Number)
 	assert.Equal(int32(201), num.Value)
 
 	//should create bool response
-	b := Bool(true).(*shared.PbBool)
+	b := Bool(true).(*pb.Bool)
 	assert.True(b.Value)
-	b = Bool(false).(*shared.PbBool)
+	b = Bool(false).(*pb.Bool)
 	assert.False(b.Value)
 
 	//should create error response
-	err := Error("errCode").(*shared.PbError)
+	err := Error("errCode").(*pb.Error)
 	assert.Equal("errCode", err.Code)
 	//should be OK
 	ok := OK()
@@ -56,8 +56,8 @@ func TestPbInt(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsInt(nil, 1))
-	assert.False(IsInt(Int(12), 42))
-	assert.True(IsInt(Int(42), 42))
+	assert.False(IsInt(Number(12), 42))
+	assert.True(IsInt(Number(42), 42))
 }
 
 func TestPbBool(t *testing.T) {

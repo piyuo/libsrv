@@ -1,19 +1,19 @@
 package command
 
 import (
-	shared "github.com/piyuo/libsrv/src/command/shared"
+	"github.com/piyuo/libsrv/src/command/pb"
 )
 
-// pbOK single instace cause it use frequently
+// ok instace cause it use frequently
 //
-var pbOK = &shared.PbOK{}
+var ok = &pb.OK{}
 
 // OK return PbOK
 //
 //	return command.OK(),nil
 //
 func OK() interface{} {
-	return pbOK
+	return ok
 }
 
 // Error return error response with code
@@ -21,7 +21,7 @@ func OK() interface{} {
 //	return command.Error("INVALID_EMAIL")
 //
 func Error(errCode string) interface{} {
-	return &shared.PbError{
+	return &pb.Error{
 		Code: errCode,
 	}
 }
@@ -32,7 +32,7 @@ func Error(errCode string) interface{} {
 //
 func IsOK(obj interface{}) bool {
 	switch obj.(type) {
-	case *shared.PbOK:
+	case *pb.OK:
 		return true
 	}
 	return false
@@ -47,8 +47,8 @@ func IsError(obj interface{}, entered string) bool {
 		return false
 	}
 	switch obj.(type) {
-	case *shared.PbError:
-		e := obj.(*shared.PbError)
+	case *pb.Error:
+		e := obj.(*pb.Error)
 		if e.Code == entered {
 			return true
 		}
@@ -61,7 +61,7 @@ func IsError(obj interface{}, entered string) bool {
 //	return command.Text("hi")
 //
 func String(text string) interface{} {
-	return &shared.PbString{
+	return &pb.String{
 		Value: text,
 	}
 }
@@ -75,8 +75,8 @@ func IsString(obj interface{}, entered string) bool {
 		return false
 	}
 	switch obj.(type) {
-	case *shared.PbString:
-		s := obj.(*shared.PbString)
+	case *pb.String:
+		s := obj.(*pb.String)
 		if s.Value == entered {
 			return true
 		}
@@ -84,13 +84,13 @@ func IsString(obj interface{}, entered string) bool {
 	return false
 }
 
-// Int return int response
+// Number return int response
 //
 //	return command.PbInt(101)
 //
-func Int(num int32) interface{} {
-	return &shared.PbInt{
-		Value: num,
+func Number(number int32) interface{} {
+	return &pb.Number{
+		Value: number,
 	}
 }
 
@@ -103,8 +103,8 @@ func IsInt(obj interface{}, entered int32) bool {
 		return false
 	}
 	switch obj.(type) {
-	case *shared.PbInt:
-		s := obj.(*shared.PbInt)
+	case *pb.Number:
+		s := obj.(*pb.Number)
 		if s.Value == entered {
 			return true
 		}
@@ -117,7 +117,7 @@ func IsInt(obj interface{}, entered int32) bool {
 //	return command.NewPbBool(true)
 //
 func Bool(value bool) interface{} {
-	return &shared.PbBool{
+	return &pb.Bool{
 		Value: value,
 	}
 }
@@ -131,8 +131,8 @@ func IsBool(obj interface{}, entered bool) bool {
 		return false
 	}
 	switch obj.(type) {
-	case *shared.PbBool:
-		s := obj.(*shared.PbBool)
+	case *pb.Bool:
+		s := obj.(*pb.Bool)
 		if s.Value == entered {
 			return true
 		}
