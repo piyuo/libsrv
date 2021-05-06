@@ -125,7 +125,7 @@ func getDNSRecordID(ctx context.Context, domainName, recType, content string) (s
 
 // CreateCloudRunCNAME add domain cname record point to google cloud run backend, it will create not proxied CNAME and after manually add cloud run mapping you should manually set proxied=true on cloudflare
 //
-//	err = CreateCloudRunCNAME(ctx, domainName)
+//	err = CreateCloudRunCNAME(ctx, "my.piyuo.com")
 //
 func CreateCloudRunCNAME(ctx context.Context, domainName string) error {
 	return CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
@@ -133,7 +133,7 @@ func CreateCloudRunCNAME(ctx context.Context, domainName string) error {
 
 // CreateStorageCNAME add domain cname record point to google storage backend
 //
-//	err = CreateStorageCNAME(ctx, domainName)
+//	err = CreateStorageCNAME(ctx, "my.piyuo.com")
 //
 func CreateStorageCNAME(ctx context.Context, domainName string) error {
 	return CreateCNAME(ctx, domainName, "c.storage.googleapis.com", true)
@@ -141,7 +141,7 @@ func CreateStorageCNAME(ctx context.Context, domainName string) error {
 
 // CreateCNAME create domain CNAME record
 //
-//	err = AddCNAME(ctx, domainName, false)
+//	err = AddCNAME(ctx, "my.piyuo.com", false)
 //
 func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) error {
 	if testMode != nil {
@@ -169,7 +169,7 @@ func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) e
 
 // DeleteCNAME remove sub domain cname record
 //
-//	err = DeleteCNAME(ctx, domainName)
+//	err = DeleteCNAME(ctx, "my.piyuo.com")
 //
 func DeleteCNAME(ctx context.Context, domainName string) error {
 	if testMode != nil {
@@ -195,7 +195,7 @@ func DeleteCNAME(ctx context.Context, domainName string) error {
 
 // IsCNAMEExists return true if CNAME exist
 //
-//	exist, err := IsCNAMEExists(ctx, domainName)
+//	exist, err := IsCNAMEExists(ctx, "my.piyuo.com")
 //
 func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 	if testMode != nil {
@@ -214,7 +214,7 @@ func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 
 // CreateTXT add TXT record to dns
 //
-//	err = cflare.CreateTXT(ctx, domainName, txt)
+//	err = cflare.CreateTXT(ctx, "my.piyuo.com", txt)
 //
 func CreateTXT(ctx context.Context, domainName, txt string) error {
 	if testMode != nil {
@@ -236,7 +236,7 @@ func CreateTXT(ctx context.Context, domainName, txt string) error {
 
 // RemoveTXT remove txt record from dns
 //
-//	err = RemoveTXT(ctx, domainName, txt)
+//	err = RemoveTXT(ctx, "my.piyuo.com", txt)
 //
 func RemoveTXT(ctx context.Context, domainName string) error {
 	if testMode != nil {
@@ -261,7 +261,7 @@ func RemoveTXT(ctx context.Context, domainName string) error {
 
 // IsTXTExists return true if txt record exist
 //
-//	exist, err = IsTXTExists(ctx, domainName, txt)
+//	exist, err = IsTXTExists(ctx, "my.piyuo.com", txt)
 //
 func IsTXTExists(ctx context.Context, domainName string) (bool, error) {
 	if testMode != nil {
