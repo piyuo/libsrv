@@ -35,7 +35,7 @@ func TestGstorageBucket(t *testing.T) {
 	assert.Nil(err)
 	assert.False(exist)
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	defer storage.DeleteBucket(ctx, bucketName)
 
@@ -69,7 +69,7 @@ func TestGstorageRW(t *testing.T) {
 	prefix := "a"
 	bucketName := "test-gstorage-rw-" + identifier.RandomNumber(12)
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	defer storage.DeleteBucket(ctx, bucketName)
 
@@ -123,7 +123,7 @@ func TestGstorageDelete(t *testing.T) {
 	storage, err := New(ctx, cred)
 	bucketName := "test-gstorage-delete-" + identifier.RandomNumber(12)
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	defer storage.DeleteBucket(ctx, bucketName)
 
@@ -159,7 +159,7 @@ func TestGstorageCleanBucket(t *testing.T) {
 	path := "TestCleanBucket.txt"
 	bucketName := "test-gstorage-clean-" + identifier.RandomNumber(12)
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	defer storage.DeleteBucket(ctx, bucketName)
 
@@ -180,7 +180,7 @@ func TestGstorageSyncDir(t *testing.T) {
 	storage, err := New(ctx, cred)
 	bucketName := "test-gstorage-sync-" + identifier.RandomNumber(12)
 
-	err = storage.CreateBucket(ctx, bucketName, "us-central1", "region")
+	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	defer storage.DeleteBucket(ctx, bucketName)
 

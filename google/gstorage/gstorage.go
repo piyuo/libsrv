@@ -26,9 +26,9 @@ type Gstorage interface {
 	// CreateBucket add cloud storage bucket
 	//
 	//	storage, err := New(ctx)
-	//	err = storage.CreateBucket(ctx, "my-bucket","us-central1","region")
+	//	err = storage.CreateBucket(ctx, "my.piyuo.com")
 	//
-	CreateBucket(ctx context.Context, bucketName, location, locationType string) error
+	CreateBucket(ctx context.Context, bucketName string) error
 
 	// DeleteBucket remove cloud storage bucket
 	//
@@ -162,9 +162,9 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 // CreateBucket add cloud storage bucket
 //
 //	storage, err := New(ctx)
-//	err = storage.CreateBucket(ctx, "my-bucket","us-central1","region")
+//	err = storage.CreateBucket(ctx, "my.piyuo.com")
 //
-func (impl *Implementation) CreateBucket(ctx context.Context, bucketName, location, locationType string) error {
+func (impl *Implementation) CreateBucket(ctx context.Context, bucketName string) error {
 
 	bucket := impl.client.Bucket(bucketName)
 	if err := bucket.Create(ctx, impl.projectID, &storage.BucketAttrs{
