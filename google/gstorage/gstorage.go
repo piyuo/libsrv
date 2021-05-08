@@ -567,12 +567,6 @@ func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string) 
 // removeObjects remove objects max 1000, return true if object all deleted
 //
 func (impl *Implementation) removeObjects(ctx context.Context, bucket *storage.BucketHandle) (bool, error) {
-	if testMode != nil {
-		if *testMode {
-			return true, nil
-		}
-		return false, errors.New("fail")
-	}
 
 	query := &storage.Query{}
 	query.SetAttrSelection([]string{"Name"})

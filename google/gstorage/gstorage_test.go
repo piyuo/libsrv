@@ -152,11 +152,15 @@ func TestGstorageRW(t *testing.T) {
 	assert.Nil(err)
 	_, err = storage.ReadText(ctx, bucketName, filename)
 	assert.Nil(err)
+	_, err = storage.ReadJSON(ctx, bucketName, jsonname)
+	assert.Nil(err)
 	err = storage.WriteJSON(ctx, bucketName, jsonname, json)
 	assert.Nil(err)
 	err = storage.WriteText(ctx, bucketName, filename, "hi")
 	assert.Nil(err)
 	_, err = storage.ListFiles(ctx, bucketName, prefix, "")
+	assert.Nil(err)
+	err = storage.DeleteFile(ctx, bucketName, jsonname)
 	assert.Nil(err)
 
 	TestModeAlwayFail()
@@ -164,11 +168,15 @@ func TestGstorageRW(t *testing.T) {
 	assert.NotNil(err)
 	_, err = storage.ReadText(ctx, bucketName, filename)
 	assert.NotNil(err)
+	_, err = storage.ReadJSON(ctx, bucketName, jsonname)
+	assert.NotNil(err)
 	err = storage.WriteJSON(ctx, bucketName, jsonname, json)
 	assert.NotNil(err)
 	err = storage.WriteText(ctx, bucketName, filename, "hi")
 	assert.NotNil(err)
 	_, err = storage.ListFiles(ctx, bucketName, prefix, "")
+	assert.NotNil(err)
+	err = storage.DeleteFile(ctx, bucketName, jsonname)
 	assert.NotNil(err)
 }
 
@@ -205,6 +213,16 @@ func TestGstorageDelete(t *testing.T) {
 	found, err = storage.IsFileExists(ctx, bucketName, "c.txt")
 	assert.Nil(err)
 	assert.True(found)
+
+	defer TestModeBackNormal()
+	TestModeAlwaySuccess()
+	err = storage.DeleteFiles(ctx, bucketName, "a/b")
+	assert.Nil(err)
+
+	TestModeAlwayFail()
+	err = storage.DeleteFiles(ctx, bucketName, "a/b")
+	assert.NotNil(err)
+
 }
 
 func TestGstorageCleanBucket(t *testing.T) {
@@ -227,6 +245,16 @@ func TestGstorageCleanBucket(t *testing.T) {
 	}
 	err = storage.CleanBucket(ctx, bucketName)
 	assert.Nil(err)
+
+	defer TestModeBackNormal()
+	TestModeAlwaySuccess()
+	err = storage.CleanBucket(ctx, bucketName)
+	assert.Nil(err)
+
+	TestModeAlwayFail()
+	err = storage.CleanBucket(ctx, bucketName)
+	assert.NotNil(err)
+
 }
 
 func TestGstorageSyncDir(t *testing.T) {
