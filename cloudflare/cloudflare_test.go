@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,7 +41,7 @@ func TestCloudflareCNAME(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	subDomain := "mock-libsrv"
+	subDomain := "test-cname-" + identifier.RandomNumber(6)
 	domainName := subDomain + ".piyuo.com"
 
 	//remove sample domain
@@ -97,7 +98,7 @@ func TestCloudflareCNAME(t *testing.T) {
 
 	exist, err = IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
-	assert.True(exist)
+	assert.Equal(testModeCnameExists, exist)
 
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)

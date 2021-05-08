@@ -19,6 +19,8 @@ import (
 //
 var testMode *bool
 
+var testModeCnameExists = false
+
 // TestModeAlwaySuccess will let every function success
 //
 func TestModeAlwaySuccess() {
@@ -37,6 +39,12 @@ func TestModeAlwayFail() {
 //
 func TestModeBackNormal() {
 	testMode = nil
+}
+
+// TestModeBackNormal stop test mode and back to normal
+//
+func TestModeCnameExists(value bool) {
+	testModeCnameExists = value
 }
 
 //	credential return cloudflare credential zon and token
@@ -200,7 +208,7 @@ func DeleteCNAME(ctx context.Context, domainName string) error {
 func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 	if testMode != nil {
 		if *testMode {
-			return true, nil
+			return testModeCnameExists, nil
 		}
 		return false, errors.New("fail")
 	}
