@@ -41,7 +41,7 @@ func TestModeBackNormal() {
 	testMode = nil
 }
 
-// TestModeBackNormal stop test mode and back to normal
+// TestModeCnameExists set cname exist in test mode
 //
 func TestModeCnameExists(value bool) {
 	testModeCnameExists = value

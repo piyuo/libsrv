@@ -142,6 +142,8 @@ type Implementation struct {
 //
 var testMode *bool
 
+var testModeBucketExists = false
+
 // TestModeAlwaySuccess will let every function success
 //
 func TestModeAlwaySuccess() {
@@ -160,6 +162,12 @@ func TestModeAlwayFail() {
 //
 func TestModeBackNormal() {
 	testMode = nil
+}
+
+// TestModeBucketExists set bucket exists in test mode
+//
+func TestModeBucketExists(value bool) {
+	testModeBucketExists = value
 }
 
 // New create Cloudstorage
@@ -302,7 +310,7 @@ func (impl *Implementation) SetPageAndCORS(ctx context.Context, bucketName, orig
 func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName string) (bool, error) {
 	if testMode != nil {
 		if *testMode {
-			return true, nil
+			return testModeBucketExists, nil
 		}
 		return false, errors.New("fail")
 	}
