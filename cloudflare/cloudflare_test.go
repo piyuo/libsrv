@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCloudflareCredential(t *testing.T) {
+func TestCredential(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	zone, token, err := credential()
@@ -17,7 +17,7 @@ func TestCloudflareCredential(t *testing.T) {
 	assert.NotEmpty(token)
 }
 
-func TestCloudflareSendDNSRequest(t *testing.T) {
+func TestSendDNSRequest(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -27,7 +27,7 @@ func TestCloudflareSendDNSRequest(t *testing.T) {
 	assert.NotEmpty(resp["result"])
 }
 
-func TestCloudflareGetDNSRecordID(t *testing.T) {
+func TestGetDNSRecordID(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -37,7 +37,7 @@ func TestCloudflareGetDNSRecordID(t *testing.T) {
 	assert.NotEmpty(id)
 }
 
-func TestCloudflareCNAME(t *testing.T) {
+func TestCNAME(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()

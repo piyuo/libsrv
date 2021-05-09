@@ -77,10 +77,12 @@ func sendDNSRequest(ctx context.Context, method, query string, reqestBody io.Rea
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*15) // cloud flare dns call must completed in 15 seconds
-	defer cancel()
+	//	ctx, cancel := context.WithTimeout(ctx, time.Second*15) // cloud flare dns call must completed in 15 seconds
+	//	defer cancel()
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: time.Duration(time.Second * 15),
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "dns request")
@@ -175,7 +177,7 @@ func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) e
 	return nil
 }
 
-// DeleteCNAME remove sub domain cname record
+// DeleteCNAME delete cname record, return no error if domain name not exists
 //
 //	err = DeleteCNAME(ctx, "my.piyuo.com")
 //
