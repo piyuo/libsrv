@@ -5,7 +5,7 @@ import (
 
 	"cloud.google.com/go/errorreporting"
 	"github.com/piyuo/libsrv/env"
-	"github.com/piyuo/libsrv/google/gaccount"
+	"github.com/piyuo/libsrv/gaccount"
 	"github.com/piyuo/libsrv/log/logger"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"

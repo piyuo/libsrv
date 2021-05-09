@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/google/gtask"
+	"github.com/piyuo/libsrv/gtask"
 	"github.com/stretchr/testify/assert"
 )
 

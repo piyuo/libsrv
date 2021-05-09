@@ -83,6 +83,7 @@ func TestDelete(t *testing.T) {
 	assert.True(found)
 
 	err = Delete(ctx, taskID)
+	assert.Nil(err)
 	found, err = client.Exists(ctx, &Task{}, taskID)
 	assert.Nil(err)
 	assert.False(found)

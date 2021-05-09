@@ -162,7 +162,7 @@ func (c *CoderFirestore) NumberRX(ctx context.Context, transaction db.Transactio
 //
 func (c *CoderFirestore) NumberWX(ctx context.Context, transaction db.Transaction) error {
 	tx := transaction.(*TransactionFirestore)
-	if c.callRX == false {
+	if !c.callRX {
 		return errors.New("must call RX first")
 	}
 

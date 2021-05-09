@@ -109,6 +109,7 @@ func TestBatchDeleteList(t *testing.T) {
 		batch.DeleteList(ctx, &Sample{}, []string{sample.ID()}) //batch mode do not return error
 		return nil
 	})
+	assert.Nil(err)
 
 	found, err := client.Query(&Sample{}).Where("Name", "==", name).ReturnExists(ctx)
 	assert.Nil(err)

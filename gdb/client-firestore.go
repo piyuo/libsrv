@@ -38,10 +38,7 @@ func (c *ClientFirestore) Close() {
 //	closed := IsClose()
 //
 func (c *ClientFirestore) IsClose() bool {
-	if c.native != nil {
-		return false
-	}
-	return true
+	return c.native == nil
 }
 
 // Batch start a batch operation. batch won't be commit if there is no batch operation like set/update/delete been called

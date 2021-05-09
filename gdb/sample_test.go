@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/piyuo/libsrv/db"
-	"github.com/piyuo/libsrv/google/gaccount"
+	"github.com/piyuo/libsrv/gaccount"
 )
 
 type PlainObject struct {
@@ -21,7 +21,6 @@ type SampleNoFactory struct {
 	Map     map[string]string
 	Array   []string
 	Numbers []int
-	pObj    *PlainObject
 }
 
 func (c *SampleNoFactory) Factory() db.Object {
@@ -111,24 +110,4 @@ func sampleClient() db.Client {
 	}
 	sampleClientInstance = client.(*ClientFirestore)
 	return sampleClientInstance
-}
-
-func sampleCoder(client db.Client) db.Coder {
-	return client.Coder("SampleCode", 10)
-}
-
-func sampleCoder1000(client db.Client) db.Coder {
-	return client.Coder("SampleCode1000", 1000)
-}
-
-func sampleSerial(client db.Client) db.Serial {
-	return client.Serial("SampleSerial")
-}
-
-func sampleCounter(client db.Client) db.Counter {
-	return client.Counter("SampleCount", 3)
-}
-
-func sampleCounter1000(client db.Client) db.Counter {
-	return client.Counter("SampleCount", 1000)
 }

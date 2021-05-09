@@ -21,6 +21,7 @@ func TestVerification(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	siteverify, err := NewSiteVerify(ctx)
+	assert.Nil(err)
 	domainName := "mock-site-verify.piyuo.com"
 
 	//clean before test

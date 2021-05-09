@@ -65,7 +65,7 @@ func (c *CounterFirestore) IncrementRX(ctx context.Context, transaction db.Trans
 //
 func (c *CounterFirestore) IncrementWX(ctx context.Context, transaction db.Transaction, value interface{}) error {
 	tx := transaction.(*TransactionFirestore)
-	if c.callRX == false {
+	if !c.callRX {
 		return errors.New("must call RX first")
 	}
 

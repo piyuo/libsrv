@@ -1,11 +1,10 @@
-package gsite
+package gstorage
 
 import (
 	"os"
 	"testing"
 
-	"github.com/piyuo/libsrv/google/gaccount"
-	"github.com/piyuo/libsrv/log"
+	"github.com/piyuo/libsrv/gaccount"
 )
 
 func TestMain(m *testing.M) {
@@ -17,10 +16,8 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	gaccount.UseTestCredential(true)
-	log.TestModeAlwaySuccess()
 }
 
 func shutdown() {
 	gaccount.UseTestCredential(false)
-	log.TestModeBackNormal()
 }

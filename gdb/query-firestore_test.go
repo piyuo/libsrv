@@ -141,6 +141,7 @@ func TestQueryList(t *testing.T) {
 	// no obj will result error
 	obj, err := client.Query(nil).Where("Name", "==", name1).ReturnFirst(ctx)
 	assert.NotNil(err)
+	assert.Nil(obj)
 
 	// first
 	obj, err = client.Query(&Sample{}).Where("Name", "==", name1).ReturnFirst(ctx)

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/piyuo/libsrv/google/gaccount"
+	"github.com/piyuo/libsrv/gaccount"
 	"github.com/piyuo/libsrv/identifier"
 	"github.com/piyuo/libsrv/util"
 	"github.com/stretchr/testify/assert"

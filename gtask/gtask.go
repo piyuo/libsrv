@@ -8,8 +8,8 @@ import (
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
 	"github.com/piyuo/libsrv/db"
-	"github.com/piyuo/libsrv/google/gaccount"
-	"github.com/piyuo/libsrv/google/gdb"
+	"github.com/piyuo/libsrv/gaccount"
+	"github.com/piyuo/libsrv/gdb"
 	"github.com/piyuo/libsrv/identifier"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"

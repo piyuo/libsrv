@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/piyuo/libsrv/google/gerror"
+	"github.com/piyuo/libsrv/gerror"
 	"github.com/piyuo/libsrv/log/logger"
 	"github.com/pkg/errors"
 )

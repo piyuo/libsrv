@@ -60,7 +60,7 @@ func (c *MetaFirestore) deleteShards(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "del shards "+c.collection)
 	}
-	if done != true {
+	if !done {
 		return errors.Wrapf(err, "del shards not done want %v only del %v", c.numShards+1, numDeleted)
 	}
 	return nil

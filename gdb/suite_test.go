@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/piyuo/libsrv/google/gaccount"
+	"github.com/piyuo/libsrv/gaccount"
 	"github.com/piyuo/libsrv/log"
 )
 
@@ -27,6 +27,9 @@ func shutdown() {
 }
 
 func BenchmarkClean(b *testing.B) {
+	gaccount.UseTestCredential(true)
+	defer gaccount.UseTestCredential(false)
+
 	ctx := context.Background()
 	client := sampleClient()
 	client.Truncate(ctx, "Sample")

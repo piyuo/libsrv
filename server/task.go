@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/piyuo/libsrv/google/gtask"
+	"github.com/piyuo/libsrv/gtask"
 	"github.com/pkg/errors"
 
 	"github.com/piyuo/libsrv/log"

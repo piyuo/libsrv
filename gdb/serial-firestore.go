@@ -63,7 +63,7 @@ func (c *SerialFirestore) NumberRX(ctx context.Context, transaction db.Transacti
 //	})
 //
 func (c *SerialFirestore) NumberWX(ctx context.Context, transaction db.Transaction) error {
-	if c.callRX == false {
+	if !c.callRX {
 		return errors.New("must call RX first")
 	}
 

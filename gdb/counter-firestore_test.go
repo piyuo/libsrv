@@ -88,16 +88,19 @@ func TestCounterShards(t *testing.T) {
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		return counter.IncrementRX(ctx, tx)
 	})
+	assert.Nil(err)
 
 	dayRef.Delete(ctx)
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		return counter.IncrementRX(ctx, tx)
 	})
+	assert.Nil(err)
 
 	monthRef.Delete(ctx)
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {
 		return counter.IncrementRX(ctx, tx)
 	})
+	assert.Nil(err)
 
 	yearRef.Delete(ctx)
 	err = client.Transaction(ctx, func(ctx context.Context, tx db.Transaction) error {

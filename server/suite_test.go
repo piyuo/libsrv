@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/db"
-	"github.com/piyuo/libsrv/google/gaccount"
-	"github.com/piyuo/libsrv/google/gdb"
+	"github.com/piyuo/libsrv/gaccount"
+	"github.com/piyuo/libsrv/gdb"
 	"github.com/piyuo/libsrv/log"
 )
 

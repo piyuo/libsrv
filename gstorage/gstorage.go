@@ -215,7 +215,7 @@ func (impl *Implementation) CreateBucket(ctx context.Context, bucketName string)
 	return nil
 }
 
-// DeleteBucket remove cloud storage bucket
+// DeleteBucket delete cloud storage bucket, no error if delete not exists bucket
 //
 //	storage, err := New(ctx)
 //	err = storage.DeleteBucket(ctx, "my-bucket")

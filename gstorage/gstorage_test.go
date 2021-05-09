@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piyuo/libsrv/google/gaccount"
+	"github.com/piyuo/libsrv/gaccount"
 	"github.com/piyuo/libsrv/identifier"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,6 +29,7 @@ func TestGstorageBucket(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	assert.Nil(err)
 	bucketName := "test-gstorage-bucket-" + identifier.RandomNumber(12)
 
 	exist, err := storage.IsBucketExists(ctx, bucketName)
@@ -63,6 +64,7 @@ func TestGstorageBucket(t *testing.T) {
 	assert.Nil(err)
 	exist, err = storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
+	assert.False(exist)
 
 	err = storage.PublicBucket(ctx, bucketName)
 	assert.Nil(err)
@@ -73,11 +75,16 @@ func TestGstorageBucket(t *testing.T) {
 	err = storage.DeleteBucket(ctx, bucketName)
 	assert.Nil(err)
 
+	// delete not exists bucket will not error
+	err = storage.DeleteBucket(ctx, bucketName)
+	assert.Nil(err)
+
 	TestModeAlwayFail()
 	err = storage.CreateBucket(ctx, bucketName)
 	assert.NotNil(err)
 
 	exist, err = storage.IsBucketExists(ctx, bucketName)
+	assert.False(exist)
 	assert.NotNil(err)
 
 	err = storage.PublicBucket(ctx, bucketName)
@@ -97,6 +104,7 @@ func TestGstorageRW(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	assert.Nil(err)
 	filename := "a/b.txt"
 	jsonname := "a/b.json"
 	prefix := "a"
@@ -187,6 +195,7 @@ func TestGstorageDelete(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	assert.Nil(err)
 	bucketName := "test-gstorage-delete-" + identifier.RandomNumber(12)
 
 	err = storage.CreateBucket(ctx, bucketName)
@@ -232,6 +241,7 @@ func TestGstorageCleanBucket(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	assert.Nil(err)
 	path := "TestCleanBucket.txt"
 	bucketName := "test-gstorage-clean-" + identifier.RandomNumber(12)
 
@@ -241,6 +251,7 @@ func TestGstorageCleanBucket(t *testing.T) {
 
 	for i := 0; i < 1; i++ {
 		err = storage.WriteText(ctx, bucketName, fmt.Sprintf("%v%v", path, i), fmt.Sprintf("hi %v", i))
+		assert.Nil(err)
 		//fmt.Printf("add object:%v\n", i)
 	}
 	err = storage.CleanBucket(ctx, bucketName)
@@ -264,6 +275,7 @@ func TestGstorageSyncDir(t *testing.T) {
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	storage, err := New(ctx, cred)
+	assert.Nil(err)
 	bucketName := "test-gstorage-sync-" + identifier.RandomNumber(12)
 
 	err = storage.CreateBucket(ctx, bucketName)

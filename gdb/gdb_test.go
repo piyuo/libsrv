@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/piyuo/libsrv/google/gaccount"
+	"github.com/piyuo/libsrv/gaccount"
 	"github.com/piyuo/libsrv/util"
 	"github.com/stretchr/testify/assert"
 )
