@@ -2,6 +2,7 @@ package gaccount
 
 import (
 	"context"
+	"strings"
 
 	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/file"
@@ -43,6 +44,9 @@ func ClearCache() {
 func CreateCredential(ctx context.Context, keyName string) (*google.Credentials, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
+	}
+	if useTestCredential {
+		keyName = strings.Replace(keyName, "gcloud.json", "gcloud-test.json", -1)
 	}
 
 	bytes, err := key.BytesWithoutCache(keyName)
