@@ -169,14 +169,9 @@ func newTestAction(text string) []byte {
 func TestServerContextCanceled(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
+	dateline := time.Now().Add(-1 * time.Second)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
 	defer cancel()
-
-	assert.Nil(ctx.Err())
-	time.Sleep(time.Duration(2) * time.Millisecond)
-	assert.NotNil(ctx.Err())
-
 	err := ctx.Err()
 	assert.True(errors.Is(err, context.DeadlineExceeded))
 }
