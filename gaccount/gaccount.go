@@ -3,6 +3,7 @@ package gaccount
 import (
 	"context"
 	"strings"
+	"sync"
 
 	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/file"
@@ -19,6 +20,8 @@ var globalCredential *google.Credentials
 //regionalCredentials keep regional credential to reuse in the future
 //
 var regionalCredentials map[string]*google.Credentials = make(map[string]*google.Credentials)
+
+var regionalCredentialsMutex = sync.RWMutex{}
 
 // useTestCredential set to true will force using gcloud-test.json as credential
 //
@@ -111,7 +114,9 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "make credential from %v", keyFile)
 		}
+		regionalCredentialsMutex.Lock()
 		regionalCredentials[env.Region] = cred
+		regionalCredentialsMutex.Unlock()
 		return cred, nil
 	}
 	return cred, nil
