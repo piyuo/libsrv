@@ -303,7 +303,7 @@ func (c *QueryFirestore) Cleanup(ctx context.Context) (bool, error) {
 		}
 	}
 	if numDeleted > 0 {
-		log.Info(ctx, "cleanup %s, deleted %v "+c.QueryObject.Collection(), numDeleted)
+		log.Info(ctx, "cleanup %s, deleted %v ", c.QueryObject.Collection(), numDeleted)
 	}
 	return complete, nil
 }
