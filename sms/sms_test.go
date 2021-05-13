@@ -3,7 +3,7 @@ package sms
 import (
 	"testing"
 
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +36,7 @@ func TestSMSError(t *testing.T) {
 	assert.Nil(err)
 
 	//test canceled ctx
-	canceledCtx := util.CanceledCtx()
+	canceledCtx := test.CanceledContext()
 	err = sms.Send(canceledCtx, "+19999999999")
 	assert.NotNil(err)
 }

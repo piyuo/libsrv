@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/gaccount"
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func TestGdbInCanceledContext(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	ctxCanceled := util.CanceledCtx()
+	ctxCanceled := test.CanceledContext()
 	cred, err := gaccount.GlobalCredential(ctx)
 	assert.Nil(err)
 	client, err := NewClient(ctxCanceled, cred)

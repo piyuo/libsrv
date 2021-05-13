@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func TestMeta(t *testing.T) {
 	}
 
 	//check canceled ctx
-	ctxCanceled := util.CanceledCtx()
+	ctxCanceled := test.CanceledContext()
 	err := shards.check(ctxCanceled)
 	assert.NotNil(err)
 

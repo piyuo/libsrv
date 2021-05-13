@@ -66,7 +66,7 @@ func (t *timer) Stop() int64 {
 //	ms := timer.TimeSpan()
 //
 func (t *timer) TimeSpan() int64 {
-	duration := time.Now().Sub(t.current)
+	duration := time.Since(t.current)
 	ns := duration.Nanoseconds()
 	ms := ns / 1000000
 	return ms

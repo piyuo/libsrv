@@ -91,30 +91,36 @@ func TestCNAME(t *testing.T) {
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
-	TestModeAlwaySuccess()
+}
 
-	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
-	assert.Nil(err)
+func TestCNAMEMock(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	domainName := "cname-mock.b.c"
 
-	exist, err = IsCNAMEExists(ctx, domainName)
+	ctx := context.WithValue(context.Background(), MockNoError, "")
+	err := CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
-	assert.Equal(testModeCnameExists, exist)
 
 	err = DeleteCNAME(ctx, domainName)
 	assert.Nil(err)
 
-	TestModeAlwayFail()
-	defer TestModeBackNormal()
-
+	ctx = context.WithValue(context.Background(), MockError, "")
 	err = CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.NotNil(err)
 
-	exist, err = IsCNAMEExists(ctx, domainName)
-	assert.NotNil(err)
-	assert.False(exist)
-
 	err = DeleteCNAME(ctx, domainName)
 	assert.NotNil(err)
+
+	ctx = context.WithValue(context.Background(), MockCnameExists, "")
+	found, err := IsCNAMEExists(ctx, domainName)
+	assert.Nil(err)
+	assert.True(found)
+
+	ctx = context.WithValue(context.Background(), MockCnameNotExists, "")
+	found, err = IsCNAMEExists(ctx, domainName)
+	assert.Nil(err)
+	assert.False(found)
 }
 
 func TestTxtRecord(t *testing.T) {
@@ -122,7 +128,7 @@ func TestTxtRecord(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx := context.Background()
-	subDomain := "mock-libsrv"
+	subDomain := "txt-record-" + identifier.NotIdenticalRandomNumber(6)
 	domainName := subDomain + ".piyuo.com"
 	txt := "hi"
 	//remove sample record
@@ -154,25 +160,30 @@ func TestTxtRecord(t *testing.T) {
 	err = RemoveTXT(ctx, domainName)
 	assert.Nil(err)
 
-	TestModeAlwaySuccess()
+}
 
-	err = CreateTXT(ctx, domainName, txt)
+func TestTxtRecordMock(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	subDomain := "txt-record-mock-" + identifier.NotIdenticalRandomNumber(6)
+	domainName := subDomain + ".piyuo.com"
+	txt := "hi"
+
+	ctx := context.WithValue(context.Background(), MockNoError, "")
+	err := CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
 	err = RemoveTXT(ctx, domainName)
 	assert.Nil(err)
-	exist, err = IsTXTExists(ctx, domainName)
+	found, err := IsTXTExists(ctx, domainName)
 	assert.Nil(err)
-	assert.True(exist)
+	assert.True(found)
 
-	TestModeAlwayFail()
-	defer TestModeBackNormal()
-
+	ctx = context.WithValue(context.Background(), MockError, "")
 	err = CreateTXT(ctx, domainName, txt)
 	assert.NotNil(err)
 	err = RemoveTXT(ctx, domainName)
 	assert.NotNil(err)
-	exist, err = IsTXTExists(ctx, domainName)
+	found, err = IsTXTExists(ctx, domainName)
 	assert.NotNil(err)
-	assert.False(exist)
-
+	assert.False(found)
 }

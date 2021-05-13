@@ -1,4 +1,4 @@
-package util
+package test
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShouldReturnErrorOnCanceledContext(t *testing.T) {
+func TestCanceledContext(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	ctx := CanceledCtx()
+	ctx := CanceledContext()
 	assert.NotNil(ctx.Err())
 }
 

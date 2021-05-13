@@ -9,7 +9,7 @@ import (
 
 	"github.com/piyuo/libsrv/db"
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -66,7 +66,7 @@ func TestSerialInCanceledCtx(t *testing.T) {
 	client := sampleClient()
 	serial := client.Serial("serialInCancelCtx")
 
-	ctxCanceled := util.CanceledCtx()
+	ctxCanceled := test.CanceledContext()
 	err := serial.Delete(ctxCanceled)
 	assert.NotNil(err)
 }

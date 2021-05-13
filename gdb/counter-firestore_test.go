@@ -10,7 +10,7 @@ import (
 
 	"github.com/piyuo/libsrv/db"
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -158,7 +158,7 @@ func TestCounterInCanceledCtx(t *testing.T) {
 	name := "test-counter-no-ctx-" + identifier.RandomString(8)
 	counter := client.Counter(name, 1)
 
-	ctxCanceled := util.CanceledCtx()
+	ctxCanceled := test.CanceledContext()
 	count, err := counter.CountAll(ctxCanceled)
 	assert.NotNil(err)
 	assert.Equal(float64(0), count)

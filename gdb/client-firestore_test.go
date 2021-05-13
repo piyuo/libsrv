@@ -7,7 +7,7 @@ import (
 
 	"github.com/piyuo/libsrv/gaccount"
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -243,7 +243,7 @@ func TestClientContextCanceled(t *testing.T) {
 	assert := assert.New(t)
 	client := sampleClient()
 
-	ctx := util.CanceledCtx()
+	ctx := test.CanceledContext()
 	sample := &Sample{}
 	sample.SetID("id")
 

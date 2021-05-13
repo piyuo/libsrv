@@ -15,37 +15,27 @@ import (
 	"github.com/pkg/errors"
 )
 
-// testMode is true should return success, false return error, otherwise behave normal
+// Mock define key test flag
 //
-var testMode *bool
+type Mock int8
 
-var testModeCnameExists = false
+const (
+	// MockNoError let function return nil
+	//
+	MockNoError Mock = iota
 
-// TestModeAlwaySuccess will let every function success
-//
-func TestModeAlwaySuccess() {
-	t := true
-	testMode = &t
-}
+	// MockError let function error
+	//
+	MockError
 
-// TestModeAlwayFail will let every function fail
-//
-func TestModeAlwayFail() {
-	f := false
-	testMode = &f
-}
+	// MockCnameExists let IsCNAMEExists return exists
+	//
+	MockCnameExists
 
-// TestModeBackNormal stop test mode and back to normal
-//
-func TestModeBackNormal() {
-	testMode = nil
-}
-
-// TestModeCnameExists set cname exist in test mode
-//
-func TestModeCnameExists(value bool) {
-	testModeCnameExists = value
-}
+	// CnameExists let IsCNAMEExists return exists
+	//
+	MockCnameNotExists
+)
 
 //	credential return cloudflare credential zon and token
 //
@@ -154,11 +144,11 @@ func CreateStorageCNAME(ctx context.Context, domainName string) error {
 //	err = AddCNAME(ctx, "my.piyuo.com", false)
 //
 func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	proxy := "false"
@@ -182,11 +172,11 @@ func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) e
 //	err = DeleteCNAME(ctx, "my.piyuo.com")
 //
 func DeleteCNAME(ctx context.Context, domainName string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
@@ -208,11 +198,17 @@ func DeleteCNAME(ctx context.Context, domainName string) error {
 //	exist, err := IsCNAMEExists(ctx, "my.piyuo.com")
 //
 func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
-	if testMode != nil {
-		if *testMode {
-			return testModeCnameExists, nil
-		}
-		return false, errors.New("fail")
+	if ctx.Value(MockCnameExists) != nil {
+		return true, nil
+	}
+	if ctx.Value(MockCnameNotExists) != nil {
+		return false, nil
+	}
+	if ctx.Value(MockNoError) != nil {
+		return true, nil
+	}
+	if ctx.Value(MockError) != nil {
+		return false, errors.New("")
 	}
 
 	id, err := getDNSRecordID(ctx, domainName, "CNAME", "")
@@ -227,12 +223,13 @@ func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 //	err = cflare.CreateTXT(ctx, "my.piyuo.com", txt)
 //
 func CreateTXT(ctx context.Context, domainName, txt string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
 	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
+	}
+
 	var requestJSON = []byte(`{"type":"TXT","name":"` + domainName + `","content":"` + txt + `"}`)
 	_, err := sendDNSRequest(ctx, "POST", "", bytes.NewBuffer(requestJSON))
 	if err != nil {
@@ -249,12 +246,13 @@ func CreateTXT(ctx context.Context, domainName, txt string) error {
 //	err = RemoveTXT(ctx, "my.piyuo.com", txt)
 //
 func RemoveTXT(ctx context.Context, domainName string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
 	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
+	}
+
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
 		return err
@@ -274,12 +272,13 @@ func RemoveTXT(ctx context.Context, domainName string) error {
 //	exist, err = IsTXTExists(ctx, "my.piyuo.com", txt)
 //
 func IsTXTExists(ctx context.Context, domainName string) (bool, error) {
-	if testMode != nil {
-		if *testMode {
-			return true, nil
-		}
-		return false, errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return true, nil
 	}
+	if ctx.Value(MockError) != nil {
+		return false, errors.New("")
+	}
+
 	id, err := getDNSRecordID(ctx, domainName, "TXT", "")
 	if err != nil {
 		return false, err

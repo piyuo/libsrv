@@ -1,13 +1,13 @@
-package util
+package test
 
 import (
 	"context"
 	"time"
 )
 
-// CanceledCtx return canceled ctx for testing canceled ctx
+// CanceledContext return canceled ctx for testing canceled ctx
 //
-func CanceledCtx() context.Context {
+func CanceledContext() context.Context {
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
 	defer cancel()

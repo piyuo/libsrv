@@ -9,7 +9,7 @@ import (
 
 	"github.com/piyuo/libsrv/db"
 	"github.com/piyuo/libsrv/identifier"
-	"github.com/piyuo/libsrv/util"
+	"github.com/piyuo/libsrv/test"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -238,7 +238,7 @@ func TestCoderInCanceledCtx(t *testing.T) {
 	client := sampleClient()
 	coder := client.Coder("cancelCtx", 3)
 	assert.NotNil(coder)
-	ctxCanceled := util.CanceledCtx()
+	ctxCanceled := test.CanceledContext()
 	err := coder.Delete(ctxCanceled)
 	assert.NotNil(err)
 }
