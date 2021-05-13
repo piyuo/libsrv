@@ -39,13 +39,14 @@ func newSendgridMail(t *template) (Mail, error) {
 //	err := mail.Send(ctx)
 //
 func (c *SendgridMail) Send(ctx context.Context) error {
-	if testMode != nil {
-		if *testMode {
-			TestModeOutputMail = c
-			return nil
-		}
-		TestModeOutputMail = nil
-		return errors.New("failed always")
+	if ctx.Value(KeepMail) != nil {
+		LastMail = c
+	}
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	sendgridKey, err := key.Text("sendgrid.key")

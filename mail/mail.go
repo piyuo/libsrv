@@ -9,34 +9,27 @@ import (
 	"github.com/piyuo/libsrv/mapping"
 )
 
-// testMode is true should return success, false return error, otherwise behave normal
+// Mock define key test flag
 //
-var testMode *bool
+type Mock int8
 
-// TestModeAlwaySuccess will let every function success
-//
-func TestModeAlwaySuccess() {
-	t := true
-	testMode = &t
-}
+const (
+	// MockNoError let function return nil
+	//
+	MockNoError Mock = iota
 
-// TestModeAlwayFail will let every function fail
-//
-func TestModeAlwayFail() {
-	f := false
-	testMode = &f
-}
+	// MockError let function error
+	//
+	MockError
 
-// TestModeBackNormal stop test mode and back to normal
-//
-func TestModeBackNormal() {
-	testMode = nil
-	TestModeOutputMail = nil
-}
+	// KeepMail keep mail in LastMail
+	//
+	KeepMail
+)
 
-// TestModeOutputMail is mail sent in test mode
+// LastMail is mail sent when KeepMail
 //
-var TestModeOutputMail Mail
+var LastMail Mail
 
 type template struct {
 	subject string

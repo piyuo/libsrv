@@ -87,12 +87,9 @@ func TestSendMail(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestMockSendMail(t *testing.T) {
+func TestMock(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	TestModeOutputMail = nil
-	TestModeAlwaySuccess()
-	defer TestModeBackNormal()
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
@@ -100,9 +97,19 @@ func TestMockSendMail(t *testing.T) {
 	assert.Nil(err)
 	mail.AddTo("piyuo.master", "piyuo.master@gmail.com")
 	mail.ReplaceText("%1", "1234")
+
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	err = mail.Send(ctx)
 	assert.Nil(err)
-	assert.NotNil(TestModeOutputMail)
-	assert.Equal("piyuo.master", TestModeOutputMail.GetTo()[0].Name)
-	assert.Equal("piyuo.master@gmail.com", TestModeOutputMail.GetTo()[0].Address)
+
+	ctx = context.WithValue(context.Background(), MockError, "")
+	err = mail.Send(ctx)
+	assert.NotNil(err)
+
+	ctx = context.WithValue(context.Background(), KeepMail, "")
+	LastMail = nil
+	mail.Send(ctx)
+	assert.NotNil(LastMail)
+	assert.Equal("piyuo.master", LastMail.GetTo()[0].Name)
+	assert.Equal("piyuo.master@gmail.com", LastMail.GetTo()[0].Address)
 }
