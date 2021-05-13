@@ -15,8 +15,8 @@ func TestLog(t *testing.T) {
 	Debug(ctx, "my debug")
 	Info(ctx, "my info")
 	Warn(ctx, "my warn")
-	TestModeAlwaySuccess()
-	defer TestModeBackNormal()
+
+	ForceStopLog(true)
 	Debug(ctx, "my debug")
 	Info(ctx, "my info")
 	Warn(ctx, "my warn")
@@ -78,9 +78,7 @@ func TestLogError(t *testing.T) {
 	// nil error
 	Error(ctx, nil)
 
-	TestModeAlwaySuccess()
-	TestModeAlwayFail()
-	defer TestModeBackNormal()
+	ForceStopLog(true)
 	Error(ctx, err)
 }
 

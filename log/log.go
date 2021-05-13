@@ -14,28 +14,14 @@ import (
 //
 var history *strings.Builder
 
-// testMode is true should return success, false return error, otherwise behave normal
+// forceStopLog is true will no log anything
 //
-var testMode *bool
+var forceStopLog = false
 
-// TestModeAlwaySuccess will let every function success
+// ForceStopLog set to true will stop log
 //
-func TestModeAlwaySuccess() {
-	t := true
-	testMode = &t
-}
-
-// TestModeAlwayFail will let every function fail
-//
-func TestModeAlwayFail() {
-	f := false
-	testMode = &f
-}
-
-// TestModeBackNormal stop test mode and back to normal
-//
-func TestModeBackNormal() {
-	testMode = nil
+func ForceStopLog(value bool) {
+	forceStopLog = value
 }
 
 // prepare write message to history and return information logger need
@@ -55,7 +41,7 @@ func initMessage(ctx context.Context, format string, a ...interface{}) string {
 //	Debug(ctx,"server start")
 //
 func Debug(ctx context.Context, format string, a ...interface{}) {
-	if testMode != nil {
+	if forceStopLog {
 		return
 	}
 	if ctx.Err() != nil { // deadline error
@@ -69,7 +55,7 @@ func Debug(ctx context.Context, format string, a ...interface{}) {
 //	Info(ctx,"server start")
 //
 func Info(ctx context.Context, format string, a ...interface{}) {
-	if testMode != nil {
+	if forceStopLog {
 		return
 	}
 	if ctx.Err() != nil { // deadline error
@@ -83,7 +69,7 @@ func Info(ctx context.Context, format string, a ...interface{}) {
 //	Warning(ctx,"hi")
 //
 func Warn(ctx context.Context, format string, a ...interface{}) {
-	if testMode != nil {
+	if forceStopLog {
 		return
 	}
 	if ctx.Err() != nil { // deadline error
@@ -140,7 +126,7 @@ func Error(ctx context.Context, err error) {
 	if err == nil {
 		return
 	}
-	if testMode != nil {
+	if forceStopLog {
 		return
 	}
 	stack := beautyStack(err)
@@ -213,7 +199,7 @@ func beautyStack(err error) string {
 
 // isLineUsable check line to see if we need it for debug
 //
-//	line := "/jtolds/doc.go:75"
+//	line := "/hello/doc.go:75"
 //	usable = isLineUsable(line) //false
 //
 func isLineUsable(line string) bool {

@@ -33,12 +33,12 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	gaccount.ForceTestCredential(true)
-	log.TestModeAlwaySuccess()
+	log.ForceStopLog(true)
 }
 
 func shutdown() {
 	gaccount.ForceTestCredential(false)
-	log.TestModeBackNormal()
+	log.ForceStopLog(false)
 }
 
 func BenchmarkClean(b *testing.B) {
