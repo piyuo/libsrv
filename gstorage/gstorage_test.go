@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewGstorage(t *testing.T) {
+func TestNew(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -22,7 +22,7 @@ func TestNewGstorage(t *testing.T) {
 	assert.NotNil(storage)
 }
 
-func TestGstorageBucket(t *testing.T) {
+func TestBucket(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -57,14 +57,13 @@ func TestGstorageBucket(t *testing.T) {
 	assert.Nil(err)
 	assert.False(exist)
 
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
-
+	// mock no error
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	exist, err = storage.IsBucketExists(ctx, bucketName)
 	assert.Nil(err)
-	assert.False(exist)
+	assert.True(exist)
 
 	err = storage.PublicBucket(ctx, bucketName)
 	assert.Nil(err)
@@ -75,11 +74,11 @@ func TestGstorageBucket(t *testing.T) {
 	err = storage.DeleteBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	// delete not exists bucket will not error
 	err = storage.DeleteBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	TestModeAlwayFail()
+	// mock error
+	ctx = context.WithValue(context.Background(), MockError, "")
 	err = storage.CreateBucket(ctx, bucketName)
 	assert.NotNil(err)
 
@@ -95,9 +94,15 @@ func TestGstorageBucket(t *testing.T) {
 
 	err = storage.DeleteBucket(ctx, bucketName)
 	assert.NotNil(err)
+
+	// mock not exist
+	ctx = context.WithValue(context.Background(), MockBucketNotExists, "")
+	exist, err = storage.IsBucketExists(ctx, bucketName)
+	assert.Nil(err)
+	assert.False(exist)
 }
 
-func TestGstorageRW(t *testing.T) {
+func TestRW(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -154,8 +159,8 @@ func TestGstorageRW(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(len(files), 1)
 
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
+	// mock no error
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	_, err = storage.IsFileExists(ctx, bucketName, filename)
 	assert.Nil(err)
 	_, err = storage.ReadText(ctx, bucketName, filename)
@@ -171,7 +176,8 @@ func TestGstorageRW(t *testing.T) {
 	err = storage.DeleteFile(ctx, bucketName, jsonname)
 	assert.Nil(err)
 
-	TestModeAlwayFail()
+	// mock  error
+	ctx = context.WithValue(context.Background(), MockError, "")
 	_, err = storage.IsFileExists(ctx, bucketName, filename)
 	assert.NotNil(err)
 	_, err = storage.ReadText(ctx, bucketName, filename)
@@ -186,9 +192,16 @@ func TestGstorageRW(t *testing.T) {
 	assert.NotNil(err)
 	err = storage.DeleteFile(ctx, bucketName, jsonname)
 	assert.NotNil(err)
+
+	// mock not exist
+	ctx = context.WithValue(context.Background(), MockFileNotExists, "")
+	found, err = storage.IsFileExists(ctx, bucketName, filename)
+	assert.Nil(err)
+	assert.False(found)
+
 }
 
-func TestGstorageDelete(t *testing.T) {
+func TestDelete(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -223,18 +236,19 @@ func TestGstorageDelete(t *testing.T) {
 	assert.Nil(err)
 	assert.True(found)
 
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
+	// mock no error
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	err = storage.DeleteFiles(ctx, bucketName, "a/b")
 	assert.Nil(err)
 
-	TestModeAlwayFail()
+	// mock no error
+	ctx = context.WithValue(context.Background(), MockError, "")
 	err = storage.DeleteFiles(ctx, bucketName, "a/b")
 	assert.NotNil(err)
 
 }
 
-func TestGstorageCleanBucket(t *testing.T) {
+func TestCleanBucket(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -257,18 +271,19 @@ func TestGstorageCleanBucket(t *testing.T) {
 	err = storage.CleanBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
+	// mock no error
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	err = storage.CleanBucket(ctx, bucketName)
 	assert.Nil(err)
 
-	TestModeAlwayFail()
+	// mock error
+	ctx = context.WithValue(context.Background(), MockError, "")
 	err = storage.CleanBucket(ctx, bucketName)
 	assert.NotNil(err)
 
 }
 
-func TestGstorageSyncDir(t *testing.T) {
+func TestSyncDir(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -300,13 +315,13 @@ func TestGstorageSyncDir(t *testing.T) {
 	assert.Equal("a/b/c/d.txt", list[1])
 	assert.Equal("c.txt", list[2])
 
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
+	// mock no error
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	err = storage.Sync(ctx, bucketName, shouldDeleteFile)
 	assert.Nil(err)
 
-	TestModeAlwayFail()
+	// mock error
+	ctx = context.WithValue(context.Background(), MockError, "")
 	err = storage.Sync(ctx, bucketName, shouldDeleteFile)
 	assert.NotNil(err)
-
 }

@@ -28,10 +28,6 @@ const (
 	//
 	MockError
 
-	// MockCnameExists let IsCNAMEExists return exists
-	//
-	MockCnameExists
-
 	// CnameExists let IsCNAMEExists return exists
 	//
 	MockCnameNotExists
@@ -198,9 +194,6 @@ func DeleteCNAME(ctx context.Context, domainName string) error {
 //	exist, err := IsCNAMEExists(ctx, "my.piyuo.com")
 //
 func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
-	if ctx.Value(MockCnameExists) != nil {
-		return true, nil
-	}
 	if ctx.Value(MockCnameNotExists) != nil {
 		return false, nil
 	}

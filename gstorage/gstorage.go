@@ -138,37 +138,27 @@ type Implementation struct {
 	projectID string
 }
 
-// testMode is true should return success, false return error, otherwise behave normal
+// Mock define key test flag
 //
-var testMode *bool
+type Mock int8
 
-var testModeBucketExists = false
+const (
+	// MockNoError let function return nil
+	//
+	MockNoError Mock = iota
 
-// TestModeAlwaySuccess will let every function success
-//
-func TestModeAlwaySuccess() {
-	t := true
-	testMode = &t
-}
+	// MockError let function error
+	//
+	MockError
 
-// TestModeAlwayFail will let every function fail
-//
-func TestModeAlwayFail() {
-	f := false
-	testMode = &f
-}
+	// MockBucketNotExists let IsBucketExists return exists
+	//
+	MockBucketNotExists
 
-// TestModeBackNormal stop test mode and back to normal
-//
-func TestModeBackNormal() {
-	testMode = nil
-}
-
-// TestModeBucketExists set bucket exists in test mode
-//
-func TestModeBucketExists(value bool) {
-	testModeBucketExists = value
-}
+	// MockFileNotExists let IsFileExists return exists
+	//
+	MockFileNotExists
+)
 
 // New create Cloudstorage
 //
@@ -197,11 +187,11 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 //	err = storage.CreateBucket(ctx, "my.piyuo.com")
 //
 func (impl *Implementation) CreateBucket(ctx context.Context, bucketName string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -221,11 +211,11 @@ func (impl *Implementation) CreateBucket(ctx context.Context, bucketName string)
 //	err = storage.DeleteBucket(ctx, "my-bucket")
 //
 func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -246,11 +236,11 @@ func (impl *Implementation) DeleteBucket(ctx context.Context, bucketName string)
 //	err = storage.PublicBucket(ctx, "my-bucket")
 //
 func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -275,11 +265,11 @@ func (impl *Implementation) PublicBucket(ctx context.Context, bucketName string)
 //	err = storage.SetPageAndCORS(ctx, "my-bucket","some-origin.com")
 //
 func (impl *Implementation) SetPageAndCORS(ctx context.Context, bucketName, originDomain string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -308,11 +298,14 @@ func (impl *Implementation) SetPageAndCORS(ctx context.Context, bucketName, orig
 //	exist, err := storage.IsBucketExists(ctx, bucketName)
 //
 func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName string) (bool, error) {
-	if testMode != nil {
-		if *testMode {
-			return testModeBucketExists, nil
-		}
-		return false, errors.New("fail")
+	if ctx.Value(MockBucketNotExists) != nil {
+		return false, nil
+	}
+	if ctx.Value(MockNoError) != nil {
+		return true, nil
+	}
+	if ctx.Value(MockError) != nil {
+		return false, errors.New("")
 	}
 
 	bucketIterator := impl.client.Buckets(ctx, impl.projectID)
@@ -338,11 +331,14 @@ func (impl *Implementation) IsBucketExists(ctx context.Context, bucketName strin
 //	found,err = storage.IsFileExists(ctx, bucketName, "fileName")
 //
 func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, path string) (bool, error) {
-	if testMode != nil {
-		if *testMode {
-			return true, nil
-		}
-		return false, errors.New("fail")
+	if ctx.Value(MockFileNotExists) != nil {
+		return false, nil
+	}
+	if ctx.Value(MockNoError) != nil {
+		return true, nil
+	}
+	if ctx.Value(MockError) != nil {
+		return false, errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -368,11 +364,11 @@ func (impl *Implementation) IsFileExists(ctx context.Context, bucketName, path s
 //	err = storage.WriteText(ctx, bucketName, "a/b.txt")
 //
 func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -394,11 +390,11 @@ func (impl *Implementation) WriteText(ctx context.Context, bucketName, path, txt
 //	txt, err := storage.ReadText(ctx, bucketName, "a/b.txt")
 //
 func (impl *Implementation) ReadText(ctx context.Context, bucketName, path string) (string, error) {
-	if testMode != nil {
-		if *testMode {
-			return "", nil
-		}
-		return "", errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return "", nil
+	}
+	if ctx.Value(MockError) != nil {
+		return "", errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -421,11 +417,11 @@ func (impl *Implementation) ReadText(ctx context.Context, bucketName, path strin
 //	err = storage.WriteJSON(ctx, bucketName, "a/b.json")
 //
 func (impl *Implementation) WriteJSON(ctx context.Context, bucketName, path string, content map[string]interface{}) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bytes, err := json.Marshal(content)
@@ -443,11 +439,11 @@ func (impl *Implementation) WriteJSON(ctx context.Context, bucketName, path stri
 //	txt, err := storage.ReadJSON(ctx, bucketName, "a/b.json")
 //
 func (impl *Implementation) ReadJSON(ctx context.Context, bucketName, path string) (map[string]interface{}, error) {
-	if testMode != nil {
-		if *testMode {
-			return map[string]interface{}{}, nil
-		}
-		return map[string]interface{}{}, errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return map[string]interface{}{}, nil
+	}
+	if ctx.Value(MockError) != nil {
+		return map[string]interface{}{}, errors.New("")
 	}
 
 	var control map[string]interface{}
@@ -466,11 +462,11 @@ func (impl *Implementation) ReadJSON(ctx context.Context, bucketName, path strin
 //	files, err := storage.ListFiles(ctx, bucketName, "", "")
 //
 func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, delim string) ([]string, error) {
-	if testMode != nil {
-		if *testMode {
-			return []string{}, nil
-		}
-		return []string{}, errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return []string{}, nil
+	}
+	if ctx.Value(MockError) != nil {
+		return []string{}, errors.New("")
 	}
 
 	files := []string{}
@@ -498,11 +494,11 @@ func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, d
 //	err = storage.DeleteFiles(ctx, bucketName, "assets")
 //
 func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	query := &storage.Query{Prefix: prefix}
@@ -531,11 +527,11 @@ func (impl *Implementation) DeleteFiles(ctx context.Context, bucketName, prefix 
 //	err = storage.DeleteFile(ctx, bucketName, path)
 //
 func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	o := impl.client.Bucket(bucketName).Object(path)
@@ -553,11 +549,11 @@ func (impl *Implementation) DeleteFile(ctx context.Context, bucketName, path str
 //	err = storage.Delete(ctx, bucketName, path)
 //
 func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)
@@ -614,11 +610,11 @@ type ShouldDeleteFile func(filename string) (bool, error)
 //	err = storage.Sync(ctx, bucketName, dir)
 //
 func (impl *Implementation) Sync(ctx context.Context, bucketName string, shouldDeleteFile ShouldDeleteFile) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	bucket := impl.client.Bucket(bucketName)

@@ -112,7 +112,7 @@ func TestCNAMEMock(t *testing.T) {
 	err = DeleteCNAME(ctx, domainName)
 	assert.NotNil(err)
 
-	ctx = context.WithValue(context.Background(), MockCnameExists, "")
+	ctx = context.WithValue(context.Background(), MockNoError, "")
 	found, err := IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(found)
