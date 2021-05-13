@@ -1,19 +1,14 @@
 package server
 
 import (
-	"bytes"
 	"compress/gzip"
 	"context"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
-	"sync"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/piyuo/libsrv/log"
 )
 
@@ -52,11 +47,19 @@ func HTTPEntry(httpHandler HTTPHandler) http.Handler {
 		}
 	}
 	withoutArchive := http.HandlerFunc(f)
-	//	withArchive := ArchiveHandler(withoutArchive)
-	withArchive := Gzip(withoutArchive)
+	//withArchive := ArchiveHandler(withoutArchive)
+	withArchive := gzipHandler(withoutArchive)
+
+	//	withArchive := Gzip(withoutArchive)
 	return withArchive
 }
 
+func gzipHandler(h http.Handler) http.Handler {
+	wrapper, _ := gziphandler.NewGzipLevelAndMinSize(gzip.DefaultCompression, 150)
+	return wrapper(h)
+}
+
+/*
 // Gzip Compression
 var gzPool = sync.Pool{
 	New: func() interface{} {
@@ -95,10 +98,12 @@ func Gzip(next http.Handler) http.Handler {
 		gz.Reset(&b)
 		defer func() {
 			gz.Close()
-			w.Header().Set("Content-Length", fmt.Sprint(len(b.Bytes())))
+			l := len(b.Bytes())
+			w.Header().Set("Content-Length", fmt.Sprint(l))
 			w.Write(b.Bytes())
 		}()
 
 		next.ServeHTTP(&gzipResponseWriter{ResponseWriter: w, Writer: gz}, r)
 	})
 }
+*/

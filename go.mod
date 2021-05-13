@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/firestore v1.5.0
 	cloud.google.com/go/logging v1.2.0
 	cloud.google.com/go/storage v1.14.0
+	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/golang/protobuf v1.5.1
 	github.com/goodsign/monday v1.0.0

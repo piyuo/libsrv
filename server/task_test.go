@@ -13,10 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func mockTaskHandler(ctx context.Context, r *http.Request) error {
-	return nil
-}
-
 func mockTaskErrorHandler(ctx context.Context, r *http.Request) error {
 	return errors.New("myError")
 }
@@ -30,7 +26,9 @@ func TestServerTaskHandlerOK(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
-	TaskEntry(mockTaskHandler).ServeHTTP(resp, req)
+	TaskEntry(func(ctx context.Context, r *http.Request) error {
+		return nil
+	}).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 
@@ -55,7 +53,9 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
 	resp := httptest.NewRecorder()
-	TaskEntry(mockTaskHandler).ServeHTTP(resp, req)
+	TaskEntry(func(ctx context.Context, r *http.Request) error {
+		return nil
+	}).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 
@@ -97,7 +97,9 @@ func TestServerTaskHandlerDebug(t *testing.T) {
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/?debug=1", nil)
 	resp := httptest.NewRecorder()
-	TaskEntry(mockTaskHandler).ServeHTTP(resp, req)
+	TaskEntry(func(ctx context.Context, r *http.Request) error {
+		return nil
+	}).ServeHTTP(resp, req)
 	res := resp.Result()
 	assert.Equal(http.StatusOK, res.StatusCode)
 	//cleanup http.Handle mapping

@@ -73,6 +73,6 @@ func CommandEntry(cmdMap command.IMap) http.Handler {
 	}
 
 	withoutArchive := http.HandlerFunc(f)
-	withArchive := Gzip(withoutArchive)
+	withArchive := gzipHandler(withoutArchive)
 	return withArchive
 }

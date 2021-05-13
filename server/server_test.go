@@ -65,10 +65,17 @@ func newBigDataAction() (*mock.BigDataAction, []byte) {
 func TestServerReady(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
+	httpHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+		return nil
+	}
+	taskHandler := func(ctx context.Context, r *http.Request) error {
+		return nil
+	}
+
 	server := &Server{
 		CommandHandlers: map[string]command.IMap{"/cmd": &mock.MapXXX{}},
-		HTTPHandlers:    map[string]HTTPHandler{"/http": mockHTTPHandler},
-		TaskHandlers:    map[string]TaskHandler{"/task": mockTaskHandler},
+		HTTPHandlers:    map[string]HTTPHandler{"/http": httpHandler},
+		TaskHandlers:    map[string]TaskHandler{"/task": taskHandler},
 	}
 	port := server.ready(context.Background())
 	assert.Equal(":8080", port)
