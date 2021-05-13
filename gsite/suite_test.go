@@ -16,11 +16,11 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	gaccount.UseTestCredential(true)
+	gaccount.ForceTestCredential(true)
 	log.TestModeAlwaySuccess()
 }
 
 func shutdown() {
-	gaccount.UseTestCredential(false)
+	gaccount.ForceTestCredential(false)
 	log.TestModeBackNormal()
 }

@@ -15,9 +15,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	gaccount.UseTestCredential(true)
+	gaccount.ForceTestCredential(true)
 }
 
 func shutdown() {
-	gaccount.UseTestCredential(false)
+	gaccount.ForceTestCredential(false)
 }

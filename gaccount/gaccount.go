@@ -13,6 +13,26 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// Mock define key test flag
+//
+type Mock int8
+
+const (
+	// TestCredential use gcloud-test.json instead of gcloud.json
+	//
+	TestCredential Mock = iota
+)
+
+// forceTestCredential set to true will force using gcloud-test.json as credential
+//
+var forceTestCredential = false
+
+// ForceTestCredential set to true will force using gcloud-test.json as credential
+//
+func ForceTestCredential(value bool) {
+	forceTestCredential = value
+}
+
 //globalCredential keep global data credential to reuse in the future
 //
 var globalCredential *google.Credentials
@@ -23,16 +43,6 @@ var regionalCredentials map[string]*google.Credentials = make(map[string]*google
 
 var regionalCredentialsMutex = sync.RWMutex{}
 
-// useTestCredential set to true will force using gcloud-test.json as credential
-//
-var useTestCredential = false
-
-// UseTestCredential set to true will force using gcloud-test.json as credential
-//
-func UseTestCredential(value bool) {
-	useTestCredential = value
-}
-
 // ClearCache clear credential cache
 //
 func ClearCache() {
@@ -40,16 +50,17 @@ func ClearCache() {
 	regionalCredentials = make(map[string]*google.Credentials)
 }
 
-// CreateCredential create credential from key
+// NewCredential create credential from key
 //
-//	cred, err := CreateCredential(ctx,"master/gcloud.json")
+//	cred, err := NewCredential(ctx,"master/gcloud.json")
 //
-func CreateCredential(ctx context.Context, keyName string) (*google.Credentials, error) {
+func NewCredential(ctx context.Context, keyName string) (*google.Credentials, error) {
+	if forceTestCredential || ctx.Value(TestCredential) != nil {
+		keyName = strings.Replace(keyName, "gcloud.json", "gcloud-test.json", -1)
+	}
+
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
-	}
-	if useTestCredential {
-		keyName = strings.Replace(keyName, "gcloud.json", "gcloud-test.json", -1)
 	}
 
 	bytes, err := key.BytesWithoutCache(keyName)
@@ -74,7 +85,7 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 
 	if globalCredential == nil {
 		keyFile := "gcloud.json"
-		if useTestCredential {
+		if forceTestCredential || ctx.Value(TestCredential) != nil {
 			keyFile = "gcloud-test.json"
 		}
 
@@ -102,7 +113,7 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	var cred = regionalCredentials[env.Region]
 	if regionalCredentials[env.Region] == nil {
 		keyFile := "gcloud-" + env.Region + ".json"
-		if useTestCredential {
+		if forceTestCredential || ctx.Value(TestCredential) != nil {
 			keyFile = "gcloud-test.json"
 		}
 

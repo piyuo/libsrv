@@ -17,18 +17,18 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	gaccount.UseTestCredential(true)
+	gaccount.ForceTestCredential(true)
 	log.TestModeAlwaySuccess()
 }
 
 func shutdown() {
-	gaccount.UseTestCredential(false)
+	gaccount.ForceTestCredential(false)
 	log.TestModeBackNormal()
 }
 
 func BenchmarkClean(b *testing.B) {
-	gaccount.UseTestCredential(true)
-	defer gaccount.UseTestCredential(false)
+	gaccount.ForceTestCredential(true)
+	defer gaccount.ForceTestCredential(false)
 
 	ctx := context.Background()
 	client := sampleClient()

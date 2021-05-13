@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGaccountCredential(t *testing.T) {
+func TestCredentials(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 
@@ -29,19 +29,19 @@ func TestGaccountCredential(t *testing.T) {
 	assert.NotNil(globalCredential)
 }
 
-func TestGaccountCreateCredential(t *testing.T) {
+func TestCreateCredential(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := CreateCredential(ctx, "gcloud.json")
+	cred, err := NewCredential(ctx, "gcloud.json")
 	assert.Nil(err)
 	assert.NotNil(cred)
-	cred, err = CreateCredential(ctx, "notExist.json")
+	cred, err = NewCredential(ctx, "notExist.json")
 	assert.NotNil(err)
 	assert.Nil(cred)
 }
 
-func TestGaccountDataCredentialByRegion(t *testing.T) {
+func TestDataCredentialByRegion(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	bak := env.Region
@@ -63,7 +63,7 @@ func TestGaccountDataCredentialByRegion(t *testing.T) {
 	env.Region = bak
 }
 
-func TestGaccountCredentialWhenContextCanceled(t *testing.T) {
+func TestCredentialWhenContextCanceled(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	deadline := time.Now().Add(time.Duration(1) * time.Millisecond)
@@ -76,24 +76,43 @@ func TestGaccountCredentialWhenContextCanceled(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestGaccountTestMode(t *testing.T) {
+func TestContextTestCredential(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
 	assert := assert.New(t)
 	ClearCache()
-	UseTestCredential(true)
-	defer UseTestCredential(false)
+	ctx := context.WithValue(context.Background(), TestCredential, "")
 
 	cred, err := GlobalCredential(ctx)
 	assert.Nil(err)
-
 	cred2, err := RegionalCredential(ctx)
 	assert.Nil(err)
-
 	assert.Equal(cred.ProjectID, cred2.ProjectID)
+
+	cred3, err := NewCredential(ctx, "gcloud.json")
+	assert.Nil(err)
+	assert.Equal(cred.ProjectID, cred3.ProjectID)
 }
 
-func TestGaccountCredentialFromFile(t *testing.T) {
+func TestForceTestCredential(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ClearCache()
+	ctx := context.Background()
+	ForceTestCredential(true)
+	defer ForceTestCredential(true)
+
+	cred, err := GlobalCredential(ctx)
+	assert.Nil(err)
+	cred2, err := RegionalCredential(ctx)
+	assert.Nil(err)
+	assert.Equal(cred.ProjectID, cred2.ProjectID)
+
+	cred3, err := NewCredential(ctx, "gcloud.json")
+	assert.Nil(err)
+	assert.Equal(cred.ProjectID, cred3.ProjectID)
+}
+
+func TestCredentialFromFile(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	assert := assert.New(t)
