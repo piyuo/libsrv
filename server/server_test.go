@@ -105,11 +105,12 @@ func TestServerArchive(t *testing.T) {
 	assert.Equal("application/octet-stream", res1.Header.Get("Content-Type"))
 }
 
+/*
 func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
 	w.WriteHeader(http.StatusOK)
 	WriteText(w, "hello")
 	return true, nil
-}
+}*/
 
 func okResponse() []byte {
 	dispatch := command.Dispatch{

@@ -81,7 +81,7 @@ func TestServerHttpDeadlineNotSet(t *testing.T) {
 	defer os.Setenv("DEADLINE_HTTP", backup)
 	deadlineHTTP = -1 // remove cache
 
-	ctx, cancel := setDeadlineHTTP(ctx)
+	_, cancel := setDeadlineHTTP(ctx)
 	defer cancel()
 
 	ms := deadlineHTTP.Milliseconds()

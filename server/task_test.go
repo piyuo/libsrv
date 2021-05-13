@@ -25,7 +25,7 @@ func TestServerTaskHandlerOK(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	taskID, err := gtask.New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "TaskHandlerOK", 1800, 3)
+	taskID, err := gtask.New(ctx, "task", "http://not-exists", []byte{}, "TaskHandlerOK", 1800, 3)
 	assert.Nil(err)
 
 	req, _ := http.NewRequest("GET", "/?TaskID="+taskID, nil)
@@ -47,7 +47,7 @@ func TestServerTaskHandlerInProgress(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	setDeadlineTask(ctx)
-	taskID, err := gtask.New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "TaskHandlerInProgress", 1800, 3)
+	taskID, err := gtask.New(ctx, "task", "http://not-exists.com", []byte{}, "TaskHandlerInProgress", 1800, 3)
 	assert.Nil(err)
 	err = gtask.Lock(ctx, taskID)
 	assert.Nil(err)
@@ -67,7 +67,7 @@ func TestServerTaskHandlerReturnError(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	taskID, err := gtask.New(ctx, "task", "http://it-is-not-exist.com", []byte{}, "TaskHandlerInProgress", 1800, 3)
+	taskID, err := gtask.New(ctx, "task", "http://not-exists.com", []byte{}, "TaskHandlerInProgress", 1800, 3)
 	assert.Nil(err)
 	defer gtask.Delete(ctx, taskID)
 
@@ -136,7 +136,7 @@ func TestServerTaskDeadlineNotSet(t *testing.T) {
 	defer os.Setenv("DEADLINE_TASK", backup)
 	deadlineTask = -1 // remove cache
 
-	ctx, cancel := setDeadlineTask(ctx)
+	_, cancel := setDeadlineTask(ctx)
 	defer cancel()
 
 	ms := deadlineTask.Milliseconds()

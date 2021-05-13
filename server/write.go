@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-// commandDateline cache os env COMMAND_SLOW value
+// commandSlow cache os env COMMAND_SLOW value
 //
-var commandSlow int = -1
+//var commandSlow int = -1
 
 // WriteBinary to response
 //

@@ -18,40 +18,30 @@ import (
 
 const defaultLocationID = "us-central1"
 
-// testMode is true should return success, false return error, otherwise behave normal
+// Mock define key test flag
 //
-var testMode *bool
+type Mock int8
 
-// TestModeAlwaySuccess will let every function success
-//
-func TestModeAlwaySuccess() {
-	t := true
-	testMode = &t
-}
+const (
+	// MockNoError let function return nil
+	//
+	MockNoError Mock = iota
 
-// TestModeAlwayFail will let every function fail
-//
-func TestModeAlwayFail() {
-	f := false
-	testMode = &f
-}
-
-// TestModeBackNormal stop test mode and back to normal
-//
-func TestModeBackNormal() {
-	testMode = nil
-}
+	// MockError let function error
+	//
+	MockError
+)
 
 // New task in us-central1, if scheduleTime is nil mean now, default deadline is 10 mins. return task id if success
 //
 //	taskID, err = New(ctx,"my-queue", url,body,"my-task", 1800, 3)
 //
 func New(ctx context.Context, queueID, url string, body []byte, name string, duration, maxRetry int) (string, error) {
-	if testMode != nil {
-		if *testMode {
-			return "task id", nil
-		}
-		return "", errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return "", nil
+	}
+	if ctx.Value(MockError) != nil {
+		return "", errors.New("")
 	}
 
 	//gcloud won't allow context deadline over 30 seconds
@@ -127,11 +117,11 @@ func New(ctx context.Context, queueID, url string, body []byte, name string, dur
 //	ok, err := Lock(ctx, "task id")
 //
 func Lock(ctx context.Context, taskID string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	cred, err := gaccount.GlobalCredential(ctx)
@@ -172,11 +162,11 @@ func Lock(ctx context.Context, taskID string) error {
 //	err := Delete(ctx, "task id")
 //
 func Delete(ctx context.Context, taskID string) error {
-	if testMode != nil {
-		if *testMode {
-			return nil
-		}
-		return errors.New("fail")
+	if ctx.Value(MockNoError) != nil {
+		return nil
+	}
+	if ctx.Value(MockError) != nil {
+		return errors.New("")
 	}
 
 	cred, err := gaccount.GlobalCredential(ctx)

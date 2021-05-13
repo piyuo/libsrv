@@ -73,7 +73,7 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	defer os.Setenv("DEADLINE_CMD", backup)
 	deadlineCMD = -1 // remove cache
 
-	ctx, cancel := setDeadlineCommand(ctx)
+	_, cancel := setDeadlineCommand(ctx)
 	defer cancel()
 
 	ms := deadlineCMD.Milliseconds()

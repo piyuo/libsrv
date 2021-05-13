@@ -7,6 +7,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMock(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
+	ctx := context.WithValue(context.Background(), MockNoError, "")
+	_, err := New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
+	assert.Nil(err)
+	err = Lock(ctx, "")
+	assert.Nil(err)
+	err = Delete(ctx, "")
+	assert.Nil(err)
+
+	ctx = context.WithValue(context.Background(), MockError, "")
+	_, err = New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
+	assert.NotNil(err)
+	err = Lock(ctx, "")
+	assert.NotNil(err)
+	err = Delete(ctx, "")
+	assert.NotNil(err)
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -18,22 +39,12 @@ func TestNew(t *testing.T) {
 
 	client := sampleClient()
 	taskObj, err := client.Get(ctx, &Task{}, taskID)
+	defer client.Delete(ctx, taskObj)
 	assert.Nil(err)
 	task := taskObj.(*Task)
 	assert.Equal(3, task.MaxRetry)
 	assert.True(task.LockTime.IsZero())
 	assert.Equal(0, task.Retry)
-	defer client.Delete(ctx, task)
-
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
-	_, err = New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
-	assert.Nil(err)
-
-	TestModeAlwayFail()
-	_, err = New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
-	assert.NotNil(err)
-
 }
 
 func TestLock(t *testing.T) {
@@ -58,15 +69,6 @@ func TestLock(t *testing.T) {
 	// lock again
 	err = Lock(ctx, taskID)
 	assert.NotNil(err)
-
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
-	err = Lock(ctx, taskID)
-	assert.Nil(err)
-
-	TestModeAlwayFail()
-	err = Lock(ctx, taskID)
-	assert.NotNil(err)
 }
 
 func TestDelete(t *testing.T) {
@@ -87,13 +89,4 @@ func TestDelete(t *testing.T) {
 	found, err = client.Exists(ctx, &Task{}, taskID)
 	assert.Nil(err)
 	assert.False(found)
-
-	defer TestModeBackNormal()
-	TestModeAlwaySuccess()
-	err = Delete(ctx, taskID)
-	assert.Nil(err)
-
-	TestModeAlwayFail()
-	err = Delete(ctx, taskID)
-	assert.NotNil(err)
 }
