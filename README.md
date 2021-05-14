@@ -28,6 +28,7 @@ git clone git@github.com:piyuo/libsrv.git
 unit test using go test
 
 ```bash
+go clean -testcache
 go test ./... -parallel 16
 ```
 

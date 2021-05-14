@@ -87,8 +87,6 @@ func Find(name string) (string, bool) {
 		//dir not exist, go up
 		dir = path.Join(dir, "../")
 	}
-
-	filepath = path.Join(curdir, name)
 	fmt.Printf("%v not found in %v or parent dir", name, curdir)
 	return "", false
 }
