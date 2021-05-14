@@ -9,6 +9,7 @@ var Regions = map[string]string{
 }
 
 const (
+	DomainName       = "piyuo.com"
 	MasterProject    = "piyuo-master"
 	TestProject      = "piyuo-master-test"
 	TestAccount      = "piyuo-master-test@piyuo-master-test.iam.gserviceaccount.com"
