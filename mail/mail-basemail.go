@@ -95,7 +95,7 @@ func (c *BaseMail) GetFrom() (string, string) {
 
 // SetFrom set from email address
 //
-//	mail.SetFrom("service","service@piyuo.com")
+//	mail.SetFrom("service","service@somedomain.com")
 //
 func (c *BaseMail) SetFrom(name, address string) *BaseMail {
 	c.FromName = name
@@ -150,7 +150,7 @@ func (c *BaseMail) GetTo() []*Email {
 
 // AddTo add email to
 //
-//	mail.AddTo("user","user@piyuo.com")
+//	mail.AddTo("user","user@somedomain.com")
 //
 func (c *BaseMail) AddTo(emailName, emailAddress string) *BaseMail {
 	if c.To == nil {

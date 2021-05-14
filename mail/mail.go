@@ -91,7 +91,7 @@ type Mail interface {
 
 	// SetFrom set from email address
 	//
-	//	mail.SetFrom("service","service@piyuo.com")
+	//	mail.SetFrom("service","service@somedomain.com")
 	//
 	SetFrom(emailName, emailAddress string) *BaseMail
 

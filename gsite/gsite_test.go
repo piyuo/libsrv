@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	cloudflare "github.com/piyuo/libsrv/cloudflare"
+	"github.com/piyuo/libsrv/google"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestVerification(t *testing.T) {
 	ctx := context.Background()
 	siteverify, err := NewSiteVerify(ctx)
 	assert.Nil(err)
-	domainName := "mock-site-verify.piyuo.com"
+	domainName := "mock-site-verify." + google.MyDomain
 
 	//clean before test
 	cloudflare.RemoveTXT(ctx, domainName)

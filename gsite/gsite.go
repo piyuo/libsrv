@@ -28,7 +28,7 @@ type SiteVerify interface {
 	//
 	//	ctx := context.Background()
 	//	siteverify, err := NewSiteVerify(ctx)
-	//	domainName := "mock-site-verify.piyuo.com"
+	//	domainName := "mock-site-verify.somedomain.com"
 	//	token, err := siteverify.GetToken(ctx, domainName)
 	//
 	GetToken(ctx context.Context, domainName string) (string, error)
@@ -37,7 +37,7 @@ type SiteVerify interface {
 	//
 	//	ctx := context.Background()
 	//	siteverify, err := NewSiteVerify(ctx)
-	//	domainName := "mock-site-verify.piyuo.com"
+	//	domainName := "mock-site-verify.somedomain.com"
 	//	result, err := siteverify.Verify(ctx, domainName)
 	//	So(err, ShouldBeNil)
 	//	So(result, ShouldBeTrue)
@@ -48,7 +48,7 @@ type SiteVerify interface {
 	//
 	//	ctx := context.Background()
 	//	siteverify, err := NewSiteVerify(ctx)
-	//	domainName := "mock-site-verify.piyuo.com"
+	//	domainName := "mock-site-verify.somedomain.com"
 	//	token, err := siteverify.GetToken(ctx, domainName)
 	//
 	List(ctx context.Context) ([]*VerifiedSite, error)
@@ -57,7 +57,7 @@ type SiteVerify interface {
 	//
 	//	ctx := context.Background()
 	//	siteverify, err := NewSiteVerify(ctx)
-	//	domainName := "mock-site-verify.piyuo.com"
+	//	domainName := "mock-site-verify.somedomain.com"
 	//	token, err := siteverify.GetToken(ctx, domainName)
 	//
 	//Delete(ctx context.Context, siteID string) error
@@ -109,7 +109,7 @@ func NewSiteVerify(ctx context.Context) (SiteVerify, error) {
 //
 //	ctx := context.Background()
 //	siteverify, err := NewSiteVerify(ctx)
-//	domainName := "mock-site-verify.piyuo.com"
+//	domainName := "mock-site-verify.somedomain.com"
 //	token, err := siteverify.GetToken(ctx, domainName)
 //
 func (impl *Impl) GetToken(ctx context.Context, domainName string) (string, error) {
@@ -117,7 +117,7 @@ func (impl *Impl) GetToken(ctx context.Context, domainName string) (string, erro
 	request := &siteverification.SiteVerificationWebResourceGettokenRequest{
 		VerificationMethod: "DNS_TXT",
 		Site: &siteverification.SiteVerificationWebResourceGettokenRequestSite{
-			Identifier: domainName, //"mock-verify-site.master.piyuo.com"
+			Identifier: domainName, //"mock-verify-site.master.somedomain.com"
 			Type:       "INET_DOMAIN",
 		},
 	}
@@ -138,7 +138,7 @@ func (impl *Impl) GetToken(ctx context.Context, domainName string) (string, erro
 //
 //	ctx := context.Background()
 //	siteverify, err := NewSiteVerify(ctx)
-//	domainName := "mock-site-verify.piyuo.com"
+//	domainName := "mock-site-verify.somedomain.com"
 //	result, err := siteverify.Verify(ctx, domainName)
 //	So(err, ShouldBeNil)
 //	So(result, ShouldBeTrue)
@@ -174,7 +174,7 @@ func (impl *Impl) Verify(ctx context.Context, domainName string) (bool, error) {
 //
 //	ctx := context.Background()
 //	siteverify, err := NewSiteVerify(ctx)
-//	domainName := "mock-site-verify.piyuo.com"
+//	domainName := "mock-site-verify.somedomain.com"
 //	result, err := siteverify.Verify(ctx, domainName)
 //	So(err, ShouldBeNil)
 //	So(result, ShouldBeTrue)
@@ -206,7 +206,7 @@ func (impl *Impl) List(ctx context.Context) ([]*VerifiedSite, error) {
 //
 //	ctx := context.Background()
 //	siteverify, err := NewSiteVerify(ctx)
-//	domainName := "mock-site-verify.piyuo.com"
+//	domainName := "mock-site-verify.somedomain.com"
 //	result, err := siteverify.Verify(ctx, domainName)
 //	So(err, ShouldBeNil)
 //	So(result, ShouldBeTrue)

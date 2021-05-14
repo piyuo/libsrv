@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/piyuo/libsrv/google"
 	"github.com/piyuo/libsrv/identifier"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,7 +33,7 @@ func TestGetDNSRecordID(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 
-	id, err := getDNSRecordID(ctx, "piyuo.com", "CNAME", "")
+	id, err := getDNSRecordID(ctx, google.MyDomain, "CNAME", "")
 	assert.Nil(err)
 	assert.NotEmpty(id)
 }
@@ -42,7 +43,7 @@ func TestCNAME(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
 	subDomain := "test-cname-" + identifier.RandomNumber(6)
-	domainName := subDomain + ".piyuo.com"
+	domainName := subDomain + "." + google.MyDomain
 
 	//remove sample domain
 	DeleteCNAME(ctx, domainName)
@@ -129,7 +130,7 @@ func TestTxtRecord(t *testing.T) {
 
 	ctx := context.Background()
 	subDomain := "txt-record-" + identifier.NotIdenticalRandomNumber(6)
-	domainName := subDomain + ".piyuo.com"
+	domainName := subDomain + google.MyDomain
 	txt := "hi"
 	//remove sample record
 	RemoveTXT(ctx, domainName)
@@ -166,7 +167,7 @@ func TestTxtRecordMock(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	subDomain := "txt-record-mock-" + identifier.NotIdenticalRandomNumber(6)
-	domainName := subDomain + ".piyuo.com"
+	domainName := subDomain + google.MyDomain
 	txt := "hi"
 
 	ctx := context.WithValue(context.Background(), MockNoError, "")

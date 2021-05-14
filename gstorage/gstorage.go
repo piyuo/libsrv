@@ -26,7 +26,7 @@ type Gstorage interface {
 	// CreateBucket add cloud storage bucket
 	//
 	//	storage, err := New(ctx)
-	//	err = storage.CreateBucket(ctx, "my.piyuo.com")
+	//	err = storage.CreateBucket(ctx, "my.somedomain.com")
 	//
 	CreateBucket(ctx context.Context, bucketName string) error
 
@@ -184,7 +184,7 @@ func New(ctx context.Context, cred *google.Credentials) (Gstorage, error) {
 // CreateBucket add cloud storage bucket
 //
 //	storage, err := New(ctx)
-//	err = storage.CreateBucket(ctx, "my.piyuo.com")
+//	err = storage.CreateBucket(ctx, "my.somedomain.com")
 //
 func (impl *Implementation) CreateBucket(ctx context.Context, bucketName string) error {
 	if ctx.Value(MockNoError) != nil {
