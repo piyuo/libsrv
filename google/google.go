@@ -9,7 +9,10 @@ var Regions = map[string]string{
 }
 
 const (
-	MasterProject = "piyuo-master"
-	TestProject   = "piyuo-master-test"
-	StableProject = "piyuo-stable"
+	MasterProject    = "piyuo-master"
+	TestProject      = "piyuo-master-test"
+	TestEmail        = "piyuo-master@gmail.com"
+	StableProject    = "piyuo-stable"
+	DefaultTaskQueue = "task"
+	DefaultRegion    = "us-central1"
 )

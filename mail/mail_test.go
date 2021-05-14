@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/env"
+	"github.com/piyuo/libsrv/google"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -80,7 +81,7 @@ func TestSendMail(t *testing.T) {
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	mail, err := NewMail(ctx, "mock-mail")
 	assert.Nil(err)
-	mail.AddTo("piyuo.master", "piyuo.master@gmail.com")
+	mail.AddTo(google.TestProject, google.TestEmail)
 	mail.ReplaceText("%1", "1234")
 	mail.ReplaceHTML("%1", "1234")
 	err = mail.Send(ctx)
@@ -95,7 +96,7 @@ func TestMock(t *testing.T) {
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
 	mail, err := NewMail(ctx, "mock-mail")
 	assert.Nil(err)
-	mail.AddTo("piyuo.master", "piyuo.master@gmail.com")
+	mail.AddTo(google.TestProject, google.TestEmail)
 	mail.ReplaceText("%1", "1234")
 
 	ctx = context.WithValue(context.Background(), MockNoError, "")
@@ -110,6 +111,6 @@ func TestMock(t *testing.T) {
 	LastMail = nil
 	mail.Send(ctx)
 	assert.NotNil(LastMail)
-	assert.Equal("piyuo.master", LastMail.GetTo()[0].Name)
-	assert.Equal("piyuo.master@gmail.com", LastMail.GetTo()[0].Address)
+	assert.Equal(google.TestProject, LastMail.GetTo()[0].Name)
+	assert.Equal(google.TestEmail, LastMail.GetTo()[0].Address)
 }
