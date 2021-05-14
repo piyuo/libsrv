@@ -9,7 +9,7 @@ var Regions = map[string]string{
 }
 
 const (
-	DomainName       = "piyuo.com"
+	MyDomain         = "piyuo.com"
 	MasterBranch     = "master"
 	MasterProject    = "piyuo-master"
 	TestBranch       = "test"
