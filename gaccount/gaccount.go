@@ -168,3 +168,20 @@ func CredentialFromFile(ctx context.Context, jsonFile string) (*google.Credentia
 	}
 	return cred, nil
 }
+
+// AccountProjectFromFile return account and project from key file
+//
+//	account, project, err := AccountProjectFromFile(ctx,jsonFile)
+//
+func AccountProjectFromFile(ctx context.Context, jsonFile string) (string, string, error) {
+
+	if ctx.Err() != nil {
+		return "", "", ctx.Err()
+	}
+
+	j, err := file.ReadJSON(jsonFile)
+	if err != nil {
+		return "", "", errors.Wrapf(err, "get json file %v", jsonFile)
+	}
+	return j["client_email"].(string), j["project_id"].(string), nil
+}

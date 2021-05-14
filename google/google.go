@@ -11,6 +11,7 @@ var Regions = map[string]string{
 const (
 	MasterProject    = "piyuo-master"
 	TestProject      = "piyuo-master-test"
+	TestAccount      = "piyuo-master-test@piyuo-master-test.iam.gserviceaccount.com"
 	TestEmail        = "piyuo-master@gmail.com"
 	StableProject    = "piyuo-stable"
 	DefaultTaskQueue = "task"

@@ -116,7 +116,23 @@ func TestCredentialFromFile(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	assert := assert.New(t)
-	cred, err := CredentialFromFile(ctx, "notExists")
+	keyPath := "../../keys/gcloud-test.json"
+	cred, err := CredentialFromFile(ctx, keyPath)
+	assert.Nil(err)
+	assert.NotNil(cred)
+
+	cred, err = CredentialFromFile(ctx, "notExists")
 	assert.NotNil(err)
 	assert.Nil(cred)
+}
+
+func TestAccountProjectFromFile(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	assert := assert.New(t)
+	keyPath := "../../keys/gcloud-test.json"
+	account, project, err := AccountProjectFromFile(ctx, keyPath)
+	assert.Nil(err)
+	assert.NotEmpty(account)
+	assert.NotEmpty(project)
 }
