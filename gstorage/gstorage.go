@@ -443,7 +443,7 @@ func (impl *Implementation) ReadJSON(ctx context.Context, bucketName, path strin
 		return map[string]interface{}{}, nil
 	}
 	if ctx.Value(MockError) != nil {
-		return map[string]interface{}{}, errors.New("")
+		return nil, errors.New("")
 	}
 
 	var control map[string]interface{}
@@ -466,7 +466,7 @@ func (impl *Implementation) ListFiles(ctx context.Context, bucketName, prefix, d
 		return []string{}, nil
 	}
 	if ctx.Value(MockError) != nil {
-		return []string{}, errors.New("")
+		return nil, errors.New("")
 	}
 
 	files := []string{}
@@ -562,7 +562,7 @@ func (impl *Implementation) CleanBucket(ctx context.Context, bucketName string) 
 		if err != nil {
 			return err
 		}
-		if result == true {
+		if result {
 			return nil
 		}
 	}
