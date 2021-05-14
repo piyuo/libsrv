@@ -130,7 +130,7 @@ func TestTxtRecord(t *testing.T) {
 
 	ctx := context.Background()
 	subDomain := "txt-record-" + identifier.NotIdenticalRandomNumber(6)
-	domainName := subDomain + google.MyDomain
+	domainName := subDomain + "." + google.MyDomain
 	txt := "hi"
 	//remove sample record
 	RemoveTXT(ctx, domainName)
