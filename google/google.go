@@ -9,11 +9,14 @@ var Regions = map[string]string{
 }
 
 const (
+	MasterBranch     = "master"
 	DomainName       = "piyuo.com"
 	MasterProject    = "piyuo-master"
+	TestBranch       = "test"
 	TestProject      = "piyuo-master-test"
 	TestAccount      = "piyuo-master-test@piyuo-master-test.iam.gserviceaccount.com"
 	TestEmail        = "piyuo-master@gmail.com"
+	StableBranch     = "stable"
 	StableProject    = "piyuo-stable"
 	DefaultTaskQueue = "task"
 	DefaultRegion    = "us-central1"
