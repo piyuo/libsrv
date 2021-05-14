@@ -4,15 +4,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/piyuo/libsrv/google"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFile(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	keyPath := "../../keys/gcloud.json"
+	keyPath := "../../keys/gcloud-test.json"
 	//should have bytes
-	bytes, err := Read("../../keys/gcloud.json")
+	bytes, err := Read("../../keys/gcloud-test.json")
 	assert.Nil(err)
 	assert.Greater(len(bytes), 0)
 	//should not have bytes
@@ -30,7 +31,7 @@ func TestFile(t *testing.T) {
 	//should have json
 	json, err := ReadJSON(keyPath)
 	assert.Nil(err)
-	assert.Equal("piyuo-beta", json["project_id"])
+	assert.Equal(google.TestProject, json["project_id"])
 	//should not have json
 	json, err = ReadJSON("not exist")
 	assert.NotNil(err)

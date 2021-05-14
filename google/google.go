@@ -7,3 +7,9 @@ var Regions = map[string]string{
 	"jp": "asia-northeast1",
 	"be": "europe-west1",
 }
+
+const (
+	MasterProject = "piyuo-master"
+	TestProject   = "piyuo-master-test"
+	StableProject = "piyuo-stable"
+)
