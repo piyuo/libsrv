@@ -14,7 +14,7 @@ import (
 //
 var history *strings.Builder
 
-// forceStopLog is true will no log anything
+// forceStopLog is true will not log anything
 //
 var forceStopLog = false
 

@@ -31,6 +31,16 @@ const (
 //
 var LastMail Mail
 
+// forceStopSend is true will stop send email
+//
+var forceStopSend = false
+
+// ForceStopSend set to true will stop send email
+//
+func ForceStopSend(value bool) {
+	forceStopSend = value
+}
+
 type template struct {
 	subject string
 
