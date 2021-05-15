@@ -9,6 +9,7 @@ var Regions = map[string]string{
 }
 
 const (
+	MyGithub         = "git@github.com:piyuo"
 	MyDomain         = "piyuo.com"
 	MasterBranch     = "master"
 	MasterProject    = "piyuo-master"
