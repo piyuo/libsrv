@@ -39,7 +39,7 @@ func newSendgridMail(t *template) (Mail, error) {
 //	err := mail.Send(ctx)
 //
 func (c *SendgridMail) Send(ctx context.Context) error {
-	if ctx.Value(KeepMail) != nil {
+	if forceStopSend || ctx.Value(KeepMail) != nil {
 		LastMail = c
 	}
 	if forceStopSend || ctx.Value(MockNoError) != nil {
