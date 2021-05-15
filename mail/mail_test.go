@@ -99,7 +99,7 @@ func TestMock(t *testing.T) {
 	mail.AddTo(google.TestProject, google.TestEmail)
 	mail.ReplaceText("%1", "1234")
 
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	err = mail.Send(ctx)
 	assert.Nil(err)
 

@@ -23,9 +23,9 @@ const defaultLocationID = "us-central1"
 type Mock int8
 
 const (
-	// MockNoError let function return nil
+	// MockSuccess let function return nil
 	//
-	MockNoError Mock = iota
+	MockSuccess Mock = iota
 
 	// MockError let function error
 	//
@@ -37,7 +37,7 @@ const (
 //	taskID, err = New(ctx,"my-queue", url,body,"my-task", 1800, 3)
 //
 func New(ctx context.Context, queueID, url string, body []byte, name string, duration, maxRetry int) (string, error) {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return "", nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -117,7 +117,7 @@ func New(ctx context.Context, queueID, url string, body []byte, name string, dur
 //	ok, err := Lock(ctx, "task id")
 //
 func Lock(ctx context.Context, taskID string) error {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -162,7 +162,7 @@ func Lock(ctx context.Context, taskID string) error {
 //	err := Delete(ctx, "task id")
 //
 func Delete(ctx context.Context, taskID string) error {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return nil
 	}
 	if ctx.Value(MockError) != nil {

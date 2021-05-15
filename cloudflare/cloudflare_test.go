@@ -99,7 +99,7 @@ func TestCNAMEMock(t *testing.T) {
 	assert := assert.New(t)
 	domainName := "cname-mock.b.c"
 
-	ctx := context.WithValue(context.Background(), MockNoError, "")
+	ctx := context.WithValue(context.Background(), MockSuccess, "")
 	err := CreateCNAME(ctx, domainName, "ghs.googlehosted.com", false)
 	assert.Nil(err)
 
@@ -113,7 +113,7 @@ func TestCNAMEMock(t *testing.T) {
 	err = DeleteCNAME(ctx, domainName)
 	assert.NotNil(err)
 
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	found, err := IsCNAMEExists(ctx, domainName)
 	assert.Nil(err)
 	assert.True(found)
@@ -170,7 +170,7 @@ func TestTxtRecordMock(t *testing.T) {
 	domainName := subDomain + google.MyDomain
 	txt := "hi"
 
-	ctx := context.WithValue(context.Background(), MockNoError, "")
+	ctx := context.WithValue(context.Background(), MockSuccess, "")
 	err := CreateTXT(ctx, domainName, txt)
 	assert.Nil(err)
 	err = RemoveTXT(ctx, domainName)

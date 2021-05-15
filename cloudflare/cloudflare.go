@@ -20,9 +20,9 @@ import (
 type Mock int8
 
 const (
-	// MockNoError let function return nil
+	// MockSuccess let function return nil
 	//
-	MockNoError Mock = iota
+	MockSuccess Mock = iota
 
 	// MockError let function error
 	//
@@ -140,7 +140,7 @@ func CreateStorageCNAME(ctx context.Context, domainName string) error {
 //	err = AddCNAME(ctx, "my.somedomain.com", false)
 //
 func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) error {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -168,7 +168,7 @@ func CreateCNAME(ctx context.Context, domainName, target string, proxied bool) e
 //	err = DeleteCNAME(ctx, "my.somedomain.com")
 //
 func DeleteCNAME(ctx context.Context, domainName string) error {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -197,7 +197,7 @@ func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 	if ctx.Value(MockCnameNotExists) != nil {
 		return false, nil
 	}
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return true, nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -216,7 +216,7 @@ func IsCNAMEExists(ctx context.Context, domainName string) (bool, error) {
 //	err = cflare.CreateTXT(ctx, "my.somedomain.com", txt)
 //
 func CreateTXT(ctx context.Context, domainName, txt string) error {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -239,7 +239,7 @@ func CreateTXT(ctx context.Context, domainName, txt string) error {
 //	err = RemoveTXT(ctx, "my.somedomain.com", txt)
 //
 func RemoveTXT(ctx context.Context, domainName string) error {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return nil
 	}
 	if ctx.Value(MockError) != nil {
@@ -265,7 +265,7 @@ func RemoveTXT(ctx context.Context, domainName string) error {
 //	exist, err = IsTXTExists(ctx, "my.somedomain.com", txt)
 //
 func IsTXTExists(ctx context.Context, domainName string) (bool, error) {
-	if ctx.Value(MockNoError) != nil {
+	if ctx.Value(MockSuccess) != nil {
 		return true, nil
 	}
 	if ctx.Value(MockError) != nil {

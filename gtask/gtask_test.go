@@ -11,7 +11,7 @@ func TestMock(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 
-	ctx := context.WithValue(context.Background(), MockNoError, "")
+	ctx := context.WithValue(context.Background(), MockSuccess, "")
 	_, err := New(ctx, "task", "http://not-exists", []byte{}, "my-task", 1800, 3)
 	assert.Nil(err)
 	err = Lock(ctx, "")

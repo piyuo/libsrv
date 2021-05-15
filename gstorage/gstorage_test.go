@@ -58,7 +58,7 @@ func TestBucket(t *testing.T) {
 	assert.False(exist)
 
 	// mock no error
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	err = storage.CreateBucket(ctx, bucketName)
 	assert.Nil(err)
 	exist, err = storage.IsBucketExists(ctx, bucketName)
@@ -160,7 +160,7 @@ func TestRW(t *testing.T) {
 	assert.Equal(len(files), 1)
 
 	// mock no error
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	_, err = storage.IsFileExists(ctx, bucketName, filename)
 	assert.Nil(err)
 	_, err = storage.ReadText(ctx, bucketName, filename)
@@ -237,7 +237,7 @@ func TestDelete(t *testing.T) {
 	assert.True(found)
 
 	// mock no error
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	err = storage.DeleteFiles(ctx, bucketName, "a/b")
 	assert.Nil(err)
 
@@ -272,7 +272,7 @@ func TestCleanBucket(t *testing.T) {
 	assert.Nil(err)
 
 	// mock no error
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	err = storage.CleanBucket(ctx, bucketName)
 	assert.Nil(err)
 
@@ -316,7 +316,7 @@ func TestSyncDir(t *testing.T) {
 	assert.Equal("c.txt", list[2])
 
 	// mock no error
-	ctx = context.WithValue(context.Background(), MockNoError, "")
+	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	err = storage.Sync(ctx, bucketName, shouldDeleteFile)
 	assert.Nil(err)
 

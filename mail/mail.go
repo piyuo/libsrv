@@ -14,9 +14,9 @@ import (
 type Mock int8
 
 const (
-	// MockNoError let function return nil
+	// MockSuccess let function return nil
 	//
-	MockNoError Mock = iota
+	MockSuccess Mock = iota
 
 	// MockError let function error
 	//
