@@ -4,8 +4,8 @@ import (
 	"errors"
 	"path"
 
-	cache "github.com/piyuo/libsrv/cache"
-	file "github.com/piyuo/libsrv/file"
+	"github.com/piyuo/libsrv/cache"
+	"github.com/piyuo/libsrv/file"
 )
 
 // Text return key text content, return key content wil be cache to reuse in the future
