@@ -22,3 +22,15 @@ func TestTime(t *testing.T) {
 	_, err = FromString("wrongformat")
 	assert.NotNil(err)
 }
+
+func TestUTC(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
+	time1 := UTCNow()
+	time.Sleep(2 * time.Millisecond)
+	assert.True(time1.Before(time.Now().UTC()))
+
+	str := UTCNowString()
+	assert.NotEmpty(str)
+}

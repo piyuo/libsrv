@@ -6,6 +6,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+// UTCNow return utc time now
+//
+func UTCNow() time.Time {
+	return time.Now().UTC()
+}
+
+// UTCNow return utc time now in string
+//
+func UTCNowString() string {
+	return UTCNow().Format(time.RFC3339)
+}
+
 // ToString convert time to string
 //
 func ToString(t time.Time) string {
