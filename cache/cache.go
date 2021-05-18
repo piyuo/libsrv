@@ -114,19 +114,19 @@ func GetInt64(key string) (bool, int64, error) {
 	return true, i, nil
 }
 
-// Del delete entry from cache
+// Delete delete entry from cache
 //
-//	Del("key1")
+//	Delete("key1")
 //
-func Del(key string) {
+func Delete(key string) {
 	cache.Del([]byte(key))
 }
 
-// IDel delete entry from cache
+// IDelete delete entry from cache
 //
-//	IDel(123)
+//	IDelete(123)
 //
-func IDel(key int64) {
+func IDelete(key int64) {
 	cache.DelInt(key)
 }
 
