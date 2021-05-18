@@ -32,6 +32,16 @@ const (
 	KeyContextAccountID
 )
 
+// Mock define key test flag
+//
+type Mock int8
+
+const (
+	// MockIP provide mock ip 127.0.0.1 on GetIP()
+	//
+	MockIP Mock = iota
+)
+
 // GetRequest get current request from context
 //
 //	request := GetRequest(ctx)
@@ -57,6 +67,10 @@ func SetRequest(ctx context.Context, request *http.Request) context.Context {
 //	ip := GetIP(ctx)
 //
 func GetIP(ctx context.Context) string {
+	if ctx.Value(MockIP) != nil {
+		return "127.0.0.1"
+	}
+
 	value := ctx.Value(KeyContextRequest)
 	if value == nil {
 		return ""
