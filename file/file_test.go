@@ -38,7 +38,7 @@ func TestFile(t *testing.T) {
 	assert.Nil(json)
 }
 
-func TestFileReadWrite(t *testing.T) {
+func TestReadWrite(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	filename := "test.txt"
@@ -50,12 +50,13 @@ func TestFileReadWrite(t *testing.T) {
 	defer os.Remove(filename)
 }
 
-func TestFileFind(t *testing.T) {
+func TestLookup(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
-	dir, found := Find("assets")
+	dir, found := Lookup("assets")
 	assert.True(found)
 	assert.NotEmpty(dir)
-	dir, found = Find("not exist")
+	dir, found = Lookup("not exist")
 	assert.False(found)
 	assert.Empty(dir)
 }

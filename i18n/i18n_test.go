@@ -106,6 +106,10 @@ func TestResource(t *testing.T) {
 	json, err := Resource(ctx, "mock")
 	assert.Nil(err)
 	assert.Equal("world", json["hello"])
+	//get from cache
+	json, err = Resource(ctx, "mock")
+	assert.Nil(err)
+	assert.Equal("world", json["hello"])
 }
 
 func TestResourceNotFound(t *testing.T) {

@@ -2,6 +2,7 @@ package i18n
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sort"
 	"strconv"
@@ -123,21 +124,34 @@ func ResourcePath(ctx context.Context, name string) string {
 //	json, err := Resource(ctx, "notExist")
 //
 func Resource(ctx context.Context, name string) (map[string]interface{}, error) {
-	keyname := "I18N" + ResourceKey(ctx, name)
-	value, found := cache.Get(keyname)
+	keyname := "i" + ResourceKey(ctx, name)
+	found, bytes, err := cache.Get(keyname)
+	if err != nil {
+		return nil, errors.Wrap(err, "get cache "+keyname)
+	}
 	if found {
-		return value.(map[string]interface{}), nil
+		j := make(map[string]interface{})
+		if err := json.Unmarshal(bytes, &j); err != nil {
+			return nil, errors.Wrapf(err, "decode cache json %v", keyname)
+		}
+		return j, nil
 	}
 
-	filepath, found := file.Find(ResourcePath(ctx, name))
+	filepath, found := file.Lookup(ResourcePath(ctx, name))
 	if !found {
 		return nil, errors.New(ResourcePath(ctx, name) + " not found")
 	}
 
-	json, err := file.ReadJSON(filepath)
+	bytes, err = file.Read(filepath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "read json %v", filepath)
+		return nil, errors.Wrapf(err, "read bytes %v", filepath)
 	}
-	cache.Set(cache.MEDIUM, keyname, json)
-	return json, nil
+	if err := cache.Set(keyname, bytes, 0); err != nil {
+		return nil, errors.Wrap(err, "set cache "+keyname)
+	}
+	j := make(map[string]interface{})
+	if err := json.Unmarshal(bytes, &j); err != nil {
+		return nil, errors.Wrapf(err, "decode cache json %v", keyname)
+	}
+	return j, nil
 }

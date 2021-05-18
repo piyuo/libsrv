@@ -26,6 +26,7 @@ func TestSMS(t *testing.T) {
 }
 
 func TestSMSError(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	//test not exist template
 	sms, err := NewSMS("not exist", "en-US")
@@ -42,6 +43,7 @@ func TestSMSError(t *testing.T) {
 }
 
 func TestSendSMS(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	sms, err := NewSMS("verify", "en-US")
 	assert.Nil(err)
@@ -51,6 +53,7 @@ func TestSendSMS(t *testing.T) {
 }
 
 func TestE164(t *testing.T) {
+	t.Parallel()
 	assert := assert.New(t)
 	mobile, err := E164("9493017165", "US")
 	assert.Nil(err)

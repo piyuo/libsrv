@@ -1,178 +1,139 @@
 package cache
 
 import (
+	"encoding/binary"
 	"time"
 
-	goCache "github.com/patrickmn/go-cache"
+	"github.com/coocood/freecache"
 )
 
-// Frequency define cache item use frequency
-//
-type Frequency int
+// In bytes, where 1024 * 1024 represents a single Megabyte, and 20 * 1024*1024 represents 20 Megabytes.
+var cache = freecache.NewCache(20 * 1024 * 1024)
 
-const (
-	// LOW frequency only keep item in 3 min and cached item total count must less than 1000
-	//
-	LOW Frequency = iota
+// defaultDuration is 20 minutes
+const defaultDuration = 20 * time.Minute
 
-	// MEDIUM frequency Frequency keep item in 10 min and cached item total count must less than 2,000
-	//
-	MEDIUM
+// Set an entry to the cache, replacing any existing entry. If the duration is 0 (DefaultExpiration), the cache's default 20 minutes is used
+//
+//	err = Set("key1", []byte("hi"), 0)
+//
+func Set(key string, value []byte, d time.Duration) error {
+	if d == 0 {
+		d = defaultDuration
+	}
+	return cache.Set([]byte(key), value, int(d.Seconds()))
+}
 
-	// HIGH frequency Frequency will keep in cache 24 hour and total count must less than 2500
-	//
-	HIGH
-)
+// Set an entry to the cache, replacing any existing entry. If the duration is 0 (DefaultExpiration), the cache's default 20 minutes is used
+//
+//	err = SetString(123, "hi", 0)
+//
+func ISet(key int64, value []byte, d time.Duration) error {
+	if d == 0 {
+		d = defaultDuration
+	}
+	return cache.SetInt(key, value, int(d.Seconds()))
+}
 
-// cache a cache with a default expiration time of 5 minutes, and which purges expired items every 4 minutes
+// Get an entry from the cache. Returns the item or nil, and a bool indicating whether the key was found.
 //
-var cache = goCache.New(10*time.Minute, 3*time.Minute)
-
-// Set Add an item to the cache, replacing any existing item. you need specify frequency this item will be use,
+//	found, bytes, err := Get("key1")
 //
-// Low Frequency = cache 3 min, total limit 1,000
-//
-// Medium Frequency = cache 10 min, total limit 2,000
-//
-// High Frequency = cache 24 hour , total limit 2,500
-//
-func Set(freq Frequency, key string, value interface{}) {
-	var d time.Duration
-	switch freq {
-	case LOW:
-		d = 180 * time.Second
-		if Count() >= 1000 {
-			return
+func Get(key string) (bool, []byte, error) {
+	value, err := cache.Get([]byte(key))
+	if err != nil {
+		if err == freecache.ErrNotFound {
+			return false, nil, nil
 		}
-	case MEDIUM:
-		d = 600 * time.Second
-		if Count() >= 2000 {
-			return
+		return false, nil, err
+	}
+	return true, value, nil
+}
+
+// Get an entry from the cache. Returns the item or nil, and a bool indicating whether the key was found.
+//
+//	found, bytes, err := IGet(123)
+//
+func IGet(key int64) (bool, []byte, error) {
+	value, err := cache.GetInt(key)
+	if err != nil {
+		if err == freecache.ErrNotFound {
+			return false, nil, nil
 		}
-	default:
-		d = 24 * time.Hour
-		if Count() >= 2500 {
-			return
-		}
+		return false, nil, err
 	}
-	cache.Set(key, value, d)
+	return true, value, nil
 }
 
-// Increment a value in cache, set value if cache not exist
+// SetString set string entry to the cache, replacing any existing entry. If the duration is 0 (DefaultExpiration), the cache's default 20 minutes is used
 //
-//	Increment(LOW, key, 1)
+//	err := SetString(key, "hi", 0)
 //
-func Increment(freq Frequency, key string, value int) {
-	record, found := cache.Get(key)
+func SetString(key, value string, d time.Duration) error {
+	return Set(key, []byte(value), d)
+}
+
+// GetString return an string from the cache. Returns the item or nil, and a bool indicating whether the key was found.
+//
+//	found, str, err := GetString(key)
+//
+func GetString(key string) (bool, string, error) {
+	found, value, err := Get(key)
+	if err != nil {
+		return false, "", err
+	}
 	if !found {
-		Set(freq, key, value)
-		return
+		return false, "", nil
 	}
-	count := record.(int)
-	count = count + value
-	Set(freq, key, count)
+	return true, string(value), nil
 }
 
-func set(key string, value interface{}, duration time.Duration) {
-	cache.Set(key, value, duration)
-}
-
-// Get an item from the cache. Returns the item or nil, and a bool indicating whether the key was found.
+// SetInt64 set int64 entry to the cache, replacing any existing entry. If the duration is 0 (DefaultExpiration), the cache's default 20 minutes is used
 //
-func Get(key string) (interface{}, bool) {
-	return cache.Get(key)
+//	err := SetInt64(key, 65536, 0)
+//
+func SetInt64(key string, value int64, d time.Duration) error {
+	bytes := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bytes, uint64(value))
+	return Set(key, bytes, d)
 }
 
-// GetBool returns the bool and a bool indicating whether the key was found.
+// GetInt64 return an int64 from the cache. Returns the item or nil, and a bool indicating whether the key was found.
 //
-func GetBool(key string) (bool, bool) {
-	item, found := cache.Get(key)
+//	found, valueInt64, err := GetInt64(key)
+//
+func GetInt64(key string) (bool, int64, error) {
+	found, bytes, err := Get(key)
+	if err != nil {
+		return false, -1, err
+	}
 	if !found {
-		return false, false
+		return false, -1, nil
 	}
-	return item.(bool), found
+	i := int64(binary.LittleEndian.Uint64(bytes))
+	return true, i, nil
 }
 
-// GetInt returns the int and a bool indicating whether the key was found.
+// Del delete entry from cache
 //
-func GetInt(key string) (int, bool) {
-	item, found := cache.Get(key)
-	if !found {
-		return 0, false
-	}
-	return item.(int), found
+//	Del("key1")
+//
+func Del(key string) {
+	cache.Del([]byte(key))
 }
 
-// GetInt64 returns the int and a bool indicating whether the key was found.
+// IDel delete entry from cache
 //
-func GetInt64(key string) (int64, bool) {
-	item, found := cache.Get(key)
-	if !found {
-		return 0, false
-	}
-	return item.(int64), found
+//	IDel(123)
+//
+func IDel(key int64) {
+	cache.DelInt(key)
 }
 
-// GetUInt32 returns the uint32 and a bool indicating whether the key was found.
+// Count return cache entry total count
 //
-func GetUInt32(key string) (uint32, bool) {
-	item, found := cache.Get(key)
-	if !found {
-		return 0, false
-	}
-	return item.(uint32), found
-}
-
-// GetUInt64 returns the uint64 and a bool indicating whether the key was found.
+//	count := Count()
 //
-func GetUInt64(key string) (uint64, bool) {
-	item, found := cache.Get(key)
-	if !found {
-		return 0, false
-	}
-	return item.(uint64), found
-}
-
-// GetString returns the string or nil, and a bool indicating whether the key was found.
-//
-func GetString(key string) (string, bool) {
-	item, found := cache.Get(key)
-	if !found {
-		return "", false
-	}
-	return item.(string), found
-}
-
-// GetBytes returns the bytes or nil, and a bool indicating whether the key was found.
-//
-func GetBytes(key string) ([]byte, bool) {
-	item, found := cache.Get(key)
-	if !found {
-		return nil, false
-	}
-	return item.([]byte), found
-}
-
-// Reset clear entire cache
-//
-func Reset() {
-	cache.Flush()
-}
-
-// Delete delete item from cache
-//
-func Delete(key string) {
-	cache.Delete(key)
-}
-
-// configCache set new cache with a given default expiration duration and cleanup interval. If the expiration duration is less than one (or NoExpiration), the items in the cache never expire (by default), and must be deleted manually. If the cleanup interval is less than one, expired items are not deleted from the cache before calling c.DeleteExpired().
-//
-func configCache(defaultExpiration, cleanupInterval time.Duration) {
-	cache = goCache.New(defaultExpiration, cleanupInterval)
-}
-
-// Count return cache item total count
-//
-func Count() int {
-	return cache.ItemCount()
+func Count() int64 {
+	return cache.EntryCount()
 }

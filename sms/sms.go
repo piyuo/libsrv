@@ -100,13 +100,16 @@ func NewSMS(templateName, language string) (SMS, error) {
 //
 func getTemplate(templateName, language string) (string, error) {
 	filename := templateName + "_" + language + ".txt"
-	keyname := "SMS" + filename
-	value, found := cache.Get(keyname)
+	keyname := "sms" + filename
+	found, value, err := cache.GetString(keyname)
+	if err != nil {
+		return "", errors.Wrap(err, "get cache "+keyname)
+	}
 	if found {
-		return value.(string), nil
+		return value, nil
 	}
 
-	filepath, found := file.Find("assets/sms/" + filename)
+	filepath, found := file.Lookup("assets/sms/" + filename)
 	if !found {
 		return "", errors.New("SMS template " + filename + " not found")
 	}
@@ -115,7 +118,9 @@ func getTemplate(templateName, language string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cache.Set(cache.MEDIUM, keyname, txt)
+	if err := cache.SetString(keyname, txt, 0); err != nil {
+		return "", errors.Wrap(err, "set cache "+keyname)
+	}
 	return txt, nil
 }
 
