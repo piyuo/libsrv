@@ -31,8 +31,8 @@ func TestEncodeDecodeCommand(t *testing.T) {
 func TestBetterResponseName(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	errOK := OK().(*pb.OK)
-	result := betterResponseName(errOK.XXX_MapID(), errOK)
+	errOK := OK
+	result := betterResponseName(errOK.XXX_MapID(), OK)
 	assert.Equal("OK", result)
 
 	err := Error("failed").(*pb.Error)

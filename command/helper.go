@@ -4,17 +4,9 @@ import (
 	"github.com/piyuo/libsrv/command/pb"
 )
 
-// ok instace cause it use frequently
+// ok instace, it use frequently
 //
-var ok = &pb.OK{}
-
-// OK return PbOK
-//
-//	return command.OK(),nil
-//
-func OK() interface{} {
-	return ok
-}
+var OK = &pb.OK{}
 
 // Error return error response with code
 //
@@ -46,14 +38,28 @@ func IsError(obj interface{}, entered string) bool {
 	if obj == nil {
 		return false
 	}
-	switch obj.(type) {
+	switch obj := obj.(type) {
 	case *pb.Error:
-		e := obj.(*pb.Error)
-		if e.Code == entered {
+		if obj.Code == entered {
 			return true
 		}
 	}
 	return false
+}
+
+// GetErrorCode return error code if object is PbError otherwise return empty
+//
+//	code := command.GetErrorCode(response) // "INVALID_EMAIL"
+//
+func GetErrorCode(obj interface{}) string {
+	if obj == nil {
+		return ""
+	}
+	switch obj := obj.(type) {
+	case *pb.Error:
+		return obj.Code
+	}
+	return ""
 }
 
 // String return string response
@@ -74,10 +80,9 @@ func IsString(obj interface{}, entered string) bool {
 	if obj == nil {
 		return false
 	}
-	switch obj.(type) {
+	switch obj := obj.(type) {
 	case *pb.String:
-		s := obj.(*pb.String)
-		if s.Value == entered {
+		if obj.Value == entered {
 			return true
 		}
 	}
@@ -102,10 +107,9 @@ func IsInt(obj interface{}, entered int32) bool {
 	if obj == nil {
 		return false
 	}
-	switch obj.(type) {
+	switch obj := obj.(type) {
 	case *pb.Number:
-		s := obj.(*pb.Number)
-		if s.Value == entered {
+		if obj.Value == entered {
 			return true
 		}
 	}
@@ -130,10 +134,9 @@ func IsBool(obj interface{}, entered bool) bool {
 	if obj == nil {
 		return false
 	}
-	switch obj.(type) {
+	switch obj := obj.(type) {
 	case *pb.Bool:
-		s := obj.(*pb.Bool)
-		if s.Value == entered {
+		if obj.Value == entered {
 			return true
 		}
 	}

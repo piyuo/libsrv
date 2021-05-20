@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPB(t *testing.T) {
+func TestHelper(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	//should create text response
@@ -28,8 +28,7 @@ func TestPB(t *testing.T) {
 	err := Error("errCode").(*pb.Error)
 	assert.Equal("errCode", err.Code)
 	//should be OK
-	ok := OK()
-	assert.True(IsOK(ok))
+	assert.True(IsOK(OK))
 
 	//should not be OK
 	assert.False(IsOK(1))
@@ -44,7 +43,15 @@ func TestPB(t *testing.T) {
 	assert.False(IsError(err2, "INVALID"))
 }
 
-func TestPbString(t *testing.T) {
+func TestGetErrorCode(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	err := Error("errCode").(*pb.Error)
+	assert.Equal("errCode", GetErrorCode(err))
+	assert.Equal("", GetErrorCode("notError"))
+}
+
+func TestString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsString(nil, ""))
@@ -52,7 +59,7 @@ func TestPbString(t *testing.T) {
 	assert.True(IsString(String("hi"), "hi"))
 }
 
-func TestPbInt(t *testing.T) {
+func TestInt(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsInt(nil, 1))
@@ -60,7 +67,7 @@ func TestPbInt(t *testing.T) {
 	assert.True(IsInt(Number(42), 42))
 }
 
-func TestPbBool(t *testing.T) {
+func TestBool(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsBool(nil, false))
