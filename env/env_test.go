@@ -37,7 +37,7 @@ func TestGetIPMock(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.WithValue(context.Background(), MockIP, "")
-	assert.Equal("::1", GetIP(ctx))
+	assert.Equal("127.0.0.1", GetIP(ctx))
 }
 
 func TestUserAgent(t *testing.T) {

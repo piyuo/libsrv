@@ -123,7 +123,7 @@ func okResponse() []byte {
 	dispatch := command.Dispatch{
 		Map: &pb.MapXXX{},
 	}
-	ok := command.OK().(*pb.OK)
+	ok := command.OK
 	bytes, _ := dispatch.EncodeCommand(ok.XXX_MapID(), ok)
 	return bytes
 }
