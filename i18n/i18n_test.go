@@ -85,7 +85,7 @@ func TestResourceKey(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	assert.Equal("name_zh_TW", ResourceKey(ctx, "name"))
+	assert.Equal("name_zh_TW.json", ResourceKey(ctx, "name", ".json"))
 }
 
 func TestResourcePath(t *testing.T) {
@@ -94,7 +94,7 @@ func TestResourcePath(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	assert.Equal("assets/i18n/name_zh_TW.json", ResourcePath(ctx, "name"))
+	assert.Equal("assets/i18n/name_zh_TW.json", ResourcePath(ctx, "name", ".json"))
 }
 
 func TestResource(t *testing.T) {
@@ -103,12 +103,24 @@ func TestResource(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	json, err := Resource(ctx, "mock")
+	json, err := Resource(ctx, "mock", ".json")
 	assert.Nil(err)
 	assert.Equal("world", json["hello"])
 	//get from cache
-	json, err = Resource(ctx, "mock")
+	json, err = Resource(ctx, "mock", ".json")
 	assert.Nil(err)
+	assert.Equal("world", json["hello"])
+}
+
+func TestResourceWithoutCache(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Add("Accept-Language", "en_US")
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
+	json, bytes, err := ResourceWithoutCache(ctx, "mock", ".json")
+	assert.Nil(err)
+	assert.NotNil(bytes)
 	assert.Equal("world", json["hello"])
 }
 
@@ -118,7 +130,7 @@ func TestResourceNotFound(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	json, err := Resource(ctx, "notExist")
+	json, err := Resource(ctx, "notExist", ".json")
 	assert.NotNil(err)
 	assert.Nil(json)
 }

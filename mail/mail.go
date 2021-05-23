@@ -9,6 +9,10 @@ import (
 	"github.com/piyuo/libsrv/mapping"
 )
 
+const (
+	CacheKey = "m-"
+)
+
 // Mock define key test flag
 //
 type Mock int8
@@ -192,7 +196,7 @@ func NewMail(ctx context.Context, name string) (Mail, error) {
 //	template, err := getTemplate("verify", "en_US")
 //
 func getTemplate(ctx context.Context, name string) (*template, error) {
-	json, err := i18n.Resource(ctx, name)
+	json, _, err := i18n.ResourceWithoutCache(ctx, name, ".json")
 	if err != nil {
 		return nil, errors.Wrapf(err, "i18n resource %v", name)
 	}
