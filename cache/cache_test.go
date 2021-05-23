@@ -152,7 +152,22 @@ func TestExpired(t *testing.T) {
 	assert.Empty(value)
 }
 
-func BenchmarkGoCache(b *testing.B) {
+func TestGzip(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	key := "zip-key-" + identifier.RandomNumber(6)
+	value := "zip-value-" + identifier.RandomNumber(90)
+	err := GzipSet(key, []byte(value), 0)
+	assert.Nil(err)
+
+	found, valueBytes, err := GzipGet(key)
+	assert.Nil(err)
+	value2 := string(valueBytes)
+	assert.True(found)
+	assert.Equal(value, value2)
+}
+
+func BenchmarkCache(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for x := 0; x < 100; x++ {

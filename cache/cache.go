@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/coocood/freecache"
+	"github.com/piyuo/libsrv/digit"
+	"github.com/pkg/errors"
 )
 
 // In bytes, where 1024 * 1024 represents a single Megabyte, and 20 * 1024*1024 represents 20 Megabytes.
@@ -136,4 +138,32 @@ func IDelete(key int64) {
 //
 func Count() int64 {
 	return cache.EntryCount()
+}
+
+// GzipSet compress byte array before set an entry to the cache
+//
+//	err = GzipSet("key1", []byte("hi"), 0)
+//
+func GzipSet(key string, value []byte, d time.Duration) error {
+	zipped, err := digit.Compress(value)
+	if err != nil {
+		return errors.Wrap(err, "compress")
+	}
+	return Set(key, zipped, d)
+}
+
+// GzipGet get an entry from the cache and decompress zipped content
+//
+//	found, bytes, err := GzipGet("key1")
+//
+func GzipGet(key string) (bool, []byte, error) {
+	found, value, err := Get(key)
+	if err != nil {
+		return false, nil, errors.Wrap(err, "get")
+	}
+	unzipped, err := digit.Decompress(value)
+	if err != nil {
+		return false, nil, errors.Wrap(err, "decompress")
+	}
+	return found, unzipped, nil
 }
