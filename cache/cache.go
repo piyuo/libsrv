@@ -16,13 +16,16 @@ var cache = freecache.NewCache(20 * 1024 * 1024)
 // defaultDuration is 20 minutes
 const defaultDuration = 20 * time.Minute
 
-// Set an entry to the cache, replacing any existing entry. If the duration is 0 (DefaultExpiration), the cache's default 20 minutes is used
+// Set an entry to the cache, replacing any existing entry. If the duration is 0 (DefaultExpiration), the cache's default 20 minutes, if duration is -1 there is no cache
 //
 //	err = Set("key1", []byte("hi"), 0)
 //
 func Set(key string, value []byte, d time.Duration) error {
 	if d == 0 {
 		d = defaultDuration
+	}
+	if d == -1 {
+		return nil
 	}
 
 	fmt.Printf("%v cached\n", key)
@@ -36,6 +39,9 @@ func Set(key string, value []byte, d time.Duration) error {
 func ISet(key int64, value []byte, d time.Duration) error {
 	if d == 0 {
 		d = defaultDuration
+	}
+	if d == -1 {
+		return nil
 	}
 	return cache.SetInt(key, value, int(d.Seconds()))
 }

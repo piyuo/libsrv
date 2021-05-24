@@ -2,16 +2,14 @@ package i18n
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/piyuo/libsrv/cache"
 	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/file"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -107,68 +105,26 @@ func acceptLanguage(acptLang string) string {
 	return "en_US"
 }
 
-// ResourceKey get resource key name
+// LocaleFilename get resource key name
 //
-//   So(ResourceKey(ctx, "file1",".json"), ShouldEqual, "name_zh_TW")
+//   LocaleFilename(ctx, "file1",".json") // "name_zh_TW"
 //
-func ResourceKey(ctx context.Context, name, ext string) string {
+func LocaleFilename(ctx context.Context, name, ext string) string {
 	return name + "_" + GetLocaleFromContext(ctx) + ext
 }
 
-// ResourcePath get resource file path
+// JSON get i18n resource file in JSON format in current locale
 //
-//   So(ResourcePath(ctx, "name",".json"), ShouldEqual, "assets/i18n/name_zh_TW.json")
+//	j, err := JSON(ctx, "filename")
 //
-func ResourcePath(ctx context.Context, name, ext string) string {
-	return "assets/i18n/" + ResourceKey(ctx, name, ext)
+func JSON(ctx context.Context, name, ext string, d time.Duration) (map[string]interface{}, error) {
+	return file.I18nJSON(LocaleFilename(ctx, name, ext), d)
 }
 
-// Resource get i18n resource file in JSON format
+// Text get i18n resource file in text format in current locale
 //
-//	json, err := Resource(ctx, "notExist",".json")
+//	j, err := Text(ctx, "filename")
 //
-func Resource(ctx context.Context, name, ext string) (map[string]interface{}, error) {
-	keyname := CacheKey + ResourceKey(ctx, name, ext)
-	found, bytes, err := cache.Get(keyname)
-	if err != nil {
-		return nil, errors.Wrap(err, "get cache "+keyname)
-	}
-	if found {
-		j := make(map[string]interface{})
-		if err := json.Unmarshal(bytes, &j); err != nil {
-			return nil, errors.Wrapf(err, "decode cache json %v", keyname)
-		}
-		return j, nil
-	}
-
-	j, bytes, err := ResourceWithoutCache(ctx, name, ext)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get resource %v%v", name, ext)
-	}
-
-	if err := cache.Set(keyname, bytes, 0); err != nil {
-		return nil, errors.Wrap(err, "set cache "+keyname)
-	}
-	return j, nil
-}
-
-// ResourceWithoutCache get i18n resource file without cache, no error if not found
-//
-//	json, err := ResourceWithoutCache(ctx, "notExist",".json")
-//
-func ResourceWithoutCache(ctx context.Context, name, ext string) (map[string]interface{}, []byte, error) {
-	filepath, found := file.Lookup(ResourcePath(ctx, name, ext))
-	if !found {
-		return nil, nil, nil
-	}
-
-	bytes, err := file.Read(filepath)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "read bytes %v", filepath)
-	}
-	j := make(map[string]interface{})
-	if err := json.Unmarshal(bytes, &j); err != nil {
-		return nil, nil, errors.Wrapf(err, "decode cache json %v", name)
-	}
-	return j, bytes, nil
+func Text(ctx context.Context, name, ext string, d time.Duration) (string, error) {
+	return file.I18nText(LocaleFilename(ctx, name, ext), d)
 }

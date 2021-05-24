@@ -114,3 +114,23 @@ func TestMock(t *testing.T) {
 	assert.Equal(google.TestProject, LastMail.GetTo()[0].Name)
 	assert.Equal(google.TestEmail, LastMail.GetTo()[0].Address)
 }
+
+func TestGetTemplate(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Add("Accept-Language", "en_US")
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
+
+	template, err := getTemplate(ctx, "mock-mail")
+	assert.Nil(err)
+	assert.NotNil(template)
+
+	// get template content from cache
+	template2, err := getTemplate(ctx, "mock-mail")
+	assert.Nil(err)
+	assert.NotNil(template2)
+
+	assert.Equal(template.html, template2.html)
+}

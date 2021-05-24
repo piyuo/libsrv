@@ -7,19 +7,23 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	key "github.com/piyuo/libsrv/key"
+	"github.com/piyuo/libsrv/file"
 	"github.com/pkg/errors"
 )
 
 var blockSize int
 
+var cachedKey []byte = nil
+
 // getBlock return cipher block from /keys/crypto.key, block will be cached after read from file
 //
 func getBlock() ([]byte, cipher.Block, error) {
 	var err error
-	cachedKey, err := key.Bytes("crypto.key") // key will cache key content
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "/keys/crypto.key not found")
+	if cachedKey == nil {
+		cachedKey, err = file.Key("crypto.key") // key will cache key content
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "/keys/crypto.key not found")
+		}
 	}
 
 	block, err := aes.NewCipher(cachedKey)

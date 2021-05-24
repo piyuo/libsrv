@@ -4,12 +4,25 @@ import (
 	"context"
 	"fmt"
 
-	key "github.com/piyuo/libsrv/key"
-
+	"github.com/piyuo/libsrv/file"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
+
+var sendgridClient *sendgrid.Client
+
+func getSendgridClient() (*sendgrid.Client, error) {
+	if sendgridClient != nil {
+		return sendgridClient, nil
+	}
+	sendgridKey, err := file.KeyText("sendgrid.key")
+	if err != nil {
+		return nil, errors.Wrap(err, "get key")
+	}
+	sendgridClient = sendgrid.NewSendClient(sendgridKey)
+	return sendgridClient, nil
+}
 
 // SendgridMail using SendGrid to implement mail
 //
@@ -49,13 +62,7 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 		return errors.New("")
 	}
 
-	sendgridKey, err := key.Text("sendgrid.key")
-	if err != nil {
-		return err
-	}
-
 	m := mail.NewV3Mail()
-
 	from := mail.NewEmail(c.BaseMail.FromName, c.BaseMail.FromAddress)
 	m.SetFrom(from)
 
@@ -75,7 +82,11 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 	personalization.Subject = c.Subject
 	m.AddPersonalizations(personalization)
 
-	client := sendgrid.NewSendClient(sendgridKey)
+	client, err := getSendgridClient()
+	if err != nil {
+		return errors.Wrapf(err, "get client")
+	}
+
 	response, err := client.Send(m)
 	if err != nil {
 		return errors.Wrapf(err, "sendgrid fail %v", c.Subject)

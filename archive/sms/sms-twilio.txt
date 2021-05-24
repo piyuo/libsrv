@@ -1,0 +1,83 @@
+package sms
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/pkg/errors"
+
+	file "github.com/piyuo/libsrv/file"
+	"github.com/sfreiberg/gotwilio"
+)
+
+var twilioClient *gotwilio.Twilio
+var twilioSender string
+
+func getTwilioClient() (*gotwilio.Twilio, string, error) {
+	if twilioClient != nil {
+		return twilioClient, twilioSender, nil
+	}
+	json, err := file.KeyJSON("twilio.json")
+	if err != nil {
+		return nil, "", errors.Wrap(err, "get key")
+	}
+	sid := json["sid"].(string)
+	if sid == "" {
+		return nil, "", errors.New("sid can not be empty")
+	}
+	token := json["token"].(string)
+	if token == "" {
+		return nil, "", errors.New("token can not be empty")
+	}
+	twilioSender = json["sender"].(string)
+	if twilioSender == "" {
+		return nil, "", errors.New("sender can not be empty,please be aware sender mobile number need verify by SMS delivery service")
+	}
+
+	twilioClient = gotwilio.NewTwilioClient(sid, token)
+	return twilioClient, twilioSender, nil
+}
+
+// TwilioSMS using twilio to implement SMS
+//
+type TwilioSMS struct {
+	BaseSMS
+}
+
+// newTwilioSMS return SMS instance
+//
+//	sms := NewSendgridMail("%1 is your verification code.")
+//
+func newTwilioSMS(template string) (SMS, error) {
+	return &TwilioSMS{
+		BaseSMS: BaseSMS{
+			Text: template,
+		},
+	}, nil
+}
+
+//Send using sendgrid to send email
+//
+//	err := mail.Send(ctx,"+11234567890")
+//
+func (c *TwilioSMS) Send(ctx context.Context, receiver string) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	client, sender, err := getTwilioClient()
+	if err != nil {
+		return errors.Wrapf(err, "get client")
+	}
+
+	_, exception, err := client.SendSMS(sender, receiver, c.Text, "", "")
+	if err != nil {
+		return err
+	}
+
+	if exception != nil {
+		msg := fmt.Sprintf("twilio error, response=%v, message=%v", exception.Status, exception.Message)
+		return errors.New(msg)
+	}
+	return nil
+}

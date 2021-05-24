@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	key "github.com/piyuo/libsrv/key"
+	"github.com/piyuo/libsrv/file"
 	"github.com/pkg/errors"
 )
 
@@ -33,16 +33,24 @@ const (
 	MockCnameNotExists
 )
 
+var zoneCached string
+var tokenCached string
+
 //	credential return cloudflare credential zon and token
 //
 //	zone,token, err = impl.credential()
 //
 func credential() (string, string, error) {
-	json, err := key.JSON("cloudflare.json")
+	if zoneCached != "" && tokenCached != "" {
+		return zoneCached, tokenCached, nil
+	}
+	json, err := file.KeyJSON("cloudflare.json")
 	if err != nil {
 		return "", "", errors.Wrap(err, "get key from cloudflare.json")
 	}
-	return json["zone"].(string), json["token"].(string), nil
+	zoneCached = json["zone"].(string)
+	tokenCached = json["token"].(string)
+	return zoneCached, tokenCached, nil
 }
 
 //	sendDNSRequest add authorization to request and check response is success

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/piyuo/libsrv/env"
-	"github.com/piyuo/libsrv/key"
+	"github.com/piyuo/libsrv/file"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestCredentials(t *testing.T) {
 	assert := assert.New(t)
 
 	//should create google credential
-	bytes, err := key.BytesWithoutCache("gcloud.json")
+	bytes, err := file.Key("gcloud.json")
 	assert.Nil(err)
 	ctx := context.Background()
 	cred, err := MakeCredential(ctx, bytes)
@@ -29,6 +29,7 @@ func TestCredentials(t *testing.T) {
 	assert.NotNil(globalCredential)
 }
 
+/*
 func TestCreateCredential(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -40,7 +41,7 @@ func TestCreateCredential(t *testing.T) {
 	assert.NotNil(err)
 	assert.Nil(cred)
 }
-
+*/
 func TestDataCredentialByRegion(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -87,10 +88,6 @@ func TestContextTestCredential(t *testing.T) {
 	cred2, err := RegionalCredential(ctx)
 	assert.Nil(err)
 	assert.Equal(cred.ProjectID, cred2.ProjectID)
-
-	cred3, err := NewCredential(ctx, "gcloud.json")
-	assert.Nil(err)
-	assert.Equal(cred.ProjectID, cred3.ProjectID)
 }
 
 func TestForceTestCredential(t *testing.T) {
@@ -106,10 +103,6 @@ func TestForceTestCredential(t *testing.T) {
 	cred2, err := RegionalCredential(ctx)
 	assert.Nil(err)
 	assert.Equal(cred.ProjectID, cred2.ProjectID)
-
-	cred3, err := NewCredential(ctx, "gcloud.json")
-	assert.Nil(err)
-	assert.Equal(cred.ProjectID, cred3.ProjectID)
 }
 
 func TestCredentialFromFile(t *testing.T) {

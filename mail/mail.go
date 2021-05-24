@@ -2,6 +2,7 @@ package mail
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -191,22 +192,27 @@ func NewMail(ctx context.Context, name string) (Mail, error) {
 	return newSendgridMail(template)
 }
 
-// getTemplate get mail template
+// getTemplate get mail template, template will be cache for 24 hour
 //
-//	template, err := getTemplate("verify", "en_US")
+//	template, err := getTemplate("mock")
 //
 func getTemplate(ctx context.Context, name string) (*template, error) {
-	json, _, err := i18n.ResourceWithoutCache(ctx, name, ".json")
+	jsonContent, err := i18n.JSON(ctx, name, ".json", 24*time.Hour)
 	if err != nil {
-		return nil, errors.Wrapf(err, "i18n resource %v", name)
+		return nil, errors.Wrapf(err, "i18n json %v", name)
+	}
+
+	htmlContent, err := i18n.Text(ctx, name, ".html", 24*time.Hour)
+	if err != nil {
+		return nil, errors.Wrapf(err, "i18n text %v", name)
 	}
 
 	template := &template{
-		subject:     mapping.GetString(json, "subject", ""),
-		text:        mapping.GetString(json, "text", ""),
-		html:        mapping.GetString(json, "html", ""),
-		fromName:    mapping.GetString(json, "fromName", ""),
-		fromAddress: mapping.GetString(json, "fromAddress", ""),
+		subject:     mapping.GetString(jsonContent, "subject", ""),
+		text:        mapping.GetString(jsonContent, "text", ""),
+		fromName:    mapping.GetString(jsonContent, "fromName", ""),
+		fromAddress: mapping.GetString(jsonContent, "fromAddress", ""),
+		html:        htmlContent,
 	}
 	return template, nil
 }

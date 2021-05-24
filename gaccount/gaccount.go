@@ -2,12 +2,11 @@ package gaccount
 
 import (
 	"context"
-	"strings"
+	"fmt"
 	"sync"
 
 	"github.com/piyuo/libsrv/env"
 	"github.com/piyuo/libsrv/file"
-	"github.com/piyuo/libsrv/key"
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -50,6 +49,7 @@ func ClearCache() {
 	regionalCredentials = make(map[string]*google.Credentials)
 }
 
+/*
 // NewCredential create credential from key
 //
 //	cred, err := NewCredential(ctx,"master/gcloud.json")
@@ -63,9 +63,9 @@ func NewCredential(ctx context.Context, keyName string) (*google.Credentials, er
 		return nil, ctx.Err()
 	}
 
-	bytes, err := key.BytesWithoutCache(keyName)
+	bytes, err := file.Key(keyName)
 	if err != nil {
-		return nil, errors.Wrap(err, "get keys/"+keyName)
+		return nil, errors.Wrap(err, "get key "+keyName)
 	}
 	cred, err := MakeCredential(ctx, bytes)
 	if err != nil {
@@ -73,7 +73,7 @@ func NewCredential(ctx context.Context, keyName string) (*google.Credentials, er
 	}
 	return cred, nil
 }
-
+*/
 // GlobalCredential provide google credential for project
 //
 //	cred, err := GlobalCredential(context.Background())
@@ -84,18 +84,18 @@ func GlobalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 
 	if globalCredential == nil {
-		keyFile := "gcloud.json"
+		ext := ""
 		if forceTestCredential || ctx.Value(TestCredential) != nil {
-			keyFile = "gcloud-test.json"
+			ext = "-test"
 		}
-
-		bytes, err := key.BytesWithoutCache(keyFile)
+		keyFilename := fmt.Sprintf("gcloud%s.json", ext)
+		bytes, err := file.Key(keyFilename)
 		if err != nil {
-			return nil, errors.Wrap(err, "get keys/"+keyFile)
+			return nil, errors.Wrap(err, "get key "+keyFilename)
 		}
 		cred, err := MakeCredential(ctx, bytes)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "make cred %v", keyFilename)
 		}
 		globalCredential = cred
 	}
@@ -112,18 +112,18 @@ func RegionalCredential(ctx context.Context) (*google.Credentials, error) {
 	}
 	var cred = regionalCredentials[env.Region]
 	if regionalCredentials[env.Region] == nil {
-		keyFile := "gcloud-" + env.Region + ".json"
+		ext := "-" + env.Region
 		if forceTestCredential || ctx.Value(TestCredential) != nil {
-			keyFile = "gcloud-test.json"
+			ext = "-test"
 		}
-
-		bytes, err := key.BytesWithoutCache(keyFile)
+		keyFilename := fmt.Sprintf("gcloud%s.json", ext)
+		bytes, err := file.Key(keyFilename)
 		if err != nil {
-			return nil, errors.Wrap(err, "get keys/"+keyFile)
+			return nil, errors.Wrap(err, "get key "+keyFilename)
 		}
 		cred, err := MakeCredential(ctx, bytes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "make credential from %v", keyFile)
+			return nil, errors.Wrapf(err, "make cred %v", keyFilename)
 		}
 		regionalCredentialsMutex.Lock()
 		regionalCredentials[env.Region] = cred
@@ -149,7 +149,7 @@ func MakeCredential(ctx context.Context, bytes []byte) (*google.Credentials, err
 	return creds, nil
 }
 
-// CredentialFromFile get credential from key json
+// CredentialFromFile get credential from key json, this function is used by ci
 //
 //	cred, err := CredentialFromFile(ctx,jsonFile)
 //
@@ -158,7 +158,7 @@ func CredentialFromFile(ctx context.Context, jsonFile string) (*google.Credentia
 		return nil, ctx.Err()
 	}
 
-	bytes, err := file.Read(jsonFile)
+	bytes, err := file.ReadDirect(jsonFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get json file %v", jsonFile)
 	}
@@ -169,17 +169,16 @@ func CredentialFromFile(ctx context.Context, jsonFile string) (*google.Credentia
 	return cred, nil
 }
 
-// AccountProjectFromFile return account and project from key file
+// AccountProjectFromFile return account and project from key file, this function is used by ci
 //
 //	account, project, err := AccountProjectFromFile(ctx,jsonFile)
 //
 func AccountProjectFromFile(ctx context.Context, jsonFile string) (string, string, error) {
-
 	if ctx.Err() != nil {
 		return "", "", ctx.Err()
 	}
 
-	j, err := file.ReadJSON(jsonFile)
+	j, err := file.ReadJSONDirect(jsonFile)
 	if err != nil {
 		return "", "", errors.Wrapf(err, "get json file %v", jsonFile)
 	}

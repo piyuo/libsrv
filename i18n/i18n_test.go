@@ -79,48 +79,27 @@ func TestGetLocaleFromContext(t *testing.T) {
 	assert.Equal("zh_CN", GetLocaleFromContext(ctx))
 }
 
-func TestResourceKey(t *testing.T) {
+func TestLocaleFilename(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "zh-tw")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	assert.Equal("name_zh_TW.json", ResourceKey(ctx, "name", ".json"))
+	assert.Equal("name_zh_TW.json", LocaleFilename(ctx, "name", ".json"))
 }
 
-func TestResourcePath(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Add("Accept-Language", "zh-tw")
-	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	assert.Equal("assets/i18n/name_zh_TW.json", ResourcePath(ctx, "name", ".json"))
-}
-
-func TestResource(t *testing.T) {
+func TestJSON(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	json, err := Resource(ctx, "mock", ".json")
+	json, err := JSON(ctx, "mock", ".json", 0)
 	assert.Nil(err)
 	assert.Equal("world", json["hello"])
 	//get from cache
-	json, err = Resource(ctx, "mock", ".json")
+	json, err = JSON(ctx, "mock", ".json", 0)
 	assert.Nil(err)
-	assert.Equal("world", json["hello"])
-}
-
-func TestResourceWithoutCache(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Add("Accept-Language", "en_US")
-	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	json, bytes, err := ResourceWithoutCache(ctx, "mock", ".json")
-	assert.Nil(err)
-	assert.NotNil(bytes)
 	assert.Equal("world", json["hello"])
 }
 
@@ -130,7 +109,22 @@ func TestResourceNotFound(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	json, err := Resource(ctx, "notExist", ".json")
+	json, err := JSON(ctx, "notExist", ".json", 0)
 	assert.NotNil(err)
 	assert.Nil(json)
+}
+
+func TestText(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Add("Accept-Language", "en_US")
+	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
+	txt, err := Text(ctx, "mock", ".json", 0)
+	assert.Nil(err)
+	assert.NotEmpty(txt)
+	//get from cache
+	txt, err = Text(ctx, "mock", ".json", 0)
+	assert.Nil(err)
+	assert.NotEmpty(txt)
 }

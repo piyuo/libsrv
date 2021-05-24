@@ -78,6 +78,25 @@ func TestSet(t *testing.T) {
 	assert.Equal(int64(-1), valueInt64)
 }
 
+func TestNoDuration(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	key := "no-duration-" + identifier.RandomNumber(6)
+	err := Set(key, []byte("hi"), -1)
+	assert.Nil(err)
+	found, valueBytes, err := Get(key)
+	assert.Nil(err)
+	assert.False(found)
+	assert.Nil(valueBytes)
+
+	err = ISet(123, []byte("hi"), -1)
+	assert.Nil(err)
+	found, valueBytes, err = IGet(123)
+	assert.Nil(err)
+	assert.False(found)
+	assert.Nil(valueBytes)
+}
+
 func TestInt(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
