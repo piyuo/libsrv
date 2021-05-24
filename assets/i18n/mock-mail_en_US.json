@@ -1,6 +1,7 @@
 {
   "subject": "verification code",
-  "text": "%1 is your verification code.",
+  "text": "%1% is your verification code.",
   "fromName": "piyuo.com",
-  "fromAddress": "no-reply@piyuo.com"
+  "fromAddress": "no-reply@piyuo.com",
+  "{1}": "is your verification code"
 }

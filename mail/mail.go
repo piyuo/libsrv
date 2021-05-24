@@ -2,10 +2,13 @@ package mail
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/piyuo/libsrv/file"
 	"github.com/piyuo/libsrv/i18n"
 	"github.com/piyuo/libsrv/mapping"
 )
@@ -202,9 +205,17 @@ func getTemplate(ctx context.Context, name string) (*template, error) {
 		return nil, errors.Wrapf(err, "i18n json %v", name)
 	}
 
-	htmlContent, err := i18n.Text(ctx, name, ".html", 24*time.Hour)
+	// html don't have locale
+	htmlContent, err := file.I18nText(name+".html", 24*time.Hour)
 	if err != nil {
 		return nil, errors.Wrapf(err, "i18n text %v", name)
+	}
+
+	// replace htmlContent tag {xxx} from json
+	for key, value := range jsonContent {
+		if key[0] == '{' {
+			htmlContent = strings.ReplaceAll(htmlContent, key, fmt.Sprint(value))
+		}
 	}
 
 	template := &template{
