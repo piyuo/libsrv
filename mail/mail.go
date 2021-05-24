@@ -49,16 +49,16 @@ func ForceStopSend(value bool) {
 	forceStopSend = value
 }
 
-type template struct {
-	subject string
+type Template struct {
+	Subject string
 
-	text string
+	Text string
 
-	html string
+	HTML string
 
-	fromName string
+	FromName string
 
-	fromAddress string
+	FromAddress string
 }
 
 // Mail use template to generate mail content and send
@@ -199,7 +199,8 @@ func NewMail(ctx context.Context, name string) (Mail, error) {
 //
 //	template, err := getTemplate("mock")
 //
-func getTemplate(ctx context.Context, name string) (*template, error) {
+func getTemplate(ctx context.Context, name string) (*Template, error) {
+	// BenchmarkGetTemplate-16    	   45402	     24267 ns/op	    4280 B/op	      61 allocs/op
 	jsonContent, err := i18n.JSON(ctx, name, ".json", 24*time.Hour)
 	if err != nil {
 		return nil, errors.Wrapf(err, "i18n json %v", name)
@@ -218,12 +219,13 @@ func getTemplate(ctx context.Context, name string) (*template, error) {
 		}
 	}
 
-	template := &template{
-		subject:     mapping.GetString(jsonContent, "subject", ""),
-		text:        mapping.GetString(jsonContent, "text", ""),
-		fromName:    mapping.GetString(jsonContent, "fromName", ""),
-		fromAddress: mapping.GetString(jsonContent, "fromAddress", ""),
-		html:        htmlContent,
+	// don't cache template it will be slower due to digit.encode() 
+	template := &Template{
+		Subject:     mapping.GetString(jsonContent, "subject", ""),
+		Text:        mapping.GetString(jsonContent, "text", ""),
+		FromName:    mapping.GetString(jsonContent, "fromName", ""),
+		FromAddress: mapping.GetString(jsonContent, "fromAddress", ""),
+		HTML:        htmlContent,
 	}
 	return template, nil
 }

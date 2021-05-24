@@ -62,7 +62,7 @@ func TestMail(t *testing.T) {
 	mail.ResetTo()
 	assert.Nil(mail.GetTo())
 
-	//should from cache
+	// from cache
 	mail, err = NewMail(ctx, "mock-mail")
 	assert.Nil(err)
 	assert.NotNil(mail)
@@ -133,5 +133,14 @@ func TestGetTemplate(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(template2)
 
-	assert.Equal(template.html, template2.html)
+	assert.Equal(template.HTML, template2.HTML)
+}
+
+func BenchmarkGetTemplate(b *testing.B) {
+	ctx := context.Background()
+	getTemplate(ctx, "mock-email")
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		getTemplate(ctx, "mock-email")
+	}
 }

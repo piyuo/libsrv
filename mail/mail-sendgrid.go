@@ -34,14 +34,14 @@ type SendgridMail struct {
 //
 //	mail := newSendgridMail(template)
 //
-func newSendgridMail(t *template) (Mail, error) {
+func newSendgridMail(t *Template) (Mail, error) {
 	mail := &SendgridMail{
 		BaseMail: BaseMail{
-			Subject:     t.subject,
-			Text:        t.text,
-			HTML:        t.html,
-			FromName:    t.fromName,
-			FromAddress: t.fromAddress,
+			Subject:     t.Subject,
+			Text:        t.Text,
+			HTML:        t.HTML,
+			FromName:    t.FromName,
+			FromAddress: t.FromAddress,
 		},
 	}
 	return mail, nil
