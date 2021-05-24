@@ -2,6 +2,7 @@ package cache
 
 import (
 	"encoding/binary"
+	"fmt"
 	"time"
 
 	"github.com/coocood/freecache"
@@ -23,6 +24,8 @@ func Set(key string, value []byte, d time.Duration) error {
 	if d == 0 {
 		d = defaultDuration
 	}
+
+	fmt.Printf("%v cached\n", key)
 	return cache.Set([]byte(key), value, int(d.Seconds()))
 }
 
