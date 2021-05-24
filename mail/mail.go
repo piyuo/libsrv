@@ -125,18 +125,6 @@ type Mail interface {
 	//
 	ReplaceContent(replaceFrom, replaceTo string) *BaseMail
 
-	// ReplaceText replace string in mail text content
-	//
-	//	mail.ReplaceText("%1","hello")
-	//
-	ReplaceText(replaceFrom, replaceTo string) *BaseMail
-
-	// ReplaceHTML replace string in html comtent
-	//
-	//	to := mail.GetTo()
-	//
-	ReplaceHTML(replaceFrom, replaceTo string) *BaseMail
-
 	// GetTo get email to
 	//
 	//	to := mail.GetTo()
@@ -219,7 +207,7 @@ func getTemplate(ctx context.Context, name string) (*Template, error) {
 		}
 	}
 
-	// don't cache template it will be slower due to digit.encode() 
+	// don't cache template it will be slower due to digit.encode()
 	template := &Template{
 		Subject:     mapping.GetString(jsonContent, "subject", ""),
 		Text:        mapping.GetString(jsonContent, "text", ""),
