@@ -125,6 +125,18 @@ type Mail interface {
 	//
 	ReplaceContent(replaceFrom, replaceTo string) *BaseMail
 
+	// ReplaceText replace string in mail text content
+	//
+	//	mail.ReplaceText("%1","hello")
+	//
+	ReplaceText(replaceFrom, replaceTo string) *BaseMail
+
+	// ReplaceHTML replace string in html comtent
+	//
+	//	to := mail.GetTo()
+	//
+	ReplaceHTML(replaceFrom, replaceTo string) *BaseMail
+
 	// GetTo get email to
 	//
 	//	to := mail.GetTo()

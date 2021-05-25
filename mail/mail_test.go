@@ -30,10 +30,14 @@ func TestMail(t *testing.T) {
 	assert.NotEmpty(mail.GetText())
 	mail.SetText("ok")
 	assert.Equal("ok", mail.GetText())
+	mail.ReplaceText("ok", "1")
+	assert.Equal("1", mail.GetText())
 
 	assert.NotEmpty(mail.GetHTML())
 	mail.SetHTML("ok")
 	assert.Equal("ok", mail.GetHTML())
+	mail.ReplaceHTML("ok", "1")
+	assert.Equal("1", mail.GetHTML())
 
 	mail.SetHTML("1")
 	mail.SetText("1")
