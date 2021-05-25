@@ -125,6 +125,11 @@ func TestI18n(t *testing.T) {
 	bytes, err := I18nText("mock_en_US.json", 0)
 	assert.Nil(err)
 	assert.NotEmpty(bytes)
+
+	text, err := I18nText("not-exist", 0)
+	assert.NotNil(err)
+	assert.Empty(text)
+
 	j, err := I18nJSON("mock_en_US.json", 0)
 	assert.Nil(err)
 	assert.NotNil(j)

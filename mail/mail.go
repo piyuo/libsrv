@@ -194,16 +194,14 @@ func getTemplate(ctx context.Context, name string) (*Template, error) {
 		return nil, errors.Wrapf(err, "i18n json %v", name)
 	}
 
-	// html don't have locale
+	// html don't have locale and may not exists
 	htmlContent, err := file.I18nText(name+".html", 24*time.Hour)
-	if err != nil {
-		return nil, errors.Wrapf(err, "i18n text %v", name)
-	}
-
-	// replace htmlContent tag {xxx} from json
-	for key, value := range jsonContent {
-		if key[0] == '{' {
-			htmlContent = strings.ReplaceAll(htmlContent, key, fmt.Sprint(value))
+	if err == nil {
+		// replace htmlContent tag {xxx} from json
+		for key, value := range jsonContent {
+			if key[0] == '{' {
+				htmlContent = strings.ReplaceAll(htmlContent, key, fmt.Sprint(value))
+			}
 		}
 	}
 
