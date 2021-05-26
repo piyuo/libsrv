@@ -56,9 +56,9 @@ type Template struct {
 
 	HTML string
 
-	FromName string
+	Sender string
 
-	FromAddress string
+	From string
 }
 
 // Mail use template to generate mail content and send
@@ -206,24 +206,38 @@ func getTemplate(ctx context.Context, name string) (*Template, error) {
 		return nil, errors.Wrapf(err, "i18n json %v", name)
 	}
 
-	// html don't have locale and may not exists
-	htmlContent, err := file.I18nText(name+".html", 24*time.Hour)
+	// don't cache template it will be slower due to digit.encode()
+	template := &Template{
+		Subject: mapping.GetString(jsonContent, "subject", ""),
+		Sender:  mapping.GetString(jsonContent, "sender", ""),
+		From:    mapping.GetString(jsonContent, "from", ""),
+		Text:    mapping.GetString(jsonContent, "text", ""),
+		HTML:    mapping.GetString(jsonContent, "html", ""),
+	}
+	htmlContent := localizedContent(name+".html", jsonContent)
+	if htmlContent != "" {
+		template.HTML = htmlContent
+	}
+	textContent := localizedContent(name+".txt", jsonContent)
+	if textContent != "" {
+		template.Text = textContent
+	}
+	return template, nil
+}
+
+// read i18n text file and use json to localize text
+//
+// returnscontent := localizedContent("mock-mail.txt", j)
+//
+func localizedContent(filename string, locale map[string]interface{}) string {
+	content, err := file.I18nText(filename, 24*time.Hour)
 	if err == nil {
 		// replace htmlContent tag {xxx} from json
-		for key, value := range jsonContent {
+		for key, value := range locale {
 			if key[0] == '{' {
-				htmlContent = strings.ReplaceAll(htmlContent, key, fmt.Sprint(value))
+				content = strings.ReplaceAll(content, key, fmt.Sprint(value))
 			}
 		}
 	}
-
-	// don't cache template it will be slower due to digit.encode()
-	template := &Template{
-		Subject:     mapping.GetString(jsonContent, "subject", ""),
-		Text:        mapping.GetString(jsonContent, "text", ""),
-		FromName:    mapping.GetString(jsonContent, "fromName", ""),
-		FromAddress: mapping.GetString(jsonContent, "fromAddress", ""),
-		HTML:        htmlContent,
-	}
-	return template, nil
+	return content
 }

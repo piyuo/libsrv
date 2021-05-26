@@ -21,13 +21,13 @@ type BaseMail struct {
 	//
 	HTML string
 
-	// FromName is email from name
+	// Sender is email from name
 	//
-	FromName string
+	Sender string
 
-	// FromAddress is email from address
+	// From is email from address
 	//
-	FromAddress string
+	From string
 
 	// To is collection of email address use in email send to
 	//
@@ -90,7 +90,7 @@ func (c *BaseMail) SetHTML(html string) *BaseMail {
 //	name,address := mail.GetFrom()
 //
 func (c *BaseMail) GetFrom() (string, string) {
-	return c.FromName, c.FromAddress
+	return c.Sender, c.From
 }
 
 // SetFrom set from email address
@@ -98,8 +98,8 @@ func (c *BaseMail) GetFrom() (string, string) {
 //	mail.SetFrom("service","service@somedomain.com")
 //
 func (c *BaseMail) SetFrom(name, address string) *BaseMail {
-	c.FromName = name
-	c.FromAddress = address
+	c.Sender = name
+	c.From = address
 	return c
 }
 

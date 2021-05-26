@@ -135,6 +135,19 @@ func TestGetTemplate(t *testing.T) {
 	assert.Equal(template.HTML, template2.HTML)
 }
 
+func TestLocalizedContent(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
+	j := map[string]interface{}{
+		"{1}": "112233",
+	}
+
+	content := localizedContent("mock-mail.txt", j)
+	assert.NotEmpty(content)
+	assert.Contains(content, "112233")
+}
+
 func BenchmarkGetTemplate(b *testing.B) {
 	ctx := context.Background()
 	getTemplate(ctx, "mock-email")

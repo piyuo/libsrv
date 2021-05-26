@@ -37,11 +37,11 @@ type SendgridMail struct {
 func newSendgridMail(t *Template) (Mail, error) {
 	mail := &SendgridMail{
 		BaseMail: BaseMail{
-			Subject:     t.Subject,
-			Text:        t.Text,
-			HTML:        t.HTML,
-			FromName:    t.FromName,
-			FromAddress: t.FromAddress,
+			Subject: t.Subject,
+			Text:    t.Text,
+			HTML:    t.HTML,
+			Sender:  t.Sender,
+			From:    t.From,
 		},
 	}
 	return mail, nil
@@ -63,7 +63,7 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 	}
 
 	m := mail.NewV3Mail()
-	from := mail.NewEmail(c.BaseMail.FromName, c.BaseMail.FromAddress)
+	from := mail.NewEmail(c.BaseMail.Sender, c.BaseMail.From)
 	m.SetFrom(from)
 
 	textContent := mail.NewContent("text/plain", c.Text)
