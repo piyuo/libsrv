@@ -41,9 +41,8 @@ func TestMail(t *testing.T) {
 
 	mail.SetHTML("1")
 	mail.SetText("1")
-	mail.ReplaceContent("1", "2")
+	mail.ReplaceHTML("1", "2")
 	assert.Equal("2", mail.GetHTML())
-	assert.Equal("2", mail.GetText())
 
 	name, address := mail.GetFrom()
 	assert.NotEmpty(name)
@@ -82,7 +81,7 @@ func TestSendMail(t *testing.T) {
 	mail, err := NewMail(ctx, "mock-mail")
 	assert.Nil(err)
 	mail.AddTo(google.TestProject, google.TestEmail)
-	mail.ReplaceContent("%1%", "1234")
+	mail.ReplaceHTML("%1%", "1234")
 	err = mail.Send(ctx)
 	assert.Nil(err)
 }
@@ -97,7 +96,7 @@ func TestMock(t *testing.T) {
 	assert.Nil(err)
 	mail.AddTo(google.TestProject, google.TestEmail)
 	//mail.AddTo(google.TestProject, "791088@gmail.com")
-	mail.ReplaceContent("%1%", "123456")
+	mail.ReplaceHTML("%1%", "123456")
 
 	ctx = context.WithValue(context.Background(), MockSuccess, "")
 	err = mail.Send(ctx)
