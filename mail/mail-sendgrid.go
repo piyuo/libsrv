@@ -66,8 +66,10 @@ func (c *SendgridMail) Send(ctx context.Context) error {
 	from := mail.NewEmail(c.BaseMail.Sender, c.BaseMail.From)
 	m.SetFrom(from)
 
-	textContent := mail.NewContent("text/plain", c.Text)
-	m.AddContent(textContent)
+	if c.Text != "" {
+		textContent := mail.NewContent("text/plain", c.Text)
+		m.AddContent(textContent)
+	}
 
 	if c.HTML != "" {
 		htmlContent := mail.NewContent("text/html", c.HTML)

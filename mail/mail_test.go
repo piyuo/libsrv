@@ -27,7 +27,7 @@ func TestMail(t *testing.T) {
 	mail.ReplaceSubject("ok", "1")
 	assert.Equal("1", mail.GetSubject())
 
-	assert.NotEmpty(mail.GetText())
+	assert.Empty(mail.GetText())
 	mail.SetText("ok")
 	assert.Equal("ok", mail.GetText())
 	mail.ReplaceText("ok", "1")
@@ -143,9 +143,21 @@ func TestLocalizedContent(t *testing.T) {
 		"{1}": "112233",
 	}
 
-	content := localizedContent("mock-mail.txt", j)
+	content := localizedContent("mock-mail.html", j)
 	assert.NotEmpty(content)
 	assert.Contains(content, "112233")
+}
+
+func TestLocalizedContentNotExists(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+
+	j := map[string]interface{}{
+		"{1}": "112233",
+	}
+
+	content := localizedContent("not-exists.html", j)
+	assert.Empty(content)
 }
 
 func BenchmarkGetTemplate(b *testing.B) {

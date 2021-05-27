@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/piyuo/libsrv/env"
+	"github.com/piyuo/libsrv/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -109,8 +110,8 @@ func TestResourceNotFound(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Language", "en_US")
 	ctx := context.WithValue(context.Background(), env.KeyContextRequest, req)
-	json, err := JSON(ctx, "notExist", ".json", 0)
-	assert.NotNil(err)
+	json, err := JSON(ctx, "notExist"+identifier.RandomNumber(6), ".json", 0)
+	assert.Nil(err)
 	assert.Nil(json)
 }
 

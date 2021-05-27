@@ -78,6 +78,19 @@ func TestSet(t *testing.T) {
 	assert.Equal(int64(-1), valueInt64)
 }
 
+func TestSetEmptyBytes(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	key := "empty-bytes-" + identifier.RandomNumber(6)
+	err := Set(key, []byte{}, 0)
+	assert.Nil(err)
+	//set empty bytes will return nil
+	found, got, err := Get(key)
+	assert.Nil(err)
+	assert.True(found)
+	assert.Nil(got)
+}
+
 func TestNoDuration(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -184,6 +197,19 @@ func TestGzip(t *testing.T) {
 	value2 := string(valueBytes)
 	assert.True(found)
 	assert.Equal(value, value2)
+}
+
+func TestGzipEmptyArray(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	key := "zip-empty-" + identifier.RandomNumber(6)
+	err := GzipSet(key, []byte{}, 0)
+	assert.Nil(err)
+
+	found, valueBytes, err := GzipGet(key)
+	assert.Nil(err)
+	assert.True(found)
+	assert.Empty(valueBytes)
 }
 
 func BenchmarkCache(b *testing.B) {

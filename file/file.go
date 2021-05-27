@@ -33,7 +33,7 @@ const (
 	GzipCache
 )
 
-// Read binary data from file, filename can be relative path
+// Read binary data from file, filename can be relative path, It will not have error if file not found or can't be read, return nil instead
 //
 //	bytes, err := Read(AssetsDir,"i18n/mock_en_US.json", NoCache, 0)
 //
@@ -60,15 +60,7 @@ func Read(baseDir, filename string, cacheType CacheType, d time.Duration) ([]byt
 		}
 	}
 
-	// read file
-	fullPath := Lookup(baseDir, filename)
-	if fullPath == "" {
-		return nil, errors.New(filename + " not found")
-	}
-	content, err := ReadDirect(fullPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "read %v", fullPath)
-	}
+	content := getFile(baseDir, filename)
 
 	// write cache
 	switch cacheType {
@@ -82,6 +74,22 @@ func Read(baseDir, filename string, cacheType CacheType, d time.Duration) ([]byt
 		}
 	}
 	return content, nil
+}
+
+// getFile get file content with no error, return empty if something wrong
+//
+//	bytes, err := file.ReadDirect("mock/mock.json")
+//
+func getFile(baseDir, filename string) []byte {
+	fullPath := Lookup(baseDir, filename)
+	if fullPath == "" {
+		return nil
+	}
+	content, err := ReadDirect(fullPath)
+	if err != nil {
+		return nil
+	}
+	return content
 }
 
 // Read binary data direct from file
@@ -117,7 +125,7 @@ func ReadText(baseDir, filename string, cacheType CacheType, d time.Duration) (s
 	return string(bytes), nil
 }
 
-// ReadJSON read json object from file, filename can be relative path
+// ReadJSON read json object from file, filename can be relative path, return nil if file not found
 //
 //	f, err := file.ReadJSON("mock/mock.json", NoCache, 0)
 //
@@ -127,6 +135,9 @@ func ReadJSON(baseDir, filename string, cacheType CacheType, d time.Duration) (m
 		return nil, err
 	}
 	content := make(map[string]interface{})
+	if bytes == nil {
+		return nil, nil
+	}
 	if err := json.Unmarshal([]byte(bytes), &content); err != nil {
 		return nil, errors.Wrapf(err, "decode json %v", filename)
 	}

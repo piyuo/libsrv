@@ -205,6 +205,9 @@ func getTemplate(ctx context.Context, name string) (*Template, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "i18n json %v", name)
 	}
+	if jsonContent == nil {
+		return nil, errors.New(name + " not found")
+	}
 
 	// don't cache template it will be slower due to digit.encode()
 	template := &Template{
@@ -217,10 +220,6 @@ func getTemplate(ctx context.Context, name string) (*Template, error) {
 	htmlContent := localizedContent(name+".html", jsonContent)
 	if htmlContent != "" {
 		template.HTML = htmlContent
-	}
-	textContent := localizedContent(name+".txt", jsonContent)
-	if textContent != "" {
-		template.Text = textContent
 	}
 	return template, nil
 }
