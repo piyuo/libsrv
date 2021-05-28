@@ -32,48 +32,48 @@ func ForceTestCredential(value bool) {
 	forceTestCredential = value
 }
 
-//globalCredential keep global data credential to reuse in the future
+// globalCredential keep global data credential to reuse in the future
 //
 var globalCredential *google.Credentials
 
-//regionalCredentials keep regional credential to reuse in the future
+// regionalCredentials keep regional credential to reuse in the future
 //
 var regionalCredentials map[string]*google.Credentials = make(map[string]*google.Credentials)
 
 var regionalCredentialsMutex = sync.RWMutex{}
 
+// googleMapApiKey keep google map api key
+//
+var googleMapApiKey string
+
 // ClearCache clear credential cache
 //
 func ClearCache() {
+	googleMapApiKey = ""
 	globalCredential = nil
 	regionalCredentials = make(map[string]*google.Credentials)
 }
 
-/*
-// NewCredential create credential from key
+// GlobalCredential provide google credential for project
 //
-//	cred, err := NewCredential(ctx,"master/gcloud.json")
+//	cred, err := GlobalCredential(context.Background())
 //
-func NewCredential(ctx context.Context, keyName string) (*google.Credentials, error) {
-	if forceTestCredential || ctx.Value(TestCredential) != nil {
-		keyName = strings.Replace(keyName, "gcloud.json", "gcloud-test.json", -1)
-	}
-
+func GoogleMapApiKey(ctx context.Context) (string, error) {
 	if ctx.Err() != nil {
-		return nil, ctx.Err()
+		return "", ctx.Err()
 	}
 
-	bytes, err := file.Key(keyName)
-	if err != nil {
-		return nil, errors.Wrap(err, "get key "+keyName)
+	if googleMapApiKey == "" {
+		var keyFile = "gmap.key"
+		text, err := file.KeyText(keyFile)
+		if err != nil {
+			return "", errors.Wrap(err, "get "+keyFile)
+		}
+		googleMapApiKey = text
 	}
-	cred, err := MakeCredential(ctx, bytes)
-	if err != nil {
-		return nil, err
-	}
-	return cred, nil
+	return googleMapApiKey, nil
 }
-*/
+
 // GlobalCredential provide google credential for project
 //
 //	cred, err := GlobalCredential(context.Background())

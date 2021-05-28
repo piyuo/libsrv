@@ -29,19 +29,19 @@ func TestCredentials(t *testing.T) {
 	assert.NotNil(globalCredential)
 }
 
-/*
-func TestCreateCredential(t *testing.T) {
+func TestGoogleMapApiKey(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	cred, err := NewCredential(ctx, "gcloud.json")
+	key, err := GoogleMapApiKey(ctx)
 	assert.Nil(err)
-	assert.NotNil(cred)
-	cred, err = NewCredential(ctx, "notExist.json")
-	assert.NotNil(err)
-	assert.Nil(cred)
+	assert.NotEmpty(key)
+	// from cache
+	key2, err := GoogleMapApiKey(ctx)
+	assert.Nil(err)
+	assert.Equal(key, key2)
 }
-*/
+
 func TestDataCredentialByRegion(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
