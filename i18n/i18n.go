@@ -46,13 +46,12 @@ func ContextWithLocale(locale string) context.Context {
 //	locale := GetLocale(ctx)
 //
 func GetLocaleFromContext(ctx context.Context) string {
-	value := ctx.Value(env.KeyContextLocale)
-	if value != nil {
-		return value.(string)
-	}
-
-	value = ctx.Value(env.KeyContextRequest)
+	value := ctx.Value(env.KeyContextRequest)
 	if value == nil {
+		value = ctx.Value(env.KeyContextLocale) // mock for test
+		if value != nil {
+			return value.(string)
+		}
 		return "en_US"
 	}
 	req := value.(*http.Request)
