@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kr/pretty"
 	"github.com/piyuo/libsrv/gerror"
 	"github.com/piyuo/libsrv/log/logger"
 	"github.com/pkg/errors"
@@ -34,6 +35,21 @@ func initMessage(ctx context.Context, format string, a ...interface{}) string {
 		history.WriteString(message + "\n")
 	}
 	return message
+}
+
+// PrettyValue return pretty print string
+//
+func PrettyValue(a ...interface{}) string {
+	return pretty.Sprint(a...)
+}
+
+// PrettyPrint pretty-prints its operands and writes to standard output.
+//
+// Calling Println(x, y) is equivalent to
+// fmt.Println(Formatter(x), Formatter(y)), but each operand is
+// formatted with "%# v".
+func PrettyPrint(a ...interface{}) {
+	pretty.Println(a...)
 }
 
 // Debug only print message when os.Getenv("DEBUG") is define

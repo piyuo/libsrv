@@ -23,7 +23,7 @@ func TestLog(t *testing.T) {
 	Warn(ctx, "my warn")
 }
 
-func TestLogContextCanceled(t *testing.T) {
+func TestContextCanceled(t *testing.T) {
 	t.Parallel()
 	dateline := time.Now().Add(time.Duration(1) * time.Millisecond)
 	ctx, cancel := context.WithDeadline(context.Background(), dateline)
@@ -36,7 +36,21 @@ func TestLogContextCanceled(t *testing.T) {
 	Error(ctx, errors.New("my error"))
 }
 
-func TestLogBeautyStack(t *testing.T) {
+func TestPretty(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	type employee struct {
+		name   string
+		age    int
+		salary int
+	}
+	emp := employee{name: "Sam", age: 31, salary: 2000}
+	value := PrettyValue(emp)
+	assert.NotEmpty(value)
+	PrettyPrint(emp)
+}
+
+func TestBeautyStack(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	err := errors.New("beauty stack")
@@ -44,7 +58,7 @@ func TestLogBeautyStack(t *testing.T) {
 	assert.NotEmpty(stack)
 }
 
-func TestLogExtractFilename(t *testing.T) {
+func TestExtractFilename(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	path := "/convey/doc.go:75"
@@ -55,14 +69,14 @@ func TestLogExtractFilename(t *testing.T) {
 	assert.Equal("doc.go:75", filename)
 }
 
-func TestLogIsLineUsable(t *testing.T) {
+func TestIsLineUsable(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	line := "/jtolds/doc.go:75"
 	assert.False(isLineUsable(line))
 }
 
-func TestLogIsLineDuplicate(t *testing.T) {
+func TestIsLineDuplicate(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	list := []string{"/doc.go:75", "/doc.go:75"}
@@ -70,7 +84,7 @@ func TestLogIsLineDuplicate(t *testing.T) {
 	assert.True(isLineDuplicate(list, 1))
 }
 
-func TestLogError(t *testing.T) {
+func TestError(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	err := errors.New("my error")
@@ -83,7 +97,7 @@ func TestLogError(t *testing.T) {
 	Error(ctx, err)
 }
 
-func TestLogErrorToStr(t *testing.T) {
+func TestErrorToStr(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	err := errors.New("my error")
@@ -91,14 +105,14 @@ func TestLogErrorToStr(t *testing.T) {
 	assert.NotEmpty(str)
 }
 
-func TestLogErrorWithRequest(t *testing.T) {
+func TestErrorWithRequest(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	err := errors.New("my error with request")
 	Error(ctx, err)
 }
 
-func TestLogCustomError(t *testing.T) {
+func TestCustomError(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	message := "mock error happening in flutter"
@@ -106,7 +120,7 @@ func TestLogCustomError(t *testing.T) {
 	CustomError(ctx, message, stack)
 }
 
-func TestLogHistory(t *testing.T) {
+func TestHistory(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	assert := assert.New(t)
@@ -123,7 +137,7 @@ func TestLogHistory(t *testing.T) {
 	assert.Empty(History())
 }
 
-func TestLogErrorWrap(t *testing.T) {
+func TestErrorWrap(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	err := bar(ctx, 1)
