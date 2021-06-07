@@ -33,12 +33,25 @@ func IsPredefined(locale string) (bool, string) {
 	return false, ""
 }
 
+// ContextWithLocale mock context with locale
+//
+//	ctx := ContextWithLocale("zh_TW")
+//
+func ContextWithLocale(locale string) context.Context {
+	return context.WithValue(context.Background(), env.KeyContextLocale, locale)
+}
+
 // GetLocaleFromContext return locale from current request, return en_US if anything else
 //
 //	locale := GetLocale(ctx)
 //
 func GetLocaleFromContext(ctx context.Context) string {
-	value := ctx.Value(env.KeyContextRequest)
+	value := ctx.Value(env.KeyContextLocale)
+	if value != nil {
+		return value.(string)
+	}
+
+	value = ctx.Value(env.KeyContextRequest)
 	if value == nil {
 		return "en_US"
 	}

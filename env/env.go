@@ -30,6 +30,10 @@ const (
 	// KeyContextAccountID is context key name for account id
 	//
 	KeyContextAccountID
+
+	// KeyContextLocale used in i18n to mock locale
+	//
+	KeyContextLocale
 )
 
 // Mock define key test flag

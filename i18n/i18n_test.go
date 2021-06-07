@@ -46,6 +46,14 @@ func TestAcceptLanguage(t *testing.T) {
 	assert.Equal("zh_CN", locale)
 }
 
+func TestGetLocaleFromMock(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := ContextWithLocale("zh_TW")
+	locale := GetLocaleFromContext(ctx)
+	assert.Equal(locale, "zh_TW")
+}
+
 func TestGetLocaleFromRequest(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
