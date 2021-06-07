@@ -8,23 +8,8 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcutil/base58"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
-
-// UUID generates base58,max 22 character long,concise, unambiguous, URL-safe UUIDs string
-//	return empty if something wrong
-//
-//	id, err := UUID() // PMty86Lju4PiaUAhspHYAn
-//
-func UUID() string {
-	id := uuid.Must(uuid.NewRandom())
-	bytes, err := id.MarshalBinary()
-	if err != nil {
-		return ""
-	}
-	return base58.Encode(bytes)
-}
 
 // SerialID16 use uint16 value between 1 to 65,535 to base58 10~11 character long,concise, unambiguous, URL-safe string
 //
