@@ -14,10 +14,16 @@ func TestUUID(t *testing.T) {
 	assert.NotEmpty(id)
 }
 
-func TestGoogleUUIDToString(t *testing.T) {
+func TestGoogleUUID(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	id := uuid.Must(uuid.NewRandom())
 	token := GoogleUUIDToString(id)
 	assert.NotEmpty(token)
+	id2, err := GoogleUUIDFromString(token)
+	assert.Nil(err)
+	assert.Equal(id, id2)
+
+	_, err = GoogleUUIDFromString("")
+	assert.NotNil(err)
 }

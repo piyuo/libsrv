@@ -27,3 +27,16 @@ func GoogleUUIDToString(id uuid.UUID) string {
 	}
 	return base58.Encode(bytes)
 }
+
+// GoogleUUIDFromString convert string to google uuid
+//
+//	id, err := GoogleUUIDToString(id) // PMty86Lju4PiaUAhspHYAn
+//
+func GoogleUUIDFromString(token string) (uuid.UUID, error) {
+	bytes := base58.Decode(token)
+	var id uuid.UUID
+	if err := id.UnmarshalBinary(bytes); err != nil {
+		return id, err
+	}
+	return id, nil
+}
