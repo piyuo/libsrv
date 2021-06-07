@@ -40,6 +40,13 @@ func TestGoogleMapKey(t *testing.T) {
 	key2, err := GoogleMapKey(ctx)
 	assert.Nil(err)
 	assert.Equal(key, key2)
+
+	// from test
+	googleMapKey = ""
+	ctx = context.WithValue(context.Background(), TestCredential, "")
+	key2, err = GoogleMapKey(ctx)
+	assert.Nil(err)
+	assert.Equal(key, key2)
 }
 
 func TestAMapKey(t *testing.T) {
@@ -51,6 +58,12 @@ func TestAMapKey(t *testing.T) {
 	assert.NotEmpty(key)
 	// from cache
 	key2, err := AMapKey(ctx)
+	assert.Nil(err)
+	assert.Equal(key, key2)
+	// from test
+	amapKey = ""
+	ctx = context.WithValue(context.Background(), TestCredential, "")
+	key2, err = AMapKey(ctx)
 	assert.Nil(err)
 	assert.Equal(key, key2)
 }
