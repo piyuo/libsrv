@@ -107,9 +107,7 @@ func TestForceTestCredential(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ClearCache()
-	ctx := context.Background()
-	ForceTestCredential(true)
-	defer ForceTestCredential(true)
+	ctx := context.WithValue(context.Background(), TestCredential, true)
 
 	cred, err := GlobalCredential(ctx)
 	assert.Nil(err)
