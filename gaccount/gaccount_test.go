@@ -29,15 +29,28 @@ func TestCredentials(t *testing.T) {
 	assert.NotNil(globalCredential)
 }
 
-func TestGoogleMapApiKey(t *testing.T) {
+func TestGoogleMapKey(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	key, err := GoogleMapApiKey(ctx)
+	key, err := GoogleMapKey(ctx)
 	assert.Nil(err)
 	assert.NotEmpty(key)
 	// from cache
-	key2, err := GoogleMapApiKey(ctx)
+	key2, err := GoogleMapKey(ctx)
+	assert.Nil(err)
+	assert.Equal(key, key2)
+}
+
+func TestAMapKey(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	ctx := context.Background()
+	key, err := AMapKey(ctx)
+	assert.Nil(err)
+	assert.NotEmpty(key)
+	// from cache
+	key2, err := AMapKey(ctx)
 	assert.Nil(err)
 	assert.Equal(key, key2)
 }

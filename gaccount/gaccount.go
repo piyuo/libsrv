@@ -42,36 +42,66 @@ var regionalCredentials map[string]*google.Credentials = make(map[string]*google
 
 var regionalCredentialsMutex = sync.RWMutex{}
 
-// googleMapApiKey keep google map api key
+// googleMapKey keep google map api key
 //
-var googleMapApiKey string
+var googleMapKey string
+
+// amapKey keep amap.com key
+//
+var amapKey string
 
 // ClearCache clear credential cache
 //
 func ClearCache() {
-	googleMapApiKey = ""
+	googleMapKey = ""
 	globalCredential = nil
 	regionalCredentials = make(map[string]*google.Credentials)
 }
 
-// GlobalCredential provide google credential for project
+// AMapKey provide amap.com key
 //
-//	cred, err := GlobalCredential(context.Background())
+//	key, err := AMapKey(context.Background())
 //
-func GoogleMapApiKey(ctx context.Context) (string, error) {
+func AMapKey(ctx context.Context) (string, error) {
 	if ctx.Err() != nil {
 		return "", ctx.Err()
 	}
 
-	if googleMapApiKey == "" {
-		var keyFile = "gmap.key"
+	if amapKey == "" {
+		var keyFile = "amap.key"
+		if forceTestCredential || ctx.Value(TestCredential) != nil {
+			keyFile = "amap-test.key"
+		}
 		text, err := file.KeyText(keyFile)
 		if err != nil {
 			return "", errors.Wrap(err, "get "+keyFile)
 		}
-		googleMapApiKey = text
+		amapKey = text
 	}
-	return googleMapApiKey, nil
+	return amapKey, nil
+}
+
+// GoogleMapKey provide google map key
+//
+//	key, err := GoogleMapKey(context.Background())
+//
+func GoogleMapKey(ctx context.Context) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
+	if googleMapKey == "" {
+		var keyFile = "gmap.key"
+		if forceTestCredential || ctx.Value(TestCredential) != nil {
+			keyFile = "gmap-test.key"
+		}
+		text, err := file.KeyText(keyFile)
+		if err != nil {
+			return "", errors.Wrap(err, "get "+keyFile)
+		}
+		googleMapKey = text
+	}
+	return googleMapKey, nil
 }
 
 // GlobalCredential provide google credential for project
