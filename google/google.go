@@ -4,8 +4,8 @@ package google
 //
 var Regions = map[string]string{
 	"us": "us-central1",
-	"jp": "asia-northeast1",
-	"be": "europe-west1",
+	//	"jp": "asia-northeast1", not support for now
+	//	"be": "europe-west1", not support for now
 }
 
 const (
