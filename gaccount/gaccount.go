@@ -46,39 +46,12 @@ var regionalCredentialsMutex = sync.RWMutex{}
 //
 var googleMapKey string
 
-// amapKey keep amap.com key
-//
-var amapKey string
-
 // ClearCache clear credential cache
 //
 func ClearCache() {
 	googleMapKey = ""
 	globalCredential = nil
 	regionalCredentials = make(map[string]*google.Credentials)
-}
-
-// AMapKey provide amap.com key
-//
-//	key, err := AMapKey(context.Background())
-//
-func AMapKey(ctx context.Context) (string, error) {
-	if ctx.Err() != nil {
-		return "", ctx.Err()
-	}
-
-	if amapKey == "" {
-		var keyFile = "amap.key"
-		if forceTestCredential || ctx.Value(TestCredential) != nil {
-			keyFile = "amap-test.key"
-		}
-		text, err := file.KeyText(keyFile)
-		if err != nil {
-			return "", errors.Wrap(err, "get "+keyFile)
-		}
-		amapKey = text
-	}
-	return amapKey, nil
 }
 
 // GoogleMapKey provide google map key
