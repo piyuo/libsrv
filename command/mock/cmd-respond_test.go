@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRespondAction(t *testing.T) {
+func TestCmdRespond(t *testing.T) {
 	t.Parallel()
  	assert := assert.New(t)
     ctx:=context.Background()
-	action := &RespondAction{}
+	action := &CmdRespond{}
     //  ctx = session.SetUserID(ctx, "user1")
 
     response, err := action.Do(ctx)

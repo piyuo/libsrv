@@ -7,17 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNoRespondAction(t *testing.T) {
+func TestCmdNoRespond(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	action := &NoRespondAction{}
-	//  ctx = session.SetUserID(ctx, "user1")
-
+	action := &CmdNoRespond{}
 	response, err := action.Do(ctx)
 	assert.Nil(err)
 	assert.Nil(response)
-
-	//  sr := response.(*StringResponse)
-	//  assert.Equal("hi", sr.Text )
 }

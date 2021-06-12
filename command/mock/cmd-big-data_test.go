@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBigDataAction(t *testing.T) {
+func TestCmdBigData(t *testing.T) {
 	t.Parallel()
  	assert := assert.New(t)
     ctx:=context.Background()
-	action := &BigDataAction{}
+	action := &CmdBigData{}
     //  ctx = session.SetUserID(ctx, "user1")
 
     response, err := action.Do(ctx)

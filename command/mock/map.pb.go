@@ -8,11 +8,12 @@ type MapXXX struct {
 // NewObjectByID return new object from id
 func (r *MapXXX) NewObjectByID(id uint16) (interface{}) {
 	switch id {
-	case 1001: return new(DeadlineAction)
-	case 1002: return new(NoRespondAction)
-	case 1003: return new(RespondAction)
-	case 1004: return new(SlowAction)
-	case 1005: return new(BigDataAction)
+	case 1001: return new(CmdBigData)
+	case 1002: return new(CmdDeadline)
+	case 1003: return new(CmdNoRespond)
+	case 1004: return new(CmdRespond)
+	case 1005: return new(CmdResponse)
+	case 1006: return new(CmdSlow)
 	}
 	return nil
 }

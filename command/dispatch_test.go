@@ -6,15 +6,15 @@ import (
 	"testing"
 
 	mock "github.com/piyuo/libsrv/command/mock"
-	"github.com/piyuo/libsrv/command/pb"
+	"github.com/piyuo/libsrv/command/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeDecodeCommand(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	act := &mock.RespondAction{
-		Text: "Hi",
+	act := &mock.CmdResponse{
+		Value: "Hi",
 	}
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
@@ -22,10 +22,10 @@ func TestEncodeDecodeCommand(t *testing.T) {
 	actBytes, err := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	actID, iAct2, err2 := dispatch.DecodeCommand(actBytes)
 	assert.Nil(err2)
-	act2 := iAct2.(*mock.RespondAction)
+	act2 := iAct2.(*mock.CmdResponse)
 	assert.Nil(err)
 	assert.Equal(act.XXX_MapID(), actID)
-	assert.Equal(act.Text, act2.Text)
+	assert.Equal(act.Value, act2.Value)
 }
 
 func TestBetterResponseName(t *testing.T) {
@@ -35,11 +35,11 @@ func TestBetterResponseName(t *testing.T) {
 	result := betterResponseName(errOK.XXX_MapID(), OK)
 	assert.Equal("OK", result)
 
-	err := Error("failed").(*pb.Error)
+	err := Error("failed").(*types.Error)
 	result = betterResponseName(err.XXX_MapID(), err)
 	assert.Equal("failed", result)
 
-	errText := &pb.String{}
+	errText := &types.String{}
 	result = betterResponseName(errText.XXX_MapID(), errText)
 	assert.Equal("String", result)
 }
@@ -47,13 +47,13 @@ func TestBetterResponseName(t *testing.T) {
 func TestActionNoRespose(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	act := &mock.NoRespondAction{
+	act := &mock.CmdNoRespond{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	//no response action,will cause &pb.r{}
+	//no response action,will cause &types.r{}
 	actBytes, err := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	assert.Nil(err)
 	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
@@ -64,19 +64,21 @@ func TestActionNoRespose(t *testing.T) {
 func TestRoute(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	act := &mock.RespondAction{
+	act := &mock.CmdRespond{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{
 		Map: &mock.MapXXX{},
 	}
 	actBytes, err := dispatch.EncodeCommand(act.XXX_MapID(), act)
-	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
-	_, resp, err3 := dispatch.DecodeCommand(resultBytes)
-	actualResponse := resp.(*pb.OK)
 	assert.Nil(err)
+
+	resultBytes, err2 := dispatch.Route(context.Background(), actBytes)
 	assert.Nil(err2)
+
+	_, resp, err3 := dispatch.DecodeCommand(resultBytes)
 	assert.Nil(err3)
+	actualResponse := resp.(*mock.CmdResponse)
 	assert.NotNil(actualResponse)
 }
 
@@ -85,7 +87,7 @@ func TestHandle(t *testing.T) {
 	assert := assert.New(t)
 
 	//create sample data
-	act := &mock.RespondAction{
+	act := &mock.CmdRespond{
 		Text: "Hi",
 	}
 	//create dispatch and register
@@ -93,7 +95,7 @@ func TestHandle(t *testing.T) {
 		Map: &mock.MapXXX{},
 	}
 	_, respInterface, err := dispatch.runAction(context.Background(), act)
-	response := respInterface.(*pb.OK)
+	response := respInterface.(*mock.CmdResponse)
 	assert.Nil(err)
 	assert.NotNil(response)
 }
@@ -101,8 +103,7 @@ func TestHandle(t *testing.T) {
 var benchmarkResult string
 
 func BenchmarkStringMapSpeed(b *testing.B) {
-	var list map[string]string
-	list = make(map[string]string, 100)
+	list := make(map[string]string, 100)
 	for x := 0; x < 100; x++ {
 		list[strconv.Itoa(x)] = strconv.Itoa(x)
 	}
@@ -116,8 +117,7 @@ func BenchmarkStringMapSpeed(b *testing.B) {
 }
 
 func BenchmarkIntMapSpeed(b *testing.B) {
-	var list map[int]string
-	list = make(map[int]string, 100)
+	list := make(map[int]string, 100)
 	for x := 0; x < 100; x++ {
 		list[x] = strconv.Itoa(x)
 	}
@@ -159,7 +159,7 @@ func BenchmarkCopyPreAllocate(b *testing.B) {
 }
 
 func BenchmarkDispatch(b *testing.B) {
-	act := &mock.RespondAction{
+	act := &mock.CmdRespond{
 		Text: "Hi",
 	}
 	dispatch := &Dispatch{

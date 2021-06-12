@@ -13,7 +13,6 @@ import (
 
 	"github.com/piyuo/libsrv/command"
 	"github.com/piyuo/libsrv/command/mock"
-	"github.com/piyuo/libsrv/command/pb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,11 +52,11 @@ func BenchmarkServerSmallAction(b *testing.B) {
 	}
 }
 
-func newBigDataAction() (*mock.BigDataAction, []byte) {
+func newBigDataAction() (*mock.CmdBigData, []byte) {
 	dispatch := &command.Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	act := &mock.BigDataAction{}
+	act := &mock.CmdBigData{}
 	actBytes, _ := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	return act, actBytes
 }
@@ -119,15 +118,6 @@ func customHTTPHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	return true, nil
 }*/
 
-func okResponse() []byte {
-	dispatch := command.Dispatch{
-		Map: &pb.MapXXX{},
-	}
-	ok := command.OK
-	bytes, _ := dispatch.EncodeCommand(ok.XXX_MapID(), ok)
-	return bytes
-}
-
 func TestServeOK(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -140,11 +130,11 @@ func TestServeOK(t *testing.T) {
 
 	returnBytes := resp1.Body.Bytes()
 	returnLen := len(returnBytes)
-	ok := okResponse()
-	okLen := len(ok)
+	resp := newTestActionResponse()
+	okLen := len(resp)
 	assert.Equal(200, res1.StatusCode)
 	assert.Equal(okLen, returnLen)
-	assert.Equal(ok[0], returnBytes[0])
+	assert.Equal(resp[0], returnBytes[0])
 	assert.Equal("application/octet-stream", res1.Header.Get("Content-Type"))
 }
 
@@ -167,11 +157,18 @@ func newTestAction(text string) []byte {
 	dispatch := &command.Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	act := &mock.RespondAction{
+	act := &mock.CmdRespond{
 		Text: text,
 	}
 	actBytes, _ := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	return actBytes
+}
+
+func newTestActionResponse() []byte {
+	dispatch := command.Dispatch{}
+	resp := &mock.CmdResponse{}
+	bytes, _ := dispatch.EncodeCommand(resp.XXX_MapID(), resp)
+	return bytes
 }
 
 func TestServerContextCanceled(t *testing.T) {
@@ -188,7 +185,7 @@ func newDeadlineAction() []byte {
 	dispatch := &command.Dispatch{
 		Map: &mock.MapXXX{},
 	}
-	act := &mock.DeadlineAction{}
+	act := &mock.CmdDeadline{}
 	actBytes, _ := dispatch.EncodeCommand(act.XXX_MapID(), act)
 	return actBytes
 }

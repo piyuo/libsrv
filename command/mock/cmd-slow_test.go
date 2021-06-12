@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSlowAction(t *testing.T) {
+func TestCmdSlow(t *testing.T) {
 	t.Parallel()
  	assert := assert.New(t)
     ctx:=context.Background()
-	action := &SlowAction{}
+	action := &CmdSlow{}
     //  ctx = session.SetUserID(ctx, "user1")
 
     response, err := action.Do(ctx)

@@ -7,17 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeadlineAction(t *testing.T) {
+func TestCmdDeadline(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	ctx := context.Background()
-	action := &DeadlineAction{}
-	//  ctx = session.SetUserID(ctx, "user1")
-
+	action := &CmdDeadline{}
 	response, err := action.Do(ctx)
 	assert.NotNil(err)
 	assert.Nil(response)
-
-	//  sr := response.(*StringResponse)
-	//  assert.Equal("hi", sr.Text )
 }
