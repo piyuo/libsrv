@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/piyuo/libsrv/command/types"
+	"github.com/piyuo/libsrv/command/simple"
 	"github.com/piyuo/libsrv/log"
 
 	"github.com/pkg/errors"
@@ -67,10 +67,10 @@ func betterResponseName(id uint16, response interface{}) string {
 
 	name := response.(Response).XXX_MapName()
 	switch response.(type) {
-	case *types.OK:
+	case *simple.OK:
 		name = "OK"
-	case *types.Error:
-		err := response.(*types.Error)
+	case *simple.Error:
+		err := response.(*simple.Error)
 		errLen := len(err.Code)
 		if errLen < 16 {
 			return err.Code

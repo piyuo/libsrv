@@ -3,7 +3,7 @@ package command
 import (
 	"testing"
 
-	"github.com/piyuo/libsrv/command/types"
+	"github.com/piyuo/libsrv/command/simple"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,21 +11,21 @@ func TestHelper(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	//should create text response
-	text := String("hi").(*types.String)
+	text := String("hi").(*simple.String)
 	assert.Equal("hi", text.Value)
 
 	//should create number response
-	num := Number(201).(*types.Number)
+	num := Number(201).(*simple.Number)
 	assert.Equal(int32(201), num.Value)
 
 	//should create bool response
-	b := Bool(true).(*types.Bool)
+	b := Bool(true).(*simple.Bool)
 	assert.True(b.Value)
-	b = Bool(false).(*types.Bool)
+	b = Bool(false).(*simple.Bool)
 	assert.False(b.Value)
 
 	//should create error response
-	err := Error("errCode").(*types.Error)
+	err := Error("errCode").(*simple.Error)
 	assert.Equal("errCode", err.Code)
 	//should be OK
 	assert.True(IsOK(OK))
@@ -46,7 +46,7 @@ func TestHelper(t *testing.T) {
 func TestGetErrorCode(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
-	err := Error("errCode").(*types.Error)
+	err := Error("errCode").(*simple.Error)
 	assert.Equal("errCode", GetErrorCode(err))
 	assert.Equal("", GetErrorCode("notError"))
 }

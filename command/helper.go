@@ -1,19 +1,19 @@
 package command
 
 import (
-	"github.com/piyuo/libsrv/command/types"
+	"github.com/piyuo/libsrv/command/simple"
 )
 
 // ok instace, it use frequently
 //
-var OK = &types.OK{}
+var OK = &simple.OK{}
 
 // Error return error response with code
 //
 //	return command.Error("INVALID_EMAIL")
 //
 func Error(errCode string) interface{} {
-	return &types.Error{
+	return &simple.Error{
 		Code: errCode,
 	}
 }
@@ -24,7 +24,7 @@ func Error(errCode string) interface{} {
 //
 func IsOK(obj interface{}) bool {
 	switch obj.(type) {
-	case *types.OK:
+	case *simple.OK:
 		return true
 	}
 	return false
@@ -39,7 +39,7 @@ func IsError(obj interface{}, entered string) bool {
 		return false
 	}
 	switch obj := obj.(type) {
-	case *types.Error:
+	case *simple.Error:
 		if obj.Code == entered {
 			return true
 		}
@@ -56,7 +56,7 @@ func GetErrorCode(obj interface{}) string {
 		return ""
 	}
 	switch obj := obj.(type) {
-	case *types.Error:
+	case *simple.Error:
 		return obj.Code
 	}
 	return ""
@@ -67,7 +67,7 @@ func GetErrorCode(obj interface{}) string {
 //	return command.Text("hi")
 //
 func String(text string) interface{} {
-	return &types.String{
+	return &simple.String{
 		Value: text,
 	}
 }
@@ -81,7 +81,7 @@ func IsString(obj interface{}, entered string) bool {
 		return false
 	}
 	switch obj := obj.(type) {
-	case *types.String:
+	case *simple.String:
 		if obj.Value == entered {
 			return true
 		}
@@ -94,7 +94,7 @@ func IsString(obj interface{}, entered string) bool {
 //	return command.PbInt(101)
 //
 func Number(number int32) interface{} {
-	return &types.Number{
+	return &simple.Number{
 		Value: number,
 	}
 }
@@ -108,7 +108,7 @@ func IsInt(obj interface{}, entered int32) bool {
 		return false
 	}
 	switch obj := obj.(type) {
-	case *types.Number:
+	case *simple.Number:
 		if obj.Value == entered {
 			return true
 		}
@@ -121,7 +121,7 @@ func IsInt(obj interface{}, entered int32) bool {
 //	return command.NewPbBool(true)
 //
 func Bool(value bool) interface{} {
-	return &types.Bool{
+	return &simple.Bool{
 		Value: value,
 	}
 }
@@ -135,7 +135,7 @@ func IsBool(obj interface{}, entered bool) bool {
 		return false
 	}
 	switch obj := obj.(type) {
-	case *types.Bool:
+	case *simple.Bool:
 		if obj.Value == entered {
 			return true
 		}

@@ -3,11 +3,11 @@ package mock
 import (
 	"context"
 
-	"github.com/piyuo/libsrv/command/types"
+	"github.com/piyuo/libsrv/command/simple"
 )
 
 func (c *CmdBigData) Do(ctx context.Context) (interface{}, error) {
-	return &types.String{
+	return &simple.String{
 		Value: c.GetSample(),
 	}, nil
 }

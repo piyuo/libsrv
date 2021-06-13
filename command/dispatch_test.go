@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	mock "github.com/piyuo/libsrv/command/mock"
-	"github.com/piyuo/libsrv/command/types"
+	"github.com/piyuo/libsrv/command/mock"
+	"github.com/piyuo/libsrv/command/simple"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,11 +35,11 @@ func TestBetterResponseName(t *testing.T) {
 	result := betterResponseName(errOK.XXX_MapID(), OK)
 	assert.Equal("OK", result)
 
-	err := Error("failed").(*types.Error)
+	err := Error("failed").(*simple.Error)
 	result = betterResponseName(err.XXX_MapID(), err)
 	assert.Equal("failed", result)
 
-	errText := &types.String{}
+	errText := &simple.String{}
 	result = betterResponseName(errText.XXX_MapID(), errText)
 	assert.Equal("String", result)
 }

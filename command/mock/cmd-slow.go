@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/piyuo/libsrv/command/types"
+	"github.com/piyuo/libsrv/command/simple"
 )
 
 // Do comments
@@ -14,7 +14,7 @@ import (
 //
 func (c *CmdSlow) Do(ctx context.Context) (interface{}, error) {
 	time.Sleep(time.Duration(2) * time.Millisecond)
-	return &types.Error{
+	return &simple.Error{
 		Code: "",
 	}, nil
 }
