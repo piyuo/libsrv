@@ -56,7 +56,7 @@ type Server struct {
 func (s *Server) Start() {
 	ctx := context.Background()
 	if s.CommandHandlers == nil && s.HTTPHandlers == nil && s.TaskHandlers == nil {
-		msg := "CommandHandlers or HTTPHandlers is missing, try add &Server{CommandHandlers:yourCommandHandler, HTTPHandlers: yourHttpHandler, TaskHandlers: yourTaskHandler}"
+		msg := "handler not found, try add &Server{CommandHandlers:yourCommandHandler, HTTPHandlers: yourHttpHandler, TaskHandlers: yourTaskHandler}"
 		panic(msg)
 	}
 

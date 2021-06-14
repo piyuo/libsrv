@@ -80,3 +80,15 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	assert.Equal(int64(20000), ms)
 	deadlineCMD = -1 // remove cache
 }
+
+func TestChromePreflightRequest(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	req1, _ := http.NewRequest("OPTIONS", "/", strings.NewReader(""))
+	resp1 := httptest.NewRecorder()
+	CommandEntry(&mock.MapXXX{}).ServeHTTP(resp1, req1)
+	res1 := resp1.Result()
+	assert.Equal(http.StatusOK, res1.StatusCode)
+	//cleanup http.Handle mapping
+	http.DefaultServeMux = new(http.ServeMux)
+}

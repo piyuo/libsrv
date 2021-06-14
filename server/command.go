@@ -41,7 +41,9 @@ func CommandEntry(cmdMap command.IMap) http.Handler {
 	}
 	f := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-
+		if r.Method == "OPTIONS" { // pass chrome preflight CORS request
+			return
+		}
 		//add deadline to context
 		ctx, cancel := setDeadlineCommand(r.Context())
 		defer cancel()
