@@ -2,7 +2,6 @@ package file
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -201,10 +200,10 @@ func Lookup(baseDir, name string) string {
 			switch baseDir {
 			case KeysDir:
 				keysBase = dir
-				fmt.Printf("keysBaseDir dir is %v \n", dir)
+				//				fmt.Printf("keysBaseDir dir is %v \n", dir)
 			case AssetsDir:
 				assetsBase = dir
-				fmt.Printf("assetsBaseDir dir is %v \n", dir)
+				//				fmt.Printf("assetsBaseDir dir is %v \n", dir)
 			}
 			return filepath
 		}
