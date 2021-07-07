@@ -81,6 +81,7 @@ func TestCmdDeadlineNotSet(t *testing.T) {
 	deadlineCMD = -1 // remove cache
 }
 
+/*
 func TestChromePreflightRequest(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
@@ -92,3 +93,4 @@ func TestChromePreflightRequest(t *testing.T) {
 	//cleanup http.Handle mapping
 	http.DefaultServeMux = new(http.ServeMux)
 }
+*/
