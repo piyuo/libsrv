@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMappingToString(t *testing.T) {
+func TestToString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m := map[string]interface{}{
@@ -23,7 +23,7 @@ func TestMappingToString(t *testing.T) {
 	assert.Equal("2", m2["b"])
 }
 
-func TestMappingToAndFromString(t *testing.T) {
+func TestToAndFromString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m := map[string]interface{}{}
@@ -34,14 +34,14 @@ func TestMappingToAndFromString(t *testing.T) {
 	assert.Equal(0, len(m2))
 }
 
-func TestMappingFromString(t *testing.T) {
+func TestFromString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m := FromString("=")
 	assert.Equal(0, len(m))
 }
 
-func TestMappingGetMap(t *testing.T) {
+func TestGetMap(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m := map[string]interface{}{"a": map[string]interface{}{"c": "d"}, "b": 1}
@@ -55,7 +55,7 @@ func TestMappingGetMap(t *testing.T) {
 	assert.Empty(b)
 }
 
-func TestMappingGetString(t *testing.T) {
+func TestGetString(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m := map[string]interface{}{"a": "b", "c": 1}
@@ -64,7 +64,7 @@ func TestMappingGetString(t *testing.T) {
 	assert.Equal("1", GetString(m, "c", "default"))
 }
 
-func TestMappingGetFloat64(t *testing.T) {
+func TestGetFloat64(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m := map[string]interface{}{"a": 123, "c": "b"}
@@ -80,10 +80,18 @@ func TestMappingGetFloat64(t *testing.T) {
 	assert.Equal(float64(123), GetFloat64(i64, "a", 1))
 	i32 := map[string]interface{}{"a": int32(123)}
 	assert.Equal(float64(123), GetFloat64(i32, "a", 1))
-
 }
 
-func TestMappingInsert(t *testing.T) {
+func TestGetBool(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	m := map[string]interface{}{"a": false, "c": "b"}
+	assert.Equal(false, GetBool(m, "a", true))
+	assert.Equal(false, GetBool(m, "b", false))
+	assert.Equal(false, GetBool(m, "c", false))
+}
+
+func TestInsert(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	m1 := map[string]interface{}{"a": 1}
@@ -95,7 +103,7 @@ func TestMappingInsert(t *testing.T) {
 	assert.Equal(1, list[1].(map[string]interface{})["a"])
 }
 
-func TestMappingGetTime(t *testing.T) {
+func TestGetTime(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	j := map[string]interface{}{
@@ -132,7 +140,7 @@ func TestMappingGetTime(t *testing.T) {
 
 }
 
-func TestMappingGetList(t *testing.T) {
+func TestGetList(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	j := map[string]interface{}{

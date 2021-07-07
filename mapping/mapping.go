@@ -123,6 +123,23 @@ func GetTime(mapping map[string]interface{}, key string, defaultValue time.Time)
 	return defaultValue
 }
 
+// GetBool get bool value from map, return default value if not exist
+//
+//	str := GetFloat64(Map,0)
+//
+func GetBool(mapping map[string]interface{}, key string, defaultValue bool) bool {
+	value := mapping[key]
+	if value == nil {
+		return defaultValue
+	}
+	switch i := value.(type) {
+	default:
+		return false
+	case bool:
+		return i
+	}
+}
+
 // Insert insert json object to array
 //
 func Insert(a []interface{}, index int, value map[string]interface{}) []interface{} {
