@@ -71,7 +71,7 @@ func GetLocaleFromRequest(r *http.Request) string {
 //	locale := acceptLanguage("da, en-us;q=0.8, en;q=0.7") // "en_US"
 //
 func acceptLanguage(acptLang string) string {
-	//if acptLang is locale like 'en_US', this will speed thing up
+	//if acptLang is locale like 'en-US', this will speed thing up
 	exist, predefined := IsPredefined(acptLang)
 	if exist {
 		return predefined
