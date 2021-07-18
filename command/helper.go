@@ -4,9 +4,30 @@ import (
 	"github.com/piyuo/libsrv/command/simple"
 )
 
+const (
+	BLOCK_SHORT = "BLOCK_SHORT"
+	BLOCK_LONG  = "BLOCK_LONG"
+)
+
 // ok instace, it use frequently
 //
 var OK = &simple.OK{}
+
+// BlockShort return error response with BLOCK_SHORT
+//
+//	return command.BlockShort
+//
+var BlockShort = &simple.Error{
+	Code: BLOCK_SHORT,
+}
+
+// BlockLong return error response with BLOCK_Long
+//
+//	return command.BlockLong
+//
+var BlockLong = &simple.Error{
+	Code: BLOCK_LONG,
+}
 
 // Error return error response with code
 //
