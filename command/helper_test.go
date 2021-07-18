@@ -15,7 +15,7 @@ func TestHelper(t *testing.T) {
 	assert.Equal("hi", text.Value)
 
 	//should create number response
-	num := Number(201).(*simple.Number)
+	num := Int(201).(*simple.Number)
 	assert.Equal(int32(201), num.Value)
 
 	//should create bool response
@@ -49,6 +49,7 @@ func TestGetErrorCode(t *testing.T) {
 	err := Error("errCode").(*simple.Error)
 	assert.Equal("errCode", GetErrorCode(err))
 	assert.Equal("", GetErrorCode("notError"))
+	assert.Equal("", GetErrorCode(nil))
 }
 
 func TestString(t *testing.T) {
@@ -63,8 +64,8 @@ func TestInt(t *testing.T) {
 	t.Parallel()
 	assert := assert.New(t)
 	assert.False(IsInt(nil, 1))
-	assert.False(IsInt(Number(12), 42))
-	assert.True(IsInt(Number(42), 42))
+	assert.False(IsInt(Int(12), 42))
+	assert.True(IsInt(Int(42), 42))
 }
 
 func TestBool(t *testing.T) {
@@ -73,4 +74,18 @@ func TestBool(t *testing.T) {
 	assert.False(IsBool(nil, false))
 	assert.False(IsBool(Bool(false), true))
 	assert.True(IsBool(Bool(true), true))
+}
+
+func TestBlockShort(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	assert.True(IsBlockShort(BlockShort))
+	assert.False(IsBlockShort(Error("otherError")))
+}
+
+func TestBlockLong(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	assert.True(IsBlockLong(BlockLong))
+	assert.False(IsBlockLong(Error("otherError")))
 }

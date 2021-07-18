@@ -15,7 +15,7 @@ var OK = &simple.OK{}
 
 // BlockShort return error response with BLOCK_SHORT
 //
-//	return command.BlockShort
+//	return BlockShort
 //
 var BlockShort = &simple.Error{
 	Code: BLOCK_SHORT,
@@ -23,7 +23,7 @@ var BlockShort = &simple.Error{
 
 // BlockLong return error response with BLOCK_Long
 //
-//	return command.BlockLong
+//	return BlockLong
 //
 var BlockLong = &simple.Error{
 	Code: BLOCK_LONG,
@@ -31,7 +31,7 @@ var BlockLong = &simple.Error{
 
 // Error return error response with code
 //
-//	return command.Error("INVALID_EMAIL")
+//	return Error("INVALID_EMAIL")
 //
 func Error(errCode string) interface{} {
 	return &simple.Error{
@@ -41,7 +41,7 @@ func Error(errCode string) interface{} {
 
 // IsOK return true if object is PbOK
 //
-//	is := command.IsOK(response)
+//	is := IsOK(response)
 //
 func IsOK(obj interface{}) bool {
 	switch obj.(type) {
@@ -53,7 +53,7 @@ func IsOK(obj interface{}) bool {
 
 // IsError return true if object is PbError and code is entered
 //
-//	is := command.IsError(response,"INVALID_EMAIL")
+//	is := IsError(response,"INVALID_EMAIL")
 //
 func IsError(obj interface{}, entered string) bool {
 	if obj == nil {
@@ -68,9 +68,25 @@ func IsError(obj interface{}, entered string) bool {
 	return false
 }
 
+// IsBlockShort return true if object is BlockShort
+//
+//	is := IsBlockShort(response)
+//
+func IsBlockShort(obj interface{}) bool {
+	return IsError(obj, BLOCK_SHORT)
+}
+
+// IsBlockLong return true if object is BlockLong
+//
+//	is := IsBlockLong(response)
+//
+func IsBlockLong(obj interface{}) bool {
+	return IsError(obj, BLOCK_LONG)
+}
+
 // GetErrorCode return error code if object is PbError otherwise return empty
 //
-//	code := command.GetErrorCode(response) // "INVALID_EMAIL"
+//	code := GetErrorCode(response) // "INVALID_EMAIL"
 //
 func GetErrorCode(obj interface{}) string {
 	if obj == nil {
@@ -85,7 +101,7 @@ func GetErrorCode(obj interface{}) string {
 
 // String return string response
 //
-//	return command.Text("hi")
+//	return Text("hi")
 //
 func String(text string) interface{} {
 	return &simple.String{
@@ -95,7 +111,7 @@ func String(text string) interface{} {
 
 // IsString return true if object is PbString and code is entered
 //
-//	is := command.IsString(response,"hi")
+//	is := IsString(response,"hi")
 //
 func IsString(obj interface{}, entered string) bool {
 	if obj == nil {
@@ -110,11 +126,11 @@ func IsString(obj interface{}, entered string) bool {
 	return false
 }
 
-// Number return int response
+// Int return int response
 //
-//	return command.PbInt(101)
+//	return Int(101)
 //
-func Number(number int32) interface{} {
+func Int(number int32) interface{} {
 	return &simple.Number{
 		Value: number,
 	}
@@ -122,7 +138,7 @@ func Number(number int32) interface{} {
 
 // IsInt return true if object is PbInt and value is entered
 //
-//	is := command.IsInt(response,42)
+//	is := IsInt(response,42)
 //
 func IsInt(obj interface{}, entered int32) bool {
 	if obj == nil {
@@ -139,7 +155,7 @@ func IsInt(obj interface{}, entered int32) bool {
 
 // Bool return bool response
 //
-//	return command.NewPbBool(true)
+//	return Bool(true)
 //
 func Bool(value bool) interface{} {
 	return &simple.Bool{
@@ -149,7 +165,7 @@ func Bool(value bool) interface{} {
 
 // IsBool return true if object is PbBool and value is entered
 //
-//	is := command.IsBool(response,42)
+//	is := IsBool(response,42)
 //
 func IsBool(obj interface{}, entered bool) bool {
 	if obj == nil {
